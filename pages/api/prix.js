@@ -1,105 +1,130 @@
-import zlib from 'zlib';
-import { promisify } from 'util';
+import { createClient } from '@supabase/supabase-js';
+import https from 'https';
 
-const gunzip = promisify(zlib.gunzip);
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+);
 
-// Récupère et parse le fichier XML d'une enseigne
-async function recupererPrix(url) {
-  const response = await fetch(url);
-  if (!response.ok) throw new Error(`Erreur HTTP: ${response.status}`);
-  
-  const buffer = await response.arrayBuffer();
-  const data = Buffer.from(buffer);
-  
-  try {
-    const decompressed = await gunzip(data);
-    return decompressed.toString('utf8');
-  } catch {
-    return data.toString('utf8');
-  }
-}
-
-// Parse le XML en liste de produits
-function parseXML(xml) {
-  const produits = [];
-  const regex = /<Item>([\s\S]*?)<\/Item>/g;
-  let match;
-  
-  while ((match = regex.exec(xml)) !== null) {
-    const item = match[1];
-    const get = (tag) => {
-      const m = item.match(new RegExp(`<${tag}>(.*?)<\/${tag}>`));
-      return m ? m[1].trim() : '';
+async function rechercherRamiLevy(recherche) {
+  return new Promise((resolve) => {
+    const data = JSON.stringify({ q: recherche, aggs: 0, store: '331' });
+    const options = {
+      hostname: 'www.rami-levy.co.il',
+      path: '/api/catalog',
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json;charset=UTF-8',
+        'accept': 'application/json',
+        'locale': 'he',
+        'user-agent': 'Mozilla/5.0',
+        'origin': 'https://www.rami-levy.co.il',
+        'Content-Length': Buffer.byteLength(data)
+      }
     };
-    
-    produits.push({
-      code: get('ItemCode'),
-      nom: get('ItemName'),
-      prix: parseFloat(get('ItemPrice')) || 0,
-      quantite: get('Quantity'),
-      unite: get('UnitQty'),
+    const req = https.request(options, (res) => {
+      let body = '';
+      res.on('data', chunk => body += chunk);
+      res.on('end', () => {
+        try {
+          const json = JSON.parse(body);
+          resolve((json.data || [])
+            .filter(p => p.name && p.name.includes(recherche))
+            .map(p => ({
+              barcode: String(p.barcode || p.id),
+              nom: p.name,
+              prix: p.price?.price || 0,
+              quantite: '',
+              unite: '',
+              enseigne: 'רמי לוי'
+            }))
+            .filter(p => p.prix > 0)
+          );
+        } catch(e) { resolve([]); }
+      });
     });
-  }
-  
-  return produits;
+    req.on('error', () => resolve([]));
+    req.write(data);
+    req.end();
+  });
 }
-
-// Cache en mémoire pour ne pas re-télécharger à chaque requête
-let cache = null;
-let derniereMaj = null;
 
 export default async function handler(req, res) {
   const { q } = req.query;
-  
-  if (!q) {
-    return res.status(400).json({ erreur: 'Paramètre q requis' });
-  }
+  if (!q) return res.status(400).json({ erreur: 'Paramètre q requis' });
 
   try {
-    // Rafraîchir le cache toutes les heures
-    const maintenant = Date.now();
-    if (!cache || !derniereMaj || (maintenant - derniereMaj) > 3600000) {
-      console.log('🔄 Chargement des prix Shufersal...');
-      
-      // On récupère la liste des fichiers disponibles
-      const listePage = await fetch(
-        'https://prices.shufersal.co.il/FileObject/UpdateCategory?catID=2&storeId=1'
-      );
-      const listeHtml = await listePage.text();
-      
-      // On extrait l'URL du fichier le plus récent
-      const urlMatch = listeHtml.match(
-        /href="(https:\/\/pricesprodpublic[^"]+\.gz[^"]*)"/
-      );
-      
-      if (!urlMatch) throw new Error('URL fichier prix introuvable');
-      
-      const urlFichier = urlMatch[1].replace(/&amp;/g, '&');
-      console.log('📥 Téléchargement:', urlFichier.substring(0, 80) + '...');
-      
-      const xml = await recupererPrix(urlFichier);
-      cache = parseXML(xml);
-      derniereMaj = maintenant;
-      
-      console.log(`✅ ${cache.length} produits chargés`);
-    }
-    
-    // Recherche dans le cache
-    const recherche = decodeURIComponent(q).toLowerCase();
-    const resultats = cache.filter(p =>
-      p.nom.toLowerCase().includes(recherche) ||
-      p.nom.includes(q)
-    ).slice(0, 20);
-    
-    res.status(200).json({
-      source: 'Shufersal',
-      total: resultats.length,
-      produits: resultats,
-      derniereMaj: new Date(derniereMaj).toISOString()
+    const recherche = decodeURIComponent(q);
+
+    const [resultSupabase, produitsRL] = await Promise.all([
+      supabase
+        .from('produits')
+        .select('barcode, nom, prix(prix, quantite, unite, enseigne_code)')
+        .ilike('nom', `%${recherche}%`)
+        .limit(20),
+      rechercherRamiLevy(recherche)
+    ]);
+
+    // Formater Shufersal depuis Supabase
+    const produitsShuf = (resultSupabase.data || [])
+      .map(p => {
+        const prixShuf = (p.prix || []).find(x => x.enseigne_code === 'shufersal');
+        if (!prixShuf) return null;
+        return {
+          barcode: p.barcode,
+          nom: p.nom,
+          prix: parseFloat(prixShuf.prix),
+          quantite: prixShuf.quantite || '',
+          unite: prixShuf.unite || '',
+          enseigne: 'שופרסל'
+        };
+      })
+      .filter(Boolean);
+
+    // Index par barcode
+    const indexShuf = {};
+    produitsShuf.forEach(p => { indexShuf[p.barcode] = p; });
+
+    const indexRL = {};
+    produitsRL.forEach(p => { indexRL[p.barcode] = p; });
+
+    // Grouper par barcode
+    const produitsGroupes = [];
+    const barcodesTraites = new Set();
+
+    [...produitsShuf, ...produitsRL].forEach(p => {
+      if (barcodesTraites.has(p.barcode)) return;
+      barcodesTraites.add(p.barcode);
+
+      const shuf = indexShuf[p.barcode];
+      const rl = indexRL[p.barcode];
+
+      const tousLesPrix = [];
+      if (shuf) tousLesPrix.push({ enseigne: 'שופרסל', prix: shuf.prix });
+      if (rl) tousLesPrix.push({ enseigne: 'רמי לוי', prix: rl.prix });
+      tousLesPrix.sort((a, b) => a.prix - b.prix);
+
+      produitsGroupes.push({
+        barcode: p.barcode,
+        nom: shuf?.nom || rl?.nom,
+        quantite: shuf?.quantite || '',
+        unite: shuf?.unite || '',
+        meilleurPrix: tousLesPrix[0],
+        tousLesPrix,
+        disponibleDans: tousLesPrix.length
+      });
     });
-    
+
+    produitsGroupes.sort((a, b) => b.disponibleDans - a.disponibleDans);
+
+    res.status(200).json({
+      total: produitsGroupes.length,
+      produits: produitsGroupes,
+      derniereMaj: new Date().toISOString()
+    });
+
   } catch (err) {
-    console.error('Erreur API prix:', err.message);
+    console.error('Erreur:', err.message);
     res.status(500).json({ erreur: err.message });
   }
 }
