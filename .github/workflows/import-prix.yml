@@ -2,9 +2,9 @@ name: Import Prix Quotidien
 
 on:
   schedule:
-    - cron: '0 4 * * *'   # 6h heure Israel (UTC+2)
-    - cron: '0 16 * * *'  # 18h heure Israel
-  workflow_dispatch:        # Permet de lancer manuellement
+    - cron: '0 4 * * *'
+    - cron: '0 16 * * *'
+  workflow_dispatch:
 
 jobs:
   import:
@@ -16,7 +16,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
 
       - name: Install dependencies
         run: npm install
