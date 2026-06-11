@@ -1,79 +1,133 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 
-const ENSEIGNES = ['שופרסל', 'רמי לוי', 'ויקטורי'];
-const COULEURS = {
-  'שופרסל': 'bg-blue-100 text-blue-700 border-blue-300',
-  'רמי לוי': 'bg-red-100 text-red-700 border-red-300',
-  'ויקטורי': 'bg-purple-100 text-purple-700 border-purple-300',
+const COULEURS_ENSEIGNE = {
+  'שופרסל': { bg: '#dbeafe', text: '#1e40af' },
+  'רמי לוי': { bg: '#fee2e2', text: '#991b1b' },
+  'ויקטורי': { bg: '#ede9fe', text: '#5b21b6' },
 };
 
-function CartePromo({ promo }) {
-  const initiales = promo.nom.split(' ').slice(0, 2).map(w => w[0]).join('');
-  const couleurs = ['bg-blue-500', 'bg-red-500', 'bg-green-500', 'bg-purple-500', 'bg-orange-500', 'bg-pink-500'];
-  const couleur = couleurs[promo.barcode.charCodeAt(0) % couleurs.length];
+const EMOJIS_CATEGORIE = ['🧴', '🥛', '🍫', '🥤', '🧀', '🍞', '🥚', '🧹', '🫙', '🍖'];
 
+function getEmoji(nom) {
+  if (nom.includes('שמפו') || nom.includes('סבון')) return '🧴';
+  if (nom.includes('חלב') || nom.includes('גבינה')) return '🥛';
+  if (nom.includes('נוטלה') || nom.includes('שוקולד')) return '🍫';
+  if (nom.includes('קולה') || nom.includes('משקה')) return '🥤';
+  if (nom.includes('ביצ')) return '🥚';
+  if (nom.includes('לחם') || nom.includes('פיתה')) return '🍞';
+  if (nom.includes('עוף') || nom.includes('בשר')) return '🍖';
+  const h = nom.charCodeAt(0) % EMOJIS_CATEGORIE.length;
+  return EMOJIS_CATEGORIE[h];
+}
+
+const COULEURS_BG = ['#d1fae5', '#dbeafe', '#ffedd5', '#ede9fe', '#fce7f3', '#cffafe'];
+function getBg(barcode) {
+  return COULEURS_BG[parseInt(barcode?.slice(-1) || '0') % COULEURS_BG.length];
+}
+
+function StoreTag({ enseigne }) {
+  const c = COULEURS_ENSEIGNE[enseigne] || { bg: '#f3f4f6', text: '#374151' };
   return (
-    <div className="bg-white rounded-xl shadow p-3 flex flex-col">
-      <div className={`w-full h-28 ${couleur} rounded-lg mb-3 flex items-center justify-center`}>
-        <span className="text-white text-3xl font-bold">{initiales}</span>
+    <span style={{ background: c.bg, color: c.text, fontSize: 10, padding: '2px 8px', borderRadius: 10, fontWeight: 500 }}>
+      {enseigne}
+    </span>
+  );
+}
+
+function CartePromo({ promo }) {
+  const emoji = getEmoji(promo.nom);
+  const bg = getBg(promo.barcode);
+  return (
+    <div style={{ background: 'var(--color-background-primary)', borderRadius: 16, overflow: 'hidden', border: '0.5px solid var(--color-border-tertiary)' }}>
+      <div style={{ height: 90, background: bg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 36 }}>
+        {emoji}
       </div>
-      <div className="flex justify-between items-start mb-2">
-        <span className="bg-green-500 text-white text-xs font-bold px-2 py-1 rounded-full">
-          -{promo.reduction}%
-        </span>
-        <span className={`text-xs font-bold px-2 py-0.5 rounded-full border ${COULEURS[promo.meilleurEnseigne]}`}>
-          {promo.meilleurEnseigne}
-        </span>
-      </div>
-      <p className="font-bold text-gray-800 text-sm text-right mb-2 flex-1">{promo.nom}</p>
-      <div className="flex justify-between items-center">
-        <span className="text-gray-400 text-xs line-through">{promo.prixMax}&#8362;</span>
-        <span className="text-xl font-bold text-green-700">{promo.prixMin}&#8362;</span>
-      </div>
-      <div className="mt-2 space-y-1">
-        {promo.tousLesPrix.map(p => (
-          <div key={p.enseigne} className="flex justify-between text-xs">
-            <span className={`px-1.5 py-0.5 rounded-full border ${COULEURS[p.enseigne]}`}>{p.enseigne}</span>
-            <span className={p.prix === promo.prixMin ? 'font-bold text-green-700' : 'text-gray-500'}>{p.prix}&#8362;</span>
-          </div>
-        ))}
+      <div style={{ padding: 10 }}>
+        <p style={{ fontSize: 12, fontWeight: 500, textAlign: 'right', marginBottom: 6, lineHeight: 1.3, color: 'var(--color-text-primary)' }}>{promo.nom}</p>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <span style={{ fontSize: 10, fontWeight: 500, padding: '3px 7px', borderRadius: 20, background: '#dcfce7', color: '#15803d' }}>-{promo.reduction}%</span>
+          <span style={{ fontSize: 18, fontWeight: 500, color: '#16a34a' }}>{promo.prixMin}₪</span>
+        </div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 4 }}>
+          <span style={{ fontSize: 11, color: 'var(--color-text-secondary)', textDecoration: 'line-through' }}>{promo.prixMax}₪</span>
+          <StoreTag enseigne={promo.meilleurEnseigne} />
+        </div>
       </div>
     </div>
   );
 }
 
-function CarteProuit({ produit, dansPanier, onAjouter, onRetirer }) {
+function CarteDeal({ bp }) {
+  const [votes, setVotes] = useState({ chaud: bp.votes_chaud, froid: bp.votes_froid });
+  const [monVote, setMonVote] = useState(null);
+  const reduction = bp.prix_original ? Math.round((bp.prix_original - bp.prix) / bp.prix_original * 100) : null;
+
+  const voter = async (type) => {
+    if (monVote) return;
+    setMonVote(type);
+    setVotes(v => ({ ...v, [type === 'chaud' ? 'chaud' : 'froid']: v[type === 'chaud' ? 'chaud' : 'froid'] + 1 }));
+    await fetch('/api/bons-plans', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: bp.id, vote: type })
+    });
+  };
+
+  return (
+    <div style={{ background: 'var(--color-background-primary)', borderRadius: 16, padding: 14, border: '0.5px solid var(--color-border-tertiary)', marginBottom: 10 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
+        <StoreTag enseigne={bp.magasin} />
+        <p style={{ fontSize: 14, fontWeight: 500, color: 'var(--color-text-primary)', textAlign: 'right', flex: 1, marginRight: 8 }}>{bp.titre}</p>
+      </div>
+      {bp.description && <p style={{ fontSize: 12, color: 'var(--color-text-secondary)', textAlign: 'right', marginBottom: 8 }}>{bp.description}</p>}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div style={{ display: 'flex', gap: 6 }}>
+          <button onClick={() => voter('froid')} style={{ fontSize: 12, padding: '5px 12px', borderRadius: 20, border: '0.5px solid var(--color-border-secondary)', background: monVote === 'froid' ? '#dbeafe' : 'var(--color-background-secondary)', color: 'var(--color-text-secondary)', cursor: 'pointer' }}>
+            ❄️ {votes.froid}
+          </button>
+          <button onClick={() => voter('chaud')} style={{ fontSize: 12, padding: '5px 12px', borderRadius: 20, border: '0.5px solid var(--color-border-secondary)', background: monVote === 'chaud' ? '#fff7ed' : 'var(--color-background-secondary)', color: monVote === 'chaud' ? '#c2410c' : 'var(--color-text-secondary)', cursor: 'pointer' }}>
+            🔥 {votes.chaud}
+          </button>
+        </div>
+        <div style={{ textAlign: 'right' }}>
+          {bp.prix_original && <span style={{ fontSize: 11, color: 'var(--color-text-secondary)', textDecoration: 'line-through', marginLeft: 4 }}>{bp.prix_original}₪</span>}
+          <span style={{ fontSize: 22, fontWeight: 500, color: '#16a34a' }}>{bp.prix}₪</span>
+          {reduction && <span style={{ fontSize: 10, fontWeight: 500, padding: '2px 6px', borderRadius: 20, background: '#dcfce7', color: '#15803d', marginRight: 4 }}>-{reduction}%</span>}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function CarteRecherche({ produit, dansPanier, onAjouter, onRetirer }) {
   const tousLesPrix = produit.tousLesPrix;
   const meilleurPrix = Math.min(...tousLesPrix.map(p => p.prix));
   const prixIdentiques = tousLesPrix.every(p => p.prix === meilleurPrix);
 
   return (
-    <div className="bg-white rounded-xl shadow p-4">
-      <div className="flex justify-between items-start mb-3">
-        <button
-          onClick={() => dansPanier ? onRetirer(produit.barcode) : onAjouter(produit)}
-          className={`text-xs px-3 py-1 rounded-full font-bold flex-shrink-0 ${dansPanier ? 'bg-red-100 text-red-600' : 'bg-blue-100 text-blue-700'}`}
-        >
-          {dansPanier ? 'X' : '+'}
+    <div style={{ background: 'var(--color-background-primary)', borderRadius: 16, padding: 14, border: '0.5px solid var(--color-border-tertiary)', marginBottom: 10 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 }}>
+        <button onClick={() => dansPanier ? onRetirer(produit.barcode) : onAjouter(produit)}
+          style={{ fontSize: 12, padding: '5px 12px', borderRadius: 20, border: 'none', cursor: 'pointer', fontWeight: 500, background: dansPanier ? '#fee2e2' : '#dbeafe', color: dansPanier ? '#991b1b' : '#1e40af' }}>
+          {dansPanier ? '✓ ברשימה' : '+ הוסף'}
         </button>
-        <div className="text-right mr-3 flex-1">
-          <p className="font-bold text-gray-800 text-sm">{produit.nom}</p>
-          {produit.quantite && <p className="text-gray-400 text-xs">{produit.quantite} {produit.unite}</p>}
+        <div style={{ textAlign: 'right', flex: 1, marginRight: 10 }}>
+          <p style={{ fontWeight: 500, fontSize: 14, color: 'var(--color-text-primary)' }}>{produit.nom}</p>
+          {produit.quantite && <p style={{ fontSize: 12, color: 'var(--color-text-secondary)' }}>{produit.quantite} {produit.unite}</p>}
         </div>
       </div>
-      <div className="space-y-2">
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
         {tousLesPrix.map(p => {
           const estMeilleur = p.prix === meilleurPrix;
           return (
-            <div key={p.enseigne} className={`flex justify-between items-center rounded-lg px-3 py-2 border ${estMeilleur && !prixIdentiques ? 'border-green-300 bg-green-50' : 'border-gray-100 bg-gray-50'}`}>
-              <div className="flex items-center gap-2">
-                <span className={`text-xs font-bold px-2 py-0.5 rounded-full border ${COULEURS[p.enseigne]}`}>{p.enseigne}</span>
-                {estMeilleur && !prixIdentiques && <span className="text-xs text-green-600 font-bold">הכי זול</span>}
-                {prixIdentiques && <span className="text-xs text-gray-400">אותו מחיר</span>}
-                {!estMeilleur && !prixIdentiques && <span className="text-xs text-red-400">+{(p.prix - meilleurPrix).toFixed(2)}&#8362;</span>}
+            <div key={p.enseigne} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 12px', borderRadius: 10, background: estMeilleur && !prixIdentiques ? '#f0fdf4' : 'var(--color-background-secondary)', border: estMeilleur && !prixIdentiques ? '1px solid #bbf7d0' : '0.5px solid var(--color-border-tertiary)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <StoreTag enseigne={p.enseigne} />
+                {estMeilleur && !prixIdentiques && <span style={{ fontSize: 11, color: '#15803d', fontWeight: 500 }}>הכי זול</span>}
+                {!estMeilleur && !prixIdentiques && <span style={{ fontSize: 11, color: '#dc2626' }}>+{(p.prix - meilleurPrix).toFixed(2)}₪</span>}
               </div>
-              <span className={`text-xl font-bold ${estMeilleur && !prixIdentiques ? 'text-green-700' : 'text-gray-600'}`}>{p.prix}&#8362;</span>
+              <span style={{ fontSize: 18, fontWeight: 500, color: estMeilleur && !prixIdentiques ? '#16a34a' : 'var(--color-text-secondary)' }}>{p.prix}₪</span>
             </div>
           );
         })}
@@ -83,13 +137,12 @@ function CarteProuit({ produit, dansPanier, onAjouter, onRetirer }) {
 }
 
 function OptimisationPanier({ panier }) {
+  const ENSEIGNES = ['שופרסל', 'רמי לוי', 'ויקטורי'];
   const totalParMagasin = ENSEIGNES.map(enseigne => {
-    let total = 0;
-    let manquants = 0;
+    let total = 0, manquants = 0;
     panier.forEach(p => {
-      const prix = p.tousLesPrix.find(x => x.enseigne === enseigne);
-      if (prix) total += prix.prix;
-      else manquants++;
+      const px = p.tousLesPrix.find(x => x.enseigne === enseigne);
+      if (px) total += px.prix; else manquants++;
     });
     return { enseigne, total, manquants };
   }).filter(x => x.manquants < panier.length).sort((a, b) => a.total - b.total);
@@ -107,42 +160,37 @@ function OptimisationPanier({ panier }) {
   const economiMulti = meilMagasin ? (meilMagasin.total - totalMulti).toFixed(2) : 0;
 
   return (
-    <div className="bg-white rounded-xl shadow p-4 mt-4 space-y-4">
-      <h2 className="text-lg font-bold text-right">איפה הכי זול לקנות?</h2>
-      <div className="border rounded-xl p-3">
-        <p className="font-bold text-right mb-2 text-blue-800">אפשרות 1 — חנות אחת</p>
-        <div className="space-y-2">
-          {totalParMagasin.map((m, i) => (
-            <div key={m.enseigne} className={`flex justify-between items-center rounded-lg px-3 py-2 ${i === 0 ? 'bg-green-50 border border-green-300' : 'bg-gray-50 border border-gray-200'}`}>
-              <div className="flex items-center gap-2">
-                <span className={`text-xs font-bold px-2 py-0.5 rounded-full border ${COULEURS[m.enseigne]}`}>{m.enseigne}</span>
-                {i === 0 && <span className="text-xs text-green-600 font-bold">הכי זול</span>}
-              </div>
-              <span className={`text-xl font-bold ${i === 0 ? 'text-green-700' : 'text-gray-500'}`}>{m.total.toFixed(2)}&#8362;</span>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 16 }}>
+      <div style={{ background: 'var(--color-background-primary)', borderRadius: 16, padding: 14, border: '0.5px solid var(--color-border-tertiary)' }}>
+        <p style={{ fontWeight: 500, textAlign: 'right', marginBottom: 10, fontSize: 14, color: 'var(--color-text-primary)' }}>אפשרות 1 — חנות אחת</p>
+        {totalParMagasin.map((m, i) => (
+          <div key={m.enseigne} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 12px', borderRadius: 10, marginBottom: 6, background: i === 0 ? '#f0fdf4' : 'var(--color-background-secondary)', border: i === 0 ? '1px solid #bbf7d0' : '0.5px solid var(--color-border-tertiary)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <StoreTag enseigne={m.enseigne} />
+              {i === 0 && <span style={{ fontSize: 11, color: '#15803d', fontWeight: 500 }}>הכי זול</span>}
             </div>
-          ))}
-        </div>
+            <span style={{ fontSize: 18, fontWeight: 500, color: i === 0 ? '#16a34a' : 'var(--color-text-secondary)' }}>{m.total.toFixed(2)}₪</span>
+          </div>
+        ))}
       </div>
-      <div className="border rounded-xl p-3">
-        <div className="flex justify-between items-center mb-2">
-          <span className="text-xs text-green-600 font-bold">חיסכון: {economiMulti}&#8362;</span>
-          <p className="font-bold text-right text-green-800">אפשרות 2 — הכי חסכוני</p>
+      <div style={{ background: 'var(--color-background-primary)', borderRadius: 16, padding: 14, border: '0.5px solid var(--color-border-tertiary)' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+          <span style={{ fontSize: 12, color: '#15803d', fontWeight: 500, background: '#dcfce7', padding: '3px 10px', borderRadius: 20 }}>חיסכון: {economiMulti}₪</span>
+          <p style={{ fontWeight: 500, textAlign: 'right', fontSize: 14, color: 'var(--color-text-primary)' }}>אפשרות 2 — הכי חסכוני</p>
         </div>
-        <div className="flex justify-between items-center bg-green-50 border border-green-300 rounded-lg px-3 py-2 mb-3">
-          <span className="text-xs text-green-600">סה״כ</span>
-          <span className="text-xl font-bold text-green-700">{totalMulti.toFixed(2)}&#8362;</span>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 12px', borderRadius: 10, background: '#f0fdf4', border: '1px solid #bbf7d0', marginBottom: 10 }}>
+          <span style={{ fontSize: 12, color: '#15803d' }}>סה״כ</span>
+          <span style={{ fontSize: 22, fontWeight: 500, color: '#16a34a' }}>{totalMulti.toFixed(2)}₪</span>
         </div>
         {Object.entries(repartitionMulti).map(([enseigne, items]) => (
-          <div key={enseigne} className="mb-2">
-            <span className={`text-xs font-bold px-2 py-0.5 rounded-full border ${COULEURS[enseigne]}`}>{enseigne}</span>
-            <ul className="mt-1 mr-2">
-              {items.map((item, i) => (
-                <li key={i} className="flex justify-between text-xs text-gray-600 px-2">
-                  <span className="font-bold">{item.prix}&#8362;</span>
-                  <span>{item.nom}</span>
-                </li>
-              ))}
-            </ul>
+          <div key={enseigne} style={{ marginBottom: 10 }}>
+            <StoreTag enseigne={enseigne} />
+            {items.map((item, i) => (
+              <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 8px', fontSize: 12, color: 'var(--color-text-secondary)' }}>
+                <span style={{ fontWeight: 500 }}>{item.prix}₪</span>
+                <span>{item.nom}</span>
+              </div>
+            ))}
           </div>
         ))}
       </div>
@@ -153,19 +201,18 @@ function OptimisationPanier({ panier }) {
 export default function Home() {
   const [onglet, setOnglet] = useState('promos');
   const [promos, setPromos] = useState([]);
+  const [deals, setDeals] = useState([]);
   const [chargementPromos, setChargementPromos] = useState(true);
+  const [chargementDeals, setChargementDeals] = useState(true);
   const [recherche, setRecherche] = useState('');
   const [produits, setProduits] = useState([]);
   const [chargement, setChargement] = useState(false);
   const [panier, setPanier] = useState([]);
-  const [voirPanier, setVoirPanier] = useState(false);
   const [erreur, setErreur] = useState('');
 
   useEffect(() => {
-    fetch('/api/promos')
-      .then(r => r.json())
-      .then(d => { setPromos(d.promos || []); setChargementPromos(false); })
-      .catch(() => setChargementPromos(false));
+    fetch('/api/promos').then(r => r.json()).then(d => { setPromos(d.promos || []); setChargementPromos(false); }).catch(() => setChargementPromos(false));
+    fetch('/api/bons-plans').then(r => r.json()).then(d => { setDeals(d.bons_plans || []); setChargementDeals(false); }).catch(() => setChargementDeals(false));
   }, []);
 
   useEffect(() => {
@@ -177,119 +224,166 @@ export default function Home() {
         const res = await fetch('/api/prix?q=' + encodeURIComponent(recherche));
         const data = await res.json();
         if (data.erreur) throw new Error(data.erreur);
-        const filtres = (data.produits || []).filter(p => p.nom && p.nom.includes(recherche));
-        setProduits(filtres);
+        setProduits((data.produits || []).filter(p => p.nom && p.nom.includes(recherche)));
       } catch(e) { setErreur('שגיאה'); }
       setChargement(false);
     }, 500);
     return () => clearTimeout(timer);
   }, [recherche]);
 
-  const ajouterAuPanier = (p) => {
-    if (!panier.find(x => x.barcode === p.barcode)) setPanier([...panier, p]);
-  };
+  const ajouterAuPanier = (p) => { if (!panier.find(x => x.barcode === p.barcode)) setPanier([...panier, p]); };
   const retirerDuPanier = (barcode) => setPanier(panier.filter(p => p.barcode !== barcode));
   const totalMeilleur = panier.reduce((s, p) => s + Math.min(...p.tousLesPrix.map(x => x.prix)), 0);
 
+  const ongletActif = recherche.length >= 2 ? 'recherche' : onglet;
+
+  const navItems = [
+    { id: 'panier', icon: '🛒', label: 'סל', badge: panier.length > 0 ? panier.length : null },
+    { id: 'recherche', icon: '🔍', label: 'חיפוש' },
+    { id: 'promos', icon: '🏷️', label: 'מבצעים' },
+    { id: 'deals', icon: '🔥', label: 'דילים' },
+  ];
+
+  const handleNav = (id) => {
+    if (id === 'recherche') { document.getElementById('search-input')?.focus(); return; }
+    if (id !== 'panier') setRecherche('');
+    setOnglet(id === 'panier' ? onglet : id);
+    if (id === 'panier') setOnglet('panier');
+  };
+
+  const ongletVisible = onglet === 'panier' || (recherche.length === 0 && onglet !== 'panier') ? onglet : 'recherche';
+
   return (
-    <div className="min-h-screen bg-gray-50" dir="rtl">
-      <header className="bg-blue-700 text-white p-4 shadow sticky top-0 z-10">
-        <div className="max-w-2xl mx-auto flex justify-between items-center">
-          <div className="flex items-center gap-3">
-            {panier.length > 0 && (
-              <button onClick={() => setVoirPanier(!voirPanier)}
-                className="bg-white text-blue-700 text-xs font-bold px-3 py-1 rounded-full">
-                {voirPanier ? 'חזור' : `סל ${panier.length} | ${totalMeilleur.toFixed(2)}₪`}
-              </button>
-            )}
-            <Link href="/bons-plans" className="text-white text-sm font-bold bg-orange-500 px-3 py-1 rounded-full">
-              דילים 🔥
-            </Link>
+    <div style={{ minHeight: '100vh', background: 'var(--color-background-tertiary)', fontFamily: 'var(--font-sans)', paddingBottom: 80 }} dir="rtl">
+
+      {/* Header */}
+      <div style={{ background: '#1a1a2e', padding: '16px 20px 20px', position: 'sticky', top: 0, zIndex: 10 }}>
+        <div style={{ maxWidth: 600, margin: '0 auto' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
+            <div></div>
+            <span style={{ fontSize: 26, fontWeight: 500, color: '#fff', letterSpacing: -0.5 }}>
+              dil<span style={{ color: '#4ade80' }}>z</span>
+            </span>
           </div>
-          <div className="text-right">
-            <h1 className="text-2xl font-bold">Dilz</h1>
-            <p className="text-blue-200 text-xs">השוואת מחירים בסופרמרקטים</p>
+          <div style={{ background: 'rgba(255,255,255,0.1)', borderRadius: 12, display: 'flex', alignItems: 'center', padding: '10px 14px', gap: 8 }}>
+            <span style={{ color: 'rgba(255,255,255,0.4)', fontSize: 16 }}>🔍</span>
+            <input id="search-input" type="text" placeholder="חפש מוצר... נוטלה, קוקה קולה"
+              style={{ background: 'none', border: 'none', color: '#fff', fontSize: 14, flex: 1, outline: 'none', textAlign: 'right' }}
+              value={recherche} onChange={e => setRecherche(e.target.value)} />
+            {recherche && <button onClick={() => setRecherche('')} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.5)', cursor: 'pointer', fontSize: 16 }}>✕</button>}
           </div>
         </div>
-      </header>
+      </div>
 
-      <main className="max-w-2xl mx-auto p-4">
-        {voirPanier && panier.length > 0 && (
+      <div style={{ maxWidth: 600, margin: '0 auto', padding: 16 }}>
+
+        {/* Vue Panier */}
+        {onglet === 'panier' && recherche.length < 2 && (
           <div>
-            <h2 className="text-lg font-bold text-right mb-3">רשימת הקניות ({panier.length})</h2>
-            <ul className="space-y-2 mb-4 bg-white rounded-xl shadow p-4">
-              {panier.map((p, i) => {
-                const meilPrix = Math.min(...p.tousLesPrix.map(x => x.prix));
-                const meilEnseigne = p.tousLesPrix.find(x => x.prix === meilPrix);
-                return (
-                  <li key={i} className="flex justify-between items-center text-sm">
-                    <div className="flex items-center gap-2">
-                      <button onClick={() => retirerDuPanier(p.barcode)} className="text-red-400 font-bold">X</button>
-                      <span className="font-bold text-green-700">{meilPrix}&#8362;</span>
-                      <span className={`text-xs px-2 py-0.5 rounded-full border ${COULEURS[meilEnseigne?.enseigne]}`}>{meilEnseigne?.enseigne}</span>
-                    </div>
-                    <span className="text-gray-700 text-right text-xs">{p.nom}</span>
-                  </li>
-                );
-              })}
-            </ul>
-            <OptimisationPanier panier={panier} />
+            {panier.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: 60, color: 'var(--color-text-secondary)' }}>
+                <div style={{ fontSize: 48, marginBottom: 12 }}>🛒</div>
+                <p style={{ fontSize: 16 }}>הסל שלך ריק</p>
+                <p style={{ fontSize: 13, marginTop: 4 }}>חפש מוצרים והוסף לסל</p>
+              </div>
+            ) : (
+              <div>
+                <p style={{ fontSize: 16, fontWeight: 500, textAlign: 'right', marginBottom: 12, color: 'var(--color-text-primary)' }}>רשימת הקניות ({panier.length})</p>
+                <div style={{ background: 'var(--color-background-primary)', borderRadius: 16, padding: 14, border: '0.5px solid var(--color-border-tertiary)', marginBottom: 12 }}>
+                  {panier.map((p, i) => {
+                    const meilPrix = Math.min(...p.tousLesPrix.map(x => x.prix));
+                    const meilEnseigne = p.tousLesPrix.find(x => x.prix === meilPrix);
+                    return (
+                      <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderBottom: i < panier.length - 1 ? '0.5px solid var(--color-border-tertiary)' : 'none' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                          <button onClick={() => retirerDuPanier(p.barcode)} style={{ background: 'none', border: 'none', color: '#dc2626', cursor: 'pointer', fontSize: 14 }}>✕</button>
+                          <span style={{ fontSize: 16, fontWeight: 500, color: '#16a34a' }}>{meilPrix}₪</span>
+                          <StoreTag enseigne={meilEnseigne?.enseigne} />
+                        </div>
+                        <span style={{ fontSize: 13, color: 'var(--color-text-secondary)', textAlign: 'right', maxWidth: 180 }}>{p.nom}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+                <OptimisationPanier panier={panier} />
+              </div>
+            )}
           </div>
         )}
 
-        {!voirPanier && (
-          <>
-            <div className="my-4">
-              <input
-                type="text"
-                placeholder="חפש מוצר... נוטלה, קוקה קולה"
-                className="w-full border border-gray-300 rounded-xl px-4 py-3 text-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400 text-right"
-                value={recherche}
-                onChange={e => { setRecherche(e.target.value); if(e.target.value.length >= 2) setOnglet('recherche'); else setOnglet('promos'); }}
-              />
-            </div>
-
-            {recherche.length >= 2 && (
+        {/* Vue Recherche */}
+        {recherche.length >= 2 && (
+          <div>
+            {chargement && <p style={{ textAlign: 'center', color: 'var(--color-text-secondary)', padding: 20 }}>טוען...</p>}
+            {produits.length > 0 && !chargement && (
               <div>
-                {chargement && <div className="text-center text-gray-400 py-4">טוען...</div>}
-                {erreur && <div className="bg-red-50 text-red-600 p-3 rounded-xl text-right mb-3">{erreur}</div>}
-                {produits.length > 0 && !chargement && (
-                  <div className="space-y-3">
-                    <p className="text-sm text-gray-500 text-right">{produits.length} מוצרים</p>
-                    {produits.map(p => (
-                      <CarteProuit
-                        key={p.barcode}
-                        produit={p}
-                        dansPanier={!!panier.find(x => x.barcode === p.barcode)}
-                        onAjouter={ajouterAuPanier}
-                        onRetirer={retirerDuPanier}
-                      />
-                    ))}
-                  </div>
-                )}
-                {!chargement && produits.length === 0 && !erreur && (
-                  <div className="text-center text-gray-400 py-8">לא נמצאו מוצרים</div>
-                )}
+                <p style={{ fontSize: 13, color: 'var(--color-text-secondary)', textAlign: 'right', marginBottom: 10 }}>{produits.length} מוצרים</p>
+                {produits.map(p => (
+                  <CarteRecherche key={p.barcode} produit={p}
+                    dansPanier={!!panier.find(x => x.barcode === p.barcode)}
+                    onAjouter={ajouterAuPanier} onRetirer={retirerDuPanier} />
+                ))}
               </div>
             )}
-
-            {onglet === 'promos' && recherche.length < 2 && (
-              <div>
-                <h2 className="text-lg font-bold text-right mb-3">המבצעים הכי טובים היום</h2>
-                {chargementPromos ? (
-                  <div className="text-center text-gray-400 py-8">טוען מבצעים...</div>
-                ) : (
-                  <div className="grid grid-cols-2 gap-3">
-                    {promos.map(promo => (
-                      <CartePromo key={promo.barcode} promo={promo} />
-                    ))}
-                  </div>
-                )}
-              </div>
+            {!chargement && produits.length === 0 && (
+              <p style={{ textAlign: 'center', color: 'var(--color-text-secondary)', padding: 40 }}>לא נמצאו מוצרים</p>
             )}
-          </>
+          </div>
         )}
-      </main>
+
+        {/* Vue Promos */}
+        {onglet === 'promos' && recherche.length < 2 && (
+          <div>
+            <p style={{ fontSize: 13, color: 'var(--color-text-secondary)', textAlign: 'right', marginBottom: 12 }}>המבצעים הכי טובים היום</p>
+            {chargementPromos ? (
+              <p style={{ textAlign: 'center', color: 'var(--color-text-secondary)', padding: 40 }}>טוען מבצעים...</p>
+            ) : (
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                {promos.map(promo => <CartePromo key={promo.barcode} promo={promo} />)}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Vue Deals */}
+        {onglet === 'deals' && recherche.length < 2 && (
+          <div>
+            <Link href="/bons-plans"
+              style={{ display: 'block', textAlign: 'center', background: '#1a1a2e', color: '#4ade80', padding: 14, borderRadius: 14, textDecoration: 'none', fontWeight: 500, fontSize: 14, marginBottom: 16 }}>
+              + שתף דיל חדש
+            </Link>
+            <p style={{ fontSize: 13, color: 'var(--color-text-secondary)', textAlign: 'right', marginBottom: 12 }}>דילים חמים מהקהילה 🔥</p>
+            {chargementDeals ? (
+              <p style={{ textAlign: 'center', color: 'var(--color-text-secondary)', padding: 20 }}>טוען דילים...</p>
+            ) : (
+              deals.slice(0, 5).map(bp => <CarteDeal key={bp.id} bp={bp} />)
+            )}
+            <Link href="/bons-plans" style={{ display: 'block', textAlign: 'center', padding: 12, color: 'var(--color-text-secondary)', fontSize: 13, textDecoration: 'none' }}>
+              כל הדילים →
+            </Link>
+          </div>
+        )}
+      </div>
+
+      {/* Bottom Nav */}
+      <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, background: 'rgba(255,255,255,0.7)', backdropFilter: 'blur(20px) saturate(180%)', WebkitBackdropFilter: 'blur(20px) saturate(180%)', borderTop: '0.5px solid rgba(255,255,255,0.3)', display: 'flex', justifyContent: 'space-around', padding: '10px 0 16px', zIndex: 20, boxShadow: '0 -4px 20px rgba(0,0,0,0.08)' }}>
+        {navItems.map(item => {
+          const actif = item.id === 'panier' ? onglet === 'panier' : item.id === 'recherche' ? recherche.length >= 2 : onglet === item.id && recherche.length < 2;
+          return (
+            <button key={item.id} onClick={() => { setOnglet(item.id); if (item.id !== 'recherche') setRecherche(''); }}
+              style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, background: 'none', border: 'none', cursor: 'pointer', position: 'relative', minWidth: 60 }}>
+              <span style={{ fontSize: 22 }}>{item.icon}</span>
+              <span style={{ fontSize: 10, color: actif ? '#1a1a2e' : 'var(--color-text-secondary)', fontWeight: actif ? 500 : 400 }}>{item.label}</span>
+              {item.badge && (
+                <span style={{ position: 'absolute', top: -4, right: 8, background: '#4ade80', color: '#1a1a2e', fontSize: 9, fontWeight: 500, width: 16, height: 16, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  {item.badge}
+                </span>
+              )}
+              {actif && <div style={{ width: 4, height: 4, borderRadius: '50%', background: '#4ade80', marginTop: 2 }} />}
+            </button>
+          );
+        })}
+      </div>
     </div>
   );
 }
