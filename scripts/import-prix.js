@@ -60,7 +60,11 @@ async function sauvegarderEnBase(produits, enseigneCode, storeId) {
   for (let i = 0; i < produits.length; i += batchSize) {
     const batch = produits.slice(i, i + batchSize);
     await supabase.from('produits').upsert(
-      batch.map(p => ({ barcode: p.barcode, nom: p.nom })),
+      batch.map(p => ({
+        barcode: p.barcode,
+        nom: p.nom,
+        ...(p.image ? { image: p.image } : {})
+      })),
       { onConflict: 'barcode' }
     );
     const { error } = await supabase.from('prix').upsert(
@@ -136,28 +140,33 @@ async function importerRamiLevy() {
   const first = await postRL({ store: '331', q: '', from: 0, size: 30 });
   const total = first.total || 0;
   console.log(`  Total catalogue: ${total}`);
-  (first.data || []).forEach(p => {
-    if (p.price?.price > 0 && p.name) {
-      tousLesProduits.set(String(p.barcode || p.id), {
-        barcode: String(p.barcode || p.id),
-        nom: p.name, prix: p.price.price, quantite: '', unite: ''
-      });
-    }
-  });
-  for (let from = 30; from < total; from += 30) {
-    const res = await postRL({ store: '331', q: '', from, size: 30 });
-    let nouveaux = 0;
-    (res.data || []).forEach(p => {
+
+  const traiter = (items) => {
+    (items || []).forEach(p => {
       if (p.price?.price > 0 && p.name) {
-        const key = String(p.barcode || p.id);
-        if (!tousLesProduits.has(key)) nouveaux++;
-        tousLesProduits.set(key, { barcode: key, nom: p.name, prix: p.price.price, quantite: '', unite: '' });
+        tousLesProduits.set(String(p.barcode || p.id), {
+          barcode: String(p.barcode || p.id),
+          nom: p.name,
+          prix: p.price.price,
+          quantite: '',
+          unite: '',
+          image: p.images?.small ? `https://www.rami-levy.co.il${p.images.small}` : null
+        });
       }
     });
+  };
+
+  traiter(first.data);
+
+  for (let from = 30; from < total; from += 30) {
+    const res = await postRL({ store: '331', q: '', from, size: 30 });
+    const avant = tousLesProduits.size;
+    traiter(res.data);
     if (from % 600 === 0) console.log(`  ${from}/${total} — ${tousLesProduits.size} uniques`);
-    if (nouveaux === 0 && from > 300) { console.log('  Arret pagination'); break; }
+    if (tousLesProduits.size === avant && from > 300) { console.log('  Arret pagination'); break; }
     await new Promise(r => setTimeout(r, 150));
   }
+
   const produits = Array.from(tousLesProduits.values());
   console.log(`  ${produits.length} produits uniques`);
   await sauvegarderEnBase(produits, 'rami_levy', '331');
@@ -167,8 +176,6 @@ async function importerRamiLevy() {
 async function importerVictory() {
   console.log('\nVictory...');
   const EDI = '7290696200003';
-  
-  // Recuperer la liste des fichiers PriceFull
   const filesRes = await new Promise((resolve, reject) => {
     https.get(`https://laibcatalog.co.il/webapi/api/getfiles?edi=${EDI}`, (res) => {
       let data = '';
@@ -181,28 +188,21 @@ async function importerVictory() {
   });
 
   const fichiersPriceFull = filesRes.filter(f => f.fileType === 'pricefull');
-  console.log(`  ${fichiersPriceFull.length} fichiers PriceFull trouves`);
+  console.log(`  ${fichiersPriceFull.length} fichiers PriceFull`);
 
   const tousLesProduits = new Map();
-
-  // Prendre les 5 premiers magasins pour avoir une bonne couverture
   for (const fichier of fichiersPriceFull.slice(0, 5)) {
     const url = `https://laibcatalog.co.il/webapi/${EDI}/${fichier.fileName}`;
-    console.log(`  Telechargement magasin ${fichier.branchNumber}...`);
-    
     try {
       const xml = await telechargerGZ(url);
       const produits = parseXMLPrix(xml);
       produits.forEach(p => {
-        if (!tousLesProduits.has(p.barcode)) {
-          tousLesProduits.set(p.barcode, p);
-        }
+        if (!tousLesProduits.has(p.barcode)) tousLesProduits.set(p.barcode, p);
       });
       console.log(`  Magasin ${fichier.branchNumber}: ${produits.length} produits (total: ${tousLesProduits.size})`);
     } catch(e) {
       console.log(`  Erreur magasin ${fichier.branchNumber}:`, e.message);
     }
-    
     await new Promise(r => setTimeout(r, 500));
   }
 

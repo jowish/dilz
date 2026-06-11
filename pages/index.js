@@ -1,10 +1,47 @@
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 
-const ENSEIGNES = ['שופרסל', 'רמי לוי'];
+const ENSEIGNES = ['שופרסל', 'רמי לוי', 'ויקטורי'];
 const COULEURS = {
   'שופרסל': 'bg-blue-100 text-blue-700 border-blue-300',
   'רמי לוי': 'bg-red-100 text-red-700 border-red-300',
+  'ויקטורי': 'bg-purple-100 text-purple-700 border-purple-300',
 };
+
+function CartePromo({ promo }) {
+  const initiales = promo.nom.split(' ').slice(0, 2).map(w => w[0]).join('');
+  const couleurs = ['bg-blue-500', 'bg-red-500', 'bg-green-500', 'bg-purple-500', 'bg-orange-500', 'bg-pink-500'];
+  const couleur = couleurs[promo.barcode.charCodeAt(0) % couleurs.length];
+
+  return (
+    <div className="bg-white rounded-xl shadow p-3 flex flex-col">
+      <div className={`w-full h-28 ${couleur} rounded-lg mb-3 flex items-center justify-center`}>
+        <span className="text-white text-3xl font-bold">{initiales}</span>
+      </div>
+      <div className="flex justify-between items-start mb-2">
+        <span className="bg-green-500 text-white text-xs font-bold px-2 py-1 rounded-full">
+          -{promo.reduction}%
+        </span>
+        <span className={`text-xs font-bold px-2 py-0.5 rounded-full border ${COULEURS[promo.meilleurEnseigne]}`}>
+          {promo.meilleurEnseigne}
+        </span>
+      </div>
+      <p className="font-bold text-gray-800 text-sm text-right mb-2 flex-1">{promo.nom}</p>
+      <div className="flex justify-between items-center">
+        <span className="text-gray-400 text-xs line-through">{promo.prixMax}&#8362;</span>
+        <span className="text-xl font-bold text-green-700">{promo.prixMin}&#8362;</span>
+      </div>
+      <div className="mt-2 space-y-1">
+        {promo.tousLesPrix.map(p => (
+          <div key={p.enseigne} className="flex justify-between text-xs">
+            <span className={`px-1.5 py-0.5 rounded-full border ${COULEURS[p.enseigne]}`}>{p.enseigne}</span>
+            <span className={p.prix === promo.prixMin ? 'font-bold text-green-700' : 'text-gray-500'}>{p.prix}&#8362;</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
 
 function CarteProuit({ produit, dansPanier, onAjouter, onRetirer }) {
   const tousLesPrix = produit.tousLesPrix;
@@ -22,12 +59,9 @@ function CarteProuit({ produit, dansPanier, onAjouter, onRetirer }) {
         </button>
         <div className="text-right mr-3 flex-1">
           <p className="font-bold text-gray-800 text-sm">{produit.nom}</p>
-          {produit.quantite && (
-            <p className="text-gray-400 text-xs">{produit.quantite} {produit.unite}</p>
-          )}
+          {produit.quantite && <p className="text-gray-400 text-xs">{produit.quantite} {produit.unite}</p>}
         </div>
       </div>
-
       <div className="space-y-2">
         {tousLesPrix.map(p => {
           const estMeilleur = p.prix === meilleurPrix;
@@ -49,7 +83,6 @@ function CarteProuit({ produit, dansPanier, onAjouter, onRetirer }) {
 }
 
 function OptimisationPanier({ panier }) {
-  // Calcul option 1 : 1 seul magasin
   const totalParMagasin = ENSEIGNES.map(enseigne => {
     let total = 0;
     let manquants = 0;
@@ -59,10 +92,8 @@ function OptimisationPanier({ panier }) {
       else manquants++;
     });
     return { enseigne, total, manquants };
-  }).filter(x => x.manquants < panier.length)
-    .sort((a, b) => a.total - b.total);
+  }).filter(x => x.manquants < panier.length).sort((a, b) => a.total - b.total);
 
-  // Calcul option 2 : meilleur prix absolu
   const repartitionMulti = {};
   let totalMulti = 0;
   panier.forEach(p => {
@@ -78,8 +109,6 @@ function OptimisationPanier({ panier }) {
   return (
     <div className="bg-white rounded-xl shadow p-4 mt-4 space-y-4">
       <h2 className="text-lg font-bold text-right">איפה הכי זול לקנות?</h2>
-
-      {/* Option 1 — 1 magasin */}
       <div className="border rounded-xl p-3">
         <p className="font-bold text-right mb-2 text-blue-800">אפשרות 1 — חנות אחת</p>
         <div className="space-y-2">
@@ -88,19 +117,16 @@ function OptimisationPanier({ panier }) {
               <div className="flex items-center gap-2">
                 <span className={`text-xs font-bold px-2 py-0.5 rounded-full border ${COULEURS[m.enseigne]}`}>{m.enseigne}</span>
                 {i === 0 && <span className="text-xs text-green-600 font-bold">הכי זול</span>}
-                {m.manquants > 0 && <span className="text-xs text-orange-500">{m.manquants} מוצרים חסרים</span>}
               </div>
               <span className={`text-xl font-bold ${i === 0 ? 'text-green-700' : 'text-gray-500'}`}>{m.total.toFixed(2)}&#8362;</span>
             </div>
           ))}
         </div>
       </div>
-
-      {/* Option 2 — multi-magasins */}
       <div className="border rounded-xl p-3">
         <div className="flex justify-between items-center mb-2">
           <span className="text-xs text-green-600 font-bold">חיסכון: {economiMulti}&#8362;</span>
-          <p className="font-bold text-right text-green-800">אפשרות 2 — הכי חסכוני (כמה חנויות)</p>
+          <p className="font-bold text-right text-green-800">אפשרות 2 — הכי חסכוני</p>
         </div>
         <div className="flex justify-between items-center bg-green-50 border border-green-300 rounded-lg px-3 py-2 mb-3">
           <span className="text-xs text-green-600">סה״כ</span>
@@ -109,11 +135,11 @@ function OptimisationPanier({ panier }) {
         {Object.entries(repartitionMulti).map(([enseigne, items]) => (
           <div key={enseigne} className="mb-2">
             <span className={`text-xs font-bold px-2 py-0.5 rounded-full border ${COULEURS[enseigne]}`}>{enseigne}</span>
-            <ul className="mt-1 space-y-1">
+            <ul className="mt-1 mr-2">
               {items.map((item, i) => (
                 <li key={i} className="flex justify-between text-xs text-gray-600 px-2">
                   <span className="font-bold">{item.prix}&#8362;</span>
-                  <span className="text-right">{item.nom}</span>
+                  <span>{item.nom}</span>
                 </li>
               ))}
             </ul>
@@ -125,12 +151,22 @@ function OptimisationPanier({ panier }) {
 }
 
 export default function Home() {
+  const [onglet, setOnglet] = useState('promos');
+  const [promos, setPromos] = useState([]);
+  const [chargementPromos, setChargementPromos] = useState(true);
   const [recherche, setRecherche] = useState('');
   const [produits, setProduits] = useState([]);
   const [chargement, setChargement] = useState(false);
   const [panier, setPanier] = useState([]);
-  const [erreur, setErreur] = useState('');
   const [voirPanier, setVoirPanier] = useState(false);
+  const [erreur, setErreur] = useState('');
+
+  useEffect(() => {
+    fetch('/api/promos')
+      .then(r => r.json())
+      .then(d => { setPromos(d.promos || []); setChargementPromos(false); })
+      .catch(() => setChargementPromos(false));
+  }, []);
 
   useEffect(() => {
     if (recherche.length < 2) { setProduits([]); return; }
@@ -143,9 +179,7 @@ export default function Home() {
         if (data.erreur) throw new Error(data.erreur);
         const filtres = (data.produits || []).filter(p => p.nom && p.nom.includes(recherche));
         setProduits(filtres);
-      } catch (e) {
-        setErreur('שגיאה בטעינת המחירים');
-      }
+      } catch(e) { setErreur('שגיאה'); }
       setChargement(false);
     }, 500);
     return () => clearTimeout(timer);
@@ -161,15 +195,16 @@ export default function Home() {
     <div className="min-h-screen bg-gray-50" dir="rtl">
       <header className="bg-blue-700 text-white p-4 shadow sticky top-0 z-10">
         <div className="max-w-2xl mx-auto flex justify-between items-center">
-          <div>
+          <div className="flex items-center gap-3">
             {panier.length > 0 && (
-              <button
-                onClick={() => setVoirPanier(!voirPanier)}
-                className="bg-white text-blue-700 text-xs font-bold px-3 py-1 rounded-full"
-              >
-                {voirPanier ? 'חזור לחיפוש' : `סל ${panier.length} | ${totalMeilleur.toFixed(2)}&#8362;`}
+              <button onClick={() => setVoirPanier(!voirPanier)}
+                className="bg-white text-blue-700 text-xs font-bold px-3 py-1 rounded-full">
+                {voirPanier ? 'חזור' : `סל ${panier.length} | ${totalMeilleur.toFixed(2)}₪`}
               </button>
             )}
+            <Link href="/bons-plans" className="text-white text-sm font-bold bg-orange-500 px-3 py-1 rounded-full">
+              דילים 🔥
+            </Link>
           </div>
           <div className="text-right">
             <h1 className="text-2xl font-bold">Dilz</h1>
@@ -179,8 +214,6 @@ export default function Home() {
       </header>
 
       <main className="max-w-2xl mx-auto p-4">
-
-        {/* Vue Panier */}
         {voirPanier && panier.length > 0 && (
           <div>
             <h2 className="text-lg font-bold text-right mb-3">רשימת הקניות ({panier.length})</h2>
@@ -204,7 +237,6 @@ export default function Home() {
           </div>
         )}
 
-        {/* Vue Recherche */}
         {!voirPanier && (
           <>
             <div className="my-4">
@@ -213,36 +245,46 @@ export default function Home() {
                 placeholder="חפש מוצר... נוטלה, קוקה קולה"
                 className="w-full border border-gray-300 rounded-xl px-4 py-3 text-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400 text-right"
                 value={recherche}
-                onChange={e => setRecherche(e.target.value)}
+                onChange={e => { setRecherche(e.target.value); if(e.target.value.length >= 2) setOnglet('recherche'); else setOnglet('promos'); }}
               />
             </div>
 
-            {chargement && <div className="text-center text-gray-400 py-4">טוען מחירים...</div>}
-            {erreur && <div className="bg-red-50 text-red-600 p-3 rounded-xl text-right mb-3">{erreur}</div>}
-
-            {produits.length > 0 && !chargement && (
-              <div className="space-y-3 mb-6">
-                <p className="text-sm text-gray-500 text-right">{produits.length} מוצרים</p>
-                {produits.map(p => (
-                  <CarteProuit
-                    key={p.barcode}
-                    produit={p}
-                    dansPanier={!!panier.find(x => x.barcode === p.barcode)}
-                    onAjouter={ajouterAuPanier}
-                    onRetirer={retirerDuPanier}
-                  />
-                ))}
+            {recherche.length >= 2 && (
+              <div>
+                {chargement && <div className="text-center text-gray-400 py-4">טוען...</div>}
+                {erreur && <div className="bg-red-50 text-red-600 p-3 rounded-xl text-right mb-3">{erreur}</div>}
+                {produits.length > 0 && !chargement && (
+                  <div className="space-y-3">
+                    <p className="text-sm text-gray-500 text-right">{produits.length} מוצרים</p>
+                    {produits.map(p => (
+                      <CarteProuit
+                        key={p.barcode}
+                        produit={p}
+                        dansPanier={!!panier.find(x => x.barcode === p.barcode)}
+                        onAjouter={ajouterAuPanier}
+                        onRetirer={retirerDuPanier}
+                      />
+                    ))}
+                  </div>
+                )}
+                {!chargement && produits.length === 0 && !erreur && (
+                  <div className="text-center text-gray-400 py-8">לא נמצאו מוצרים</div>
+                )}
               </div>
             )}
 
-            {recherche.length >= 2 && !chargement && produits.length === 0 && !erreur && (
-              <div className="text-center text-gray-400 py-8">לא נמצאו מוצרים</div>
-            )}
-
-            {recherche.length < 2 && (
-              <div className="text-center text-gray-400 py-8">
-                <p className="text-lg font-medium text-gray-600">חפש מוצר כדי להשוות מחירים</p>
-                <p className="text-sm mt-1">שופרסל ורמי לוי בזמן אמת</p>
+            {onglet === 'promos' && recherche.length < 2 && (
+              <div>
+                <h2 className="text-lg font-bold text-right mb-3">המבצעים הכי טובים היום</h2>
+                {chargementPromos ? (
+                  <div className="text-center text-gray-400 py-8">טוען מבצעים...</div>
+                ) : (
+                  <div className="grid grid-cols-2 gap-3">
+                    {promos.map(promo => (
+                      <CartePromo key={promo.barcode} promo={promo} />
+                    ))}
+                  </div>
+                )}
               </div>
             )}
           </>
