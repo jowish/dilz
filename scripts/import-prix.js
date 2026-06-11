@@ -54,17 +54,13 @@ async function telechargerGZ(url) {
 }
 
 async function sauvegarderEnBase(produits, enseigneCode, storeId) {
-  console.log(`💾 Sauvegarde ${produits.length} produits pour ${enseigneCode}...`);
   const batchSize = 100;
-
   for (let i = 0; i < produits.length; i += batchSize) {
     const batch = produits.slice(i, i + batchSize);
-
     await supabase.from('produits').upsert(
       batch.map(p => ({ barcode: p.barcode, nom: p.nom })),
       { onConflict: 'barcode' }
     );
-
     const { error } = await supabase.from('prix').upsert(
       batch.map(p => ({
         barcode: p.barcode,
@@ -77,16 +73,12 @@ async function sauvegarderEnBase(produits, enseigneCode, storeId) {
       })),
       { onConflict: 'barcode,enseigne_code,store_id' }
     );
-
-    if (error) console.error('Erreur batch:', error.message);
-    
-    if (i % 1000 === 0) console.log(`  ${i}/${produits.length}...`);
+    if (error) console.error('Erreur:', error.message);
   }
-  console.log(`✅ ${enseigneCode} sauvegardé !`);
 }
 
 async function importerShufersal() {
-  console.log('\n📥 Shufersal...');
+  console.log('\nShufersal...');
   const listePage = await new Promise((resolve, reject) => {
     https.get('https://prices.shufersal.co.il/FileObject/UpdateCategory?catID=2&storeId=1', (res) => {
       let data = '';
@@ -94,22 +86,19 @@ async function importerShufersal() {
       res.on('end', () => resolve(data));
     }).on('error', reject);
   });
-
   const urlMatch = listePage.match(/href="(https:\/\/pricesprodpublic[^"]+\.gz[^"]*)"/);
   if (!urlMatch) throw new Error('URL Shufersal introuvable');
-  
   const url = urlMatch[1].replace(/&amp;/g, '&');
-  console.log('Téléchargement...');
   const xml = await telechargerGZ(url);
   const produits = parseXMLPrix(xml);
-  console.log(`${produits.length} produits trouvés`);
+  console.log(`${produits.length} produits Shufersal`);
   await sauvegarderEnBase(produits, 'shufersal', '001');
+  console.log('Shufersal OK !');
 }
 
-async function importerRamiLevy() {
-  console.log('\n📥 Rami Levy...');
-  return new Promise((resolve, reject) => {
-    const data = JSON.stringify({ q: '', aggs: 0, store: '331' });
+async function postRL(body) {
+  return new Promise((resolve) => {
+    const data = JSON.stringify(body);
     const options = {
       hostname: 'www.rami-levy.co.il',
       path: '/api/catalog',
@@ -123,40 +112,87 @@ async function importerRamiLevy() {
         'Content-Length': Buffer.byteLength(data)
       }
     };
-
     const req = https.request(options, (res) => {
-      let body = '';
-      res.on('data', chunk => body += chunk);
-      res.on('end', async () => {
-        try {
-          const json = JSON.parse(body);
-          const produits = (json.data || [])
-            .map(p => ({
-              barcode: String(p.barcode || p.id),
-              nom: p.name,
-              prix: p.price?.price || 0,
-              quantite: '',
-              unite: '',
-            }))
-            .filter(p => p.prix > 0);
-          console.log(`${produits.length} produits trouvés`);
-          await sauvegarderEnBase(produits, 'rami_levy', '331');
-          resolve();
-        } catch(e) { reject(e); }
+      let b = '';
+      res.on('data', c => b += c);
+      res.on('end', () => {
+        try { resolve(JSON.parse(b)); }
+        catch(e) { resolve({ data: [], total: 0 }); }
       });
     });
-    req.on('error', reject);
+    req.on('error', () => resolve({ data: [], total: 0 }));
+    req.setTimeout(10000, () => { req.destroy(); resolve({ data: [], total: 0 }); });
     req.write(data);
     req.end();
   });
 }
 
+async function importerRamiLevy() {
+  console.log('\nRami Levy — pagination complete du catalogue...');
+  const tousLesProduits = new Map();
+
+  // Recuperer le total
+  const first = await postRL({ store: '331', q: '', from: 0, size: 30 });
+  const total = first.total || 0;
+  console.log(`Total catalogue Rami Levy: ${total} produits`);
+
+  // Ajouter premiere page
+  (first.data || []).forEach(p => {
+    if (p.price?.price > 0 && p.name) {
+      tousLesProduits.set(String(p.barcode || p.id), {
+        barcode: String(p.barcode || p.id),
+        nom: p.name,
+        prix: p.price.price,
+        quantite: '',
+        unite: '',
+      });
+    }
+  });
+
+  // Paginer tout le catalogue
+  for (let from = 30; from < total; from += 30) {
+    const res = await postRL({ store: '331', q: '', from, size: 30 });
+    
+    let nouveaux = 0;
+    (res.data || []).forEach(p => {
+      if (p.price?.price > 0 && p.name) {
+        const key = String(p.barcode || p.id);
+        if (!tousLesProduits.has(key)) nouveaux++;
+        tousLesProduits.set(key, {
+          barcode: key,
+          nom: p.name,
+          prix: p.price.price,
+          quantite: '',
+          unite: '',
+        });
+      }
+    });
+
+    if (from % 300 === 0) {
+      console.log(`  ${from}/${total} — ${tousLesProduits.size} produits uniques`);
+    }
+
+    // Si plus de nouveaux produits sur 3 pages, on arrete
+    if (nouveaux === 0 && from > 300) {
+      console.log(`  Pas de nouveaux produits depuis from=${from}, arret.`);
+      break;
+    }
+
+    await new Promise(r => setTimeout(r, 150));
+  }
+
+  const produits = Array.from(tousLesProduits.values());
+  console.log(`\nTotal Rami Levy: ${produits.length} produits uniques`);
+  await sauvegarderEnBase(produits, 'rami_levy', '331');
+  console.log('Rami Levy OK !');
+}
+
 async function main() {
-  console.log('🚀 Import des prix dans Supabase...\n');
+  console.log('Demarrage import...');
   try {
     await importerShufersal();
     await importerRamiLevy();
-    console.log('\n🎉 Import terminé !');
+    console.log('\nImport termine !');
   } catch(e) {
     console.error('Erreur:', e.message);
   }
