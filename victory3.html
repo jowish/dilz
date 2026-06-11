@@ -1,0 +1,378 @@
+﻿<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>אתר שקיפות מחירים ויקטורי</title>
+
+<style>
+body { margin:0; font-family:Arial, Helvetica, sans-serif; background:#f6f7f9; color:#111; }
+header { background:#fff; border-bottom:1px solid #e5e7eb; padding:16px 20px; }
+header h1 { margin:0; font-size:22px; font-weight:700; }
+.container { padding:16px 20px; }
+
+.filters { display:flex; gap:16px; align-items:end; flex-wrap:wrap; margin-bottom:16px; }
+.field { display:flex; flex-direction:column; gap:6px; min-width:220px; }
+
+label { font-size:14px; font-weight:600; }
+
+select { padding:8px 10px; border:1px solid #d1d5db; border-radius:8px; background:#fff; font-size:14px; }
+
+.actions { display:flex; gap:10px; align-items:center; }
+
+button { padding:8px 12px; border:1px solid #d1d5db; border-radius:8px; background:#fff; cursor:pointer; }
+button:disabled { opacity:.6; cursor:not-allowed; }
+
+.status { font-size:13px; color:#444; }
+.status.error { color:#b00020; }
+
+.table-wrap { background:#fff; border:1px solid #e5e7eb; border-radius:12px; overflow:auto; }
+
+table { width:100%; border-collapse:collapse; min-width:900px; }
+
+.webgrid-header th {
+background:#f3f4f6;
+border-bottom:1px solid #e5e7eb;
+padding:10px 12px;
+text-align:right;
+font-size:14px;
+}
+
+tbody td {
+border-bottom:1px solid #f0f0f0;
+padding:10px 12px;
+text-align:right;
+font-size:14px;
+}
+
+.muted { color:#6b7280; }
+
+a.download { text-decoration:none; }
+a.download:hover { text-decoration:underline; }
+
+.pager {
+padding:12px;
+display:flex;
+gap:10px;
+align-items:center;
+justify-content:flex-end;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+<h1>אתר שקיפות מחירים ויקטורי</h1>
+</header>
+
+<div class="container">
+
+<div class="filters">
+
+<div class="field">
+<label>קטגוריה</label>
+<select id="category">
+<option value="all">All</option>
+<option value="price">Prices</option>
+<option value="pricefull">PricesFull</option>
+<option value="stores">Stores</option>
+<option value="promo">Promos</option>
+<option value="promofull">PromosFull</option>
+</select>
+</div>
+
+<div class="field">
+<label>חנות</label>
+<select id="store">
+<option value="0">All</option>
+</select>
+</div>
+
+<div class="actions">
+<button id="btnRefresh">רענן</button>
+<span id="status" class="status muted"></span>
+</div>
+
+</div>
+
+<div class="table-wrap">
+
+<table>
+
+<thead>
+<tr class="webgrid-header">
+<th>#</th>
+<th>שם</th>
+<th>סניף</th>
+<th>שם סניף</th>
+<th>קטגוריה</th>
+<th>סוג קובץ</th>
+<th>גודל</th>
+<th>זמן עידכון</th>
+<th>הורדה</th>
+</tr>
+</thead>
+
+<tbody id="filesBody">
+<tr><td colspan="9">טוען...</td></tr>
+</tbody>
+
+</table>
+
+<div class="pager">
+<button id="btnPrev">▶</button>
+<span id="pageInfo"></span>
+<button id="btnNext">◀</button>
+
+<span>שורות בעמוד</span>
+
+<select id="pageSize">
+<option value="10" selected>10</option>
+<option value="25" >25</option>
+<option value="50">50</option>
+<option value="100">100</option>
+</select>
+
+</div>
+
+</div>
+
+</div>
+
+<script>
+    const API_BASE_URL = "https://laibcatalog.co.il/webapi"; // אם הדף על אותו שרת עדיף /victoryapi
+    const DEFAULT_EDI = "7290696200003";
+
+const elCategory = document.getElementById("category");
+const elStore = document.getElementById("store");
+const elBody = document.getElementById("filesBody");
+const elStatus = document.getElementById("status");
+
+const btnRefresh = document.getElementById("btnRefresh");
+const btnPrev = document.getElementById("btnPrev");
+const btnNext = document.getElementById("btnNext");
+
+const pageSizeSelect = document.getElementById("pageSize");
+const pageInfo = document.getElementById("pageInfo");
+
+let allFiles = [];
+let filteredFiles = [];
+let branchesMap = {};
+
+let pageSize = parseInt(pageSizeSelect.value);
+let currentPage = 1;
+
+function setStatus(text) {
+elStatus.textContent = text || "";
+}
+
+function normalize(s) {
+return (s || "").toLowerCase();
+}
+
+function escapeHtml(s) {
+return (s ?? "")
+.replace(/&/g,"&amp;")
+.replace(/</g,"&lt;")
+.replace(/>/g,"&gt;")
+.replace(/"/g,"&quot;")
+.replace(/'/g,"&#039;");
+}
+
+function renderPaged(files) {
+
+filteredFiles = files;
+
+const totalPages = Math.max(1, Math.ceil(filteredFiles.length / pageSize));
+
+if (currentPage > totalPages)
+currentPage = totalPages;
+
+const start = (currentPage - 1) * pageSize;
+
+const pageItems = filteredFiles.slice(start, start + pageSize);
+
+if (pageItems.length === 0) {
+
+elBody.innerHTML =
+`<tr><td colspan="9" class="muted">אין קבצים להצגה</td></tr>`;
+
+} else {
+
+elBody.innerHTML = pageItems.map((f,i)=>{
+
+const branchNo = (f.branchNumber|0);
+const branchName = branchesMap[branchNo] || "";
+
+const downloadUrl =
+`${API_BASE_URL}/${encodeURIComponent(DEFAULT_EDI)}/${encodeURIComponent(f.fileName)}`;
+
+return `
+<tr>
+<td>${start+i+1}</td>
+<td>${escapeHtml(f.fileName)}</td>
+<td>${branchNo}</td>
+<td>${escapeHtml(branchName)}</td>
+<td>${escapeHtml(f.fileType)}</td>
+<td>GZ</td>
+<td>${escapeHtml(f.fileSize)}</td>
+<td>${escapeHtml(f.fileDate)}</td>
+<td>
+<a class="download"
+href="${downloadUrl}"
+target="_blank">
+הורד
+</a>
+</td>
+</tr>`;
+}).join("");
+}
+
+pageInfo.textContent =
+`עמוד ${currentPage} מתוך ${totalPages}`;
+
+setStatus(`מציג ${filteredFiles.length} מתוך ${allFiles.length}`);
+
+}
+
+function applyFilters() {
+
+const category = normalize(elCategory.value);
+const store = parseInt(elStore.value);
+
+let filtered = allFiles.slice();
+
+if(category !== "all")
+filtered = filtered.filter(f=>normalize(f.fileType)===category);
+
+if(store !== 0)
+filtered = filtered.filter(f=>(f.branchNumber|0)===store);
+
+currentPage = 1;
+
+renderPaged(filtered);
+
+}
+
+async function loadBranches() {
+
+try{
+
+const res = await fetch(
+`${API_BASE_URL}/api/getbranches?edi=${DEFAULT_EDI}`);
+
+const branches = await res.json();
+
+branchesMap = {};
+
+elStore.innerHTML = `<option value="0">All</option>`;
+
+branches.forEach(b=>{
+
+const n = b.number ?? b.Number;
+const name = b.name ?? b.Name;
+
+branchesMap[n] = name;
+
+const opt = document.createElement("option");
+
+opt.value = n;
+opt.textContent = `${n} - ${name}`;
+
+elStore.appendChild(opt);
+
+});
+
+}catch(e){
+
+console.error(e);
+
+}
+
+}
+
+async function loadFiles(){
+
+btnRefresh.disabled = true;
+
+setStatus("טוען...");
+
+try{
+
+const res = await fetch(
+`${API_BASE_URL}/api/getfiles?edi=${DEFAULT_EDI}`);
+
+allFiles = await res.json();
+
+applyFilters();
+
+}catch(e){
+
+console.error(e);
+
+setStatus("שגיאה בטעינה");
+
+}
+
+btnRefresh.disabled = false;
+
+}
+
+async function refreshAll(){
+
+await loadBranches();
+
+await loadFiles();
+
+}
+
+btnPrev.onclick = ()=>{
+
+if(currentPage>1){
+
+currentPage--;
+
+renderPaged(filteredFiles);
+
+}
+
+};
+
+btnNext.onclick = ()=>{
+
+const totalPages =
+Math.ceil(filteredFiles.length/pageSize);
+
+if(currentPage<totalPages){
+
+currentPage++;
+
+renderPaged(filteredFiles);
+
+}
+
+};
+
+pageSizeSelect.onchange = ()=>{
+
+pageSize = parseInt(pageSizeSelect.value);
+
+currentPage = 1;
+
+renderPaged(filteredFiles);
+
+};
+
+elCategory.onchange = applyFilters;
+
+elStore.onchange = applyFilters;
+
+btnRefresh.onclick = refreshAll;
+
+refreshAll();
+
+</script>
+
+</body>
+</html>

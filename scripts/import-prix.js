@@ -35,7 +35,8 @@ function parseXMLPrix(xml) {
 
 async function telechargerGZ(url) {
   return new Promise((resolve, reject) => {
-    https.get(url, (res) => {
+    const mod = url.startsWith('https') ? https : require('http');
+    mod.get(url, (res) => {
       if (res.statusCode === 301 || res.statusCode === 302) {
         return telechargerGZ(res.headers.location).then(resolve).catch(reject);
       }
@@ -54,6 +55,7 @@ async function telechargerGZ(url) {
 }
 
 async function sauvegarderEnBase(produits, enseigneCode, storeId) {
+  console.log(`  Sauvegarde ${produits.length} produits...`);
   const batchSize = 100;
   for (let i = 0; i < produits.length; i += batchSize) {
     const batch = produits.slice(i, i + batchSize);
@@ -74,6 +76,7 @@ async function sauvegarderEnBase(produits, enseigneCode, storeId) {
       { onConflict: 'barcode,enseigne_code,store_id' }
     );
     if (error) console.error('Erreur:', error.message);
+    if (i % 2000 === 0 && i > 0) console.log(`  ${i}/${produits.length}...`);
   }
 }
 
@@ -91,9 +94,9 @@ async function importerShufersal() {
   const url = urlMatch[1].replace(/&amp;/g, '&');
   const xml = await telechargerGZ(url);
   const produits = parseXMLPrix(xml);
-  console.log(`${produits.length} produits Shufersal`);
+  console.log(`  ${produits.length} produits`);
   await sauvegarderEnBase(produits, 'shufersal', '001');
-  console.log('Shufersal OK !');
+  console.log('  Shufersal OK !');
 }
 
 async function postRL(body) {
@@ -128,63 +131,85 @@ async function postRL(body) {
 }
 
 async function importerRamiLevy() {
-  console.log('\nRami Levy — pagination complete du catalogue...');
+  console.log('\nRami Levy...');
   const tousLesProduits = new Map();
-
-  // Recuperer le total
   const first = await postRL({ store: '331', q: '', from: 0, size: 30 });
   const total = first.total || 0;
-  console.log(`Total catalogue Rami Levy: ${total} produits`);
-
-  // Ajouter premiere page
+  console.log(`  Total catalogue: ${total}`);
   (first.data || []).forEach(p => {
     if (p.price?.price > 0 && p.name) {
       tousLesProduits.set(String(p.barcode || p.id), {
         barcode: String(p.barcode || p.id),
-        nom: p.name,
-        prix: p.price.price,
-        quantite: '',
-        unite: '',
+        nom: p.name, prix: p.price.price, quantite: '', unite: ''
       });
     }
   });
-
-  // Paginer tout le catalogue
   for (let from = 30; from < total; from += 30) {
     const res = await postRL({ store: '331', q: '', from, size: 30 });
-    
     let nouveaux = 0;
     (res.data || []).forEach(p => {
       if (p.price?.price > 0 && p.name) {
         const key = String(p.barcode || p.id);
         if (!tousLesProduits.has(key)) nouveaux++;
-        tousLesProduits.set(key, {
-          barcode: key,
-          nom: p.name,
-          prix: p.price.price,
-          quantite: '',
-          unite: '',
-        });
+        tousLesProduits.set(key, { barcode: key, nom: p.name, prix: p.price.price, quantite: '', unite: '' });
       }
     });
-
-    if (from % 300 === 0) {
-      console.log(`  ${from}/${total} — ${tousLesProduits.size} produits uniques`);
-    }
-
-    // Si plus de nouveaux produits sur 3 pages, on arrete
-    if (nouveaux === 0 && from > 300) {
-      console.log(`  Pas de nouveaux produits depuis from=${from}, arret.`);
-      break;
-    }
-
+    if (from % 600 === 0) console.log(`  ${from}/${total} — ${tousLesProduits.size} uniques`);
+    if (nouveaux === 0 && from > 300) { console.log('  Arret pagination'); break; }
     await new Promise(r => setTimeout(r, 150));
+  }
+  const produits = Array.from(tousLesProduits.values());
+  console.log(`  ${produits.length} produits uniques`);
+  await sauvegarderEnBase(produits, 'rami_levy', '331');
+  console.log('  Rami Levy OK !');
+}
+
+async function importerVictory() {
+  console.log('\nVictory...');
+  const EDI = '7290696200003';
+  
+  // Recuperer la liste des fichiers PriceFull
+  const filesRes = await new Promise((resolve, reject) => {
+    https.get(`https://laibcatalog.co.il/webapi/api/getfiles?edi=${EDI}`, (res) => {
+      let data = '';
+      res.on('data', c => data += c);
+      res.on('end', () => {
+        try { resolve(JSON.parse(data)); }
+        catch(e) { resolve([]); }
+      });
+    }).on('error', reject);
+  });
+
+  const fichiersPriceFull = filesRes.filter(f => f.fileType === 'pricefull');
+  console.log(`  ${fichiersPriceFull.length} fichiers PriceFull trouves`);
+
+  const tousLesProduits = new Map();
+
+  // Prendre les 5 premiers magasins pour avoir une bonne couverture
+  for (const fichier of fichiersPriceFull.slice(0, 5)) {
+    const url = `https://laibcatalog.co.il/webapi/${EDI}/${fichier.fileName}`;
+    console.log(`  Telechargement magasin ${fichier.branchNumber}...`);
+    
+    try {
+      const xml = await telechargerGZ(url);
+      const produits = parseXMLPrix(xml);
+      produits.forEach(p => {
+        if (!tousLesProduits.has(p.barcode)) {
+          tousLesProduits.set(p.barcode, p);
+        }
+      });
+      console.log(`  Magasin ${fichier.branchNumber}: ${produits.length} produits (total: ${tousLesProduits.size})`);
+    } catch(e) {
+      console.log(`  Erreur magasin ${fichier.branchNumber}:`, e.message);
+    }
+    
+    await new Promise(r => setTimeout(r, 500));
   }
 
   const produits = Array.from(tousLesProduits.values());
-  console.log(`\nTotal Rami Levy: ${produits.length} produits uniques`);
-  await sauvegarderEnBase(produits, 'rami_levy', '331');
-  console.log('Rami Levy OK !');
+  console.log(`  ${produits.length} produits Victory uniques`);
+  await sauvegarderEnBase(produits, 'victory', '001');
+  console.log('  Victory OK !');
 }
 
 async function main() {
@@ -192,6 +217,7 @@ async function main() {
   try {
     await importerShufersal();
     await importerRamiLevy();
+    await importerVictory();
     console.log('\nImport termine !');
   } catch(e) {
     console.error('Erreur:', e.message);
