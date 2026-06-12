@@ -205,7 +205,7 @@ function ThemeToggle() {
   const isDark = resolvedTheme === 'dark';
   return (
     <button onClick={() => setTheme(isDark ? 'light' : 'dark')}
-      style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-tertiary)', padding: 6, borderRadius: 8, display: 'flex', alignItems: 'center' }}>
+      style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-tertiary)', padding: 6, display: 'flex', alignItems: 'center' }}>
       {isDark ? (
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
       ) : (
@@ -213,6 +213,27 @@ function ThemeToggle() {
       )}
     </button>
   );
+}
+
+async function detecterVille() {
+  return new Promise((resolve) => {
+    if (!navigator.geolocation) { resolve(null); return; }
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        try {
+          const { latitude, longitude } = pos.coords;
+          const res = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json&accept-language=he`
+          );
+          const data = await res.json();
+          const ville = data.address?.city || data.address?.town || data.address?.village || null;
+          resolve(ville);
+        } catch(e) { resolve(null); }
+      },
+      () => resolve(null),
+      { timeout: 5000 }
+    );
+  });
 }
 
 export default function Home() {
@@ -226,6 +247,8 @@ export default function Home() {
   const [panier, setPanier] = useState([]);
   const [mounted, setMounted] = useState(false);
   const [langue, setLangue] = useState('he');
+  const [ville, setVille] = useState(null);
+  const [chargementVille, setChargementVille] = useState(false);
   const t = translations[langue];
   const dir = langue === 'he' ? 'rtl' : 'ltr';
 
@@ -249,6 +272,13 @@ export default function Home() {
     return () => clearTimeout(timer);
   }, [recherche]);
 
+  const demanderVille = async () => {
+    setChargementVille(true);
+    const v = await detecterVille();
+    setVille(v);
+    setChargementVille(false);
+  };
+
   const ajouterAuPanier = (p) => { if (!panier.find(x => x.barcode === p.barcode)) setPanier([...panier, p]); };
   const retirerDuPanier = (barcode) => setPanier(panier.filter(p => p.barcode !== barcode));
   const totalMeilleur = panier.reduce((s, p) => s + Math.min(...p.tousLesPrix.map(x => x.prix)), 0);
@@ -256,6 +286,7 @@ export default function Home() {
   if (!mounted) return null;
 
   const ongletActif = recherche.length >= 2 ? 'recherche' : onglet;
+  const villeAffichee = ville || (langue === 'he' ? 'כל הארץ' : 'All Israel');
 
   const navItems = [
     { id: 'deals', label: t.nav.deals, icon: (actif) => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={actif ? 'var(--accent)' : 'var(--text-tertiary)'} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg> },
@@ -277,10 +308,12 @@ export default function Home() {
                 style={{ background: 'none', border: '0.5px solid var(--border)', borderRadius: 8, padding: '4px 10px', cursor: 'pointer', fontSize: 12, color: 'var(--text-secondary)', fontWeight: 600 }}>
                 {langue === 'he' ? 'EN' : 'עב'}
               </button>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 5, background: 'var(--bg-secondary)', padding: '5px 12px', borderRadius: 20, fontSize: 12, color: 'var(--text-secondary)', fontWeight: 500, border: '0.5px solid var(--border)' }}>
-                <div style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--accent-green)', flexShrink: 0 }}></div>
-                {t.allCountry}
-              </div>
+              {/* Bouton ville avec géolocalisation */}
+              <button onClick={demanderVille}
+                style={{ display: 'flex', alignItems: 'center', gap: 5, background: 'var(--bg-secondary)', padding: '5px 12px', borderRadius: 20, fontSize: 12, color: ville ? 'var(--accent)' : 'var(--text-secondary)', fontWeight: 500, border: ville ? '0.5px solid var(--accent)' : '0.5px solid var(--border)', cursor: 'pointer' }}>
+                <div style={{ width: 6, height: 6, borderRadius: '50%', background: ville ? 'var(--accent)' : 'var(--accent-green)', flexShrink: 0 }}></div>
+                {chargementVille ? '...' : villeAffichee}
+              </button>
             </div>
             <span style={{ fontSize: 24, fontWeight: 700, color: 'var(--text-primary)', letterSpacing: -0.5 }}>
               dil<span style={{ color: 'var(--accent)' }}>z</span>
@@ -302,7 +335,7 @@ export default function Home() {
         {ongletActif === 'promos' && (
           <div>
             <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-secondary)', letterSpacing: 0.5, textAlign: langue === 'he' ? 'right' : 'left', marginBottom: 12, textTransform: 'uppercase' }}>
-              {t.bestDeals}
+              {langue === 'he' ? `הכי זול ב${villeAffichee} היום` : `Best prices in ${villeAffichee} today`}
             </p>
             {chargementPromos ? (
               <p style={{ textAlign: 'center', color: 'var(--text-secondary)', padding: 40 }}>{t.loadingDeals}</p>
@@ -319,7 +352,7 @@ export default function Home() {
                     const reduction = bp.prix_original ? Math.round((bp.prix_original - bp.prix) / bp.prix_original * 100) : null;
                     return (
                       <div key={bp.id} style={{ padding: '12px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: i < deals.length - 1 ? '0.5px solid var(--border-light)' : 'none' }}>
-                        <div style={{ textAlign: langue === 'he' ? 'left' : 'right', minWidth: 64 }}>
+                        <div style={{ textAlign: 'left', minWidth: 64 }}>
                           <span style={{ fontSize: 19, fontWeight: 700, color: 'var(--accent-green)' }}>{bp.prix}₪</span>
                           {reduction && <div style={{ fontSize: 11, fontWeight: 600, color: '#0f6e56', background: '#e1f5ee', padding: '1px 6px', borderRadius: 10, marginTop: 2, display: 'inline-block' }}>-{reduction}%</div>}
                         </div>

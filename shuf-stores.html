@@ -1,0 +1,279 @@
+
+
+
+<h2></h2>
+
+<div id="gridContainer" class="webgrid">
+
+            <script type="text/javascript">
+        (function($) {
+            $.fn.swhgLoad = function(url, containerId, callback) {
+                url = url + (url.indexOf('?') == -1 ? '?' : '&') + '__swhg=' + new Date().getTime();
+
+                $('<div/>').load(url + ' ' + containerId, function(data, status, xhr) {
+                    $(containerId).replaceWith($(this).html());
+                    if (typeof(callback) === 'function') {
+                        callback.apply(this, arguments);
+                    }
+                });
+                return this;
+            }
+
+            $(function() {
+                $('table[data-swhgajax="true"],span[data-swhgajax="true"]').each(function() {
+                    var self = $(this);
+                    var containerId = '#' + self.data('swhgcontainer');
+                    var callback = getFunction(self.data('swhgcallback'));
+
+                    $(containerId).parent().delegate(containerId + ' a[data-swhglnk="true"]', 'click', function() {
+                        $(containerId).swhgLoad($(this).attr('href'), containerId, callback);
+                        return false;
+                    });
+                })
+            });
+
+            function getFunction(code, argNames) {
+                argNames = argNames || [];
+                var fn = window, parts = (code || "").split(".");
+                while (fn && parts.length) {
+                    fn = fn[parts.shift()];
+                }
+                if (typeof (fn) === "function") {
+                    return fn;
+                }
+                argNames.push(code);
+                return Function.constructor.apply(null, argNames);
+            }
+        })(jQuery);
+        </script>
+    <table class="webgrid" data-swhgajax="true" data-swhgcontainer="gridContainer" data-swhgcallback="">
+    <thead>
+        <tr class="webgrid-header">
+            <th scope="col">
+הורדה            </th>
+            <th scope="col">
+<a data-swhglnk="true" href="/FileObject/UpdateCategory?catID=6&amp;storeId=0&amp;take=300&amp;sort=Time&amp;sortdir=ASC">זמן עידכון</a>            </th>
+            <th scope="col">
+<a data-swhglnk="true" href="/FileObject/UpdateCategory?catID=6&amp;storeId=0&amp;take=300&amp;sort=Size&amp;sortdir=ASC">גודל</a>            </th>
+            <th scope="col">
+<a data-swhglnk="true" href="/FileObject/UpdateCategory?catID=6&amp;storeId=0&amp;take=300&amp;sort=Type&amp;sortdir=ASC">סוג קובץ</a>            </th>
+            <th scope="col">
+<a data-swhglnk="true" href="/FileObject/UpdateCategory?catID=6&amp;storeId=0&amp;take=300&amp;sort=Category&amp;sortdir=ASC">קטגוריה</a>            </th>
+            <th scope="col">
+<a data-swhglnk="true" href="/FileObject/UpdateCategory?catID=6&amp;storeId=0&amp;take=300&amp;sort=Branch&amp;sortdir=ASC">סניף</a>            </th>
+            <th scope="col">
+<a data-swhglnk="true" href="/FileObject/UpdateCategory?catID=6&amp;storeId=0&amp;take=300&amp;sort=Name&amp;sortdir=ASC">שם</a>            </th>
+            <th scope="col">
+            </th>
+        </tr>
+    </thead>
+    <tfoot>
+        <tr  class="webgrid-footer">
+            <td colspan="8">1 <a data-swhglnk="true" href="/FileObject/UpdateCategory?catID=6&amp;storeId=0&amp;take=300&amp;page=2">2</a> <a data-swhglnk="true" href="/FileObject/UpdateCategory?catID=6&amp;storeId=0&amp;take=300&amp;page=3">3</a> <a data-swhglnk="true" href="/FileObject/UpdateCategory?catID=6&amp;storeId=0&amp;take=300&amp;page=4">4</a> <a data-swhglnk="true" href="/FileObject/UpdateCategory?catID=6&amp;storeId=0&amp;take=300&amp;page=5">5</a> <a data-swhglnk="true" href="/FileObject/UpdateCategory?catID=6&amp;storeId=0&amp;take=300&amp;page=2">&gt;</a> <a data-swhglnk="true" href="/FileObject/UpdateCategory?catID=6&amp;storeId=0&amp;take=300&amp;page=85">&gt;&gt;</a></td>
+        </tr>
+    </tfoot>
+    <tbody>
+        <tr class="webgrid-row-style">
+            <td><a href="https://pricesprodpublic.blob.core.windows.net/price/Price7290027600007-001-001-20260612-090000.gz?sv=2014-02-14&amp;sr=b&amp;sig=MYpB7k%2F8UOpn8eSeDwlntwei6hHW1baDtA%2FMUMFeF1w%3D&amp;se=2026-06-12T07%3A21%3A56Z&amp;sp=r" target="_blank">לחץ להורדה</a></td>
+            <td>6/12/2026 9:00:00 AM</td>
+            <td>740 B</td>
+            <td>GZ</td>
+            <td>price</td>
+            <td>1 - שלי ת&quot;א- בן יהודה</td>
+            <td>Price7290027600007-001-001-20260612-090000</td>
+            <td>1</td>
+        </tr>
+        <tr class="webgrid-alternating-row">
+            <td><a href="https://pricesprodpublic.blob.core.windows.net/price/Price7290027600007-001-002-20260612-020000.gz?sv=2014-02-14&amp;sr=b&amp;sig=ujF49rUaHHJA3bwYPJh2e1KxOjEcVllQhFdmLKfQSRw%3D&amp;se=2026-06-12T07%3A21%3A56Z&amp;sp=r" target="_blank">לחץ להורדה</a></td>
+            <td>6/12/2026 2:00:00 AM</td>
+            <td>1.84 KB</td>
+            <td>GZ</td>
+            <td>price</td>
+            <td>2 - שלי ירושלים- אגרון</td>
+            <td>Price7290027600007-001-002-20260612-020000</td>
+            <td>2</td>
+        </tr>
+        <tr class="webgrid-row-style">
+            <td><a href="https://pricesprodpublic.blob.core.windows.net/price/Price7290027600007-001-003-20260612-020000.gz?sv=2014-02-14&amp;sr=b&amp;sig=GlFxLSjW9kBIn7JUj%2FfjvleXz2sf1gvxOtcgQ%2FuHE9k%3D&amp;se=2026-06-12T07%3A21%3A56Z&amp;sp=r" target="_blank">לחץ להורדה</a></td>
+            <td>6/12/2026 2:00:00 AM</td>
+            <td>2.18 KB</td>
+            <td>GZ</td>
+            <td>price</td>
+            <td>3 - שלי גבעתיים- סירקין</td>
+            <td>Price7290027600007-001-003-20260612-020000</td>
+            <td>3</td>
+        </tr>
+        <tr class="webgrid-alternating-row">
+            <td><a href="https://pricesprodpublic.blob.core.windows.net/price/Price7290027600007-001-004-20260612-090000.gz?sv=2014-02-14&amp;sr=b&amp;sig=Oq0N2X05L0RWmcXOigzGRbrKc%2BZTvm0dFf710WzVOxw%3D&amp;se=2026-06-12T07%3A21%3A56Z&amp;sp=r" target="_blank">לחץ להורדה</a></td>
+            <td>6/12/2026 9:00:00 AM</td>
+            <td>1.44 KB</td>
+            <td>GZ</td>
+            <td>price</td>
+            <td>4 - שלי חיפה- כרמל</td>
+            <td>Price7290027600007-001-004-20260612-090000</td>
+            <td>4</td>
+        </tr>
+        <tr class="webgrid-row-style">
+            <td><a href="https://pricesprodpublic.blob.core.windows.net/price/Price7290027600007-001-005-20260612-090000.gz?sv=2014-02-14&amp;sr=b&amp;sig=Zbh4APqqZ0WT7djKTWcQqvnsZXc75nmAO1VM9We8G38%3D&amp;se=2026-06-12T07%3A21%3A56Z&amp;sp=r" target="_blank">לחץ להורדה</a></td>
+            <td>6/12/2026 9:00:00 AM</td>
+            <td>577 B</td>
+            <td>GZ</td>
+            <td>price</td>
+            <td>5 - שלי ירושלים- יובל</td>
+            <td>Price7290027600007-001-005-20260612-090000</td>
+            <td>5</td>
+        </tr>
+        <tr class="webgrid-alternating-row">
+            <td><a href="https://pricesprodpublic.blob.core.windows.net/price/Price7290027600007-001-007-20260612-020000.gz?sv=2014-02-14&amp;sr=b&amp;sig=e6kS1YHBl9btA5XPc%2F%2Bs4Nj7fGi3hGVKzF6Sx8VDPTQ%3D&amp;se=2026-06-12T07%3A21%3A56Z&amp;sp=r" target="_blank">לחץ להורדה</a></td>
+            <td>6/12/2026 2:00:00 AM</td>
+            <td>1.81 KB</td>
+            <td>GZ</td>
+            <td>price</td>
+            <td>7 - שלי ת&quot;א- ארלוזורוב</td>
+            <td>Price7290027600007-001-007-20260612-020000</td>
+            <td>6</td>
+        </tr>
+        <tr class="webgrid-row-style">
+            <td><a href="https://pricesprodpublic.blob.core.windows.net/price/Price7290027600007-001-009-20260612-020000.gz?sv=2014-02-14&amp;sr=b&amp;sig=iAFghAe4RouhCemf9moryi96sMkkdNJY32foAzGJHcg%3D&amp;se=2026-06-12T07%3A21%3A56Z&amp;sp=r" target="_blank">לחץ להורדה</a></td>
+            <td>6/12/2026 2:00:00 AM</td>
+            <td>1.65 KB</td>
+            <td>GZ</td>
+            <td>price</td>
+            <td>9 - שלי נתניה- ויצמן</td>
+            <td>Price7290027600007-001-009-20260612-020000</td>
+            <td>7</td>
+        </tr>
+        <tr class="webgrid-alternating-row">
+            <td><a href="https://pricesprodpublic.blob.core.windows.net/price/Price7290027600007-001-011-20260612-090000.gz?sv=2014-02-14&amp;sr=b&amp;sig=kONyDV%2BdfUOnqtFPtJkUyl15rlYxux0rB%2FADW8TE8PI%3D&amp;se=2026-06-12T07%3A21%3A56Z&amp;sp=r" target="_blank">לחץ להורדה</a></td>
+            <td>6/12/2026 9:00:00 AM</td>
+            <td>609 B</td>
+            <td>GZ</td>
+            <td>price</td>
+            <td>11 - שלי ת&quot;א- נורדאו</td>
+            <td>Price7290027600007-001-011-20260612-090000</td>
+            <td>8</td>
+        </tr>
+        <tr class="webgrid-row-style">
+            <td><a href="https://pricesprodpublic.blob.core.windows.net/price/Price7290027600007-001-017-20260612-090000.gz?sv=2014-02-14&amp;sr=b&amp;sig=bOIt6gRh3OSItkgsIBiPUphW1qV6O6gxkNooqNrE7x0%3D&amp;se=2026-06-12T07%3A21%3A56Z&amp;sp=r" target="_blank">לחץ להורדה</a></td>
+            <td>6/12/2026 9:00:00 AM</td>
+            <td>580 B</td>
+            <td>GZ</td>
+            <td>price</td>
+            <td>17 - שלי חיפה- חורב</td>
+            <td>Price7290027600007-001-017-20260612-090000</td>
+            <td>9</td>
+        </tr>
+        <tr class="webgrid-alternating-row">
+            <td><a href="https://pricesprodpublic.blob.core.windows.net/price/Price7290027600007-001-019-20260612-090000.gz?sv=2014-02-14&amp;sr=b&amp;sig=0avR81Q6ASTB46Eg3usqo95YK8cGEzx6pYFXEzTp8qQ%3D&amp;se=2026-06-12T07%3A21%3A56Z&amp;sp=r" target="_blank">לחץ להורדה</a></td>
+            <td>6/12/2026 9:00:00 AM</td>
+            <td>586 B</td>
+            <td>GZ</td>
+            <td>price</td>
+            <td>19 - שלי חיפה- זיו</td>
+            <td>Price7290027600007-001-019-20260612-090000</td>
+            <td>10</td>
+        </tr>
+        <tr class="webgrid-row-style">
+            <td><a href="https://pricesprodpublic.blob.core.windows.net/price/Price7290027600007-001-020-20260612-020000.gz?sv=2014-02-14&amp;sr=b&amp;sig=Xcy8AxExgZ5IWm1Ixk4KwKXUW8iS4u7uQLJSPS%2FNZg8%3D&amp;se=2026-06-12T07%3A21%3A56Z&amp;sp=r" target="_blank">לחץ להורדה</a></td>
+            <td>6/12/2026 2:00:00 AM</td>
+            <td>1.4 KB</td>
+            <td>GZ</td>
+            <td>price</td>
+            <td>20 - שלי רחובות- הרצל</td>
+            <td>Price7290027600007-001-020-20260612-020000</td>
+            <td>11</td>
+        </tr>
+        <tr class="webgrid-alternating-row">
+            <td><a href="https://pricesprodpublic.blob.core.windows.net/price/Price7290027600007-001-022-20260612-020000.gz?sv=2014-02-14&amp;sr=b&amp;sig=X7fnllLjRh8nImuLHHRD6oPGhfrIo%2F325BUSgtvcju0%3D&amp;se=2026-06-12T07%3A21%3A56Z&amp;sp=r" target="_blank">לחץ להורדה</a></td>
+            <td>6/12/2026 2:00:00 AM</td>
+            <td>1.62 KB</td>
+            <td>GZ</td>
+            <td>price</td>
+            <td>22 - שלי נתניה- סמילנסקי</td>
+            <td>Price7290027600007-001-022-20260612-020000</td>
+            <td>12</td>
+        </tr>
+        <tr class="webgrid-row-style">
+            <td><a href="https://pricesprodpublic.blob.core.windows.net/price/Price7290027600007-001-023-20260612-020000.gz?sv=2014-02-14&amp;sr=b&amp;sig=ePfq4OsDUFEfkJSTdfnk49tA%2BljbnbpzkgO7HCb0KoQ%3D&amp;se=2026-06-12T07%3A21%3A56Z&amp;sp=r" target="_blank">לחץ להורדה</a></td>
+            <td>6/12/2026 2:00:00 AM</td>
+            <td>1.33 KB</td>
+            <td>GZ</td>
+            <td>price</td>
+            <td>23 - שלי מיתר</td>
+            <td>Price7290027600007-001-023-20260612-020000</td>
+            <td>13</td>
+        </tr>
+        <tr class="webgrid-alternating-row">
+            <td><a href="https://pricesprodpublic.blob.core.windows.net/price/Price7290027600007-001-024-20260612-090000.gz?sv=2014-02-14&amp;sr=b&amp;sig=ovArYebm1BDRvQiHwNhZnlW3m%2BWjm%2F%2Bnc%2FMMYD9znz8%3D&amp;se=2026-06-12T07%3A21%3A56Z&amp;sp=r" target="_blank">לחץ להורדה</a></td>
+            <td>6/12/2026 9:00:00 AM</td>
+            <td>501 B</td>
+            <td>GZ</td>
+            <td>price</td>
+            <td>24 - שלי אשדוד- הנביאים</td>
+            <td>Price7290027600007-001-024-20260612-090000</td>
+            <td>14</td>
+        </tr>
+        <tr class="webgrid-row-style">
+            <td><a href="https://pricesprodpublic.blob.core.windows.net/price/Price7290027600007-001-027-20260612-020000.gz?sv=2014-02-14&amp;sr=b&amp;sig=x3LQEy6O09lHmFEFmaFWNHbzolqnkw8pub6%2Bdc%2Bp7ls%3D&amp;se=2026-06-12T07%3A21%3A56Z&amp;sp=r" target="_blank">לחץ להורדה</a></td>
+            <td>6/12/2026 2:00:00 AM</td>
+            <td>1.95 KB</td>
+            <td>GZ</td>
+            <td>price</td>
+            <td>27 - שלי רעננה- אחוזה</td>
+            <td>Price7290027600007-001-027-20260612-020000</td>
+            <td>15</td>
+        </tr>
+        <tr class="webgrid-alternating-row">
+            <td><a href="https://pricesprodpublic.blob.core.windows.net/price/Price7290027600007-001-028-20260612-090000.gz?sv=2014-02-14&amp;sr=b&amp;sig=BahF%2BwJJtwbN%2FTv1rzpF3SkAD3PvrJJcSRF%2F6LszcdY%3D&amp;se=2026-06-12T07%3A21%3A56Z&amp;sp=r" target="_blank">לחץ להורדה</a></td>
+            <td>6/12/2026 9:00:00 AM</td>
+            <td>584 B</td>
+            <td>GZ</td>
+            <td>price</td>
+            <td>28 - שלי ת&quot;א- צה&quot;ל</td>
+            <td>Price7290027600007-001-028-20260612-090000</td>
+            <td>16</td>
+        </tr>
+        <tr class="webgrid-row-style">
+            <td><a href="https://pricesprodpublic.blob.core.windows.net/price/Price7290027600007-001-030-20260612-020000.gz?sv=2014-02-14&amp;sr=b&amp;sig=67O1SFVpe2Tzmnc4VEJTfoDmYxfY87ghaAU7lvAc32g%3D&amp;se=2026-06-12T07%3A21%3A56Z&amp;sp=r" target="_blank">לחץ להורדה</a></td>
+            <td>6/12/2026 2:00:00 AM</td>
+            <td>1.19 KB</td>
+            <td>GZ</td>
+            <td>price</td>
+            <td>30 - שלי רמת גן- קריניצי</td>
+            <td>Price7290027600007-001-030-20260612-020000</td>
+            <td>17</td>
+        </tr>
+        <tr class="webgrid-alternating-row">
+            <td><a href="https://pricesprodpublic.blob.core.windows.net/price/Price7290027600007-001-032-20260612-020000.gz?sv=2014-02-14&amp;sr=b&amp;sig=cEYry5WpiaOBZgr1yvahhuZByYI4qSw1K%2FJc63eoR4c%3D&amp;se=2026-06-12T07%3A21%3A56Z&amp;sp=r" target="_blank">לחץ להורדה</a></td>
+            <td>6/12/2026 2:00:00 AM</td>
+            <td>1.99 KB</td>
+            <td>GZ</td>
+            <td>price</td>
+            <td>32 - שלי רמת גן- קסם</td>
+            <td>Price7290027600007-001-032-20260612-020000</td>
+            <td>18</td>
+        </tr>
+        <tr class="webgrid-row-style">
+            <td><a href="https://pricesprodpublic.blob.core.windows.net/price/Price7290027600007-001-033-20260612-090000.gz?sv=2014-02-14&amp;sr=b&amp;sig=KapvUrdDPxQo%2BSIWJ1M4rD1Gazosol7uXhZKQAC80oc%3D&amp;se=2026-06-12T07%3A21%3A56Z&amp;sp=r" target="_blank">לחץ להורדה</a></td>
+            <td>6/12/2026 9:00:00 AM</td>
+            <td>697 B</td>
+            <td>GZ</td>
+            <td>price</td>
+            <td>33 - שלי חיפה- סטלה</td>
+            <td>Price7290027600007-001-033-20260612-090000</td>
+            <td>19</td>
+        </tr>
+        <tr class="webgrid-alternating-row">
+            <td><a href="https://pricesprodpublic.blob.core.windows.net/price/Price7290027600007-001-034-20260612-020000.gz?sv=2014-02-14&amp;sr=b&amp;sig=P%2BAmq8ukcKPnoS6E1xfUHmSAje9u5t79Ovz1xhEnMAA%3D&amp;se=2026-06-12T07%3A21%3A56Z&amp;sp=r" target="_blank">לחץ להורדה</a></td>
+            <td>6/12/2026 2:00:00 AM</td>
+            <td>2.12 KB</td>
+            <td>GZ</td>
+            <td>price</td>
+            <td>34 - שלי רמת השרון- סוקולוב</td>
+            <td>Price7290027600007-001-034-20260612-020000</td>
+            <td>20</td>
+        </tr>
+    </tbody>
+    </table>
+
+</div>
