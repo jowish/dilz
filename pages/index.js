@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useTheme } from 'next-themes';
-import { translations } from '../lib/translations';
+import { translations, traduireVille } from '../lib/translations';
 
 function StoreTag({ enseigne }) {
   const styles = {
@@ -222,12 +222,9 @@ async function detecterVille() {
       async (pos) => {
         try {
           const { latitude, longitude } = pos.coords;
-          const res = await fetch(
-            `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json&accept-language=he`
-          );
+          const res = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json&accept-language=he`);
           const data = await res.json();
-          const ville = data.address?.city || data.address?.town || data.address?.village || null;
-          resolve(ville);
+          resolve(data.address?.city || data.address?.town || data.address?.village || null);
         } catch(e) { resolve(null); }
       },
       () => resolve(null),
@@ -248,14 +245,20 @@ export default function Home() {
   const [mounted, setMounted] = useState(false);
   const [langue, setLangue] = useState('he');
   const [ville, setVille] = useState(null);
+  const [villes, setVilles] = useState([]);
+  const [showVilleSelector, setShowVilleSelector] = useState(false);
+  const [rechercheVille, setRechercheVille] = useState('');
   const [chargementVille, setChargementVille] = useState(false);
+
   const t = translations[langue];
   const dir = langue === 'he' ? 'rtl' : 'ltr';
+  const villeAffichee = ville || (langue === 'he' ? 'כל הארץ' : 'All Israel');
 
   useEffect(() => {
     setMounted(true);
     fetch('/api/promos').then(r => r.json()).then(d => { setPromos(d.promos || []); setChargementPromos(false); }).catch(() => setChargementPromos(false));
     fetch('/api/bons-plans').then(r => r.json()).then(d => { setDeals((d.bons_plans || []).slice(0, 5)); }).catch(() => {});
+    fetch('/api/villes').then(r => r.json()).then(d => setVilles(d.villes || [])).catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -286,7 +289,11 @@ export default function Home() {
   if (!mounted) return null;
 
   const ongletActif = recherche.length >= 2 ? 'recherche' : onglet;
-  const villeAffichee = ville || (langue === 'he' ? 'כל הארץ' : 'All Israel');
+
+  const villesFiltrees = villes.filter(v =>
+    v.includes(rechercheVille) ||
+    traduireVille(v, langue).toLowerCase().includes(rechercheVille.toLowerCase())
+  );
 
   const navItems = [
     { id: 'deals', label: t.nav.deals, icon: (actif) => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={actif ? 'var(--accent)' : 'var(--text-tertiary)'} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg> },
@@ -308,11 +315,10 @@ export default function Home() {
                 style={{ background: 'none', border: '0.5px solid var(--border)', borderRadius: 8, padding: '4px 10px', cursor: 'pointer', fontSize: 12, color: 'var(--text-secondary)', fontWeight: 600 }}>
                 {langue === 'he' ? 'EN' : 'עב'}
               </button>
-              {/* Bouton ville avec géolocalisation */}
-              <button onClick={demanderVille}
+              <button onClick={() => { setShowVilleSelector(true); setRechercheVille(''); }}
                 style={{ display: 'flex', alignItems: 'center', gap: 5, background: 'var(--bg-secondary)', padding: '5px 12px', borderRadius: 20, fontSize: 12, color: ville ? 'var(--accent)' : 'var(--text-secondary)', fontWeight: 500, border: ville ? '0.5px solid var(--accent)' : '0.5px solid var(--border)', cursor: 'pointer' }}>
                 <div style={{ width: 6, height: 6, borderRadius: '50%', background: ville ? 'var(--accent)' : 'var(--accent-green)', flexShrink: 0 }}></div>
-                {chargementVille ? '...' : villeAffichee}
+                {chargementVille ? '...' : traduireVille(villeAffichee, langue)}
               </button>
             </div>
             <span style={{ fontSize: 24, fontWeight: 700, color: 'var(--text-primary)', letterSpacing: -0.5 }}>
@@ -335,7 +341,7 @@ export default function Home() {
         {ongletActif === 'promos' && (
           <div>
             <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-secondary)', letterSpacing: 0.5, textAlign: langue === 'he' ? 'right' : 'left', marginBottom: 12, textTransform: 'uppercase' }}>
-              {langue === 'he' ? `הכי זול ב${villeAffichee} היום` : `Best prices in ${villeAffichee} today`}
+              {langue === 'he' ? `הכי זול ב${villeAffichee} היום` : `Best prices in ${traduireVille(villeAffichee, langue)} today`}
             </p>
             {chargementPromos ? (
               <p style={{ textAlign: 'center', color: 'var(--text-secondary)', padding: 40 }}>{t.loadingDeals}</p>
@@ -485,6 +491,53 @@ export default function Home() {
           );
         })}
       </div>
+
+      {/* Modal sélecteur de ville */}
+      {showVilleSelector && (
+        <div onClick={() => setShowVilleSelector(false)}
+          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 200, display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}>
+          <div onClick={e => e.stopPropagation()}
+            style={{ background: 'var(--bg-card)', borderRadius: '20px 20px 0 0', padding: '20px 20px 40px', width: '100%', maxWidth: 600, maxHeight: '75vh', display: 'flex', flexDirection: 'column' }}>
+            <div style={{ width: 36, height: 4, borderRadius: 2, background: 'var(--border)', margin: '0 auto 16px' }} />
+            <p style={{ fontSize: 16, fontWeight: 600, color: 'var(--text-primary)', textAlign: 'right', marginBottom: 12 }}>{t.selectCity}</p>
+            
+            {/* Barre de recherche ville */}
+            <input
+              type="text"
+              placeholder={langue === 'he' ? 'חפש עיר...' : 'Search city...'}
+              value={rechercheVille}
+              onChange={e => setRechercheVille(e.target.value)}
+              autoFocus
+              style={{ width: '100%', padding: '10px 14px', borderRadius: 12, border: '0.5px solid var(--border)', background: 'var(--bg-input)', color: 'var(--text-primary)', fontSize: 14, outline: 'none', textAlign: langue === 'he' ? 'right' : 'left', marginBottom: 12 }}
+            />
+
+            <div style={{ overflowY: 'auto', flex: 1 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+                {/* Tout Israel */}
+                <button onClick={() => { setVille(null); setShowVilleSelector(false); }}
+                  style={{ padding: '10px 12px', borderRadius: 12, border: !ville ? '2px solid var(--accent)' : '0.5px solid var(--border)', background: !ville ? 'var(--bg-secondary)' : 'var(--bg-card)', color: !ville ? 'var(--accent)' : 'var(--text-primary)', fontSize: 13, fontWeight: !ville ? 600 : 400, cursor: 'pointer', textAlign: 'right' }}>
+                  {langue === 'he' ? 'כל הארץ' : 'All Israel'}
+                </button>
+
+                {/* Position actuelle */}
+                <button onClick={() => { demanderVille(); setShowVilleSelector(false); }}
+                  style={{ padding: '10px 12px', borderRadius: 12, border: '0.5px solid var(--border)', background: 'var(--bg-card)', color: 'var(--accent)', fontSize: 13, fontWeight: 500, cursor: 'pointer', textAlign: 'right', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 6 }}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
+                  {langue === 'he' ? 'מיקום נוכחי' : 'My location'}
+                </button>
+
+                {/* Liste des villes filtrées */}
+                {villesFiltrees.map(v => (
+                  <button key={v} onClick={() => { setVille(v); setShowVilleSelector(false); }}
+                    style={{ padding: '10px 12px', borderRadius: 12, border: ville === v ? '2px solid var(--accent)' : '0.5px solid var(--border)', background: ville === v ? 'var(--bg-secondary)' : 'var(--bg-card)', color: ville === v ? 'var(--accent)' : 'var(--text-primary)', fontSize: 13, fontWeight: ville === v ? 600 : 400, cursor: 'pointer', textAlign: 'right' }}>
+                    {traduireVille(v, langue)}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
