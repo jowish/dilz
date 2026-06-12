@@ -5,65 +5,101 @@ require('dotenv').config({ path: '.env.local' });
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  process.env.SUPABASE_SERVICE_KEY
 );
 
-const GOOGLE_API_KEY = 'AIzaSyCQr8ZVMPRjIVt6at_ZKuvFn1IErfnawYk';
-const SEARCH_ENGINE_ID = 'd4b13e0af63734b52';
+function pause(ms) { return new Promise(r => setTimeout(r, ms)); }
 
-function pause(ms) {
-  return new Promise(r => setTimeout(r, ms));
-}
-
-async function chercherImage(nomProduit) {
+async function chercherImageOpenFood(barcode) {
   return new Promise((resolve) => {
-    // On cherche avec des termes en anglais aussi pour plus de résultats
-    const query = encodeURIComponent(nomProduit);
-    const url = `https://www.googleapis.com/customsearch/v1?key=${GOOGLE_API_KEY}&cx=${SEARCH_ENGINE_ID}&q=${query}&searchType=image&num=3&imgSize=medium&safe=active&imgType=photo`;
-
-    https.get(url, (res) => {
-      let body = '';
-      res.on('data', c => body += c);
+    https.get(`https://world.openfoodfacts.org/api/v0/product/${barcode}.json`,
+    { headers: { 'User-Agent': 'Dilz/1.0' } }, (res) => {
+      let b = '';
+      res.on('data', c => b += c);
       res.on('end', () => {
         try {
-          const json = JSON.parse(body);
-          console.log('  API response:', json.searchInformation?.totalResults, 'results');
-          if (json.error) console.log('  Error:', json.error.message);
-          const image = json.items?.[0]?.link;
-          resolve(image || null);
-        } catch(e) {
-          console.log('  Parse error:', e.message);
-          resolve(null);
-        }
+          const d = JSON.parse(b);
+          resolve(d.product?.image_front_small_url || d.product?.image_url || null);
+        } catch(e) { resolve(null); }
       });
-    }).on('error', e => { console.log('  Network error:', e.message); resolve(null); });
+    }).on('error', () => resolve(null));
+  });
+}
+
+async function telechargerBuffer(url) {
+  return new Promise((resolve) => {
+    const mod = url.startsWith('https') ? https : require('http');
+    mod.get(url, { headers: { 'User-Agent': 'Dilz/1.0' } }, (res) => {
+      if (res.statusCode !== 200) { res.resume(); resolve(null); return; }
+      const chunks = [];
+      res.on('data', c => chunks.push(c));
+      res.on('end', () => resolve(Buffer.concat(chunks)));
+    }).on('error', () => resolve(null));
   });
 }
 
 async function main() {
-  console.log('Recherche images...\n');
+  console.log('Import images via Open Food Facts...\n');
 
+  // Produits sans image dans la base
   const { data: produits } = await supabase
     .from('produits')
-    .select('barcode, nom, image, prix(enseigne_code)')
+    .select('barcode, nom, image')
     .is('image', null)
-    .limit(20);
+    .limit(500);
 
-  const enPromo = (produits || []).filter(p => p.prix?.length >= 2);
-  console.log(`${enPromo.length} produits en promo sans image\n`);
+  console.log(`${produits?.length || 0} produits sans image\n`);
 
-  for (let i = 0; i < Math.min(enPromo.length, 5); i++) {
-    const produit = enPromo[i];
-    console.log(`[${i+1}] ${produit.nom}`);
-    const image = await chercherImage(produit.nom);
-    if (image) {
-      await supabase.from('produits').update({ image }).eq('barcode', produit.barcode);
-      console.log(`  Sauvegarde: ${image.substring(0, 80)}`);
+  let succes = 0;
+  let echecs = 0;
+
+  for (const produit of (produits || [])) {
+    process.stdout.write(`[${succes + echecs + 1}] ${produit.nom?.substring(0, 35)}... `);
+
+    const imageUrl = await chercherImageOpenFood(produit.barcode);
+
+    if (!imageUrl) {
+      process.stdout.write('pas trouvé\n');
+      echecs++;
+      await pause(200);
+      continue;
     }
-    await pause(1200);
+
+    // Télécharger l'image
+    const buffer = await telechargerBuffer(imageUrl);
+    if (!buffer || buffer.length < 500) {
+      process.stdout.write('image vide\n');
+      echecs++;
+      await pause(200);
+      continue;
+    }
+
+    // Uploader dans Supabase Storage
+    const fileName = `${produit.barcode}.jpg`;
+    const { error } = await supabase.storage
+      .from('product-images')
+      .upload(fileName, buffer, { contentType: 'image/jpeg', upsert: true });
+
+    if (error) {
+      process.stdout.write(`erreur upload: ${error.message}\n`);
+      echecs++;
+    } else {
+      const { data: urlData } = supabase.storage
+        .from('product-images')
+        .getPublicUrl(fileName);
+
+      await supabase.from('produits')
+        .update({ image: urlData.publicUrl })
+        .eq('barcode', produit.barcode);
+
+      process.stdout.write('✓\n');
+      succes++;
+    }
+
+    await pause(300);
   }
 
-  console.log('\nTermine!');
+  console.log(`\nTermine ! ${succes} images, ${echecs} non trouvés`);
   process.exit(0);
 }
 
