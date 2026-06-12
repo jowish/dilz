@@ -20,7 +20,7 @@ function parseXMLPrix(xml) {
       return m ? m[1].trim() : '';
     };
     const prix = parseFloat(get('ItemPrice'));
-    if (prix > 0) {
+    if (prix > 0 && get('ItemCode')) {
       produits.push({
         barcode: get('ItemCode'),
         nom: get('ItemName'),
@@ -36,7 +36,7 @@ function parseXMLPrix(xml) {
 async function telechargerGZ(url) {
   return new Promise((resolve, reject) => {
     const mod = url.startsWith('https') ? https : require('http');
-    mod.get(url, (res) => {
+    mod.get(url, { headers: { 'User-Agent': 'Mozilla/5.0' } }, (res) => {
       if (res.statusCode === 301 || res.statusCode === 302) {
         return telechargerGZ(res.headers.location).then(resolve).catch(reject);
       }
@@ -54,20 +54,25 @@ async function telechargerGZ(url) {
   });
 }
 
+async function fetchHtml(url) {
+  return new Promise((resolve, reject) => {
+    https.get(url, { headers: { 'User-Agent': 'Mozilla/5.0' } }, (res) => {
+      let data = '';
+      res.on('data', c => data += c);
+      res.on('end', () => resolve(data));
+    }).on('error', reject);
+  });
+}
+
 async function sauvegarderEnBase(produits, enseigneCode, storeId) {
-  console.log(`  Sauvegarde ${produits.length} produits...`);
   const batchSize = 100;
   for (let i = 0; i < produits.length; i += batchSize) {
     const batch = produits.slice(i, i + batchSize);
     await supabase.from('produits').upsert(
-      batch.map(p => ({
-        barcode: p.barcode,
-        nom: p.nom,
-        ...(p.image ? { image: p.image } : {})
-      })),
+      batch.map(p => ({ barcode: p.barcode, nom: p.nom, ...(p.image ? { image: p.image } : {}) })),
       { onConflict: 'barcode' }
     );
-    const { error } = await supabase.from('prix').upsert(
+    await supabase.from('prix').upsert(
       batch.map(p => ({
         barcode: p.barcode,
         enseigne_code: enseigneCode,
@@ -79,26 +84,54 @@ async function sauvegarderEnBase(produits, enseigneCode, storeId) {
       })),
       { onConflict: 'barcode,enseigne_code,store_id' }
     );
-    if (error) console.error('Erreur:', error.message);
-    if (i % 2000 === 0 && i > 0) console.log(`  ${i}/${produits.length}...`);
   }
 }
 
 async function importerShufersal() {
-  console.log('\nShufersal...');
-  const listePage = await new Promise((resolve, reject) => {
-    https.get('https://prices.shufersal.co.il/FileObject/UpdateCategory?catID=2&storeId=1', (res) => {
-      let data = '';
-      res.on('data', c => data += c);
-      res.on('end', () => resolve(data));
-    }).on('error', reject);
-  });
-  const urlMatch = listePage.match(/href="(https:\/\/pricesprodpublic[^"]+\.gz[^"]*)"/);
-  if (!urlMatch) throw new Error('URL Shufersal introuvable');
-  const url = urlMatch[1].replace(/&amp;/g, '&');
-  const xml = await telechargerGZ(url);
-  const produits = parseXMLPrix(xml);
-  console.log(`  ${produits.length} produits`);
+  console.log('\nShufersal — import de tous les magasins...');
+
+  // Recuperer la liste de tous les fichiers disponibles
+  const html = await fetchHtml('https://prices.shufersal.co.il/FileObject/UpdateCategory?catID=2&storeId=0&take=300');
+
+  // Extraire tous les liens gz
+  const liens = html.match(/href="(https:\/\/pricesprodpublic[^"]+\.gz[^"]*)"/g) || [];
+  const urls = [...new Set(liens.map(l => l.replace('href="', '').replace('"', '').replace(/&amp;/g, '&')))];
+
+  console.log(`  ${urls.length} fichiers trouves`);
+
+  const tousLesProduits = new Map();
+  let magasinsTraites = 0;
+
+  for (const url of urls) {
+    try {
+      const storeMatch = url.match(/PriceFull\d+-\d+-(\d+)-/);
+      const storeId = storeMatch ? storeMatch[1] : '000';
+
+      console.log(`  Magasin ${storeId}...`);
+      const xml = await telechargerGZ(url);
+      const produits = parseXMLPrix(xml);
+
+      let nouveaux = 0;
+      produits.forEach(p => {
+        if (!tousLesProduits.has(p.barcode)) {
+          tousLesProduits.set(p.barcode, { ...p, storeId });
+          nouveaux++;
+        }
+      });
+
+      console.log(`    ${produits.length} produits, ${nouveaux} nouveaux (total: ${tousLesProduits.size})`);
+      magasinsTraites++;
+
+      await new Promise(r => setTimeout(r, 300));
+    } catch(e) {
+      console.log(`    Erreur: ${e.message}`);
+    }
+  }
+
+  console.log(`\n  Total Shufersal: ${tousLesProduits.size} produits uniques sur ${magasinsTraites} magasins`);
+
+  // Sauvegarder par batch
+  const produits = Array.from(tousLesProduits.values());
   await sauvegarderEnBase(produits, 'shufersal', '001');
   console.log('  Shufersal OK !');
 }
@@ -135,7 +168,7 @@ async function postRL(body) {
 }
 
 async function importerRamiLevy() {
-  console.log('\nRami Levy...');
+  console.log('\nRami Levy — pagination complete...');
   const tousLesProduits = new Map();
   const first = await postRL({ store: '331', q: '', from: 0, size: 30 });
   const total = first.total || 0;
@@ -174,8 +207,9 @@ async function importerRamiLevy() {
 }
 
 async function importerVictory() {
-  console.log('\nVictory...');
+  console.log('\nVictory — import de tous les magasins...');
   const EDI = '7290696200003';
+
   const filesRes = await new Promise((resolve, reject) => {
     https.get(`https://laibcatalog.co.il/webapi/api/getfiles?edi=${EDI}`, (res) => {
       let data = '';
@@ -191,29 +225,34 @@ async function importerVictory() {
   console.log(`  ${fichiersPriceFull.length} fichiers PriceFull`);
 
   const tousLesProduits = new Map();
-  for (const fichier of fichiersPriceFull.slice(0, 5)) {
+
+  for (const fichier of fichiersPriceFull) {
     const url = `https://laibcatalog.co.il/webapi/${EDI}/${fichier.fileName}`;
     try {
       const xml = await telechargerGZ(url);
       const produits = parseXMLPrix(xml);
+      let nouveaux = 0;
       produits.forEach(p => {
-        if (!tousLesProduits.has(p.barcode)) tousLesProduits.set(p.barcode, p);
+        if (!tousLesProduits.has(p.barcode)) {
+          tousLesProduits.set(p.barcode, p);
+          nouveaux++;
+        }
       });
-      console.log(`  Magasin ${fichier.branchNumber}: ${produits.length} produits (total: ${tousLesProduits.size})`);
+      console.log(`  Magasin ${fichier.branchNumber}: ${produits.length} produits, ${nouveaux} nouveaux (total: ${tousLesProduits.size})`);
     } catch(e) {
-      console.log(`  Erreur magasin ${fichier.branchNumber}:`, e.message);
+      console.log(`  Erreur magasin ${fichier.branchNumber}: ${e.message}`);
     }
-    await new Promise(r => setTimeout(r, 500));
+    await new Promise(r => setTimeout(r, 300));
   }
 
   const produits = Array.from(tousLesProduits.values());
-  console.log(`  ${produits.length} produits Victory uniques`);
+  console.log(`\n  Total Victory: ${produits.length} produits uniques`);
   await sauvegarderEnBase(produits, 'victory', '001');
   console.log('  Victory OK !');
 }
 
 async function main() {
-  console.log('Demarrage import...');
+  console.log('Demarrage import complet...\n');
   try {
     await importerShufersal();
     await importerRamiLevy();

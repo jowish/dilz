@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useTheme } from 'next-themes';
+import { translations } from '../lib/translations';
 
 function StoreTag({ enseigne }) {
   const styles = {
@@ -16,7 +17,8 @@ function StoreTag({ enseigne }) {
   );
 }
 
-function CartePromo({ promo }) {
+function CartePromo({ promo, t }) {
+  const [ouvert, setOuvert] = useState(false);
   const config = {
     'שופרסל': { bg: '#e6f1fb', iconBg: '#185fa5' },
     'רמי לוי': { bg: '#faeeda', iconBg: '#ba7517' },
@@ -26,28 +28,78 @@ function CartePromo({ promo }) {
   const initiales = promo.nom.split(' ').slice(0, 2).map(w => w[0]).join('').toUpperCase();
 
   return (
-    <div style={{ background: 'var(--bg-card)', borderRadius: 16, overflow: 'hidden', boxShadow: 'var(--shadow)' }}>
-      <div style={{ height: 80, background: c.bg, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <div style={{ width: 44, height: 44, borderRadius: 12, background: c.iconBg, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <span style={{ color: '#fff', fontSize: 16, fontWeight: 700 }}>{initiales}</span>
+    <>
+      <div onClick={() => setOuvert(true)} style={{ background: 'var(--bg-card)', borderRadius: 16, overflow: 'hidden', boxShadow: 'var(--shadow)', cursor: 'pointer' }}>
+        <div style={{ height: 80, background: c.bg, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ width: 44, height: 44, borderRadius: 12, background: c.iconBg, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <span style={{ color: '#fff', fontSize: 16, fontWeight: 700 }}>{initiales}</span>
+          </div>
+        </div>
+        <div style={{ padding: '10px 12px 12px' }}>
+          <p style={{ fontSize: 12, fontWeight: 500, color: 'var(--text-primary)', textAlign: 'right', marginBottom: 8, lineHeight: 1.4 }}>{promo.nom}</p>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span style={{ fontSize: 11, fontWeight: 600, padding: '3px 8px', borderRadius: 20, background: '#e1f5ee', color: '#0f6e56' }}>-{promo.reduction}%</span>
+            <span style={{ fontSize: 17, fontWeight: 700, color: 'var(--text-primary)' }}>{promo.prixMin}₪</span>
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 6 }}>
+            <span style={{ fontSize: 11, color: 'var(--text-secondary)', textDecoration: 'line-through' }}>{promo.prixMax}₪</span>
+            <StoreTag enseigne={promo.meilleurEnseigne} />
+          </div>
         </div>
       </div>
-      <div style={{ padding: '10px 12px 12px' }}>
-        <p style={{ fontSize: 12, fontWeight: 500, color: 'var(--text-primary)', textAlign: 'right', marginBottom: 8, lineHeight: 1.4 }}>{promo.nom}</p>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span style={{ fontSize: 11, fontWeight: 600, padding: '3px 8px', borderRadius: 20, background: '#e1f5ee', color: '#0f6e56' }}>-{promo.reduction}%</span>
-          <span style={{ fontSize: 17, fontWeight: 700, color: 'var(--text-primary)' }}>{promo.prixMin}₪</span>
+
+      {ouvert && (
+        <div onClick={() => setOuvert(false)}
+          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 100, display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}>
+          <div onClick={e => e.stopPropagation()}
+            style={{ background: 'var(--bg-card)', borderRadius: '20px 20px 0 0', padding: '20px 20px 40px', width: '100%', maxWidth: 600 }}>
+            <div style={{ width: 36, height: 4, borderRadius: 2, background: 'var(--border)', margin: '0 auto 16px' }} />
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20, direction: 'rtl' }}>
+              <div style={{ width: 48, height: 48, borderRadius: 12, background: c.iconBg, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <span style={{ color: '#fff', fontSize: 18, fontWeight: 700 }}>{initiales}</span>
+              </div>
+              <div>
+                <p style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 2 }}>{promo.nom}</p>
+                <p style={{ fontSize: 12, color: 'var(--text-secondary)' }}>{t.priceComparison}</p>
+              </div>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, direction: 'rtl' }}>
+              {promo.tousLesPrix.map(p => {
+                const estMeilleur = p.prix === promo.prixMin;
+                return (
+                  <div key={p.enseigne} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 16px', borderRadius: 14, background: estMeilleur ? '#f0fdf4' : 'var(--bg-secondary)', border: estMeilleur ? '1px solid #bbf7d0' : '0.5px solid var(--border)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      {estMeilleur ? (
+                        <span style={{ fontSize: 11, fontWeight: 600, color: '#0f6e56', background: '#dcfce7', padding: '2px 8px', borderRadius: 10 }}>{t.cheapest}</span>
+                      ) : (
+                        <span style={{ fontSize: 11, color: '#a32d2d' }}>+{(p.prix - promo.prixMin).toFixed(2)}₪</span>
+                      )}
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                      <span style={{ fontSize: 20, fontWeight: 700, color: estMeilleur ? '#0f6e56' : 'var(--text-secondary)' }}>{p.prix}₪</span>
+                      <StoreTag enseigne={p.enseigne} />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+            <div style={{ marginTop: 16, padding: '12px 16px', borderRadius: 14, background: 'var(--bg-secondary)', textAlign: 'center', direction: 'rtl' }}>
+              <span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>
+                {t.maxSaving}: <span style={{ fontWeight: 700, color: '#0f6e56' }}>{(promo.prixMax - promo.prixMin).toFixed(2)}₪</span>
+              </span>
+            </div>
+            <button onClick={() => setOuvert(false)}
+              style={{ width: '100%', marginTop: 12, padding: 14, borderRadius: 14, border: 'none', background: 'var(--bg-secondary)', color: 'var(--text-secondary)', fontSize: 15, fontWeight: 500, cursor: 'pointer' }}>
+              {t.close}
+            </button>
+          </div>
         </div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 6 }}>
-          <span style={{ fontSize: 11, color: 'var(--text-secondary)', textDecoration: 'line-through' }}>{promo.prixMax}₪</span>
-          <StoreTag enseigne={promo.meilleurEnseigne} />
-        </div>
-      </div>
-    </div>
+      )}
+    </>
   );
 }
 
-function CarteRecherche({ produit, dansPanier, onAjouter, onRetirer }) {
+function CarteRecherche({ produit, dansPanier, onAjouter, onRetirer, t }) {
   const tousLesPrix = produit.tousLesPrix;
   const meilleurPrix = Math.min(...tousLesPrix.map(p => p.prix));
   const prixIdentiques = tousLesPrix.every(p => p.prix === meilleurPrix);
@@ -57,7 +109,7 @@ function CarteRecherche({ produit, dansPanier, onAjouter, onRetirer }) {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
         <button onClick={() => dansPanier ? onRetirer(produit.barcode) : onAjouter(produit)}
           style={{ fontSize: 12, padding: '6px 14px', borderRadius: 20, border: 'none', cursor: 'pointer', fontWeight: 600, background: dansPanier ? '#fcebeb' : '#e6f1fb', color: dansPanier ? '#a32d2d' : '#0c447c' }}>
-          {dansPanier ? 'הסר' : 'הוסף +'}
+          {dansPanier ? t.remove : t.add}
         </button>
         <div style={{ textAlign: 'right', flex: 1, marginRight: 12 }}>
           <p style={{ fontWeight: 600, fontSize: 15, color: 'var(--text-primary)', marginBottom: 2 }}>{produit.nom}</p>
@@ -71,7 +123,7 @@ function CarteRecherche({ produit, dansPanier, onAjouter, onRetirer }) {
             <div key={p.enseigne} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 12px', borderRadius: 12, background: estMeilleur && !prixIdentiques ? '#f0fdf4' : 'var(--bg-secondary)', border: estMeilleur && !prixIdentiques ? '1px solid #bbf7d0' : '0.5px solid var(--border)' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <StoreTag enseigne={p.enseigne} />
-                {estMeilleur && !prixIdentiques && <span style={{ fontSize: 11, color: '#0f6e56', fontWeight: 600 }}>הכי זול</span>}
+                {estMeilleur && !prixIdentiques && <span style={{ fontSize: 11, color: '#0f6e56', fontWeight: 600 }}>{t.cheapest}</span>}
                 {!estMeilleur && !prixIdentiques && <span style={{ fontSize: 11, color: '#a32d2d' }}>+{(p.prix - meilleurPrix).toFixed(2)}₪</span>}
               </div>
               <span style={{ fontSize: 18, fontWeight: 700, color: estMeilleur && !prixIdentiques ? '#0f6e56' : 'var(--text-secondary)' }}>{p.prix}₪</span>
@@ -83,7 +135,7 @@ function CarteRecherche({ produit, dansPanier, onAjouter, onRetirer }) {
   );
 }
 
-function OptimisationPanier({ panier }) {
+function OptimisationPanier({ panier, t }) {
   const ENSEIGNES = ['שופרסל', 'רמי לוי', 'ויקטורי'];
   const totalParMagasin = ENSEIGNES.map(enseigne => {
     let total = 0, manquants = 0;
@@ -109,12 +161,12 @@ function OptimisationPanier({ panier }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 16 }}>
       <div style={{ background: 'var(--bg-card)', borderRadius: 16, padding: 16, boxShadow: 'var(--shadow)' }}>
-        <p style={{ fontWeight: 600, textAlign: 'right', marginBottom: 12, fontSize: 15, color: 'var(--text-primary)' }}>אפשרות 1 — חנות אחת</p>
+        <p style={{ fontWeight: 600, textAlign: 'right', marginBottom: 12, fontSize: 15, color: 'var(--text-primary)' }}>{t.option1}</p>
         {totalParMagasin.map((m, i) => (
           <div key={m.enseigne} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 12px', borderRadius: 12, marginBottom: 8, background: i === 0 ? '#f0fdf4' : 'var(--bg-secondary)', border: i === 0 ? '1px solid #bbf7d0' : '0.5px solid var(--border)' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <StoreTag enseigne={m.enseigne} />
-              {i === 0 && <span style={{ fontSize: 11, color: '#0f6e56', fontWeight: 600 }}>הכי זול</span>}
+              {i === 0 && <span style={{ fontSize: 11, color: '#0f6e56', fontWeight: 600 }}>{t.cheapest}</span>}
             </div>
             <span style={{ fontSize: 18, fontWeight: 700, color: i === 0 ? '#0f6e56' : 'var(--text-secondary)' }}>{m.total.toFixed(2)}₪</span>
           </div>
@@ -122,11 +174,11 @@ function OptimisationPanier({ panier }) {
       </div>
       <div style={{ background: 'var(--bg-card)', borderRadius: 16, padding: 16, boxShadow: 'var(--shadow)' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-          <span style={{ fontSize: 12, color: '#0f6e56', fontWeight: 600, background: '#e1f5ee', padding: '4px 10px', borderRadius: 20 }}>חיסכון: {economiMulti}₪</span>
-          <p style={{ fontWeight: 600, fontSize: 15, color: 'var(--text-primary)' }}>אפשרות 2 — הכי חסכוני</p>
+          <span style={{ fontSize: 12, color: '#0f6e56', fontWeight: 600, background: '#e1f5ee', padding: '4px 10px', borderRadius: 20 }}>{t.saving}: {economiMulti}₪</span>
+          <p style={{ fontWeight: 600, fontSize: 15, color: 'var(--text-primary)' }}>{t.option2}</p>
         </div>
         <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 12px', borderRadius: 12, background: '#f0fdf4', border: '1px solid #bbf7d0', marginBottom: 12 }}>
-          <span style={{ fontSize: 12, color: '#0f6e56' }}>סה״כ</span>
+          <span style={{ fontSize: 12, color: '#0f6e56' }}>{t.total}</span>
           <span style={{ fontSize: 20, fontWeight: 700, color: '#0f6e56' }}>{totalMulti.toFixed(2)}₪</span>
         </div>
         {Object.entries(repartitionMulti).map(([enseigne, items]) => (
@@ -153,8 +205,7 @@ function ThemeToggle() {
   const isDark = resolvedTheme === 'dark';
   return (
     <button onClick={() => setTheme(isDark ? 'light' : 'dark')}
-      style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-tertiary)', padding: 6, borderRadius: 8, display: 'flex', alignItems: 'center' }}
-      aria-label="toggle theme">
+      style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-tertiary)', padding: 6, borderRadius: 8, display: 'flex', alignItems: 'center' }}>
       {isDark ? (
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
       ) : (
@@ -174,6 +225,9 @@ export default function Home() {
   const [chargement, setChargement] = useState(false);
   const [panier, setPanier] = useState([]);
   const [mounted, setMounted] = useState(false);
+  const [langue, setLangue] = useState('he');
+  const t = translations[langue];
+  const dir = langue === 'he' ? 'rtl' : 'ltr';
 
   useEffect(() => {
     setMounted(true);
@@ -204,14 +258,14 @@ export default function Home() {
   const ongletActif = recherche.length >= 2 ? 'recherche' : onglet;
 
   const navItems = [
-    { id: 'deals', label: 'דילים', icon: (actif) => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={actif ? 'var(--accent)' : 'var(--text-tertiary)'} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg> },
-    { id: 'promos', label: 'מבצעים', icon: (actif) => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={actif ? 'var(--accent)' : 'var(--text-tertiary)'} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg> },
-    { id: 'recherche', label: 'חיפוש', icon: (actif) => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={actif ? 'var(--accent)' : 'var(--text-tertiary)'} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg> },
-    { id: 'panier', label: 'סל', badge: panier.length || null, icon: (actif) => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={actif ? 'var(--accent)' : 'var(--text-tertiary)'} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg> },
+    { id: 'deals', label: t.nav.deals, icon: (actif) => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={actif ? 'var(--accent)' : 'var(--text-tertiary)'} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg> },
+    { id: 'promos', label: t.nav.promos, icon: (actif) => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={actif ? 'var(--accent)' : 'var(--text-tertiary)'} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg> },
+    { id: 'recherche', label: t.nav.search, icon: (actif) => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={actif ? 'var(--accent)' : 'var(--text-tertiary)'} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg> },
+    { id: 'panier', label: t.nav.cart, badge: panier.length || null, icon: (actif) => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={actif ? 'var(--accent)' : 'var(--text-tertiary)'} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg> },
   ];
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg-secondary)', paddingBottom: 88 }} dir="rtl">
+    <div style={{ minHeight: '100vh', background: 'var(--bg-secondary)', paddingBottom: 88 }} dir={dir}>
 
       {/* Header */}
       <div style={{ background: 'var(--header-bg)', borderBottom: '0.5px solid var(--border)', padding: '12px 20px 16px', position: 'sticky', top: 0, zIndex: 10 }}>
@@ -219,9 +273,13 @@ export default function Home() {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
               <ThemeToggle />
+              <button onClick={() => setLangue(langue === 'he' ? 'en' : 'he')}
+                style={{ background: 'none', border: '0.5px solid var(--border)', borderRadius: 8, padding: '4px 10px', cursor: 'pointer', fontSize: 12, color: 'var(--text-secondary)', fontWeight: 600 }}>
+                {langue === 'he' ? 'EN' : 'עב'}
+              </button>
               <div style={{ display: 'flex', alignItems: 'center', gap: 5, background: 'var(--bg-secondary)', padding: '5px 12px', borderRadius: 20, fontSize: 12, color: 'var(--text-secondary)', fontWeight: 500, border: '0.5px solid var(--border)' }}>
                 <div style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--accent-green)', flexShrink: 0 }}></div>
-                כל הארץ
+                {t.allCountry}
               </div>
             </div>
             <span style={{ fontSize: 24, fontWeight: 700, color: 'var(--text-primary)', letterSpacing: -0.5 }}>
@@ -230,8 +288,8 @@ export default function Home() {
           </div>
           <div style={{ background: 'var(--bg-input)', borderRadius: 12, display: 'flex', alignItems: 'center', padding: '10px 14px', gap: 8 }}>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-tertiary)" strokeWidth="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-            <input type="text" placeholder="חפש מוצר..."
-              style={{ background: 'none', border: 'none', color: 'var(--text-primary)', fontSize: 15, flex: 1, outline: 'none', textAlign: 'right' }}
+            <input type="text" placeholder={t.search}
+              style={{ background: 'none', border: 'none', color: 'var(--text-primary)', fontSize: 15, flex: 1, outline: 'none', textAlign: langue === 'he' ? 'right' : 'left' }}
               value={recherche} onChange={e => { setRecherche(e.target.value); if (e.target.value.length >= 2) setOnglet('recherche'); }} />
             {recherche && <button onClick={() => { setRecherche(''); setOnglet('promos'); }} style={{ background: 'none', border: 'none', color: 'var(--text-tertiary)', cursor: 'pointer', fontSize: 18, lineHeight: 1 }}>×</button>}
           </div>
@@ -243,31 +301,31 @@ export default function Home() {
         {/* Promos */}
         {ongletActif === 'promos' && (
           <div>
-            <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-secondary)', letterSpacing: 0.5, textAlign: 'right', marginBottom: 12, textTransform: 'uppercase' }}>
-              הכי זול בכל הארץ היום
+            <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-secondary)', letterSpacing: 0.5, textAlign: langue === 'he' ? 'right' : 'left', marginBottom: 12, textTransform: 'uppercase' }}>
+              {t.bestDeals}
             </p>
             {chargementPromos ? (
-              <p style={{ textAlign: 'center', color: 'var(--text-secondary)', padding: 40 }}>טוען מבצעים...</p>
+              <p style={{ textAlign: 'center', color: 'var(--text-secondary)', padding: 40 }}>{t.loadingDeals}</p>
             ) : (
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 20 }}>
-                {promos.map(p => <CartePromo key={p.barcode} promo={p} />)}
+                {promos.map(p => <CartePromo key={p.barcode} promo={p} t={t} />)}
               </div>
             )}
             {deals.length > 0 && (
               <>
-                <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-secondary)', letterSpacing: 0.5, textAlign: 'right', marginBottom: 10, textTransform: 'uppercase' }}>דילים חמים מהקהילה</p>
+                <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-secondary)', letterSpacing: 0.5, textAlign: langue === 'he' ? 'right' : 'left', marginBottom: 10, textTransform: 'uppercase' }}>{t.hotDeals}</p>
                 <div style={{ background: 'var(--bg-card)', borderRadius: 16, overflow: 'hidden', boxShadow: 'var(--shadow)', marginBottom: 12 }}>
                   {deals.map((bp, i) => {
                     const reduction = bp.prix_original ? Math.round((bp.prix_original - bp.prix) / bp.prix_original * 100) : null;
                     return (
                       <div key={bp.id} style={{ padding: '12px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: i < deals.length - 1 ? '0.5px solid var(--border-light)' : 'none' }}>
-                        <div style={{ textAlign: 'left', minWidth: 64 }}>
+                        <div style={{ textAlign: langue === 'he' ? 'left' : 'right', minWidth: 64 }}>
                           <span style={{ fontSize: 19, fontWeight: 700, color: 'var(--accent-green)' }}>{bp.prix}₪</span>
                           {reduction && <div style={{ fontSize: 11, fontWeight: 600, color: '#0f6e56', background: '#e1f5ee', padding: '1px 6px', borderRadius: 10, marginTop: 2, display: 'inline-block' }}>-{reduction}%</div>}
                         </div>
-                        <div style={{ flex: 1, textAlign: 'right', marginRight: 12 }}>
+                        <div style={{ flex: 1, textAlign: langue === 'he' ? 'right' : 'left', marginRight: langue === 'he' ? 12 : 0, marginLeft: langue === 'en' ? 12 : 0 }}>
                           <p style={{ fontSize: 14, fontWeight: 500, color: 'var(--text-primary)', marginBottom: 4 }}>{bp.titre}</p>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 6, justifyContent: 'flex-end' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 6, justifyContent: langue === 'he' ? 'flex-end' : 'flex-start' }}>
                             <StoreTag enseigne={bp.magasin} />
                             {bp.ville && <span style={{ fontSize: 11, color: 'var(--text-secondary)' }}>{bp.ville}</span>}
                           </div>
@@ -277,7 +335,7 @@ export default function Home() {
                   })}
                 </div>
                 <Link href="/bons-plans" style={{ display: 'block', textAlign: 'center', fontSize: 14, color: 'var(--accent)', padding: '8px 0 16px', textDecoration: 'none', fontWeight: 500 }}>
-                  כל הדילים של הקהילה ←
+                  {t.allDeals}
                 </Link>
               </>
             )}
@@ -289,7 +347,7 @@ export default function Home() {
           <div>
             <Link href="/bons-plans"
               style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--accent)', color: '#fff', padding: 14, borderRadius: 14, textDecoration: 'none', fontWeight: 600, fontSize: 15, marginBottom: 16 }}>
-              + שתף דיל חדש
+              {t.shareNewDeal}
             </Link>
             {deals.map((bp) => {
               const reduction = bp.prix_original ? Math.round((bp.prix_original - bp.prix) / bp.prix_original * 100) : null;
@@ -300,15 +358,15 @@ export default function Home() {
                       <span style={{ fontSize: 22, fontWeight: 700, color: 'var(--accent-green)' }}>{bp.prix}₪</span>
                       {bp.prix_original && <div style={{ fontSize: 11, color: 'var(--text-secondary)', textDecoration: 'line-through' }}>{bp.prix_original}₪</div>}
                     </div>
-                    <div style={{ flex: 1, textAlign: 'right', marginRight: 12 }}>
+                    <div style={{ flex: 1, textAlign: langue === 'he' ? 'right' : 'left', marginRight: langue === 'he' ? 12 : 0, marginLeft: langue === 'en' ? 12 : 0 }}>
                       <p style={{ fontSize: 15, fontWeight: 500, color: 'var(--text-primary)', marginBottom: 6 }}>{bp.titre}</p>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 6, justifyContent: 'flex-end' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6, justifyContent: langue === 'he' ? 'flex-end' : 'flex-start' }}>
                         <StoreTag enseigne={bp.magasin} />
                         {bp.ville && <span style={{ fontSize: 11, color: 'var(--text-secondary)' }}>{bp.ville}</span>}
                       </div>
                     </div>
                   </div>
-                  {bp.description && <p style={{ fontSize: 13, color: 'var(--text-secondary)', textAlign: 'right', marginBottom: 10 }}>{bp.description}</p>}
+                  {bp.description && <p style={{ fontSize: 13, color: 'var(--text-secondary)', textAlign: langue === 'he' ? 'right' : 'left', marginBottom: 10 }}>{bp.description}</p>}
                   <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
                     <span style={{ fontSize: 12, padding: '4px 12px', borderRadius: 20, background: 'var(--bg-secondary)', color: 'var(--text-secondary)', border: '0.5px solid var(--border)' }}>❄️ {bp.votes_froid}</span>
                     <span style={{ fontSize: 12, padding: '4px 12px', borderRadius: 20, background: '#faeeda', color: '#854f0b' }}>🔥 {bp.votes_chaud}</span>
@@ -322,19 +380,19 @@ export default function Home() {
         {/* Recherche */}
         {ongletActif === 'recherche' && (
           <div>
-            {chargement && <p style={{ textAlign: 'center', color: 'var(--text-secondary)', padding: 20 }}>טוען...</p>}
+            {chargement && <p style={{ textAlign: 'center', color: 'var(--text-secondary)', padding: 20 }}>{t.loading}</p>}
             {produits.length > 0 && !chargement && (
               <div>
-                <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-secondary)', letterSpacing: 0.5, textAlign: 'right', marginBottom: 12, textTransform: 'uppercase' }}>{produits.length} תוצאות</p>
+                <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-secondary)', letterSpacing: 0.5, textAlign: langue === 'he' ? 'right' : 'left', marginBottom: 12, textTransform: 'uppercase' }}>{produits.length} {t.results}</p>
                 {produits.map(p => (
                   <CarteRecherche key={p.barcode} produit={p}
                     dansPanier={!!panier.find(x => x.barcode === p.barcode)}
-                    onAjouter={ajouterAuPanier} onRetirer={retirerDuPanier} />
+                    onAjouter={ajouterAuPanier} onRetirer={retirerDuPanier} t={t} />
                 ))}
               </div>
             )}
             {!chargement && produits.length === 0 && recherche.length >= 2 && (
-              <p style={{ textAlign: 'center', color: 'var(--text-secondary)', padding: 40 }}>לא נמצאו מוצרים</p>
+              <p style={{ textAlign: 'center', color: 'var(--text-secondary)', padding: 40 }}>{t.noProducts}</p>
             )}
           </div>
         )}
@@ -345,12 +403,12 @@ export default function Home() {
             {panier.length === 0 ? (
               <div style={{ textAlign: 'center', padding: 60 }}>
                 <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--text-tertiary)" strokeWidth="1.5" style={{ marginBottom: 12 }} strokeLinecap="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
-                <p style={{ fontSize: 16, color: 'var(--text-secondary)', marginBottom: 4 }}>הסל שלך ריק</p>
-                <p style={{ fontSize: 13, color: 'var(--text-tertiary)' }}>חפש מוצרים והוסף לסל</p>
+                <p style={{ fontSize: 16, color: 'var(--text-secondary)', marginBottom: 4 }}>{t.emptyCart}</p>
+                <p style={{ fontSize: 13, color: 'var(--text-tertiary)' }}>{t.emptyCartSub}</p>
               </div>
             ) : (
               <div>
-                <p style={{ fontSize: 15, fontWeight: 600, textAlign: 'right', marginBottom: 12, color: 'var(--text-primary)' }}>רשימת הקניות ({panier.length})</p>
+                <p style={{ fontSize: 15, fontWeight: 600, textAlign: langue === 'he' ? 'right' : 'left', marginBottom: 12, color: 'var(--text-primary)' }}>{t.cartTitle} ({panier.length})</p>
                 <div style={{ background: 'var(--bg-card)', borderRadius: 16, padding: '4px 16px', boxShadow: 'var(--shadow)', marginBottom: 16 }}>
                   {panier.map((p, i) => {
                     const meilPrix = Math.min(...p.tousLesPrix.map(x => x.prix));
@@ -362,12 +420,12 @@ export default function Home() {
                           <span style={{ fontSize: 17, fontWeight: 700, color: 'var(--accent-green)' }}>{meilPrix}₪</span>
                           <StoreTag enseigne={meilEnseigne?.enseigne} />
                         </div>
-                        <span style={{ fontSize: 13, color: 'var(--text-secondary)', textAlign: 'right', maxWidth: 160 }}>{p.nom}</span>
+                        <span style={{ fontSize: 13, color: 'var(--text-secondary)', textAlign: langue === 'he' ? 'right' : 'left', maxWidth: 160 }}>{p.nom}</span>
                       </div>
                     );
                   })}
                 </div>
-                <OptimisationPanier panier={panier} />
+                <OptimisationPanier panier={panier} t={t} />
               </div>
             )}
           </div>
