@@ -29,6 +29,54 @@ const STORE_FILTERS = [
 
 const CATEGORIES = ['all', 'Food', 'Tech', 'Fashion', 'Activities', 'Online'];
 
+const CITY_COORDS = {
+  'תל אביב': { lat: 32.0853, lon: 34.7818 },
+  'ירושלים': { lat: 31.7683, lon: 35.2137 },
+  'חיפה': { lat: 32.7940, lon: 34.9896 },
+  'באר שבע': { lat: 31.2518, lon: 34.7913 },
+  'אילת': { lat: 29.5577, lon: 34.9519 },
+  'נתניה': { lat: 32.3226, lon: 34.8533 },
+  'ראשון לציון': { lat: 31.9730, lon: 34.7925 },
+  'פתח תקווה': { lat: 32.0878, lon: 34.8878 },
+  'אשדוד': { lat: 31.7918, lon: 34.6495 },
+  'אשקלון': { lat: 31.6688, lon: 34.5743 },
+  'הרצליה': { lat: 32.1652, lon: 34.8440 },
+  'כפר סבא': { lat: 32.1786, lon: 34.9078 },
+  'רמת גן': { lat: 32.0821, lon: 34.8137 },
+  'בני ברק': { lat: 32.0804, lon: 34.8338 },
+  'חולון': { lat: 32.0114, lon: 34.7794 },
+  'בת ים': { lat: 32.0204, lon: 34.7508 },
+  'נהריה': { lat: 33.0073, lon: 35.0987 },
+  'עכו': { lat: 32.9225, lon: 35.0779 },
+  'טבריה': { lat: 32.7956, lon: 35.5310 },
+  'צפת': { lat: 32.9646, lon: 35.4966 },
+  'נצרת': { lat: 32.6996, lon: 35.3034 },
+  'רחובות': { lat: 31.8928, lon: 34.8113 },
+  'מודיעין': { lat: 31.8979, lon: 35.0100 },
+  'לוד': { lat: 31.9519, lon: 34.8893 },
+  'רמלה': { lat: 31.9283, lon: 34.8635 },
+  'קריית גת': { lat: 31.6095, lon: 34.7748 },
+  'דימונה': { lat: 31.0638, lon: 35.0278 },
+  'אופקים': { lat: 31.3120, lon: 34.6221 },
+  'עפולה': { lat: 32.6078, lon: 35.2897 },
+  'כרמיאל': { lat: 32.9146, lon: 35.2962 },
+  'ראש העין': { lat: 32.0969, lon: 34.9566 },
+  'רעננה': { lat: 32.1836, lon: 34.8711 },
+  'יהוד': { lat: 32.0326, lon: 34.8881 },
+  'גבעתיים': { lat: 32.0704, lon: 34.8118 },
+  'אור יהודה': { lat: 32.0267, lon: 34.8569 },
+  'קריית אונו': { lat: 32.0639, lon: 34.8556 },
+};
+
+function distanceKm(lat1, lon1, lat2, lon2) {
+  const R = 6371;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a = Math.sin(dLat / 2) ** 2 +
+    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon / 2) ** 2;
+  return Math.round(R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)));
+}
+
 function timeAgo(date, langue) {
   const diff = Date.now() - new Date(date).getTime();
   const h = Math.floor(diff / 3600000);
@@ -37,25 +85,6 @@ function timeAgo(date, langue) {
   return langue === 'en' ? `${Math.floor(h / 24)}d ago` : `${Math.floor(h / 24)} ימים`;
 }
 
-async function detecterVille() {
-  return new Promise((resolve) => {
-    if (!navigator.geolocation) { resolve(null); return; }
-    navigator.geolocation.getCurrentPosition(
-      async (pos) => {
-        try {
-          const { latitude, longitude } = pos.coords;
-          const res = await fetch(
-            `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json&accept-language=he`
-          );
-          const data = await res.json();
-          resolve(data.address?.city || data.address?.town || data.address?.village || null);
-        } catch { resolve(null); }
-      },
-      () => resolve(null),
-      { timeout: 5000 }
-    );
-  });
-}
 
 function ThemeToggle() {
   const { setTheme, resolvedTheme } = useTheme();
@@ -350,9 +379,14 @@ function PromoModal({ promo, langue, isDark, onClose }) {
   );
 }
 
-function DealCard({ deal, langue, onVote }) {
+function DealCard({ deal, langue, onVote, userCoords }) {
   const reduction = deal.prix_original
     ? Math.round((deal.prix_original - deal.prix) / deal.prix_original * 100)
+    : null;
+
+  const dealCoords = deal.ville ? CITY_COORDS[deal.ville] : null;
+  const distance = (userCoords && dealCoords)
+    ? distanceKm(userCoords.lat, userCoords.lon, dealCoords.lat, dealCoords.lon)
     : null;
 
   return (
@@ -427,6 +461,15 @@ function DealCard({ deal, langue, onVote }) {
           <span>📍</span>
           <span>
             {[deal.magasin, deal.ville].filter(Boolean).join(' · ')}
+            {distance !== null && (
+              <span style={{
+                marginLeft: 4,
+                background: distance <= 10 ? 'rgba(5,150,105,0.12)' : distance <= 50 ? 'rgba(212,98,42,0.1)' : 'var(--bg-card2)',
+                color: distance <= 10 ? '#059669' : distance <= 50 ? ACCENT : 'var(--text-muted)',
+                fontSize: 10, fontWeight: 700,
+                padding: '1px 6px', borderRadius: 10,
+              }}>~{distance} km</span>
+            )}
             {' · '}{timeAgo(deal.created_at, langue)}
             {deal.auteur_nom ? ` · ${deal.auteur_nom}` : ''}
           </span>
@@ -469,11 +512,25 @@ function CityModal({ villes, villeActuelle, langue, onSelect, onClose }) {
     traduireVille(v, 'en').toLowerCase().includes(search.toLowerCase())
   );
 
-  const handleGps = async () => {
+  const handleGps = () => {
     setLoading(true);
-    const v = await detecterVille();
-    setLoading(false);
-    if (v) { onSelect(v); onClose(); }
+    if (!navigator.geolocation) { setLoading(false); return; }
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        const { latitude, longitude } = pos.coords;
+        try {
+          const r = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json&accept-language=he`
+          );
+          const d = await r.json();
+          const v = d.address?.city || d.address?.town || d.address?.village || null;
+          if (v) { onSelect(v, { lat: latitude, lon: longitude }); onClose(); }
+        } catch {}
+        setLoading(false);
+      },
+      () => setLoading(false),
+      { timeout: 5000 }
+    );
   };
 
   return (
@@ -518,7 +575,7 @@ function CityModal({ villes, villeActuelle, langue, onSelect, onClose }) {
 
         <div style={{ overflowY: 'auto', flex: 1 }}>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-            <button onClick={() => { onSelect(null); onClose(); }} style={{
+            <button onClick={() => { onSelect(null, null); onClose(); }} style={{
               padding: '11px 14px', borderRadius: 14,
               border: !villeActuelle ? `2px solid ${ACCENT}` : '0.5px solid var(--border)',
               background: !villeActuelle ? 'rgba(212,98,42,0.08)' : 'var(--bg-card2)',
@@ -541,7 +598,7 @@ function CityModal({ villes, villeActuelle, langue, onSelect, onClose }) {
             </button>
 
             {filtered.map(v => (
-              <button key={v} onClick={() => { onSelect(v); onClose(); }} style={{
+              <button key={v} onClick={() => { onSelect(v, CITY_COORDS[v] || null); onClose(); }} style={{
                 padding: '11px 14px', borderRadius: 14,
                 border: villeActuelle === v ? `2px solid ${ACCENT}` : '0.5px solid var(--border)',
                 background: villeActuelle === v ? 'rgba(212,98,42,0.08)' : 'var(--bg-card2)',
@@ -577,6 +634,7 @@ export default function Home() {
   const [sortDeals, setSortDeals] = useState('hot');
 
   const [ville, setVille] = useState(null);
+  const [userCoords, setUserCoords] = useState(null);
   const [villes, setVilles] = useState([]);
   const [showCityModal, setShowCityModal] = useState(false);
   const [promoVotes, setPromoVotes] = useState({});
@@ -634,6 +692,11 @@ export default function Home() {
       .then(d => { setDeals(d.bons_plans || []); setLoadingDeals(false); })
       .catch(() => setLoadingDeals(false));
   }, [tab, categoryFilter, sortDeals]);
+
+  const handleCitySelect = (villeNom, coords) => {
+    setVille(villeNom);
+    setUserCoords(coords || (villeNom ? CITY_COORDS[villeNom] || null : null));
+  };
 
   const handleVote = async (id, type) => {
     setDeals(prev => prev.map(d => {
@@ -941,19 +1004,6 @@ export default function Home() {
               })}
             </div>
 
-            {/* CTA */}
-            <Link href="/bons-plans" style={{
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              background: `linear-gradient(135deg, ${ACCENT}, ${ACCENT_DARK})`,
-              color: '#fff', padding: '16px 20px',
-              borderRadius: 18, textDecoration: 'none',
-              fontWeight: 700, fontSize: 15,
-              marginBottom: 16,
-              boxShadow: 'var(--shadow-accent)',
-            }}>
-              {t.shareNewDeal}
-            </Link>
-
             {loadingDeals ? (
               <div style={{ textAlign: 'center', padding: '60px 0', color: 'var(--text-muted)' }}>{t.loading}</div>
             ) : deals.length === 0 ? (
@@ -962,7 +1012,7 @@ export default function Home() {
               </div>
             ) : (
               deals.map(deal => (
-                <DealCard key={deal.id} deal={deal} langue={langue} onVote={handleVote} />
+                <DealCard key={deal.id} deal={deal} langue={langue} onVote={handleVote} userCoords={userCoords} />
               ))
             )}
           </div>
@@ -1164,7 +1214,7 @@ export default function Home() {
           villes={villes}
           villeActuelle={ville}
           langue={langue}
-          onSelect={setVille}
+          onSelect={handleCitySelect}
           onClose={() => setShowCityModal(false)}
         />
       )}
