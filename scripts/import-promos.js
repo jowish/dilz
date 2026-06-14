@@ -71,7 +71,6 @@ function parsePromos(xml, storeId, enseigneCode) {
 
     const itemRegex = /<(?:GroupItem|PromotionItem)>([\s\S]*?)<\/(?:GroupItem|PromotionItem)>/g;
     let itemMatch;
-    let foundItem = false;
 
     while ((itemMatch = itemRegex.exec(promoXml)) !== null) {
       const itemXml = itemMatch[1];
@@ -220,18 +219,82 @@ async function importerVictory() {
   }
 }
 
+async function fetchHtml2(url) {
+  return new Promise((resolve, reject) => {
+    const mod = url.startsWith('https') ? https : http;
+    mod.get(url, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+        'Accept': 'text/html,application/xhtml+xml',
+      }
+    }, (res) => {
+      if (res.statusCode === 301 || res.statusCode === 302) {
+        return fetchHtml2(res.headers.location).then(resolve).catch(reject);
+      }
+      let data = '';
+      res.on('data', c => data += c);
+      res.on('end', () => resolve(data));
+    }).on('error', reject);
+  });
+}
+
+async function importerCerberusPromos(chainId, enseigneCode, enseigneNom) {
+  console.log(`\n=== ${enseigneNom} (Cerberus promos) ===`);
+
+  try {
+    const html = await fetchHtml2(`https://publishedprices.co.il/file/d/${chainId}`);
+    const liens = [...(html.matchAll(/href="([^"]*Promo[^"]*\.gz[^"]*)"/gi))];
+    const urls = [...new Set(liens.map(m => {
+      const path = m[1];
+      return path.startsWith('http') ? path : `https://publishedprices.co.il${path}`;
+    }))];
+
+    if (urls.length === 0) {
+      console.log('  Aucun fichier promo trouve');
+      return 0;
+    }
+
+    console.log(`  ${urls.length} fichiers promo`);
+    let totalPromos = 0;
+
+    for (const url of urls) {
+      try {
+        const storeMatch = url.match(/Promo[^-]*-[^-]*-(\d+)-/);
+        const storeId = storeMatch ? storeMatch[1] : '000';
+        const xml = await telechargerGZ(url);
+        const promos = parsePromos(xml, storeId, enseigneCode);
+        if (promos.length > 0) {
+          await upsertPromos(promos);
+          totalPromos += promos.length;
+        }
+        await new Promise(r => setTimeout(r, 150));
+      } catch(e) {
+        // skip failed files silently
+      }
+    }
+
+    console.log(`\n  ✓ ${enseigneNom}: ${totalPromos} promotions`);
+    return totalPromos;
+  } catch(e) {
+    console.log(`  ${enseigneNom} non disponible: ${e.message}`);
+    return 0;
+  }
+}
+
 async function main() {
   console.log('=== Import promotions ===');
   const t0 = Date.now();
 
-  const [shuf, vic] = await Promise.allSettled([
+  const [shuf, vic, yoh, car] = await Promise.allSettled([
     importerShufersal(),
     importerVictory(),
+    importerCerberusPromos('7290058179503', 'yohananof', 'Yohananof'),
+    importerCerberusPromos('7290058140886', 'carrefour', 'Carrefour'),
   ]);
 
-  const total =
-    (shuf.status === 'fulfilled' ? shuf.value : 0) +
-    (vic.status === 'fulfilled' ? vic.value : 0);
+  const total = [shuf, vic, yoh, car]
+    .filter(r => r.status === 'fulfilled')
+    .reduce((sum, r) => sum + (r.value || 0), 0);
 
   console.log(`\n✓ Total: ${total} promotions en ${((Date.now() - t0) / 1000).toFixed(1)}s`);
   process.exit(0);

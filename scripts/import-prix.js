@@ -251,12 +251,76 @@ async function importerVictory() {
   console.log('  Victory OK !');
 }
 
+async function fetchHtmlCerberus(url) {
+  return new Promise((resolve, reject) => {
+    const mod = url.startsWith('https') ? https : require('http');
+    mod.get(url, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+        'Accept': 'text/html,application/xhtml+xml',
+        'Accept-Language': 'he-IL,he;q=0.9,en;q=0.8',
+      }
+    }, (res) => {
+      if (res.statusCode === 301 || res.statusCode === 302) {
+        return fetchHtmlCerberus(res.headers.location).then(resolve).catch(reject);
+      }
+      let data = '';
+      res.on('data', c => data += c);
+      res.on('end', () => resolve(data));
+    }).on('error', reject);
+  });
+}
+
+async function importerCerberus(chainId, enseigneCode, enseigneNom) {
+  console.log(`\n${enseigneNom} (Cerberus ${chainId})...`);
+  const listUrl = `https://publishedprices.co.il/file/d/${chainId}`;
+
+  try {
+    const html = await fetchHtmlCerberus(listUrl);
+    const liens = [...(html.matchAll(/href="([^"]*PriceFull[^"]*\.gz[^"]*)"/gi))];
+    const urls = [...new Set(liens.map(m => {
+      const path = m[1];
+      return path.startsWith('http') ? path : `https://publishedprices.co.il${path}`;
+    }))];
+
+    if (urls.length === 0) {
+      console.log(`  Aucun fichier PriceFull trouve (${liens.length} liens trouves au total)`);
+      return;
+    }
+
+    console.log(`  ${urls.length} fichiers PriceFull`);
+    const tousLesProduits = new Map();
+
+    for (const url of urls) {
+      try {
+        const xml = await telechargerGZ(url);
+        const produits = parseXMLPrix(xml);
+        produits.forEach(p => {
+          if (!tousLesProduits.has(p.barcode)) tousLesProduits.set(p.barcode, p);
+        });
+        await new Promise(r => setTimeout(r, 300));
+      } catch(e) {
+        // skip failed files silently
+      }
+    }
+
+    const produits = Array.from(tousLesProduits.values());
+    console.log(`  ${produits.length} produits uniques`);
+    if (produits.length > 0) await sauvegarderEnBase(produits, enseigneCode, '001');
+    console.log(`  ${enseigneNom} OK !`);
+  } catch(e) {
+    console.log(`  ${enseigneNom} non disponible: ${e.message}`);
+  }
+}
+
 async function main() {
   console.log('Demarrage import complet...\n');
   try {
     await importerShufersal();
     await importerRamiLevy();
     await importerVictory();
+    await importerCerberus('7290058179503', 'yohananof', 'Yohananof');
+    await importerCerberus('7290058140886', 'carrefour', 'Carrefour');
     console.log('\nImport termine !');
   } catch(e) {
     console.error('Erreur:', e.message);

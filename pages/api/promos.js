@@ -9,6 +9,8 @@ const NOM_ENSEIGNE = {
   shufersal: 'שופרסל',
   rami_levy: 'רמי לוי',
   victory: 'ויקטורי',
+  yohananof: 'יוחננוף',
+  carrefour: 'כרפור',
 };
 
 export default async function handler(req, res) {

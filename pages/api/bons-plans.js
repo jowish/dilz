@@ -7,13 +7,17 @@ const supabase = createClient(
 
 export default async function handler(req, res) {
   if (req.method === 'GET') {
-    const { ville, categorie, limit = 50 } = req.query;
+    const { ville, categorie, limit = 50, tri = 'hot' } = req.query;
     let query = supabase
       .from('bons_plans')
       .select('*, commentaires(count)')
-      .eq('statut', 'actif')
-      .order('votes_chaud', { ascending: false })
-      .limit(Number(limit));
+      .eq('statut', 'actif');
+
+    if (tri === 'oldest') query = query.order('created_at', { ascending: true });
+    else if (tri === 'latest') query = query.order('created_at', { ascending: false });
+    else query = query.order('votes_chaud', { ascending: false });
+
+    query = query.limit(Number(limit));
 
     if (ville) query = query.eq('ville', ville);
     if (categorie && categorie !== 'all') query = query.eq('categorie', categorie);
@@ -24,27 +28,31 @@ export default async function handler(req, res) {
   }
 
   if (req.method === 'POST') {
-    const { titre, description, prix, prix_original, magasin, ville, auteur_nom, auteur_id, categorie, url_source, image_url } = req.body;
+    const { titre, description, prix, prix_original, magasin, ville, auteur_nom, auteur_id, categorie, url_source, image_url, date_debut, date_fin } = req.body;
 
     if (!titre || !prix || !magasin) {
       return res.status(400).json({ erreur: 'titre, prix et magasin sont requis' });
     }
 
+    const insertData = {
+      titre, description: description || null,
+      prix, prix_original: prix_original || null,
+      magasin, ville: ville || null,
+      auteur_nom: auteur_nom || 'Anonyme',
+      auteur_id: auteur_id || null,
+      categorie: categorie || 'Food',
+      url_source: url_source || null,
+      image_url: image_url || null,
+      statut: 'actif',
+      votes_chaud: 0,
+      votes_froid: 0,
+    };
+    if (date_debut) insertData.date_debut = date_debut;
+    if (date_fin) insertData.date_fin = date_fin;
+
     const { data, error } = await supabase
       .from('bons_plans')
-      .insert([{
-        titre, description: description || null,
-        prix, prix_original: prix_original || null,
-        magasin, ville: ville || null,
-        auteur_nom: auteur_nom || 'Anonyme',
-        auteur_id: auteur_id || null,
-        categorie: categorie || 'Food',
-        url_source: url_source || null,
-        image_url: image_url || null,
-        statut: 'actif',
-        votes_chaud: 0,
-        votes_froid: 0,
-      }])
+      .insert([insertData])
       .select()
       .single();
 

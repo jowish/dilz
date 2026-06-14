@@ -13,6 +13,7 @@ const STORE_COLORS = {
   'ויקטורי': { color: '#7C3AED', bg: '#F5F3FF', bgDark: '#2D1F4A', nameEn: 'Victory' },
   'יוחננוף': { color: '#059669', bg: '#ECFDF5', bgDark: '#1A3D2E', nameEn: 'Yohananof' },
   'אושר עד': { color: '#D97706', bg: '#FFFBEB', bgDark: '#3D2E0A', nameEn: 'Osher Ad' },
+  'כרפור': { color: '#0070CC', bg: '#EFF6FF', bgDark: '#162A3D', nameEn: 'Carrefour' },
 };
 
 const STORE_FILTERS = [
@@ -22,6 +23,7 @@ const STORE_FILTERS = [
   { id: 'ויקטורי', nameEn: 'Victory' },
   { id: 'יוחננוף', nameEn: 'Yohananof' },
   { id: 'אושר עד', nameEn: 'Osher Ad' },
+  { id: 'כרפור', nameEn: 'Carrefour' },
 ];
 
 const CATEGORIES = ['all', 'Food', 'Tech', 'Fashion', 'Activities', 'Online'];
@@ -571,6 +573,7 @@ export default function Home() {
   const [deals, setDeals] = useState([]);
   const [loadingDeals, setLoadingDeals] = useState(false);
   const [categoryFilter, setCategoryFilter] = useState('all');
+  const [sortDeals, setSortDeals] = useState('hot');
 
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
@@ -606,11 +609,12 @@ export default function Home() {
     setLoadingDeals(true);
     const params = new URLSearchParams();
     if (categoryFilter !== 'all') params.set('categorie', categoryFilter);
+    params.set('tri', sortDeals);
     fetch(`/api/bons-plans?${params}`)
       .then(r => r.json())
       .then(d => { setDeals(d.bons_plans || []); setLoadingDeals(false); })
       .catch(() => setLoadingDeals(false));
-  }, [tab, categoryFilter]);
+  }, [tab, categoryFilter, sortDeals]);
 
   useEffect(() => {
     if (searchQuery.length < 2) { setSearchResults([]); return; }
@@ -667,7 +671,7 @@ export default function Home() {
     {
       id: 'sales', label: t.nav.sales,
       icon: (active) => (
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={active ? ACCENT : 'var(--text-muted)'} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={active ? ACCENT : 'var(--text-sub)'} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
           <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><polyline points="9 22 9 12 15 12 15 22" />
         </svg>
       ),
@@ -675,7 +679,7 @@ export default function Home() {
     {
       id: 'deals', label: t.nav.deals,
       icon: (active) => (
-        <svg width="22" height="22" viewBox="0 0 24 24" fill={active ? ACCENT : 'none'} stroke={active ? ACCENT : 'var(--text-muted)'} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill={active ? ACCENT : 'none'} stroke={active ? ACCENT : 'var(--text-sub)'} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
           <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
         </svg>
       ),
@@ -683,7 +687,7 @@ export default function Home() {
     {
       id: 'search', label: t.nav.search,
       icon: (active) => (
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={active ? ACCENT : 'var(--text-muted)'} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={active ? ACCENT : 'var(--text-sub)'} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
           <circle cx="11" cy="11" r="8" /><path d="m21 21-4.35-4.35" />
         </svg>
       ),
@@ -691,7 +695,7 @@ export default function Home() {
     {
       id: 'profile', label: t.nav.profile,
       icon: (active) => (
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={active ? ACCENT : 'var(--text-muted)'} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={active ? ACCENT : 'var(--text-sub)'} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
           <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" />
         </svg>
       ),
@@ -849,6 +853,23 @@ export default function Home() {
         {/* ── DEALS TAB ── */}
         {tab === 'deals' && (
           <div>
+            {/* Sort bar */}
+            <div style={{ display: 'flex', gap: 8, marginBottom: 10 }}>
+              {[
+                { id: 'hot', label: '🔥 Plus hot' },
+                { id: 'latest', label: '🕒 Latest' },
+                { id: 'oldest', label: '📅 Oldest' },
+              ].map(s => (
+                <button key={s.id} onClick={() => setSortDeals(s.id)} style={{
+                  padding: '6px 14px', borderRadius: 20,
+                  border: sortDeals === s.id ? `1.5px solid ${ACCENT}` : '0.5px solid var(--border)',
+                  background: sortDeals === s.id ? 'rgba(212,98,42,0.1)' : 'var(--bg-card)',
+                  color: sortDeals === s.id ? ACCENT : 'var(--text-sub)',
+                  fontSize: 13, fontWeight: sortDeals === s.id ? 700 : 400, cursor: 'pointer',
+                }}>{s.label}</button>
+              ))}
+            </div>
+
             {/* Category filter */}
             <div style={{
               display: 'flex', gap: 8, overflowX: 'auto', marginBottom: 14,
@@ -1025,7 +1046,7 @@ export default function Home() {
               {item.icon(active)}
               <span style={{
                 fontSize: 10, fontWeight: active ? 700 : 400,
-                color: active ? ACCENT : 'var(--text-muted)',
+                color: active ? ACCENT : 'var(--text-sub)',
               }}>{item.label}</span>
               {active && (
                 <div style={{

@@ -14,6 +14,7 @@ export default function Auth() {
   const [name, setName] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [signupDone, setSignupDone] = useState(false);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -35,9 +36,15 @@ export default function Auth() {
       } else {
         const { error: err } = await supabase.auth.signUp({
           email, password,
-          options: { data: { display_name: name || email.split('@')[0] } },
+          options: {
+            data: { display_name: name || email.split('@')[0] },
+            emailRedirectTo: `${window.location.origin}/`,
+          },
         });
         if (err) { setError(err.message); setLoading(false); return; }
+        setLoading(false);
+        setSignupDone(true);
+        return;
       }
       router.replace(router.query.redirect || '/');
     } catch (err) {
@@ -70,6 +77,26 @@ export default function Auth() {
 
         {/* Card */}
         <div style={{ background: 'var(--bg-card)', borderRadius: 24, padding: '28px 24px', boxShadow: 'var(--shadow-float)' }}>
+          {signupDone ? (
+            <div style={{ textAlign: 'center', padding: '16px 0' }}>
+              <div style={{ fontSize: 52, marginBottom: 16 }}>📧</div>
+              <p style={{ fontSize: 20, fontWeight: 800, color: 'var(--text)', marginBottom: 10 }}>Check your email</p>
+              <p style={{ fontSize: 14, color: 'var(--text-sub)', lineHeight: 1.6, marginBottom: 24 }}>
+                We sent a confirmation link to <strong style={{ color: 'var(--text)' }}>{email}</strong>.
+                Click the link to activate your account, then sign in.
+              </p>
+              <button
+                onClick={() => { setMode('signin'); setSignupDone(false); setError(''); }}
+                style={{
+                  width: '100%', padding: 16, borderRadius: 16, border: 'none',
+                  background: `linear-gradient(135deg, ${ACCENT}, ${ACCENT_DARK})`,
+                  color: '#fff', fontSize: 15, fontWeight: 700, cursor: 'pointer',
+                }}
+              >
+                Back to sign in
+              </button>
+            </div>
+          ) : (<>
           {/* Tabs */}
           <div style={{ display: 'flex', background: 'var(--bg-card2)', borderRadius: 14, padding: 4, marginBottom: 24 }}>
             {['signin', 'signup'].map(m => (
@@ -165,6 +192,7 @@ export default function Auth() {
           }}>
             {loading ? 'Please wait...' : (mode === 'signin' ? 'Sign in' : 'Create account')}
           </button>
+          </>)}
         </div>
 
         <p style={{ textAlign: 'center', marginTop: 20, fontSize: 13, color: 'var(--text-sub)' }}>

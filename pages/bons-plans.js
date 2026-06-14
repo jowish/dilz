@@ -22,6 +22,7 @@ function PostDealModal({ onClose, onSubmit, user }) {
   const [form, setForm] = useState({
     titre: '', description: '', prix: '', prix_original: '',
     magasin: '', ville: '', auteur_nom: displayName, categorie: 'Food', url_source: '',
+    date_debut: '', date_fin: '',
   });
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
@@ -200,6 +201,27 @@ function PostDealModal({ onClose, onSubmit, user }) {
         {field('Your name (optional)', 'auteur_nom', 'text', 'Anonymous')}
         {field('Link (optional)', 'url_source', 'url', 'https://...')}
 
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 14 }}>
+          <div>
+            <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--text-sub)', marginBottom: 6 }}>Start date (optional)</label>
+            <input
+              type="date"
+              value={form.date_debut}
+              onChange={e => setForm({ ...form, date_debut: e.target.value })}
+              style={{ width: '100%', padding: '12px 14px', borderRadius: 14, border: '0.5px solid var(--border)', background: 'var(--bg-input)', color: 'var(--text)', fontSize: 14, outline: 'none' }}
+            />
+          </div>
+          <div>
+            <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--text-sub)', marginBottom: 6 }}>End date (optional)</label>
+            <input
+              type="date"
+              value={form.date_fin}
+              onChange={e => setForm({ ...form, date_fin: e.target.value })}
+              style={{ width: '100%', padding: '12px 14px', borderRadius: 14, border: '0.5px solid var(--border)', background: 'var(--bg-input)', color: 'var(--text)', fontSize: 14, outline: 'none' }}
+            />
+          </div>
+        </div>
+
         <div style={{ marginBottom: 20 }}>
           <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--text-sub)', marginBottom: 6 }}>Description (optional)</label>
           <textarea
@@ -342,6 +364,7 @@ export default function BonsPlans() {
   const [loading, setLoading] = useState(true);
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [showPostModal, setShowPostModal] = useState(false);
+  const [sortBy, setSortBy] = useState('hot');
   const [mounted, setMounted] = useState(false);
   const [user, setUser] = useState(null);
 
@@ -356,13 +379,14 @@ export default function BonsPlans() {
     setLoading(true);
     const params = new URLSearchParams();
     if (categoryFilter !== 'all') params.set('categorie', categoryFilter);
+    params.set('tri', sortBy);
     const res = await fetch(`/api/bons-plans?${params}`);
     const data = await res.json();
     setDeals(data.bons_plans || []);
     setLoading(false);
   };
 
-  useEffect(() => { loadDeals(); }, [categoryFilter]);
+  useEffect(() => { loadDeals(); }, [categoryFilter, sortBy]);
 
   const handleVote = async (id, type) => {
     setDeals(prev => prev.map(d => d.id !== id ? d : { ...d, [`votes_${type}`]: (d[`votes_${type}`] || 0) + 1 }));
@@ -403,6 +427,23 @@ export default function BonsPlans() {
       </div>
 
       <div style={{ maxWidth: 600, margin: '0 auto', padding: '16px 14px 0' }}>
+        {/* Sort bar */}
+        <div style={{ display: 'flex', gap: 8, marginBottom: 10 }}>
+          {[
+            { id: 'hot', label: '🔥 Plus hot' },
+            { id: 'latest', label: '🕒 Latest' },
+            { id: 'oldest', label: '📅 Oldest' },
+          ].map(s => (
+            <button key={s.id} onClick={() => setSortBy(s.id)} style={{
+              padding: '6px 14px', borderRadius: 20,
+              border: sortBy === s.id ? `1.5px solid ${ACCENT}` : '0.5px solid var(--border)',
+              background: sortBy === s.id ? 'rgba(212,98,42,0.1)' : 'var(--bg-card)',
+              color: sortBy === s.id ? ACCENT : 'var(--text-sub)',
+              fontSize: 13, fontWeight: sortBy === s.id ? 700 : 400, cursor: 'pointer',
+            }}>{s.label}</button>
+          ))}
+        </div>
+
         {/* Category filter */}
         <div style={{
           display: 'flex', gap: 8, overflowX: 'auto', marginBottom: 14,

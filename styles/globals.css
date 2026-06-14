@@ -24,15 +24,15 @@
 }
 
 .dark {
-  --bg: #0E0E12;
-  --bg-card: #17171D;
-  --bg-card2: #1E1E26;
-  --bg-input: #1E1E26;
-  --border: #2A2A35;
-  --text: #F0EDE8;
-  --text-sub: #7A7A8C;
-  --text-muted: #3A3A48;
-  --nav-bg: rgba(14,14,18,0.95);
+  --bg: #141418;
+  --bg-card: #1D1D23;
+  --bg-card2: #25252D;
+  --bg-input: #25252D;
+  --border: #32323E;
+  --text: #E8E4DE;
+  --text-sub: #8A8898;
+  --text-muted: #5C5A6A;
+  --nav-bg: rgba(20,20,24,0.95);
 
   --shadow-card: none;
   --shadow-float: 0 8px 28px rgba(0,0,0,0.4);
