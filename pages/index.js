@@ -380,7 +380,8 @@ function PromoModal({ promo, langue, isDark, onClose }) {
 }
 
 function DealCard({ deal, langue, onVote, userCoords }) {
-  const reduction = deal.prix_original
+  const router = useRouter();
+  const reduction = deal.prix_original && deal.prix_original > deal.prix
     ? Math.round((deal.prix_original - deal.prix) / deal.prix_original * 100)
     : null;
 
@@ -397,7 +398,10 @@ function DealCard({ deal, langue, onVote, userCoords }) {
       boxShadow: 'var(--shadow-card)',
       marginBottom: 12,
     }}>
-      <div style={{ position: 'relative', height: deal.image_url ? 200 : 72, background: 'var(--bg-card2)' }}>
+      <div
+        onClick={() => router.push(`/deal/${deal.id}`)}
+        style={{ cursor: 'pointer', position: 'relative', height: deal.image_url ? 200 : 72, background: 'var(--bg-card2)' }}
+      >
         {deal.image_url ? (
           <img src={deal.image_url} alt={deal.titre} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
         ) : (
@@ -445,11 +449,14 @@ function DealCard({ deal, langue, onVote, userCoords }) {
           </div>
         )}
 
-        <p style={{
-          fontSize: 15, fontWeight: 700, color: 'var(--text)',
-          marginBottom: 6,
-          textAlign: langue === 'he' ? 'right' : 'left',
-        }}>{deal.titre}</p>
+        <p
+          onClick={() => router.push(`/deal/${deal.id}`)}
+          style={{
+            fontSize: 15, fontWeight: 700, color: 'var(--text)',
+            marginBottom: 6, cursor: 'pointer',
+            textAlign: langue === 'he' ? 'right' : 'left',
+          }}
+        >{deal.titre}</p>
 
         <p style={{
           fontSize: 12, color: 'var(--text-sub)',
@@ -783,8 +790,8 @@ export default function Home() {
         setPostImagePreview(null);
         setTimeout(() => { setPostSuccess(false); setTab('deals'); }, 1600);
       }
-    } catch {
-      setPostError('Network error. Please check your connection.');
+    } catch (e) {
+      setPostError(e?.message ? `Erreur: ${e.message}` : 'Network error — check your connection and try again.');
     }
     setPostSubmitting(false);
   };

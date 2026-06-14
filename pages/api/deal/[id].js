@@ -1,23 +1,20 @@
 import { createClient } from '@supabase/supabase-js';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-);
-
 export default async function handler(req, res) {
+  if (req.method !== 'GET') return res.status(405).end();
+
+  const { NEXT_PUBLIC_SUPABASE_URL: url, NEXT_PUBLIC_SUPABASE_ANON_KEY: anonKey } = process.env;
+  if (!url || !anonKey) return res.status(500).json({ erreur: 'Missing config' });
+
+  const supabase = createClient(url, anonKey);
   const { id } = req.query;
 
-  if (req.method === 'GET') {
-    const { data, error } = await supabase
-      .from('bons_plans')
-      .select('*, commentaires(count)')
-      .eq('id', id)
-      .single();
+  const { data, error } = await supabase
+    .from('bons_plans')
+    .select('*')
+    .eq('id', id)
+    .single();
 
-    if (error) return res.status(404).json({ erreur: 'Deal not found' });
-    return res.status(200).json({ bon_plan: data });
-  }
-
-  res.status(405).end();
+  if (error) return res.status(404).json({ erreur: error.message });
+  return res.status(200).json({ bon_plan: data });
 }
