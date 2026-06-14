@@ -18,7 +18,7 @@ export default async function handler(req, res) {
       .from('produits')
       .select('barcode, nom, nom_en, image, prix(prix, enseigne_code)')
       .not('prix', 'is', null)
-      .limit(500);
+      .limit(10000);
 
     if (error) throw error;
 
@@ -60,7 +60,7 @@ export default async function handler(req, res) {
 
     res.status(200).json({
       total: promos.length,
-      promos: promos.slice(0, 20)
+      promos: promos.slice(0, 200)
     });
 
   } catch(err) {

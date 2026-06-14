@@ -105,13 +105,13 @@ function StoreBadge({ enseigne, langue, isDark }) {
   );
 }
 
-function HeroPromoCard({ promo, langue, isDark, onClick }) {
+function HeroPromoCard({ promo, langue, isDark, onClick, votes, onVote }) {
   const s = STORE_COLORS[promo.meilleurEnseigne] || { color: ACCENT, bg: '#FEF0EB', bgDark: '#2A1A12', nameEn: promo.meilleurEnseigne };
   const nom = (langue === 'en' && promo.nom_en) ? promo.nom_en : promo.nom;
+  const myVote = votes?.myVote;
 
   return (
     <div
-      onClick={onClick}
       style={{
         borderRadius: 22,
         overflow: 'hidden',
@@ -120,11 +120,10 @@ function HeroPromoCard({ promo, langue, isDark, onClick }) {
           ? `linear-gradient(135deg, ${s.bgDark} 0%, #17171D 100%)`
           : `linear-gradient(135deg, ${s.bg} 0%, #fff 100%)`,
         boxShadow: 'var(--shadow-float)',
-        cursor: 'pointer',
         position: 'relative',
       }}
     >
-      <div style={{ padding: '20px 20px 16px' }}>
+      <div onClick={onClick} style={{ padding: '20px 20px 16px', cursor: 'pointer' }}>
         <div style={{
           display: 'inline-flex', alignItems: 'center', gap: 6,
           background: ACCENT, color: '#fff',
@@ -152,70 +151,112 @@ function HeroPromoCard({ promo, langue, isDark, onClick }) {
           <StoreBadge enseigne={promo.meilleurEnseigne} langue={langue} isDark={isDark} />
         </div>
       </div>
+
+      {/* Vote buttons */}
+      <div style={{
+        display: 'flex', gap: 8, padding: '12px 20px 20px',
+        borderTop: `0.5px solid ${isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'}`,
+      }}>
+        <button onClick={() => onVote(promo.barcode, 'chaud')} style={{
+          flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+          padding: '10px', borderRadius: 14, border: 'none',
+          background: myVote === 'chaud' ? ACCENT : (isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'),
+          color: myVote === 'chaud' ? '#fff' : (isDark ? '#F0EDE8' : '#1A1814'),
+          fontSize: 13, fontWeight: 700, cursor: 'pointer',
+          transition: 'all 0.15s',
+        }}>🔥 {votes?.chaud || 0}</button>
+        <button onClick={() => onVote(promo.barcode, 'froid')} style={{
+          flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+          padding: '10px', borderRadius: 14, border: 'none',
+          background: myVote === 'froid' ? '#4B9FE1' : (isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'),
+          color: myVote === 'froid' ? '#fff' : (isDark ? '#F0EDE8' : '#1A1814'),
+          fontSize: 13, fontWeight: 700, cursor: 'pointer',
+          transition: 'all 0.15s',
+        }}>❄️ {votes?.froid || 0}</button>
+      </div>
     </div>
   );
 }
 
-function PromoCard({ promo, langue, isDark, onClick }) {
+function PromoCard({ promo, langue, isDark, onClick, votes, onVote }) {
   const s = STORE_COLORS[promo.meilleurEnseigne] || { color: ACCENT, bg: '#FEF0EB', bgDark: '#2A1A12', nameEn: promo.meilleurEnseigne };
   const nom = (langue === 'en' && promo.nom_en) ? promo.nom_en : promo.nom;
   const initials = (nom || '').split(' ').slice(0, 2).map(w => w[0] || '').join('').toUpperCase() || '?';
+  const myVote = votes?.myVote;
 
   return (
     <div
-      onClick={onClick}
       style={{
         background: 'var(--bg-card)',
         borderRadius: 20,
         overflow: 'hidden',
         boxShadow: 'var(--shadow-card)',
-        cursor: 'pointer',
       }}
     >
-      <div style={{
-        height: 90,
-        background: isDark
-          ? `linear-gradient(135deg, ${s.bgDark}, #1E1E26)`
-          : `linear-gradient(135deg, ${s.bg}, #fff)`,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        position: 'relative',
-      }}>
+      <div onClick={onClick} style={{ cursor: 'pointer' }}>
         <div style={{
-          position: 'absolute', top: 10,
-          [langue === 'he' ? 'left' : 'right']: 10,
-          background: ACCENT, color: '#fff',
-          fontSize: 10, fontWeight: 800,
-          padding: '3px 7px', borderRadius: 20,
-        }}>-{promo.reduction}%</div>
-
-        <div style={{
-          width: 48, height: 48, borderRadius: 14,
-          background: s.color,
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          height: 90,
+          background: isDark
+            ? `linear-gradient(135deg, ${s.bgDark}, #1E1E26)`
+            : `linear-gradient(135deg, ${s.bg}, #fff)`,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          position: 'relative',
         }}>
-          <span style={{ color: '#fff', fontSize: 16, fontWeight: 700 }}>{initials}</span>
+          <div style={{
+            position: 'absolute', top: 10,
+            [langue === 'he' ? 'left' : 'right']: 10,
+            background: ACCENT, color: '#fff',
+            fontSize: 10, fontWeight: 800,
+            padding: '3px 7px', borderRadius: 20,
+          }}>-{promo.reduction}%</div>
+
+          <div style={{
+            width: 48, height: 48, borderRadius: 14,
+            background: s.color,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}>
+            <span style={{ color: '#fff', fontSize: 16, fontWeight: 700 }}>{initials}</span>
+          </div>
+        </div>
+
+        <div style={{ padding: '10px 12px 8px' }}>
+          <p style={{
+            fontSize: 12, fontWeight: 600, color: 'var(--text)',
+            marginBottom: 8, lineHeight: 1.4,
+            textAlign: langue === 'he' ? 'right' : 'left',
+            overflow: 'hidden',
+            display: '-webkit-box',
+            WebkitLineClamp: 2,
+            WebkitBoxOrient: 'vertical',
+          }}>{nom}</p>
+
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 6 }}>
+            <span style={{ fontSize: 20, fontWeight: 800, color: ACCENT }}>₪{promo.prixMin}</span>
+            <span style={{ fontSize: 12, color: 'var(--text-muted)', textDecoration: 'line-through' }}>₪{promo.prixMax}</span>
+          </div>
+
+          <StoreBadge enseigne={promo.meilleurEnseigne} langue={langue} isDark={isDark} />
         </div>
       </div>
 
-      <div style={{ padding: '10px 12px 14px' }}>
-        <p style={{
-          fontSize: 12, fontWeight: 600, color: 'var(--text)',
-          marginBottom: 8, lineHeight: 1.4,
-          textAlign: langue === 'he' ? 'right' : 'left',
-          overflow: 'hidden',
-          display: '-webkit-box',
-          WebkitLineClamp: 2,
-          WebkitBoxOrient: 'vertical',
-        }}>{nom}</p>
-
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 6 }}>
-          <span style={{ fontSize: 20, fontWeight: 800, color: ACCENT }}>₪{promo.prixMin}</span>
-          <span style={{ fontSize: 12, color: 'var(--text-muted)', textDecoration: 'line-through' }}>₪{promo.prixMax}</span>
-        </div>
-
-        <StoreBadge enseigne={promo.meilleurEnseigne} langue={langue} isDark={isDark} />
+      {/* Compact vote buttons */}
+      <div style={{ display: 'flex', gap: 4, padding: '8px 10px 10px', borderTop: '0.5px solid var(--border)' }}>
+        <button onClick={() => onVote(promo.barcode, 'chaud')} style={{
+          flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 3,
+          padding: '5px 4px', borderRadius: 10, border: 'none',
+          background: myVote === 'chaud' ? ACCENT : 'var(--bg-card2)',
+          color: myVote === 'chaud' ? '#fff' : 'var(--text)',
+          fontSize: 11, fontWeight: 700, cursor: 'pointer',
+        }}>🔥 {votes?.chaud || 0}</button>
+        <button onClick={() => onVote(promo.barcode, 'froid')} style={{
+          flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 3,
+          padding: '5px 4px', borderRadius: 10, border: 'none',
+          background: myVote === 'froid' ? '#4B9FE1' : 'var(--bg-card2)',
+          color: myVote === 'froid' ? '#fff' : 'var(--text)',
+          fontSize: 11, fontWeight: 700, cursor: 'pointer',
+        }}>❄️ {votes?.froid || 0}</button>
       </div>
     </div>
   );
@@ -538,6 +579,7 @@ export default function Home() {
   const [ville, setVille] = useState(null);
   const [villes, setVilles] = useState([]);
   const [showCityModal, setShowCityModal] = useState(false);
+  const [promoVotes, setPromoVotes] = useState({});
 
   const t = translations[langue];
   const dir = langue === 'he' ? 'rtl' : 'ltr';
@@ -545,6 +587,10 @@ export default function Home() {
 
   useEffect(() => {
     setMounted(true);
+    try {
+      const saved = localStorage.getItem('dilzPromoVotes');
+      if (saved) setPromoVotes(JSON.parse(saved));
+    } catch {}
     fetch('/api/promos')
       .then(r => r.json())
       .then(d => { setPromos(d.promos || []); setLoadingPromos(false); })
@@ -589,6 +635,22 @@ export default function Home() {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ id, vote: type }),
+    });
+  };
+
+  const handlePromoVote = (barcode, type) => {
+    setPromoVotes(prev => {
+      const cur = prev[barcode] || { chaud: 0, froid: 0, myVote: null };
+      let updated;
+      if (cur.myVote === type) {
+        updated = { ...cur, [type]: Math.max(0, cur[type] - 1), myVote: null };
+      } else {
+        const undo = cur.myVote ? { [cur.myVote]: Math.max(0, cur[cur.myVote] - 1) } : {};
+        updated = { ...cur, ...undo, [type]: cur[type] + 1, myVote: type };
+      }
+      const next = { ...prev, [barcode]: updated };
+      try { localStorage.setItem('dilzPromoVotes', JSON.stringify(next)); } catch {}
+      return next;
     });
   };
 
@@ -762,6 +824,8 @@ export default function Home() {
                     langue={langue}
                     isDark={isDark}
                     onClick={() => setSelectedPromo(heroPromo)}
+                    votes={promoVotes[heroPromo.barcode]}
+                    onVote={handlePromoVote}
                   />
                 )}
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
@@ -772,6 +836,8 @@ export default function Home() {
                       langue={langue}
                       isDark={isDark}
                       onClick={() => setSelectedPromo(p)}
+                      votes={promoVotes[p.barcode]}
+                      onVote={handlePromoVote}
                     />
                   ))}
                 </div>
@@ -841,6 +907,32 @@ export default function Home() {
         {/* ── SEARCH TAB ── */}
         {tab === 'search' && (
           <div>
+            {/* Barcode scan shortcut */}
+            <Link href="/scan" style={{
+              display: 'flex', alignItems: 'center', gap: 10,
+              background: 'var(--bg-card)', borderRadius: 16,
+              padding: '14px 16px', textDecoration: 'none',
+              marginBottom: 14, border: '0.5px solid var(--border)',
+              boxShadow: 'var(--shadow-card)',
+            }}>
+              <div style={{
+                width: 40, height: 40, borderRadius: 12,
+                background: `linear-gradient(135deg, ${ACCENT}, ${ACCENT_DARK})`,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                flexShrink: 0,
+              }}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round">
+                  <path d="M3 9V6a1 1 0 0 1 1-1h3M15 5h3a1 1 0 0 1 1 1v3M21 15v3a1 1 0 0 1-1 1h-3M9 19H6a1 1 0 0 1-1-1v-3" />
+                  <line x1="8" y1="12" x2="8" y2="12.01" /><line x1="12" y1="12" x2="12" y2="12.01" /><line x1="16" y1="12" x2="16" y2="12.01" />
+                </svg>
+              </div>
+              <div>
+                <p style={{ fontSize: 14, fontWeight: 700, color: 'var(--text)', margin: 0 }}>Scan a barcode</p>
+                <p style={{ fontSize: 12, color: 'var(--text-sub)', margin: 0 }}>Compare prices across all stores</p>
+              </div>
+              <span style={{ marginLeft: 'auto', color: 'var(--text-muted)', fontSize: 16 }}>›</span>
+            </Link>
+
             {loadingSearch && (
               <div style={{ textAlign: 'center', padding: '20px 0', color: 'var(--text-muted)' }}>{t.loading}</div>
             )}

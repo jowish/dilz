@@ -24,15 +24,27 @@ export default async function handler(req, res) {
   }
 
   if (req.method === 'POST') {
-    const { titre, description, prix, prix_original, magasin, ville, auteur_nom, image_url } = req.body;
-    
+    const { titre, description, prix, prix_original, magasin, ville, auteur_nom, auteur_id, categorie, url_source, image_url } = req.body;
+
     if (!titre || !prix || !magasin) {
       return res.status(400).json({ erreur: 'titre, prix et magasin sont requis' });
     }
 
     const { data, error } = await supabase
       .from('bons_plans')
-      .insert([{ titre, description, prix, prix_original, magasin, ville, auteur_nom: auteur_nom || 'Anonyme', image_url }])
+      .insert([{
+        titre, description: description || null,
+        prix, prix_original: prix_original || null,
+        magasin, ville: ville || null,
+        auteur_nom: auteur_nom || 'Anonyme',
+        auteur_id: auteur_id || null,
+        categorie: categorie || 'Food',
+        url_source: url_source || null,
+        image_url: image_url || null,
+        statut: 'actif',
+        votes_chaud: 0,
+        votes_froid: 0,
+      }])
       .select()
       .single();
 

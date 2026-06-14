@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/router';
+import { supabase } from '../lib/supabase';
 
 const ACCENT = '#D4622A';
 const ACCENT_DARK = '#B84E20';
@@ -15,10 +17,11 @@ function timeAgo(date) {
   return `${Math.floor(h / 24)}d ago`;
 }
 
-function PostDealModal({ onClose, onSubmit }) {
+function PostDealModal({ onClose, onSubmit, user }) {
+  const displayName = user?.user_metadata?.display_name || user?.email?.split('@')[0] || '';
   const [form, setForm] = useState({
     titre: '', description: '', prix: '', prix_original: '',
-    magasin: '', ville: '', auteur_nom: '', categorie: 'Food', url_source: '',
+    magasin: '', ville: '', auteur_nom: displayName, categorie: 'Food', url_source: '',
   });
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
@@ -72,6 +75,7 @@ function PostDealModal({ onClose, onSubmit }) {
           prix: parseFloat(form.prix),
           prix_original: form.prix_original ? parseFloat(form.prix_original) : null,
           image_url,
+          auteur_id: user?.id || null,
         }),
       });
       const data = await res.json();
@@ -333,13 +337,20 @@ function DealCard({ deal, onVote }) {
 }
 
 export default function BonsPlans() {
+  const router = useRouter();
   const [deals, setDeals] = useState([]);
   const [loading, setLoading] = useState(true);
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [showPostModal, setShowPostModal] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [user, setUser] = useState(null);
 
-  useEffect(() => { setMounted(true); }, []);
+  useEffect(() => {
+    setMounted(true);
+    supabase.auth.getSession().then(({ data }) => {
+      setUser(data.session?.user || null);
+    });
+  }, []);
 
   const loadDeals = async () => {
     setLoading(true);
@@ -417,7 +428,7 @@ export default function BonsPlans() {
 
         {/* CTA */}
         <button
-          onClick={() => setShowPostModal(true)}
+          onClick={() => user ? setShowPostModal(true) : router.push('/auth?redirect=/bons-plans')}
           style={{
             display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%',
             background: `linear-gradient(135deg, ${ACCENT}, ${ACCENT_DARK})`,
@@ -449,6 +460,7 @@ export default function BonsPlans() {
         <PostDealModal
           onClose={() => setShowPostModal(false)}
           onSubmit={handleNewDeal}
+          user={user}
         />
       )}
     </div>

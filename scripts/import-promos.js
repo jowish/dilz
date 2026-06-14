@@ -1,5 +1,6 @@
 const { createClient } = require('@supabase/supabase-js');
 const https = require('https');
+const http = require('http');
 const zlib = require('zlib');
 
 require('dotenv').config({ path: '.env.local' });
@@ -11,7 +12,11 @@ const supabase = createClient(
 
 async function fetchHtml(url) {
   return new Promise((resolve, reject) => {
-    https.get(url, { headers: { 'User-Agent': 'Mozilla/5.0' } }, (res) => {
+    const mod = url.startsWith('https') ? https : http;
+    mod.get(url, { headers: { 'User-Agent': 'Mozilla/5.0' } }, (res) => {
+      if (res.statusCode === 301 || res.statusCode === 302) {
+        return fetchHtml(res.headers.location).then(resolve).catch(reject);
+      }
       let data = '';
       res.on('data', c => data += c);
       res.on('end', () => resolve(data));
@@ -21,16 +26,22 @@ async function fetchHtml(url) {
 
 async function telechargerGZ(url) {
   return new Promise((resolve, reject) => {
-    https.get(url, { headers: { 'User-Agent': 'Mozilla/5.0' } }, (res) => {
+    const mod = url.startsWith('https') ? https : http;
+    mod.get(url, { headers: { 'User-Agent': 'Mozilla/5.0' } }, (res) => {
       if (res.statusCode === 301 || res.statusCode === 302) {
         return telechargerGZ(res.headers.location).then(resolve).catch(reject);
       }
       const chunks = [];
       res.on('data', c => chunks.push(c));
       res.on('end', () => {
-        zlib.gunzip(Buffer.concat(chunks), (err, result) => {
-          if (err) reject(err);
-          else resolve(result.toString('utf8'));
+        const buf = Buffer.concat(chunks);
+        zlib.gunzip(buf, (err, result) => {
+          if (err) {
+            // Essayer sans décompression (certains fichiers ne sont pas gzippés)
+            resolve(buf.toString('utf8'));
+          } else {
+            resolve(result.toString('utf8'));
+          }
         });
       });
     }).on('error', reject);
@@ -46,34 +57,51 @@ function parsePromos(xml, storeId, enseigneCode) {
     const promoXml = promoMatch[1];
 
     const getP = (tag) => {
-      const m = promoXml.match(new RegExp(`<${tag}>(.*?)<\/${tag}>`));
+      const m = promoXml.match(new RegExp(`<${tag}[^>]*>(.*?)<\/${tag}>`, 'i'));
       return m ? m[1].trim() : '';
     };
 
     const description = getP('PromotionDescription');
-    const dateDebut = getP('PromotionStartDateTime') || null;
-    const dateFin = getP('PromotionEndDateTime') || null;
+    const dateDebut = getP('PromotionStartDateTime') || getP('PromotionStartDate') || null;
+    const dateFin = getP('PromotionEndDateTime') || getP('PromotionEndDate') || null;
+    const rewardType = getP('RewardType');
+    const discountRate = parseFloat(getP('DiscountRate') || '0');
 
-    // Parser les PromotionItems dans les Groups
-    const itemRegex = /<PromotionItem>([\s\S]*?)<\/PromotionItem>/g;
+    if (!description) continue;
+
+    const itemRegex = /<(?:GroupItem|PromotionItem)>([\s\S]*?)<\/(?:GroupItem|PromotionItem)>/g;
     let itemMatch;
+    let foundItem = false;
 
     while ((itemMatch = itemRegex.exec(promoXml)) !== null) {
       const itemXml = itemMatch[1];
 
       const getI = (tag) => {
-        const m = itemXml.match(new RegExp(`<${tag}>(.*?)<\/${tag}>`));
+        const m = itemXml.match(new RegExp(`<${tag}[^>]*>(.*?)<\/${tag}>`, 'i'));
         return m ? m[1].trim() : '';
       };
 
       const barcode = getI('ItemCode');
-      const prixPromo = parseFloat(getI('DiscountedPrice'));
-      const rewardType = getI('RewardType');
+      if (!barcode || barcode === '0000000000000' || barcode === '0') continue;
 
-      // Ignorer les items sans barcode valide ou sans prix promo
-      if (!barcode || barcode === '0000000000000' || !prixPromo || prixPromo <= 0) continue;
-      // Ignorer les RewardType 0 (pas de remise directe)
-      if (rewardType === '0') continue;
+      let prixPromo = parseFloat(getI('DiscountedPrice') || getI('ItemPrice') || '0');
+
+      // Pour les remises en pourcentage (RewardType 1)
+      if (rewardType === '1' && discountRate > 0 && prixPromo <= 0) {
+        // On stocke le taux, prix sera calculé à l'affichage
+        prixPromo = discountRate; // On stocke le pourcentage temporairement
+      }
+
+      // RewardType 0 = produit offert (buy X get Y) — inclure même sans prix
+      if (rewardType === '0') {
+        prixPromo = 0;
+      }
+
+      // RewardType 10 = prix fixe promo — exiger un prix valide
+      if (rewardType === '10' && prixPromo <= 0) continue;
+
+      // Filtrer les articles vraiment sans info utile
+      if (prixPromo <= 0 && rewardType !== '0') continue;
 
       promos.push({
         barcode,
@@ -87,30 +115,46 @@ function parsePromos(xml, storeId, enseigneCode) {
     }
   }
 
-  // Dedupliquer par barcode+store (garder le prix le plus bas)
+  // Dedupliquer par barcode+store (garder le prix le plus bas non-zéro, sinon 0)
   const map = new Map();
   promos.forEach(p => {
     const key = `${p.barcode}-${p.store_id}`;
-    if (!map.has(key) || p.prix_promo < map.get(key).prix_promo) {
+    if (!map.has(key)) {
       map.set(key, p);
+    } else {
+      const existing = map.get(key);
+      if (p.prix_promo > 0 && (existing.prix_promo === 0 || p.prix_promo < existing.prix_promo)) {
+        map.set(key, p);
+      }
     }
   });
 
   return Array.from(map.values());
 }
 
-async function importerPromosShufersal() {
-  console.log('\nShufersal — import des promotions...');
+async function upsertPromos(promos) {
+  const batchSize = 200;
+  for (let i = 0; i < promos.length; i += batchSize) {
+    const { error } = await supabase.from('promotions').upsert(
+      promos.slice(i, i + batchSize),
+      { onConflict: 'barcode,enseigne_code,store_id' }
+    );
+    if (error) console.log('  Erreur batch:', error.message);
+  }
+}
+
+async function importerShufersal() {
+  console.log('\n=== Shufersal — import promotions ===');
 
   const html = await fetchHtml('https://prices.shufersal.co.il/FileObject/UpdateCategory?catID=3&storeId=0&take=300');
   const liens = html.match(/href="(https:\/\/pricesprodpublic[^"]+\.gz[^"]*)"/g) || [];
+  const urls = [...new Set(liens.map(l => l.replace('href="', '').replace('"', '').replace(/&amp;/g, '&')))];
 
-  console.log(`  ${liens.length} fichiers promo`);
+  console.log(`  ${urls.length} fichiers promo trouvés`);
 
   let totalPromos = 0;
 
-  for (const lien of liens) {
-    const url = lien.replace('href="', '').replace('"', '').replace(/&amp;/g, '&');
+  for (const url of urls) {
     const storeMatch = url.match(/Promo\d+-\d+-(\d+)-/);
     const storeId = storeMatch ? storeMatch[1] : '000';
 
@@ -119,33 +163,77 @@ async function importerPromosShufersal() {
       const promos = parsePromos(xml, storeId, 'shufersal');
 
       if (promos.length > 0) {
-        const batchSize = 100;
-        for (let i = 0; i < promos.length; i += batchSize) {
-          const { error } = await supabase.from('promotions').upsert(
-            promos.slice(i, i + batchSize),
-            { onConflict: 'barcode,enseigne_code,store_id' }
-          );
-          if (error) console.log('  Erreur batch:', error.message);
-        }
+        await upsertPromos(promos);
         totalPromos += promos.length;
-        console.log(`  Magasin ${storeId}: ${promos.length} promos`);
-      } else {
-        console.log(`  Magasin ${storeId}: aucune promo`);
+        process.stdout.write(`  Magasin ${storeId}: ${promos.length} promos\n`);
       }
 
-      await new Promise(r => setTimeout(r, 200));
+      await new Promise(r => setTimeout(r, 150));
     } catch(e) {
-      console.log(`  Erreur magasin ${storeId}: ${e.message}`);
+      process.stdout.write(`  Erreur magasin ${storeId}: ${e.message}\n`);
     }
   }
 
-  console.log(`\n  Total: ${totalPromos} promotions Shufersal`);
+  console.log(`\n  ✓ Shufersal: ${totalPromos} promotions`);
+  return totalPromos;
+}
+
+async function importerVictory() {
+  console.log('\n=== Victory — import promotions ===');
+
+  try {
+    const html = await fetchHtml('https://victory.co.il/FileObject/UpdateCategory?catID=3&storeId=0&take=300');
+    const liens = html.match(/href="([^"]+Promo[^"]+\.gz[^"]*)"/g) || [];
+    const urls = [...new Set(liens.map(l => l.replace('href="', '').replace('"', '').replace(/&amp;/g, '&')))];
+
+    if (urls.length === 0) {
+      console.log('  Aucun fichier trouvé');
+      return 0;
+    }
+
+    console.log(`  ${urls.length} fichiers promo`);
+    let totalPromos = 0;
+
+    for (const url of urls) {
+      const storeMatch = url.match(/Promo\d+-\d+-(\d+)-/);
+      const storeId = storeMatch ? storeMatch[1] : '000';
+
+      try {
+        const xml = await telechargerGZ(url);
+        const promos = parsePromos(xml, storeId, 'victory');
+        if (promos.length > 0) {
+          await upsertPromos(promos);
+          totalPromos += promos.length;
+          process.stdout.write(`  Magasin ${storeId}: ${promos.length} promos\n`);
+        }
+        await new Promise(r => setTimeout(r, 150));
+      } catch(e) {
+        process.stdout.write(`  Erreur magasin ${storeId}: ${e.message}\n`);
+      }
+    }
+
+    console.log(`\n  ✓ Victory: ${totalPromos} promotions`);
+    return totalPromos;
+  } catch(e) {
+    console.log(`  Victory non disponible: ${e.message}`);
+    return 0;
+  }
 }
 
 async function main() {
-  console.log('Import promotions...');
-  await importerPromosShufersal();
-  console.log('\nTermine !');
+  console.log('=== Import promotions ===');
+  const t0 = Date.now();
+
+  const [shuf, vic] = await Promise.allSettled([
+    importerShufersal(),
+    importerVictory(),
+  ]);
+
+  const total =
+    (shuf.status === 'fulfilled' ? shuf.value : 0) +
+    (vic.status === 'fulfilled' ? vic.value : 0);
+
+  console.log(`\n✓ Total: ${total} promotions en ${((Date.now() - t0) / 1000).toFixed(1)}s`);
   process.exit(0);
 }
 
