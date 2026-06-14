@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useTheme } from 'next-themes';
 import { translations, traduireVille } from '../lib/translations';
+import { supabase } from '../lib/supabase';
 
 const ACCENT = '#D4622A';
 const ACCENT_DARK = '#B84E20';
@@ -575,14 +576,22 @@ export default function Home() {
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [sortDeals, setSortDeals] = useState('hot');
 
-  const [searchQuery, setSearchQuery] = useState('');
-  const [searchResults, setSearchResults] = useState([]);
-  const [loadingSearch, setLoadingSearch] = useState(false);
-
   const [ville, setVille] = useState(null);
   const [villes, setVilles] = useState([]);
   const [showCityModal, setShowCityModal] = useState(false);
   const [promoVotes, setPromoVotes] = useState({});
+
+  const [user, setUser] = useState(null);
+  const [postForm, setPostForm] = useState({
+    titre: '', description: '', prix: '', prix_original: '',
+    magasin: '', ville: '', auteur_nom: '', categorie: 'Food',
+    url_source: '', date_debut: '', date_fin: '',
+  });
+  const [postImageFile, setPostImageFile] = useState(null);
+  const [postImagePreview, setPostImagePreview] = useState(null);
+  const [postSubmitting, setPostSubmitting] = useState(false);
+  const [postError, setPostError] = useState('');
+  const [postSuccess, setPostSuccess] = useState(false);
 
   const t = translations[langue];
   const dir = langue === 'he' ? 'rtl' : 'ltr';
@@ -602,6 +611,16 @@ export default function Home() {
       .then(r => r.json())
       .then(d => setVilles(d.villes || []))
       .catch(() => {});
+    supabase.auth.getSession().then(({ data }) => {
+      const u = data.session?.user || null;
+      setUser(u);
+      if (u) {
+        setPostForm(prev => ({
+          ...prev,
+          auteur_nom: u.user_metadata?.display_name || u.email?.split('@')[0] || '',
+        }));
+      }
+    });
   }, []);
 
   useEffect(() => {
@@ -615,20 +634,6 @@ export default function Home() {
       .then(d => { setDeals(d.bons_plans || []); setLoadingDeals(false); })
       .catch(() => setLoadingDeals(false));
   }, [tab, categoryFilter, sortDeals]);
-
-  useEffect(() => {
-    if (searchQuery.length < 2) { setSearchResults([]); return; }
-    const timer = setTimeout(async () => {
-      setLoadingSearch(true);
-      try {
-        const res = await fetch('/api/prix?q=' + encodeURIComponent(searchQuery));
-        const data = await res.json();
-        setSearchResults(data.produits || []);
-      } catch { }
-      setLoadingSearch(false);
-    }, 500);
-    return () => clearTimeout(timer);
-  }, [searchQuery]);
 
   const handleVote = async (id, type) => {
     setDeals(prev => prev.map(d => {
@@ -658,6 +663,69 @@ export default function Home() {
     });
   };
 
+  const handlePostImage = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setPostImageFile(file);
+    const reader = new FileReader();
+    reader.onload = (ev) => setPostImagePreview(ev.target.result);
+    reader.readAsDataURL(file);
+  };
+
+  const handlePostDeal = async () => {
+    if (!postForm.titre || !postForm.prix || !postForm.magasin) {
+      setPostError('Title, price and store are required');
+      return;
+    }
+    setPostSubmitting(true);
+    setPostError('');
+    try {
+      let image_url = null;
+      if (postImageFile) {
+        const reader = new FileReader();
+        const base64 = await new Promise((resolve) => {
+          reader.onload = (e) => resolve(e.target.result.split(',')[1]);
+          reader.readAsDataURL(postImageFile);
+        });
+        const uploadRes = await fetch('/api/upload', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ image: base64, filename: postImageFile.name, mimeType: postImageFile.type }),
+        });
+        const uploadData = await uploadRes.json();
+        if (uploadData.url) image_url = uploadData.url;
+      }
+
+      const res = await fetch('/api/bons-plans', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...postForm,
+          prix: parseFloat(postForm.prix),
+          prix_original: postForm.prix_original ? parseFloat(postForm.prix_original) : null,
+          image_url,
+          auteur_id: user?.id || null,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok || data.erreur) {
+        setPostError(data.erreur || 'Failed to post deal');
+        setPostSubmitting(false);
+        return;
+      }
+      if (data.bon_plan) {
+        setPostSuccess(true);
+        setPostForm(prev => ({ ...prev, titre: '', description: '', prix: '', prix_original: '', magasin: '', ville: '', url_source: '', date_debut: '', date_fin: '', categorie: 'Food' }));
+        setPostImageFile(null);
+        setPostImagePreview(null);
+        setTimeout(() => { setPostSuccess(false); setTab('deals'); }, 1600);
+      }
+    } catch {
+      setPostError('Network error. Please check your connection.');
+    }
+    setPostSubmitting(false);
+  };
+
   const filteredPromos = storeFilter === 'all'
     ? promos
     : promos.filter(p => p.meilleurEnseigne === storeFilter);
@@ -669,7 +737,7 @@ export default function Home() {
 
   const navItems = [
     {
-      id: 'sales', label: t.nav.sales,
+      id: 'sales', label: langue === 'en' ? 'Sales' : 'מבצעים',
       icon: (active) => (
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={active ? ACCENT : 'var(--text-sub)'} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
           <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><polyline points="9 22 9 12 15 12 15 22" />
@@ -677,7 +745,7 @@ export default function Home() {
       ),
     },
     {
-      id: 'deals', label: t.nav.deals,
+      id: 'deals', label: langue === 'en' ? 'Deals' : 'דילים',
       icon: (active) => (
         <svg width="22" height="22" viewBox="0 0 24 24" fill={active ? ACCENT : 'none'} stroke={active ? ACCENT : 'var(--text-sub)'} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
           <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
@@ -685,18 +753,11 @@ export default function Home() {
       ),
     },
     {
-      id: 'search', label: t.nav.search,
+      id: 'post', label: langue === 'en' ? 'Post' : 'פרסם',
       icon: (active) => (
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={active ? ACCENT : 'var(--text-sub)'} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-          <circle cx="11" cy="11" r="8" /><path d="m21 21-4.35-4.35" />
-        </svg>
-      ),
-    },
-    {
-      id: 'profile', label: t.nav.profile,
-      icon: (active) => (
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={active ? ACCENT : 'var(--text-sub)'} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" />
+          <circle cx="12" cy="12" r="10" />
+          <line x1="12" y1="8" x2="12" y2="16" /><line x1="8" y1="12" x2="16" y2="12" />
         </svg>
       ),
     },
@@ -715,7 +776,7 @@ export default function Home() {
         WebkitBackdropFilter: 'blur(20px)',
       }}>
         <div style={{ maxWidth: 600, margin: '0 auto' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: tab === 'search' ? 12 : 0 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
               <ThemeToggle />
               <button
@@ -746,34 +807,16 @@ export default function Home() {
             <span style={{ fontSize: 22, fontWeight: 900, color: 'var(--text)', letterSpacing: -1 }}>
               dil<span style={{ color: ACCENT }}>z</span>
             </span>
-          </div>
-
-          {tab === 'search' && (
-            <div style={{
-              background: 'var(--bg-input)',
-              borderRadius: 14, display: 'flex', alignItems: 'center',
-              padding: '10px 14px', gap: 8, marginTop: 12,
+            <Link href="/profil" style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              width: 34, height: 34, borderRadius: '50%',
+              background: 'var(--bg-card2)', textDecoration: 'none',
             }}>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="2">
-                <circle cx="11" cy="11" r="8" /><path d="m21 21-4.35-4.35" />
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-sub)" strokeWidth="2" strokeLinecap="round">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" />
               </svg>
-              <input
-                type="text"
-                placeholder={t.search}
-                autoFocus
-                style={{
-                  background: 'none', border: 'none', color: 'var(--text)',
-                  fontSize: 15, flex: 1, outline: 'none',
-                  textAlign: langue === 'he' ? 'right' : 'left',
-                }}
-                value={searchQuery}
-                onChange={e => setSearchQuery(e.target.value)}
-              />
-              {searchQuery && (
-                <button onClick={() => setSearchQuery('')} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: 18 }}>×</button>
-              )}
-            </div>
-          )}
+            </Link>
+          </div>
         </div>
       </div>
 
@@ -925,94 +968,143 @@ export default function Home() {
           </div>
         )}
 
-        {/* ── SEARCH TAB ── */}
-        {tab === 'search' && (
-          <div>
-            {/* Barcode scan shortcut */}
-            <Link href="/scan" style={{
-              display: 'flex', alignItems: 'center', gap: 10,
-              background: 'var(--bg-card)', borderRadius: 16,
-              padding: '14px 16px', textDecoration: 'none',
-              marginBottom: 14, border: '0.5px solid var(--border)',
-              boxShadow: 'var(--shadow-card)',
-            }}>
-              <div style={{
-                width: 40, height: 40, borderRadius: 12,
-                background: `linear-gradient(135deg, ${ACCENT}, ${ACCENT_DARK})`,
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                flexShrink: 0,
-              }}>
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round">
-                  <path d="M3 9V6a1 1 0 0 1 1-1h3M15 5h3a1 1 0 0 1 1 1v3M21 15v3a1 1 0 0 1-1 1h-3M9 19H6a1 1 0 0 1-1-1v-3" />
-                  <line x1="8" y1="12" x2="8" y2="12.01" /><line x1="12" y1="12" x2="12" y2="12.01" /><line x1="16" y1="12" x2="16" y2="12.01" />
-                </svg>
-              </div>
-              <div>
-                <p style={{ fontSize: 14, fontWeight: 700, color: 'var(--text)', margin: 0 }}>Scan a barcode</p>
-                <p style={{ fontSize: 12, color: 'var(--text-sub)', margin: 0 }}>Compare prices across all stores</p>
-              </div>
-              <span style={{ marginLeft: 'auto', color: 'var(--text-muted)', fontSize: 16 }}>›</span>
-            </Link>
-
-            {loadingSearch && (
-              <div style={{ textAlign: 'center', padding: '20px 0', color: 'var(--text-muted)' }}>{t.loading}</div>
-            )}
-            {!loadingSearch && searchQuery.length >= 2 && searchResults.length === 0 && (
-              <div style={{ textAlign: 'center', padding: '60px 0', color: 'var(--text-muted)', fontSize: 14 }}>
-                {t.noProducts}
-              </div>
-            )}
-            {!loadingSearch && searchQuery.length < 2 && (
-              <div style={{ textAlign: 'center', padding: '60px 0', color: 'var(--text-muted)', fontSize: 14 }}>
-                {langue === 'en' ? 'Type at least 2 characters to search' : 'הקלד לפחות 2 תווים לחיפוש'}
-              </div>
-            )}
-            {searchResults.map(produit => {
-              const tousLesPrix = produit.tousLesPrix || [];
-              const meilleurPrix = tousLesPrix.length ? Math.min(...tousLesPrix.map(p => p.prix)) : null;
-              const nom = (langue === 'en' && produit.nom_en) ? produit.nom_en : produit.nom;
-              return (
-                <div key={produit.barcode} style={{
-                  background: 'var(--bg-card)',
-                  borderRadius: 18, padding: '14px 16px',
-                  marginBottom: 10,
-                  boxShadow: 'var(--shadow-card)',
+        {/* ── POST TAB ── */}
+        {tab === 'post' && (
+          <div style={{ paddingBottom: 20 }}>
+            {!user ? (
+              <div style={{ textAlign: 'center', padding: '80px 20px' }}>
+                <div style={{ fontSize: 52, marginBottom: 16 }}>📸</div>
+                <p style={{ fontSize: 20, fontWeight: 800, color: 'var(--text)', marginBottom: 8 }}>
+                  {langue === 'en' ? 'Share a deal' : 'שתף דיל'}
+                </p>
+                <p style={{ fontSize: 14, color: 'var(--text-sub)', marginBottom: 28, lineHeight: 1.6 }}>
+                  {langue === 'en' ? 'Sign in to share deals with the community' : 'התחבר כדי לשתף דילים עם הקהילה'}
+                </p>
+                <Link href="/auth" style={{
+                  display: 'inline-block', padding: '14px 28px',
+                  borderRadius: 18, background: `linear-gradient(135deg, ${ACCENT}, ${ACCENT_DARK})`,
+                  color: '#fff', fontSize: 15, fontWeight: 700, textDecoration: 'none',
+                  boxShadow: '0 4px 18px rgba(212,98,42,0.4)',
                 }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
-                    <span style={{ fontSize: 22, fontWeight: 800, color: ACCENT }}>₪{meilleurPrix}</span>
-                    <div style={{ textAlign: langue === 'he' ? 'right' : 'left', flex: 1, marginLeft: langue === 'en' ? 12 : 0, marginRight: langue === 'he' ? 12 : 0 }}>
-                      <p style={{ fontWeight: 600, fontSize: 14, color: 'var(--text)', marginBottom: 2 }}>{nom}</p>
-                      {produit.quantite && (
-                        <p style={{ fontSize: 12, color: 'var(--text-sub)' }}>{produit.quantite} {produit.unite}</p>
+                  {langue === 'en' ? 'Sign in' : 'התחבר'}
+                </Link>
+              </div>
+            ) : postSuccess ? (
+              <div style={{ textAlign: 'center', padding: '80px 20px' }}>
+                <div style={{ fontSize: 52, marginBottom: 16 }}>🔥</div>
+                <p style={{ fontSize: 20, fontWeight: 800, color: 'var(--text)', marginBottom: 8 }}>
+                  {langue === 'en' ? 'Deal shared!' : 'הדיל פורסם!'}
+                </p>
+                <p style={{ fontSize: 14, color: 'var(--text-sub)' }}>
+                  {langue === 'en' ? 'Taking you to deals...' : 'מעביר אותך לדילים...'}
+                </p>
+              </div>
+            ) : (
+              <>
+                <p style={{ fontSize: 20, fontWeight: 800, color: 'var(--text)', marginBottom: 20 }}>
+                  🔥 {langue === 'en' ? 'Share a deal' : 'שתף דיל'}
+                </p>
+
+                {/* Image upload */}
+                <div style={{ marginBottom: 16 }}>
+                  <label style={{ cursor: 'pointer' }}>
+                    <div style={{
+                      height: postImagePreview ? 180 : 90,
+                      borderRadius: 16,
+                      border: `2px dashed ${postImagePreview ? ACCENT : 'var(--border)'}`,
+                      background: postImagePreview ? 'transparent' : 'var(--bg-card)',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden',
+                    }}>
+                      {postImagePreview ? (
+                        <img src={postImagePreview} alt="preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      ) : (
+                        <div style={{ textAlign: 'center', color: 'var(--text-muted)' }}>
+                          <div style={{ fontSize: 24, marginBottom: 4 }}>📸</div>
+                          <div style={{ fontSize: 13 }}>{langue === 'en' ? 'Add photo' : 'הוסף תמונה'}</div>
+                        </div>
                       )}
                     </div>
+                    <input type="file" accept="image/*" capture="environment" onChange={handlePostImage} style={{ display: 'none' }} />
+                  </label>
+                </div>
+
+                {[
+                  ['Title *', 'titre', 'text', langue === 'en' ? 'e.g. Pizza 3+1 at Dominos' : 'לדוגמה: פיצה 3+1 בדומינוס'],
+                  ['Store / Place *', 'magasin', 'text', langue === 'en' ? 'e.g. Dominos, KSP' : 'לדוגמה: דומינוס, KSP'],
+                  ['City', 'ville', 'text', langue === 'en' ? 'e.g. Tel Aviv' : 'לדוגמה: תל אביב'],
+                ].map(([label, key, type, placeholder]) => (
+                  <div key={key} style={{ marginBottom: 12 }}>
+                    <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--text-sub)', marginBottom: 5 }}>{label}</label>
+                    <input type={type} placeholder={placeholder} value={postForm[key]}
+                      onChange={e => setPostForm({ ...postForm, [key]: e.target.value })}
+                      style={{ width: '100%', padding: '12px 14px', borderRadius: 14, border: '0.5px solid var(--border)', background: 'var(--bg-input)', color: 'var(--text)', fontSize: 14, outline: 'none' }}
+                    />
                   </div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                    {tousLesPrix.map(p => {
-                      const isBest = p.prix === meilleurPrix;
-                      return (
-                        <div key={p.enseigne} style={{
-                          display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                          padding: '10px 12px', borderRadius: 12,
-                          background: isBest ? 'rgba(212,98,42,0.08)' : 'var(--bg-card2)',
-                          border: isBest ? `1px solid ${ACCENT}` : '0.5px solid var(--border)',
-                        }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                            <StoreBadge enseigne={p.enseigne} langue={langue} isDark={isDark} />
-                            {isBest && (
-                              <span style={{ fontSize: 11, color: ACCENT, fontWeight: 700 }}>
-                                {langue === 'en' ? '✓ Best' : '✓ הכי זול'}
-                              </span>
-                            )}
-                          </div>
-                          <span style={{ fontSize: 18, fontWeight: 700, color: isBest ? ACCENT : 'var(--text-sub)' }}>₪{p.prix}</span>
-                        </div>
-                      );
-                    })}
+                ))}
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 12 }}>
+                  {[['Deal price *', 'prix', '₪39'], ['Original price', 'prix_original', '₪79']].map(([label, key, ph]) => (
+                    <div key={key}>
+                      <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--text-sub)', marginBottom: 5 }}>{label}</label>
+                      <input type="number" placeholder={ph} value={postForm[key]}
+                        onChange={e => setPostForm({ ...postForm, [key]: e.target.value })}
+                        style={{ width: '100%', padding: '12px 14px', borderRadius: 14, border: '0.5px solid var(--border)', background: 'var(--bg-input)', color: 'var(--text)', fontSize: 14, outline: 'none' }}
+                      />
+                    </div>
+                  ))}
+                </div>
+
+                <div style={{ marginBottom: 12 }}>
+                  <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--text-sub)', marginBottom: 5 }}>
+                    {langue === 'en' ? 'Category' : 'קטגוריה'}
+                  </label>
+                  <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                    {['Food', 'Tech', 'Fashion', 'Activities', 'Online'].map(cat => (
+                      <button key={cat} onClick={() => setPostForm({ ...postForm, categorie: cat })} style={{
+                        padding: '6px 12px', borderRadius: 20,
+                        border: postForm.categorie === cat ? `1.5px solid ${ACCENT}` : '0.5px solid var(--border)',
+                        background: postForm.categorie === cat ? 'rgba(212,98,42,0.1)' : 'var(--bg-input)',
+                        color: postForm.categorie === cat ? ACCENT : 'var(--text-sub)',
+                        fontSize: 13, fontWeight: postForm.categorie === cat ? 700 : 400, cursor: 'pointer',
+                      }}>{cat}</button>
+                    ))}
                   </div>
                 </div>
-              );
-            })}
+
+                <div style={{ marginBottom: 12 }}>
+                  <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--text-sub)', marginBottom: 5 }}>
+                    {langue === 'en' ? 'Link (optional)' : 'קישור (אופציונלי)'}
+                  </label>
+                  <input type="url" placeholder="https://..." value={postForm.url_source}
+                    onChange={e => setPostForm({ ...postForm, url_source: e.target.value })}
+                    style={{ width: '100%', padding: '12px 14px', borderRadius: 14, border: '0.5px solid var(--border)', background: 'var(--bg-input)', color: 'var(--text)', fontSize: 14, outline: 'none' }}
+                  />
+                </div>
+
+                <div style={{ marginBottom: 16 }}>
+                  <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--text-sub)', marginBottom: 5 }}>
+                    {langue === 'en' ? 'Description (optional)' : 'תיאור (אופציונלי)'}
+                  </label>
+                  <textarea placeholder={langue === 'en' ? 'More details...' : 'פרטים נוספים...'} value={postForm.description}
+                    onChange={e => setPostForm({ ...postForm, description: e.target.value })}
+                    rows={3}
+                    style={{ width: '100%', padding: '12px 14px', borderRadius: 14, border: '0.5px solid var(--border)', background: 'var(--bg-input)', color: 'var(--text)', fontSize: 14, outline: 'none', resize: 'vertical' }}
+                  />
+                </div>
+
+                {postError && <p style={{ color: '#DC2626', fontSize: 13, marginBottom: 12 }}>{postError}</p>}
+
+                <button onClick={handlePostDeal} disabled={postSubmitting} style={{
+                  width: '100%', padding: 16, borderRadius: 16, border: 'none',
+                  background: postSubmitting ? 'var(--bg-card2)' : `linear-gradient(135deg, ${ACCENT}, ${ACCENT_DARK})`,
+                  color: postSubmitting ? 'var(--text-muted)' : '#fff',
+                  fontSize: 16, fontWeight: 700, cursor: postSubmitting ? 'default' : 'pointer',
+                  boxShadow: postSubmitting ? 'none' : '0 4px 18px rgba(212,98,42,0.4)',
+                }}>
+                  {postSubmitting ? (langue === 'en' ? 'Sharing...' : 'מפרסם...') : (langue === 'en' ? 'Share deal 🔥' : 'פרסם דיל 🔥')}
+                </button>
+              </>
+            )}
           </div>
         )}
       </div>
@@ -1033,10 +1125,7 @@ export default function Home() {
           return (
             <button
               key={item.id}
-              onClick={() => {
-                if (item.id === 'profile') { router.push('/profil'); return; }
-                setTab(item.id);
-              }}
+              onClick={() => setTab(item.id)}
               style={{
                 display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4,
                 background: 'none', border: 'none', cursor: 'pointer',

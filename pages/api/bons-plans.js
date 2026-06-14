@@ -5,6 +5,12 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 );
 
+// Service role client for writes (bypasses RLS)
+const supabaseAdmin = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_KEY
+);
+
 export default async function handler(req, res) {
   if (req.method === 'GET') {
     const { ville, categorie, limit = 50, tri = 'hot' } = req.query;
@@ -50,7 +56,7 @@ export default async function handler(req, res) {
     if (date_debut) insertData.date_debut = date_debut;
     if (date_fin) insertData.date_fin = date_fin;
 
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from('bons_plans')
       .insert([insertData])
       .select()
@@ -64,13 +70,13 @@ export default async function handler(req, res) {
     const { id, vote } = req.body;
     const champ = vote === 'chaud' ? 'votes_chaud' : 'votes_froid';
 
-    const { data: current } = await supabase
+    const { data: current } = await supabaseAdmin
       .from('bons_plans')
       .select(champ)
       .eq('id', id)
       .single();
 
-    const { error } = await supabase
+    const { error } = await supabaseAdmin
       .from('bons_plans')
       .update({ [champ]: (current?.[champ] || 0) + 1 })
       .eq('id', id);

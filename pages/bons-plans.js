@@ -80,12 +80,17 @@ function PostDealModal({ onClose, onSubmit, user }) {
         }),
       });
       const data = await res.json();
+      if (!res.ok || data.erreur) {
+        setError(data.erreur || 'Failed to post deal');
+        setSubmitting(false);
+        return;
+      }
       if (data.bon_plan) {
         onSubmit(data.bon_plan);
         onClose();
       }
     } catch (err) {
-      setError('Failed to post deal. Please try again.');
+      setError('Network error — please check your connection.');
     }
     setSubmitting(false);
   };
