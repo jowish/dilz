@@ -1,7 +1,11 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
-    domains: ['www.rami-levy.co.il'],
+    remotePatterns: [
+      { protocol: 'https', hostname: 'www.rami-levy.co.il' },
+      { protocol: 'https', hostname: 'wqkhetnkcocehekniwig.supabase.co' },
+      { protocol: 'https', hostname: 'images.openfoodfacts.org' },
+    ],
   },
 };
 

@@ -19,12 +19,12 @@ export default async function handler(req, res) {
   }
 
   if (req.method === 'POST') {
-    const { bon_plan_id, auteur_nom, contenu } = req.body;
+    const { bon_plan_id, auteur_nom, auteur_id, contenu } = req.body;
     if (!bon_plan_id || !contenu) return res.status(400).json({ erreur: 'Champs manquants' });
 
     const { data, error } = await supabase
       .from('commentaires')
-      .insert([{ bon_plan_id, auteur_nom: auteur_nom || 'Anonyme', contenu }])
+      .insert([{ bon_plan_id, auteur_nom: auteur_nom || 'Anonyme', auteur_id: auteur_id || null, contenu }])
       .select()
       .single();
 

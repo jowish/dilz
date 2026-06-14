@@ -5,48 +5,52 @@
 }
 
 :root {
-  --bg-primary: #ffffff;
-  --bg-secondary: #f2f2f7;
-  --bg-card: #ffffff;
-  --bg-input: #f2f2f7;
-  --text-primary: #1c1c1e;
-  --text-secondary: #8e8e93;
-  --text-tertiary: #aeaeb2;
-  --border: #e5e5ea;
-  --border-light: #f2f2f7;
-  --accent: #007aff;
-  --accent-green: #34c759;
-  --accent-red: #ff3b30;
-  --header-bg: #ffffff;
-  --nav-bg: #ffffff;
-  --shadow: 0 1px 3px rgba(0,0,0,0.08);
+  --accent: #D4622A;
+  --accent-dark: #B84E20;
+
+  --bg: #F5F3EF;
+  --bg-card: #FFFFFF;
+  --bg-card2: #F0EDE8;
+  --bg-input: #EBEBEB;
+  --border: #E8E3DC;
+  --text: #1A1814;
+  --text-sub: #8A8070;
+  --text-muted: #C5BDB0;
+  --nav-bg: rgba(245,243,239,0.95);
+
+  --shadow-card: 0 2px 16px rgba(0,0,0,0.06);
+  --shadow-float: 0 8px 28px rgba(0,0,0,0.12);
+  --shadow-accent: 0 4px 18px rgba(212,98,42,0.4);
 }
 
 .dark {
-  --bg-primary: #000000;
-  --bg-secondary: #1c1c1e;
-  --bg-card: #1c1c1e;
-  --bg-input: #2c2c2e;
-  --text-primary: #ffffff;
-  --text-secondary: #aeaeb2;
-  --text-tertiary: #636366;
-  --border: #2c2c2e;
-  --border-light: #1c1c1e;
-  --accent: #0a84ff;
-  --accent-green: #30d158;
-  --accent-red: #ff453a;
-  --header-bg: #1c1c1e;
-  --nav-bg: #1c1c1e;
-  --shadow: 0 1px 3px rgba(0,0,0,0.3);
+  --bg: #0E0E12;
+  --bg-card: #17171D;
+  --bg-card2: #1E1E26;
+  --bg-input: #1E1E26;
+  --border: #2A2A35;
+  --text: #F0EDE8;
+  --text-sub: #7A7A8C;
+  --text-muted: #3A3A48;
+  --nav-bg: rgba(14,14,18,0.95);
+
+  --shadow-card: none;
+  --shadow-float: 0 8px 28px rgba(0,0,0,0.4);
+  --shadow-accent: 0 4px 18px rgba(212,98,42,0.3);
 }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  background: var(--bg-secondary);
-  color: var(--text-primary);
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
+  background: var(--bg);
+  color: var(--text);
   -webkit-font-smoothing: antialiased;
+  transition: background 0.3s ease, color 0.3s ease;
 }
 
 input, button, select, textarea {
   font-family: inherit;
+}
+
+* {
+  transition: background-color 0.3s ease, border-color 0.3s ease;
 }

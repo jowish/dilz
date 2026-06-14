@@ -7,12 +7,18 @@ const supabase = createClient(
 
 export default async function handler(req, res) {
   if (req.method === 'GET') {
-    const { data, error } = await supabase
+    const { ville, categorie, limit = 50 } = req.query;
+    let query = supabase
       .from('bons_plans')
       .select('*, commentaires(count)')
+      .eq('statut', 'actif')
       .order('votes_chaud', { ascending: false })
-      .limit(50);
+      .limit(Number(limit));
 
+    if (ville) query = query.eq('ville', ville);
+    if (categorie && categorie !== 'all') query = query.eq('categorie', categorie);
+
+    const { data, error } = await query;
     if (error) return res.status(500).json({ erreur: error.message });
     return res.status(200).json({ bons_plans: data });
   }

@@ -16,7 +16,7 @@ export default async function handler(req, res) {
     // Recuperer tous les prix groupes par barcode
     const { data, error } = await supabase
       .from('produits')
-      .select('barcode, nom, image, prix(prix, enseigne_code)')
+      .select('barcode, nom, nom_en, image, prix(prix, enseigne_code)')
       .not('prix', 'is', null)
       .limit(500);
 
@@ -42,6 +42,7 @@ export default async function handler(req, res) {
       promos.push({
         barcode: produit.barcode,
         nom: produit.nom,
+        nom_en: produit.nom_en,
         image: produit.image,
         prixMin,
         prixMax,

@@ -3,7 +3,7 @@ import '../styles/globals.css'
 
 export default function App({ Component, pageProps }) {
   return (
-    <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+    <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
       <Component {...pageProps} />
     </ThemeProvider>
   )
