@@ -816,7 +816,9 @@ export default function Home() {
       });
       const data = await res.json();
       if (!res.ok || data.erreur) {
-        setPostError(data.erreur || 'Failed to post deal');
+        const msg = data.erreur || 'Failed to post deal';
+        const detail = [data.code, data.hint].filter(Boolean).join(' — ');
+        setPostError(detail ? `${msg} [${detail}]` : msg);
         setPostSubmitting(false);
         return;
       }

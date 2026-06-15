@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { flushSync } from 'react-dom';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
 
@@ -132,9 +133,9 @@ export default function MapPage() {
       });
 
       const marker = L.marker([coords.lat, coords.lon], { icon }).addTo(map);
-      marker.on('click', () => {
-        // Show the first deal from this city; if multiple, show list
-        setSelectedDeal({ deals: cityDeals, ville });
+      marker.on('click', (e) => {
+        L.DomEvent.stopPropagation(e);
+        flushSync(() => setSelectedDeal({ deals: cityDeals, ville }));
       });
     });
 

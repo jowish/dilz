@@ -24,16 +24,14 @@ export default async function handler(req, res) {
   }
 
   if (req.method === 'POST') {
-    const { bon_plan_id, auteur_nom, auteur_id, contenu } = req.body;
+    const { bon_plan_id, auteur_nom, contenu } = req.body;
     if (!bon_plan_id || !contenu) return res.status(400).json({ erreur: 'Champs manquants' });
 
-    const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
     const row = {
       bon_plan_id,
       auteur_nom: auteur_nom || 'Anonyme',
       contenu,
     };
-    if (auteur_id && UUID_RE.test(String(auteur_id))) row.auteur_id = auteur_id;
 
     const { error } = await supabaseAdmin
       .from('commentaires')

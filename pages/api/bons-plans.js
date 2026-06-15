@@ -53,9 +53,6 @@ export default async function handler(req, res) {
         magasin, ville: ville || null,
         auteur_nom: auteur_nom || 'Anonyme',
         image_url: image_url || null,
-        votes_chaud: 0,
-        votes_froid: 0,
-        statut: 'actif',
       };
       if (auteur_id && UUID_RE.test(String(auteur_id))) insertData.auteur_id = auteur_id;
       if (categorie) insertData.categorie = categorie;
