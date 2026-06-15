@@ -395,7 +395,7 @@ export default function DealPage() {
     <div style={{ minHeight: '100vh', background: 'var(--bg)', paddingBottom: 80 }}>
       {/* Header */}
       <div style={{
-        background: 'var(--nav-bg)', borderBottom: '0.5px solid var(--border)',
+        background: 'var(--nav-bg)', borderBottom: '1px solid var(--border)',
         padding: '14px 16px', position: 'sticky', top: 0, zIndex: 50,
         backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)',
       }}>
@@ -406,7 +406,7 @@ export default function DealPage() {
           }} style={{ background: 'none', border: 'none', color: 'var(--text-sub)', fontSize: 14, fontWeight: 500, cursor: 'pointer' }}>
             ← Back
           </button>
-          <span style={{ fontSize: 18, fontWeight: 800, color: 'var(--text)' }}>
+          <span style={{ fontSize: 18, fontWeight: 700, color: 'var(--text)' }}>
             dil<span style={{ color: ACCENT }}>z</span>
           </span>
           <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
@@ -448,10 +448,10 @@ export default function DealPage() {
               </div>
             </div>
             {deal.categorie && (
-              <span style={{ position: 'absolute', top: 16, left: 16, background: 'rgba(0,0,0,0.65)', color: '#fff', fontSize: 12, fontWeight: 600, padding: '4px 10px', borderRadius: 20 }}>{deal.categorie}</span>
+              <span style={{ position: 'absolute', top: 16, left: 16, background: 'rgba(0,0,0,0.65)', color: '#fff', fontSize: 12, fontWeight: 600, padding: '4px 10px', borderRadius: 4 }}>{deal.categorie}</span>
             )}
             {reduction !== null && (
-              <span style={{ position: 'absolute', top: 16, right: 16, background: ACCENT, color: '#fff', fontSize: 12, fontWeight: 800, padding: '4px 10px', borderRadius: 20 }}>-{reduction}% OFF</span>
+              <span style={{ position: 'absolute', top: 16, right: 16, background: ACCENT, color: '#fff', fontSize: 12, fontWeight: 700, padding: '4px 10px', borderRadius: 4 }}>-{reduction}%</span>
             )}
           </div>
         ) : (
@@ -465,13 +465,13 @@ export default function DealPage() {
         {/* Content */}
         <div style={{ padding: '20px 16px 0' }}>
           <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, marginBottom: 12 }}>
-            <span style={{ fontSize: 32, fontWeight: 900, color: ACCENT }}>₪{deal.prix}</span>
+            <span style={{ fontSize: 28, fontWeight: 700, color: ACCENT }}>₪{deal.prix}</span>
             {deal.prix_original && (
               <span style={{ fontSize: 18, color: 'var(--text-muted)', textDecoration: 'line-through' }}>₪{deal.prix_original}</span>
             )}
           </div>
 
-          <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text)', marginBottom: 10, lineHeight: 1.3 }}>{deal.titre}</h1>
+          <h1 style={{ fontSize: 20, fontWeight: 700, color: 'var(--text)', marginBottom: 10, lineHeight: 1.3 }}>{deal.titre}</h1>
 
           <p style={{ fontSize: 13, color: 'var(--text-sub)', marginBottom: 16 }}>
             {[deal.magasin, deal.ville ? traduireVille(deal.ville, 'en') : null].filter(Boolean).join(' · ')}
@@ -480,7 +480,7 @@ export default function DealPage() {
           </p>
 
           {deal.description && (
-            <div style={{ background: 'var(--bg-card)', borderRadius: 16, padding: '14px 16px', marginBottom: 16, boxShadow: 'var(--shadow-card)' }}>
+            <div style={{ background: 'var(--bg-card)', borderRadius: 10, padding: '14px 16px', marginBottom: 16, border: '1px solid var(--border)' }}>
               <p style={{ fontSize: 14, color: 'var(--text)', lineHeight: 1.6 }}>{deal.description}</p>
             </div>
           )}
@@ -488,9 +488,9 @@ export default function DealPage() {
           {deal.url_source && (
             <a href={deal.url_source} target="_blank" rel="noopener noreferrer" style={{
               display: 'flex', alignItems: 'center', gap: 8,
-              background: 'var(--bg-card)', borderRadius: 14, padding: '12px 16px',
+              background: 'var(--bg-card)', borderRadius: 8, padding: '12px 16px',
               marginBottom: 16, textDecoration: 'none', color: ACCENT, fontWeight: 600, fontSize: 14,
-              boxShadow: 'var(--shadow-card)',
+              border: '1px solid var(--border)',
             }}>
               View online deal ↗
             </a>
@@ -563,7 +563,7 @@ export default function DealPage() {
           </p>
 
           {comments.length === 0 ? (
-            <div style={{ background: 'var(--bg-card)', borderRadius: 16, padding: '24px', textAlign: 'center', marginBottom: 16, boxShadow: 'var(--shadow-card)' }}>
+            <div style={{ background: 'var(--bg-card)', borderRadius: 10, padding: '24px', textAlign: 'center', marginBottom: 16, border: '1px solid var(--border)' }}>
               <p style={{ fontSize: 14, color: 'var(--text-muted)' }}>No comments yet — be the first!</p>
             </div>
           ) : (
@@ -574,8 +574,8 @@ export default function DealPage() {
                 const myCommentVote = commentVotes[c.id] || null;
                 return (
                   <div key={c.id} style={{
-                    background: 'var(--bg-card)', borderRadius: 16,
-                    padding: '14px 16px',
+                    background: 'var(--bg-card)', borderRadius: 10,
+                    padding: '14px 16px', border: '1px solid var(--border)',
                     marginLeft: isReply ? 24 : 0,
                     borderLeft: isReply ? `3px solid ${ACCENT}` : 'none',
                     boxShadow: 'var(--shadow-card)',
@@ -673,11 +673,11 @@ export default function DealPage() {
                 value={newComment}
                 onChange={e => setNewComment(e.target.value)}
                 onKeyDown={e => e.key === 'Enter' && handleComment()}
-                style={{ flex: 1, padding: '12px 16px', borderRadius: 16, border: '0.5px solid var(--border)', background: 'var(--bg-input)', color: 'var(--text)', fontSize: 14, outline: 'none' }}
+                style={{ flex: 1, padding: '12px 16px', borderRadius: 8, border: '1px solid var(--border)', background: 'var(--bg-input)', color: 'var(--text)', fontSize: 14, outline: 'none' }}
               />
               <button onClick={handleComment} disabled={submitting || !newComment.trim()} style={{
-                padding: '12px 20px', borderRadius: 16, border: 'none',
-                background: newComment.trim() ? `linear-gradient(135deg, ${ACCENT}, ${ACCENT_DARK})` : 'var(--bg-card2)',
+                padding: '12px 20px', borderRadius: 8, border: 'none',
+                background: newComment.trim() ? ACCENT : 'var(--bg-card2)',
                 color: newComment.trim() ? '#fff' : 'var(--text-muted)',
                 fontSize: 14, fontWeight: 700, cursor: newComment.trim() ? 'pointer' : 'default',
               }}>
@@ -687,10 +687,9 @@ export default function DealPage() {
           ) : (
             <Link href={`/auth?redirect=/deal/${id}`} style={{
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              padding: '14px 20px', borderRadius: 16,
-              background: 'var(--bg-card)', border: '0.5px solid var(--border)',
+              padding: '14px 20px', borderRadius: 8,
+              background: 'var(--bg-card)', border: '1px solid var(--border)',
               color: ACCENT, textDecoration: 'none', fontSize: 14, fontWeight: 600,
-              boxShadow: 'var(--shadow-card)',
             }}>
               Sign in to comment
             </Link>
@@ -720,7 +719,7 @@ export default function DealPage() {
             <label style={{ cursor: 'pointer', display: 'block', marginBottom: 14 }}>
               <div style={{
                 height: editImagePreview || deal.image_url ? 160 : 80,
-                borderRadius: 14, border: `2px dashed ${ACCENT}`,
+                borderRadius: 8, border: `1px dashed ${ACCENT}`,
                 overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center',
                 background: 'var(--bg-card2)',
               }}>
@@ -741,7 +740,7 @@ export default function DealPage() {
               <div key={key} style={{ marginBottom: 12 }}>
                 <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--text-sub)', marginBottom: 5 }}>{label}</label>
                 <input type="text" value={editForm[key]} onChange={e => setEditForm({ ...editForm, [key]: e.target.value })}
-                  style={{ width: '100%', padding: '11px 14px', borderRadius: 14, border: '0.5px solid var(--border)', background: 'var(--bg-input)', color: 'var(--text)', fontSize: 14, outline: 'none' }}
+                  style={{ width: '100%', padding: '11px 14px', borderRadius: 8, border: '1px solid var(--border)', background: 'var(--bg-input)', color: 'var(--text)', fontSize: 14, outline: 'none' }}
                 />
               </div>
             ))}
@@ -750,7 +749,7 @@ export default function DealPage() {
             <div style={{ marginBottom: 12 }}>
               <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--text-sub)', marginBottom: 5 }}>City</label>
               <select value={editForm.ville} onChange={e => setEditForm({ ...editForm, ville: e.target.value })}
-                style={{ width: '100%', padding: '11px 14px', borderRadius: 14, border: '0.5px solid var(--border)', background: 'var(--bg-input)', color: 'var(--text)', fontSize: 14, outline: 'none', appearance: 'none', cursor: 'pointer' }}
+                style={{ width: '100%', padding: '11px 14px', borderRadius: 8, border: '1px solid var(--border)', background: 'var(--bg-input)', color: 'var(--text)', fontSize: 14, outline: 'none', appearance: 'none', cursor: 'pointer' }}
               >
                 <option value="">Select city…</option>
                 {Object.keys(CITY_COORDS).map(v => (
@@ -766,7 +765,7 @@ export default function DealPage() {
                 <div key={key}>
                   <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--text-sub)', marginBottom: 5 }}>{label}</label>
                   <input type="number" value={editForm[key]} onChange={e => setEditForm({ ...editForm, [key]: e.target.value })}
-                    style={{ width: '100%', padding: '11px 14px', borderRadius: 14, border: '0.5px solid var(--border)', background: 'var(--bg-input)', color: 'var(--text)', fontSize: 14, outline: 'none' }}
+                    style={{ width: '100%', padding: '11px 14px', borderRadius: 8, border: '1px solid var(--border)', background: 'var(--bg-input)', color: 'var(--text)', fontSize: 14, outline: 'none' }}
                   />
                 </div>
               ))}
@@ -778,8 +777,8 @@ export default function DealPage() {
               <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                 {CATEGORIES.map(cat => (
                   <button key={cat} onClick={() => setEditForm({ ...editForm, categorie: cat })} style={{
-                    padding: '5px 12px', borderRadius: 20, cursor: 'pointer', fontSize: 13,
-                    border: editForm.categorie === cat ? `1.5px solid ${ACCENT}` : '0.5px solid var(--border)',
+                    padding: '5px 12px', borderRadius: 7, cursor: 'pointer', fontSize: 13,
+                    border: editForm.categorie === cat ? `1px solid ${ACCENT}` : '1px solid var(--border)',
                     background: editForm.categorie === cat ? 'rgba(212,98,42,0.1)' : 'var(--bg-input)',
                     color: editForm.categorie === cat ? ACCENT : 'var(--text-sub)',
                     fontWeight: editForm.categorie === cat ? 700 : 400,
@@ -793,7 +792,7 @@ export default function DealPage() {
               <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--text-sub)', marginBottom: 5 }}>Link (optional)</label>
               <input type="url" value={editForm.url_source} onChange={e => setEditForm({ ...editForm, url_source: e.target.value })}
                 placeholder="https://..."
-                style={{ width: '100%', padding: '11px 14px', borderRadius: 14, border: '0.5px solid var(--border)', background: 'var(--bg-input)', color: 'var(--text)', fontSize: 14, outline: 'none' }}
+                style={{ width: '100%', padding: '11px 14px', borderRadius: 8, border: '1px solid var(--border)', background: 'var(--bg-input)', color: 'var(--text)', fontSize: 14, outline: 'none' }}
               />
             </div>
 
@@ -801,7 +800,7 @@ export default function DealPage() {
             <div style={{ marginBottom: 16 }}>
               <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--text-sub)', marginBottom: 5 }}>Description</label>
               <textarea value={editForm.description} onChange={e => setEditForm({ ...editForm, description: e.target.value })} rows={3}
-                style={{ width: '100%', padding: '11px 14px', borderRadius: 14, border: '0.5px solid var(--border)', background: 'var(--bg-input)', color: 'var(--text)', fontSize: 14, outline: 'none', resize: 'vertical' }}
+                style={{ width: '100%', padding: '11px 14px', borderRadius: 8, border: '1px solid var(--border)', background: 'var(--bg-input)', color: 'var(--text)', fontSize: 14, outline: 'none', resize: 'vertical' }}
               />
             </div>
 
@@ -810,7 +809,7 @@ export default function DealPage() {
 
             <div style={{ display: 'flex', gap: 10 }}>
               <button onClick={() => setIsEditing(false)} style={{
-                flex: 1, padding: 14, borderRadius: 14, border: '0.5px solid var(--border)',
+                flex: 1, padding: 14, borderRadius: 8, border: '1px solid var(--border)',
                 background: 'var(--bg-card2)', color: 'var(--text-sub)', fontSize: 15, cursor: 'pointer',
               }}>Cancel</button>
               <button onClick={handleEditSubmit} disabled={editSubmitting} style={{

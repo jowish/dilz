@@ -124,8 +124,8 @@ function ThemeToggle() {
       onClick={() => setTheme(dark ? 'light' : 'dark')}
       aria-label="Toggle theme"
       style={{
-        width: 34, height: 34, borderRadius: 10,
-        background: 'var(--bg-card2)', border: '0.5px solid var(--border)',
+        width: 32, height: 32, borderRadius: 8,
+        background: 'var(--bg-card2)', border: '1px solid var(--border)',
         cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
         color: 'var(--text-sub)',
       }}
@@ -151,13 +151,13 @@ function ThemeToggle() {
 function StoreBadge({ store, lang, isDark, size = 'sm' }) {
   const s = STORE_COLORS[store];
   const label = lang === 'en' ? (s?.nameEn || store) : store;
-  const pad = size === 'md' ? '4px 10px' : '3px 8px';
-  const fs = size === 'md' ? 12 : 11;
+  const pad = size === 'md' ? '3px 9px' : '2px 7px';
+  const fs = size === 'md' ? 11 : 10;
   if (!s) return (
-    <span style={{ fontSize: fs, fontWeight: 600, padding: pad, borderRadius: 20, background: 'var(--bg-card2)', color: 'var(--text-sub)' }}>{label}</span>
+    <span style={{ fontSize: fs, fontWeight: 500, padding: pad, borderRadius: 4, background: 'var(--bg-card2)', color: 'var(--text-sub)' }}>{label}</span>
   );
   return (
-    <span style={{ fontSize: fs, fontWeight: 700, padding: pad, borderRadius: 20, background: isDark ? s.dark : s.bg, color: s.color }}>
+    <span style={{ fontSize: fs, fontWeight: 600, padding: pad, borderRadius: 4, background: isDark ? s.dark : s.bg, color: s.color }}>
       {label}
     </span>
   );
@@ -166,10 +166,10 @@ function StoreBadge({ store, lang, isDark, size = 'sm' }) {
 // ─── DiscountBadge ───────────────────────────────────────────────────────────
 function DiscountBadge({ pct, size = 'sm' }) {
   if (!pct || pct < 3) return null;
-  const fs = size === 'lg' ? 14 : 11;
-  const pad = size === 'lg' ? '5px 12px' : '3px 8px';
+  const fs = size === 'lg' ? 13 : 10;
+  const pad = size === 'lg' ? '4px 10px' : '2px 7px';
   return (
-    <span style={{ fontSize: fs, fontWeight: 800, padding: pad, borderRadius: 20, background: ACCENT, color: '#fff' }}>
+    <span style={{ fontSize: fs, fontWeight: 700, padding: pad, borderRadius: 4, background: ACCENT, color: '#fff', letterSpacing: '0.1px' }}>
       -{pct}%
     </span>
   );
@@ -183,12 +183,11 @@ function HeroPromoCard({ promo, lang, isDark, onClick, votes, onVote }) {
 
   return (
     <div style={{
-      borderRadius: 24, overflow: 'hidden', marginBottom: 16,
+      borderRadius: 16, overflow: 'hidden', marginBottom: 14,
       background: isDark
         ? `linear-gradient(145deg, ${s.dark} 0%, #0E0E12 100%)`
         : `linear-gradient(145deg, ${s.bg} 0%, #FFFFFF 100%)`,
-      boxShadow: 'var(--shadow-float)',
-      border: `0.5px solid ${isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)'}`,
+      border: '1px solid var(--border)',
     }}>
       {/* Image or gradient banner */}
       <div
@@ -224,34 +223,30 @@ function HeroPromoCard({ promo, lang, isDark, onClick, votes, onVote }) {
       </div>
 
       {/* Info row */}
-      <div onClick={onClick} style={{ padding: '16px 20px 12px', cursor: 'pointer' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
-          <span style={{
-            fontSize: 10, fontWeight: 700, padding: '2px 7px', borderRadius: 20,
-            background: 'var(--bg-card2)', color: 'var(--text-muted)', letterSpacing: '0.3px',
-            textTransform: 'uppercase',
-          }}>Price comparison</span>
-        </div>
+      <div onClick={onClick} style={{ padding: '14px 18px 10px', cursor: 'pointer' }}>
+        <p style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 5, fontWeight: 400 }}>
+          {lang === 'en' ? 'Price comparison' : 'השוואת מחירים'}
+        </p>
         <p style={{
-          fontSize: 15, fontWeight: 700, color: 'var(--text)',
-          marginBottom: 8, lineHeight: 1.4, textAlign: lang === 'he' ? 'right' : 'left',
+          fontSize: 14, fontWeight: 600, color: 'var(--text)',
+          marginBottom: 10, lineHeight: 1.4, textAlign: lang === 'he' ? 'right' : 'left',
         }}>{nom}</p>
         <div style={{ display: 'flex', alignItems: 'baseline', gap: 10 }}>
-          <span style={{ fontSize: 34, fontWeight: 900, color: ACCENT, letterSpacing: '-1px' }}>
+          <span style={{ fontSize: 28, fontWeight: 700, color: ACCENT, letterSpacing: '-0.5px' }}>
             ₪{promo.prixMin.toFixed(2)}
           </span>
-          <span style={{ fontSize: 17, color: 'var(--text-muted)', textDecoration: 'line-through' }}>
+          <span style={{ fontSize: 15, color: 'var(--text-muted)', textDecoration: 'line-through' }}>
             ₪{promo.prixMax.toFixed(2)}
           </span>
-          <span style={{ fontSize: 12, fontWeight: 700, color: '#10B981', marginLeft: 'auto', background: 'rgba(16,185,129,0.1)', padding: '3px 8px', borderRadius: 20 }}>
-            ₪{(promo.prixMax - promo.prixMin).toFixed(2)} cheaper
+          <span style={{ fontSize: 11, fontWeight: 600, color: '#059669', marginLeft: 'auto', background: 'rgba(5,150,105,0.1)', padding: '2px 7px', borderRadius: 4 }}>
+            Save ₪{(promo.prixMax - promo.prixMin).toFixed(2)}
           </span>
         </div>
       </div>
 
       {/* Vote row */}
       <div style={{
-        display: 'flex', gap: 7, padding: '10px 20px 18px',
+        display: 'flex', gap: 6, padding: '10px 18px 16px',
         borderTop: '1px solid var(--border)',
       }}>
         <button onClick={() => onVote(promo.barcode, 'chaud')} style={{
@@ -286,9 +281,8 @@ function PromoCard({ promo, lang, isDark, onClick, votes, onVote }) {
 
   return (
     <div style={{
-      background: 'var(--bg-card)', borderRadius: 20, overflow: 'hidden',
-      boxShadow: 'var(--shadow-card)',
-      border: `0.5px solid ${isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)'}`,
+      background: 'var(--bg-card)', borderRadius: 12, overflow: 'hidden',
+      border: '1px solid var(--border)',
       display: 'flex', flexDirection: 'column',
     }}>
       <div onClick={onClick} style={{ cursor: 'pointer', flex: 1, display: 'flex', flexDirection: 'column' }}>
@@ -317,21 +311,17 @@ function PromoCard({ promo, lang, isDark, onClick, votes, onVote }) {
         </div>
 
         {/* Info */}
-        <div style={{ padding: '10px 12px 8px', flex: 1, display: 'flex', flexDirection: 'column' }}>
-          <span style={{
-            fontSize: 9, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.4px',
-            color: 'var(--text-muted)', display: 'block', marginBottom: 3,
-          }}>Price comparison</span>
+        <div style={{ padding: '10px 11px 8px', flex: 1, display: 'flex', flexDirection: 'column' }}>
           <p style={{
-            fontSize: 12, fontWeight: 600, color: 'var(--text)', lineHeight: 1.4,
-            marginBottom: 6, overflow: 'hidden',
+            fontSize: 12, fontWeight: 500, color: 'var(--text)', lineHeight: 1.4,
+            marginBottom: 8, overflow: 'hidden',
             display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical',
             textAlign: lang === 'he' ? 'right' : 'left',
             minHeight: '2.8em',
           }}>{nom}</p>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 6 }}>
-            <span style={{ fontSize: 20, fontWeight: 800, color: ACCENT }}>₪{promo.prixMin.toFixed(2)}</span>
-            <span style={{ fontSize: 12, color: 'var(--text-muted)', textDecoration: 'line-through' }}>₪{promo.prixMax.toFixed(2)}</span>
+            <span style={{ fontSize: 18, fontWeight: 700, color: ACCENT }}>₪{promo.prixMin.toFixed(2)}</span>
+            <span style={{ fontSize: 11, color: 'var(--text-muted)', textDecoration: 'line-through' }}>₪{promo.prixMax.toFixed(2)}</span>
           </div>
           <div style={{ marginTop: 'auto' }}>
             <StoreBadge store={promo.meilleurEnseigne} lang={lang} isDark={isDark} />
@@ -383,33 +373,32 @@ function PromoModal({ promo, lang, isDark, onClose }) {
 
         {/* Product name */}
         <p style={{
-          fontSize: 18, fontWeight: 800, color: 'var(--text)',
+          fontSize: 16, fontWeight: 700, color: 'var(--text)',
           textAlign: lang === 'he' ? 'right' : 'left',
-          marginBottom: 20, lineHeight: 1.35,
+          marginBottom: 16, lineHeight: 1.4,
         }}>{nom}</p>
 
         {/* Price comparison */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
           {promo.tousLesPrix.map(p => {
             const isBest = p.prix === promo.prixMin;
-            const ps = STORE_COLORS[p.enseigne] || { color: ACCENT, bg: '#FEF0EB', dark: '#2A1210' };
             return (
               <div key={p.enseigne} style={{
                 display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                padding: '14px 16px', borderRadius: 16,
+                padding: '12px 14px', borderRadius: 10,
                 background: isBest
-                  ? (isDark ? `rgba(212,98,42,0.12)` : '#FEF0EB')
+                  ? (isDark ? `rgba(212,98,42,0.10)` : 'rgba(212,98,42,0.05)')
                   : 'var(--bg-card2)',
-                border: isBest ? `1.5px solid ${ACCENT}` : '0.5px solid var(--border)',
+                border: `1px solid ${isBest ? ACCENT + '55' : 'var(--border)'}`,
               }}>
                 <StoreBadge store={p.enseigne} lang={lang} isDark={isDark} size="md" />
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                   {isBest && (
-                    <span style={{ fontSize: 11, fontWeight: 700, color: '#10B981', background: 'rgba(16,185,129,0.12)', padding: '2px 8px', borderRadius: 20 }}>
-                      ✓ Best
+                    <span style={{ fontSize: 10, fontWeight: 600, color: '#059669', background: 'rgba(5,150,105,0.1)', padding: '2px 7px', borderRadius: 4 }}>
+                      Best price
                     </span>
                   )}
-                  <span style={{ fontSize: 22, fontWeight: 900, color: isBest ? ACCENT : 'var(--text)' }}>
+                  <span style={{ fontSize: 20, fontWeight: 700, color: isBest ? ACCENT : 'var(--text)' }}>
                     ₪{p.prix.toFixed(2)}
                   </span>
                 </div>
@@ -418,26 +407,25 @@ function PromoModal({ promo, lang, isDark, onClose }) {
           })}
         </div>
 
-        {/* Price comparison summary */}
+        {/* Savings summary */}
         <div style={{
-          marginTop: 16, padding: '14px 20px', borderRadius: 16,
-          background: 'var(--bg-card2)', textAlign: 'center',
+          marginTop: 12, padding: '12px 16px', borderRadius: 8,
+          background: 'var(--bg-card2)', border: '1px solid var(--border)',
         }}>
-          <span style={{ fontSize: 14, color: 'var(--text-sub)' }}>
-            {lang === 'en' ? 'Price difference:' : 'הפרש מחירים:'}{' '}
-            <strong style={{ color: ACCENT, fontWeight: 800 }}>
-              ₪{(promo.prixMax - promo.prixMin).toFixed(2)} ({promo.reduction}% cheaper at best store)
-            </strong>
-          </span>
-          <p style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 6 }}>
-            {lang === 'en' ? 'Price comparison across supermarkets — not an official promotion' : 'השוואת מחירים בין רשתות — לא מבצע רשמי'}
+          <p style={{ fontSize: 13, color: 'var(--text-sub)', lineHeight: 1.5 }}>
+            {lang === 'en'
+              ? `Save ₪${(promo.prixMax - promo.prixMin).toFixed(2)} by choosing the best store (${promo.reduction}% difference)`
+              : `חסכו ₪${(promo.prixMax - promo.prixMin).toFixed(2)} בבחירת החנות הזולה ביותר`}
+          </p>
+          <p style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 4 }}>
+            {lang === 'en' ? 'Price comparison · not an official promotion' : 'השוואת מחירים · לא מבצע רשמי'}
           </p>
         </div>
 
         <button onClick={onClose} style={{
-          width: '100%', marginTop: 14, padding: 15, borderRadius: 16, border: 'none',
-          background: 'var(--bg-card2)', color: 'var(--text-sub)',
-          fontSize: 15, fontWeight: 600, cursor: 'pointer',
+          width: '100%', marginTop: 12, padding: '13px', borderRadius: 8, border: '1px solid var(--border)',
+          background: 'transparent', color: 'var(--text-sub)',
+          fontSize: 13, fontWeight: 500, cursor: 'pointer',
         }}>
           {lang === 'en' ? 'Close' : 'סגור'}
         </button>
@@ -614,13 +602,16 @@ function DealCard({ deal, lang, onVote, userCoords, votedDeal, user, isDark }) {
             background: 'transparent', border: '1px solid var(--border)',
             color: 'var(--text-muted)', fontSize: 11, fontWeight: 500, cursor: 'pointer',
             marginLeft: 'auto',
-          }}>{commentCount} {commentCount === 1 ? 'comment' : 'comments'}</button>
+          }}>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            {commentCount > 0 ? commentCount : ''}
+          </button>
 
-          {isOwner && !deal.image_url && (
+          {isOwner && (
             <button onClick={go} style={{
               padding: '6px 10px', borderRadius: 7,
-              background: 'transparent', border: '1px solid var(--border)',
-              color: 'var(--text-muted)', fontSize: 11, fontWeight: 500, cursor: 'pointer',
+              background: 'transparent', border: `1px solid ${ACCENT}33`,
+              color: ACCENT, fontSize: 11, fontWeight: 500, cursor: 'pointer',
             }}>Edit</button>
           )}
         </div>
@@ -674,8 +665,8 @@ function CityModal({ villes, current, lang, onSelect, onClose }) {
         maxHeight: '82vh', display: 'flex', flexDirection: 'column',
       }}>
         <div style={{ width: 40, height: 4, borderRadius: 2, background: 'var(--border)', margin: '0 auto 16px' }} />
-        <p style={{ fontSize: 18, fontWeight: 800, color: 'var(--text)', textAlign: 'center', marginBottom: 14 }}>
-          {lang === 'en' ? '📍 Select your city' : '📍 בחר עיר'}
+        <p style={{ fontSize: 16, fontWeight: 700, color: 'var(--text)', textAlign: 'center', marginBottom: 14 }}>
+          {lang === 'en' ? 'Select your city' : 'בחר עיר'}
         </p>
 
         {/* Search */}
@@ -686,44 +677,44 @@ function CityModal({ villes, current, lang, onSelect, onClose }) {
           value={search}
           onChange={e => setSearch(e.target.value)}
           style={{
-            width: '100%', padding: '12px 16px', borderRadius: 16,
-            border: '0.5px solid var(--border)', background: 'var(--bg-input)',
-            color: 'var(--text)', fontSize: 15, outline: 'none', marginBottom: 12,
+            width: '100%', padding: '11px 14px', borderRadius: 8,
+            border: '1px solid var(--border)', background: 'var(--bg-input)',
+            color: 'var(--text)', fontSize: 14, outline: 'none', marginBottom: 10,
           }}
         />
 
         <div style={{ overflowY: 'auto', flex: 1 }}>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
             {/* All Israel */}
             <button onClick={() => { onSelect(null, null); onClose(); }} style={{
-              padding: '12px 14px', borderRadius: 14, cursor: 'pointer',
-              border: !current ? `2px solid ${ACCENT}` : '0.5px solid var(--border)',
+              padding: '11px 12px', borderRadius: 8, cursor: 'pointer',
+              border: `1px solid ${!current ? ACCENT : 'var(--border)'}`,
               background: !current ? `rgba(212,98,42,0.08)` : 'var(--bg-card2)',
               color: !current ? ACCENT : 'var(--text)',
-              fontSize: 14, fontWeight: !current ? 700 : 400,
+              fontSize: 13, fontWeight: !current ? 600 : 400,
             }}>
-              🇮🇱 {lang === 'en' ? 'All Israel' : 'כל הארץ'}
+              {lang === 'en' ? 'All Israel' : 'כל הארץ'}
             </button>
 
             {/* GPS */}
             <button onClick={handleGps} disabled={gpsLoading} style={{
-              padding: '12px 14px', borderRadius: 14, cursor: 'pointer',
-              border: '0.5px solid var(--border)', background: 'var(--bg-card2)',
-              color: ACCENT, fontSize: 14, fontWeight: 600,
+              padding: '11px 12px', borderRadius: 8, cursor: 'pointer',
+              border: '1px solid var(--border)', background: 'var(--bg-card2)',
+              color: ACCENT, fontSize: 13, fontWeight: 500,
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
             }}>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
               {gpsLoading ? '...' : (lang === 'en' ? 'My location' : 'מיקומי')}
             </button>
 
             {/* Cities */}
             {filtered.map(v => (
               <button key={v} onClick={() => { onSelect(v, CITY_COORDS[v] || null); onClose(); }} style={{
-                padding: '12px 14px', borderRadius: 14, cursor: 'pointer',
-                border: current === v ? `2px solid ${ACCENT}` : '0.5px solid var(--border)',
+                padding: '11px 12px', borderRadius: 8, cursor: 'pointer',
+                border: `1px solid ${current === v ? ACCENT : 'var(--border)'}`,
                 background: current === v ? `rgba(212,98,42,0.08)` : 'var(--bg-card2)',
                 color: current === v ? ACCENT : 'var(--text)',
-                fontSize: 14, fontWeight: current === v ? 700 : 400,
+                fontSize: 13, fontWeight: current === v ? 600 : 400,
                 textAlign: lang === 'he' ? 'right' : 'left',
               }}>
                 {traduireVille(v, lang)}
@@ -926,7 +917,7 @@ function PostDealModal({ user, lang, onClose, onSuccess }) {
             <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--text-sub)', marginBottom: 5 }}>{label}</label>
             <input type="text" placeholder={ph} value={form[key]}
               onChange={e => set(key, e.target.value)}
-              style={{ width: '100%', padding: '12px 14px', borderRadius: 14, border: '0.5px solid var(--border)', background: 'var(--bg-input)', color: 'var(--text)', fontSize: 14, outline: 'none' }}
+              style={{ width: '100%', padding: '12px 14px', borderRadius: 8, border: '1px solid var(--border)', background: 'var(--bg-input)', color: 'var(--text)', fontSize: 14, outline: 'none' }}
             />
           </div>
         ))}
@@ -935,7 +926,7 @@ function PostDealModal({ user, lang, onClose, onSuccess }) {
         <div style={{ marginBottom: 12 }}>
           <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--text-sub)', marginBottom: 5 }}>City</label>
           <select value={form.ville} onChange={e => set('ville', e.target.value)}
-            style={{ width: '100%', padding: '12px 14px', borderRadius: 14, border: '0.5px solid var(--border)', background: 'var(--bg-input)', color: form.ville ? 'var(--text)' : 'var(--text-muted)', fontSize: 14, outline: 'none', appearance: 'none', cursor: 'pointer' }}
+            style={{ width: '100%', padding: '12px 14px', borderRadius: 8, border: '1px solid var(--border)', background: 'var(--bg-input)', color: form.ville ? 'var(--text)' : 'var(--text-muted)', fontSize: 14, outline: 'none', appearance: 'none', cursor: 'pointer' }}
           >
             <option value="">{lang === 'en' ? 'Select a city…' : 'בחר עיר…'}</option>
             {Object.keys(CITY_COORDS).map(v => <option key={v} value={v}>{traduireVille(v, lang)}</option>)}
@@ -950,7 +941,7 @@ function PostDealModal({ user, lang, onClose, onSuccess }) {
               <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--text-sub)', marginBottom: 5 }}>{label}</label>
               <input type="number" placeholder={ph} value={form[key]}
                 onChange={e => set(key, e.target.value)}
-                style={{ width: '100%', padding: '12px 14px', borderRadius: 14, border: '0.5px solid var(--border)', background: 'var(--bg-input)', color: 'var(--text)', fontSize: 14, outline: 'none' }}
+                style={{ width: '100%', padding: '12px 14px', borderRadius: 8, border: '1px solid var(--border)', background: 'var(--bg-input)', color: 'var(--text)', fontSize: 14, outline: 'none' }}
               />
             </div>
           ))}
@@ -962,8 +953,8 @@ function PostDealModal({ user, lang, onClose, onSuccess }) {
           <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
             {CATS.map(cat => (
               <button key={cat} onClick={() => set('categorie', cat)} style={{
-                padding: '6px 14px', borderRadius: 20, cursor: 'pointer', fontSize: 13,
-                border: form.categorie === cat ? `1.5px solid ${ACCENT}` : '0.5px solid var(--border)',
+                padding: '6px 14px', borderRadius: 7, cursor: 'pointer', fontSize: 13,
+                border: form.categorie === cat ? `1px solid ${ACCENT}` : '1px solid var(--border)',
                 background: form.categorie === cat ? `rgba(212,98,42,0.1)` : 'var(--bg-input)',
                 color: form.categorie === cat ? ACCENT : 'var(--text-sub)',
                 fontWeight: form.categorie === cat ? 700 : 400,
@@ -977,14 +968,14 @@ function PostDealModal({ user, lang, onClose, onSuccess }) {
           <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--text-sub)', marginBottom: 5 }}>Link (optional)</label>
           <input type="url" placeholder="https://..." value={form.url_source}
             onChange={e => set('url_source', e.target.value)}
-            style={{ width: '100%', padding: '12px 14px', borderRadius: 14, border: '0.5px solid var(--border)', background: 'var(--bg-input)', color: 'var(--text)', fontSize: 14, outline: 'none' }}
+            style={{ width: '100%', padding: '12px 14px', borderRadius: 8, border: '1px solid var(--border)', background: 'var(--bg-input)', color: 'var(--text)', fontSize: 14, outline: 'none' }}
           />
         </div>
         <div style={{ marginBottom: 16 }}>
           <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--text-sub)', marginBottom: 5 }}>Description (optional)</label>
           <textarea placeholder={lang === 'en' ? 'More details about the deal...' : 'פרטים נוספים...'} value={form.description}
             onChange={e => set('description', e.target.value)} rows={2}
-            style={{ width: '100%', padding: '12px 14px', borderRadius: 14, border: '0.5px solid var(--border)', background: 'var(--bg-input)', color: 'var(--text)', fontSize: 14, outline: 'none', resize: 'vertical' }}
+            style={{ width: '100%', padding: '12px 14px', borderRadius: 8, border: '1px solid var(--border)', background: 'var(--bg-input)', color: 'var(--text)', fontSize: 14, outline: 'none', resize: 'vertical' }}
           />
         </div>
 
@@ -1034,9 +1025,9 @@ function SearchTab({ promos, deals, lang, isDark, onPromoClick, userCoords, vote
       {/* Search input */}
       <div style={{
         display: 'flex', alignItems: 'center', gap: 10,
-        background: 'var(--bg-card)', borderRadius: 18,
-        border: '0.5px solid var(--border)', padding: '0 16px',
-        boxShadow: 'var(--shadow-card)', marginBottom: 20,
+        background: 'var(--bg-card)', borderRadius: 8,
+        border: '1px solid var(--border)', padding: '0 16px',
+        marginBottom: 20,
       }}>
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="2" strokeLinecap="round" style={{ flexShrink: 0 }}>
           <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
@@ -1093,7 +1084,7 @@ function SearchTab({ promos, deals, lang, isDark, onPromoClick, userCoords, vote
 
       {mPromos.length > 0 && (
         <>
-          <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-sub)', marginBottom: 10, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+          <p style={{ fontSize: 12, fontWeight: 500, color: 'var(--text-muted)', marginBottom: 10 }}>
             Store Promotions ({mPromos.length})
           </p>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 20 }}>
@@ -1107,7 +1098,7 @@ function SearchTab({ promos, deals, lang, isDark, onPromoClick, userCoords, vote
 
       {mDeals.length > 0 && (
         <>
-          <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-sub)', marginBottom: 10, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+          <p style={{ fontSize: 12, fontWeight: 500, color: 'var(--text-muted)', marginBottom: 10 }}>
             Community Deals ({mDeals.length})
           </p>
           {mDeals.slice(0, 5).map(d => (
@@ -1172,7 +1163,7 @@ function ProfileTab({ user, lang, onOpenAlerts }) {
     <div style={{ padding: '0 14px' }}>
       {/* Profile card */}
       <div style={{
-        background: 'var(--bg-card)', borderRadius: 14, padding: '18px 16px',
+        background: 'var(--bg-card)', borderRadius: 12, padding: '18px 16px',
         marginBottom: 12, border: '1px solid var(--border)',
         display: 'flex', alignItems: 'center', gap: 14,
       }}>
@@ -1420,8 +1411,8 @@ function AlertModal({ user, lang, onClose }) {
               <div style={{ marginBottom: 14 }}>
                 <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--text-sub)', marginBottom: 6 }}>City (optional)</label>
                 <select value={form.city} onChange={e => setForm(f => ({ ...f, city: e.target.value }))} style={{
-                  width: '100%', padding: '12px 14px', borderRadius: 14,
-                  border: '0.5px solid var(--border)', background: 'var(--bg-input)',
+                  width: '100%', padding: '12px 14px', borderRadius: 8,
+                  border: '1px solid var(--border)', background: 'var(--bg-input)',
                   color: form.city ? 'var(--text)' : 'var(--text-muted)',
                   fontSize: 14, outline: 'none', cursor: 'pointer',
                 }}>
@@ -1438,7 +1429,7 @@ function AlertModal({ user, lang, onClose }) {
                     style={{
                       width: 42, height: 24, borderRadius: 12, position: 'relative', cursor: 'pointer',
                       background: form.online_only ? ACCENT : 'var(--bg-card2)',
-                      border: '0.5px solid var(--border)', transition: 'background 0.2s',
+                      border: '1px solid var(--border)', transition: 'background 0.2s',
                     }}
                   >
                     <div style={{
@@ -1457,7 +1448,7 @@ function AlertModal({ user, lang, onClose }) {
                   type="number" min="0" max="100" placeholder="e.g. 30"
                   value={form.min_discount_percent}
                   onChange={e => setForm(f => ({ ...f, min_discount_percent: e.target.value }))}
-                  style={{ width: '100%', padding: '12px 14px', borderRadius: 14, border: '0.5px solid var(--border)', background: 'var(--bg-input)', color: 'var(--text)', fontSize: 14, outline: 'none' }}
+                  style={{ width: '100%', padding: '12px 14px', borderRadius: 8, border: '1px solid var(--border)', background: 'var(--bg-input)', color: 'var(--text)', fontSize: 14, outline: 'none' }}
                 />
               </div>
 
@@ -1467,7 +1458,7 @@ function AlertModal({ user, lang, onClose }) {
                   type="text" placeholder='e.g. Nike, iPhone, pizza…'
                   value={form.keyword}
                   onChange={e => setForm(f => ({ ...f, keyword: e.target.value }))}
-                  style={{ width: '100%', padding: '12px 14px', borderRadius: 14, border: '0.5px solid var(--border)', background: 'var(--bg-input)', color: 'var(--text)', fontSize: 14, outline: 'none' }}
+                  style={{ width: '100%', padding: '12px 14px', borderRadius: 8, border: '1px solid var(--border)', background: 'var(--bg-input)', color: 'var(--text)', fontSize: 14, outline: 'none' }}
                 />
               </div>
 
@@ -1583,7 +1574,7 @@ function NotificationSheet({ user, lang, notifications, onClose, onMarkAllRead, 
                   style={{
                     padding: '13px 14px', borderRadius: 16, cursor: 'pointer',
                     background: n.is_read ? 'var(--bg-card2)' : `rgba(212,98,42,0.07)`,
-                    border: n.is_read ? '0.5px solid var(--border)' : `1px solid ${ACCENT}44`,
+                    border: n.is_read ? '1px solid var(--border)' : `1px solid ${ACCENT}44`,
                     display: 'flex', gap: 12, alignItems: 'flex-start',
                   }}
                 >
@@ -1934,7 +1925,7 @@ export default function Home() {
         <div style={{
           position: 'sticky', top: 0, zIndex: 100,
           background: 'var(--nav-bg)',
-          borderBottom: `0.5px solid var(--border)`,
+          borderBottom: `1px solid var(--border)`,
           backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)',
         }}>
           <div style={{ maxWidth: 600, margin: '0 auto', padding: '10px 14px 10px' }}>
@@ -1944,9 +1935,9 @@ export default function Home() {
               <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                 <ThemeToggle />
                 <button onClick={handleLangToggle} style={{
-                  height: 34, padding: '0 10px', borderRadius: 10,
-                  background: 'var(--bg-card2)', border: '0.5px solid var(--border)',
-                  color: 'var(--text-sub)', fontSize: 12, fontWeight: 700, cursor: 'pointer',
+                  height: 32, padding: '0 10px', borderRadius: 8,
+                  background: 'var(--bg-card2)', border: '1px solid var(--border)',
+                  color: 'var(--text-sub)', fontSize: 11, fontWeight: 600, cursor: 'pointer',
                 }}>
                   {lang === 'en' ? 'עב' : 'EN'}
                 </button>
@@ -1954,7 +1945,7 @@ export default function Home() {
 
               {/* Logo — centered */}
               <div style={{ flex: 1, textAlign: 'center' }}>
-                <span style={{ fontSize: 24, fontWeight: 900, color: 'var(--text)', letterSpacing: '-0.5px', cursor: 'pointer' }}
+                <span style={{ fontSize: 24, fontWeight: 700, color: 'var(--text)', letterSpacing: '-0.5px', cursor: 'pointer' }}
                   onClick={() => setTab('sales')}>
                   dil<span style={{ color: ACCENT }}>z</span>
                 </span>
@@ -1965,14 +1956,16 @@ export default function Home() {
                 {/* City selector */}
                 <button onClick={() => setShowCityModal(true)} style={{
                   display: 'flex', alignItems: 'center', gap: 4,
-                  height: 34, padding: '0 10px', borderRadius: 20,
-                  background: ville ? `rgba(212,98,42,0.1)` : 'var(--bg-card2)',
-                  border: ville ? `1px solid ${ACCENT}` : '0.5px solid var(--border)',
+                  height: 32, padding: '0 10px', borderRadius: 8,
+                  background: ville ? `rgba(212,98,42,0.08)` : 'var(--bg-card2)',
+                  border: `1px solid ${ville ? ACCENT : 'var(--border)'}`,
                   color: ville ? ACCENT : 'var(--text-sub)',
-                  fontSize: 12, fontWeight: 600, cursor: 'pointer',
+                  fontSize: 12, fontWeight: 500, cursor: 'pointer',
                   maxWidth: 100, overflow: 'hidden',
                 }}>
-                  <span style={{ fontSize: 12 }}>📍</span>
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor" style={{ flexShrink: 0, opacity: 0.7 }}>
+                    <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+                  </svg>
                   <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {cityLabel}
                   </span>
@@ -1981,8 +1974,8 @@ export default function Home() {
                 {/* Bell / notifications */}
                 {user && (
                   <button onClick={() => setShowNotificationSheet(true)} aria-label="Notifications" style={{
-                    position: 'relative', width: 34, height: 34, borderRadius: '50%',
-                    background: 'var(--bg-card2)', border: '0.5px solid var(--border)',
+                    position: 'relative', width: 32, height: 32, borderRadius: 8,
+                    background: 'var(--bg-card2)', border: '1px solid var(--border)',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     cursor: 'pointer', flexShrink: 0,
                   }}>
@@ -2004,11 +1997,9 @@ export default function Home() {
 
                 {/* Profile avatar */}
                 <button onClick={() => setTab('profile')} style={{
-                  width: 34, height: 34, borderRadius: '50%',
-                  background: user
-                    ? `linear-gradient(135deg, ${ACCENT}, ${ACCENT_DARK})`
-                    : 'var(--bg-card2)',
-                  border: '0.5px solid var(--border)',
+                  width: 32, height: 32, borderRadius: 8,
+                  background: user ? ACCENT : 'var(--bg-card2)',
+                  border: `1px solid ${user ? ACCENT : 'var(--border)'}`,
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   cursor: 'pointer', flexShrink: 0,
                 }}>
@@ -2025,14 +2016,14 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Value prop / city context */}
+            {/* City context */}
             <p style={{
               textAlign: 'center', fontSize: 11, color: 'var(--text-muted)',
-              marginTop: 4, letterSpacing: '0.1px',
+              marginTop: 3, letterSpacing: '0.1px',
             }}>
               {lang === 'en'
-                ? `Best prices + community finds · ${cityLabel}`
-                : `מחירים טובים + דילים מהקהילה · ${cityLabel}`}
+                ? `Supermarket prices & community deals · ${cityLabel}`
+                : `מחירי סופר ודילים מהקהילה · ${cityLabel}`}
             </p>
           </div>
         </div>
@@ -2052,15 +2043,15 @@ export default function Home() {
                   const s = f.id !== 'all' ? STORE_COLORS[f.id] : null;
                   return (
                     <button key={f.id} onClick={() => setStoreFilter(f.id)} style={{
-                      flexShrink: 0, padding: '7px 16px', borderRadius: 20, cursor: 'pointer',
-                      border: active ? `1.5px solid ${s?.color || ACCENT}` : '0.5px solid var(--border)',
+                      flexShrink: 0, padding: '6px 14px', borderRadius: 7, cursor: 'pointer',
+                      border: `1px solid ${active ? (s?.color || ACCENT) : 'var(--border)'}`,
                       background: active
-                        ? (s ? (isDark ? s.dark : s.bg) : `rgba(212,98,42,0.1)`)
-                        : 'var(--bg-card)',
+                        ? (s ? (isDark ? s.dark : s.bg) : `rgba(212,98,42,0.09)`)
+                        : 'transparent',
                       color: active ? (s?.color || ACCENT) : 'var(--text-sub)',
-                      fontSize: 13, fontWeight: active ? 700 : 400, whiteSpace: 'nowrap',
+                      fontSize: 12, fontWeight: active ? 600 : 400, whiteSpace: 'nowrap',
                     }}>
-                      {f.id === 'all' ? (lang === 'en' ? '✦ All stores' : '✦ כל הרשתות') : (lang === 'en' ? f.nameEn : f.id)}
+                      {f.id === 'all' ? (lang === 'en' ? 'All stores' : 'כל הרשתות') : (lang === 'en' ? f.nameEn : f.id)}
                     </button>
                   );
                 })}
@@ -2069,22 +2060,23 @@ export default function Home() {
               {/* Content */}
               {loadingPromos ? (
                 <div style={{ textAlign: 'center', padding: '60px 0' }}>
-                  <div style={{ fontSize: 32, marginBottom: 12, opacity: 0.4 }}>🏷️</div>
-                  <p style={{ color: 'var(--text-muted)', fontSize: 14 }}>{t.loadingDeals}</p>
+                  <div className="dilz-spinner" style={{ margin: '0 auto 14px' }} />
+                  <p style={{ color: 'var(--text-muted)', fontSize: 13 }}>{t.loadingDeals}</p>
                 </div>
               ) : filteredPromos.length === 0 ? (
-                <div style={{ textAlign: 'center', padding: '60px 20px' }}>
-                  <p style={{ fontSize: 40, marginBottom: 12 }}>🔍</p>
-                  <p style={{ fontSize: 17, fontWeight: 700, color: 'var(--text)', marginBottom: 6 }}>
+                <div style={{
+                  textAlign: 'center', padding: '44px 20px',
+                  background: 'var(--bg-card)', borderRadius: 12, border: '1px solid var(--border)',
+                }}>
+                  <p style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)', marginBottom: 6 }}>
                     {lang === 'en' ? 'No promotions found' : 'לא נמצאו מבצעים'}
                   </p>
-                  <p style={{ fontSize: 13, color: 'var(--text-sub)', lineHeight: 1.6 }}>
-                    {lang === 'en' ? 'Try another store or check back later.' : 'נסה חנות אחרת או בדוק שוב מאוחר יותר.'}
+                  <p style={{ fontSize: 13, color: 'var(--text-sub)', lineHeight: 1.6, marginBottom: 16 }}>
+                    {lang === 'en' ? 'Try selecting a different store.' : 'נסה לבחור חנות אחרת.'}
                   </p>
                   <button onClick={() => setStoreFilter('all')} style={{
-                    marginTop: 16, padding: '10px 20px', borderRadius: 14,
-                    background: `rgba(212,98,42,0.1)`, border: `1px solid ${ACCENT}`,
-                    color: ACCENT, fontSize: 14, fontWeight: 600, cursor: 'pointer',
+                    padding: '9px 20px', borderRadius: 7, border: `1px solid ${ACCENT}`,
+                    background: 'transparent', color: ACCENT, fontSize: 13, fontWeight: 600, cursor: 'pointer',
                   }}>Show all stores</button>
                 </div>
               ) : (
@@ -2100,8 +2092,8 @@ export default function Home() {
 
                   {gridPromos.length > 0 && (
                     <>
-                      <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-sub)', marginBottom: 10, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                        {lang === 'en' ? `Best store prices (${filteredPromos.length})` : `מחירי חנויות (${filteredPromos.length})`}
+                      <p style={{ fontSize: 12, fontWeight: 500, color: 'var(--text-muted)', marginBottom: 10, letterSpacing: '0.1px' }}>
+                        {lang === 'en' ? `${filteredPromos.length} products compared` : `${filteredPromos.length} מוצרים להשוואה`}
                       </p>
                       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 20 }}>
                         {gridPromos.map(p => (
@@ -2191,13 +2183,13 @@ export default function Home() {
 
               {/* Post CTA */}
               <button onClick={() => setShowPostModal(true)} style={{
-                width: '100%', padding: '13px 20px', borderRadius: 10, cursor: 'pointer',
-                border: `1px dashed var(--border)`,
+                width: '100%', padding: '12px 20px', borderRadius: 8, cursor: 'pointer',
+                border: '1px solid var(--border)',
                 background: 'var(--bg-card)',
-                color: 'var(--text-sub)', fontSize: 14, fontWeight: 500, marginBottom: 14,
-                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                color: 'var(--text-sub)', fontSize: 13, fontWeight: 500, marginBottom: 12,
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7,
               }}>
-                <span style={{ fontSize: 16, color: ACCENT }}>+</span>
+                <span style={{ fontSize: 15, fontWeight: 400, color: ACCENT, lineHeight: 1 }}>+</span>
                 {lang === 'en' ? 'Share a deal' : 'שתף דיל'}
               </button>
 
@@ -2222,7 +2214,7 @@ export default function Home() {
               ) : displayedDeals.length === 0 ? (
                 <div style={{
                   textAlign: 'center', padding: '44px 20px',
-                  background: 'var(--bg-card)', borderRadius: 14,
+                  background: 'var(--bg-card)', borderRadius: 12,
                   border: '1px solid var(--border)',
                 }}>
                   <p style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)', marginBottom: 6 }}>
@@ -2260,17 +2252,17 @@ export default function Home() {
               {!loadingDeals && displayedDeals.length > 0 && (
                 <div style={{
                   textAlign: 'center', padding: '24px 0 8px',
-                  borderTop: '0.5px solid var(--border)', marginTop: 8,
+                  borderTop: '1px solid var(--border)', marginTop: 8,
                 }}>
                   <p style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 10 }}>
                     {lang === 'en' ? 'Looking for supermarket prices?' : 'מחפש מחירי סופרמרקט?'}
                   </p>
                   <button onClick={() => setTab('sales')} style={{
-                    padding: '10px 20px', borderRadius: 14,
-                    background: `rgba(212,98,42,0.1)`, border: `1px solid ${ACCENT}`,
-                    color: ACCENT, fontSize: 13, fontWeight: 600, cursor: 'pointer',
+                    padding: '9px 20px', borderRadius: 7,
+                    background: 'transparent', border: `1px solid ${ACCENT}`,
+                    color: ACCENT, fontSize: 13, fontWeight: 500, cursor: 'pointer',
                   }}>
-                    {lang === 'en' ? '🏷️ Browse store prices' : '🏷️ מחירי חנויות'}
+                    {lang === 'en' ? 'Browse store prices' : 'מחירי חנויות'}
                   </button>
                 </div>
               )}
@@ -2299,7 +2291,7 @@ export default function Home() {
         <nav style={{
           position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 100,
           background: 'var(--nav-bg)',
-          borderTop: '0.5px solid var(--border)',
+          borderTop: '1px solid var(--border)',
           backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)',
           padding: '8px 0 24px',
           boxShadow: 'var(--shadow-nav)',
