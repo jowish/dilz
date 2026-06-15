@@ -505,7 +505,7 @@ export default function DealPage() {
               color: myVote === 'chaud' ? '#fff' : 'var(--text-sub)',
               fontSize: 14, fontWeight: 600, cursor: 'pointer',
             }}>
-              Hot · {deal.votes_chaud || 0}
+              🔥 {deal.votes_chaud || 0}
             </button>
             <button onClick={() => handleVote('froid')} style={{
               flex: 1, padding: '12px 20px', borderRadius: 9,
@@ -514,7 +514,7 @@ export default function DealPage() {
               color: myVote === 'froid' ? '#fff' : 'var(--text-sub)',
               fontSize: 14, fontWeight: 600, cursor: 'pointer',
             }}>
-              Cold · {deal.votes_froid || 0}
+              ❄️ {deal.votes_froid || 0}
             </button>
           </div>
 

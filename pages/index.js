@@ -260,14 +260,14 @@ function HeroPromoCard({ promo, lang, isDark, onClick, votes, onVote }) {
           background: myVote === 'chaud' ? ACCENT : 'transparent',
           color: myVote === 'chaud' ? '#fff' : 'var(--text-sub)',
           fontSize: 12, fontWeight: 600, cursor: 'pointer',
-        }}>Hot · {votes?.chaud || 0}</button>
+        }}>🔥 {votes?.chaud || 0}</button>
         <button onClick={() => onVote(promo.barcode, 'froid')} style={{
           flex: 1, padding: '9px 0', borderRadius: 8,
           border: myVote === 'froid' ? '1px solid #64748B' : '1px solid var(--border)',
           background: myVote === 'froid' ? '#64748B' : 'transparent',
           color: myVote === 'froid' ? '#fff' : 'var(--text-sub)',
           fontSize: 12, fontWeight: 600, cursor: 'pointer',
-        }}>Cold · {votes?.froid || 0}</button>
+        }}>❄️ {votes?.froid || 0}</button>
         <button onClick={onClick} style={{
           padding: '9px 14px', borderRadius: 8, border: '1px solid var(--border)',
           background: 'transparent', color: 'var(--text-muted)',
@@ -343,14 +343,14 @@ function PromoCard({ promo, lang, isDark, onClick, votes, onVote }) {
           background: myVote === 'chaud' ? ACCENT : 'transparent',
           color: myVote === 'chaud' ? '#fff' : 'var(--text-sub)',
           fontSize: 10, fontWeight: 600, cursor: 'pointer',
-        }}>Hot · {votes?.chaud || 0}</button>
+        }}>🔥 {votes?.chaud || 0}</button>
         <button onClick={() => onVote(promo.barcode, 'froid')} style={{
           flex: 1, padding: '5px 0', borderRadius: 6,
           border: myVote === 'froid' ? '1px solid #64748B' : '1px solid var(--border)',
           background: myVote === 'froid' ? '#64748B' : 'transparent',
           color: myVote === 'froid' ? '#fff' : 'var(--text-sub)',
           fontSize: 10, fontWeight: 600, cursor: 'pointer',
-        }}>Cold · {votes?.froid || 0}</button>
+        }}>❄️ {votes?.froid || 0}</button>
       </div>
     </div>
   );
@@ -593,7 +593,7 @@ function DealCard({ deal, lang, onVote, userCoords, votedDeal, user, isDark }) {
             border: votedDeal === 'chaud' ? `1px solid ${ACCENT}` : '1px solid var(--border)',
             color: votedDeal === 'chaud' ? '#fff' : 'var(--text-sub)',
             cursor: 'pointer', fontSize: 12, fontWeight: 600,
-          }}>Hot · {deal.votes_chaud || 0}</button>
+          }}>🔥 {deal.votes_chaud || 0}</button>
 
           <button onClick={() => onVote(deal.id, 'froid')} style={{
             display: 'flex', alignItems: 'center', gap: 4,
@@ -602,7 +602,7 @@ function DealCard({ deal, lang, onVote, userCoords, votedDeal, user, isDark }) {
             border: votedDeal === 'froid' ? '1px solid #64748B' : '1px solid var(--border)',
             color: votedDeal === 'froid' ? '#fff' : 'var(--text-sub)',
             cursor: 'pointer', fontSize: 12, fontWeight: 600,
-          }}>Cold · {deal.votes_froid || 0}</button>
+          }}>❄️ {deal.votes_froid || 0}</button>
 
           <button onClick={go} style={{
             display: 'flex', alignItems: 'center', gap: 3,
