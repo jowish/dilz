@@ -309,6 +309,10 @@ function PromoCard({ promo, lang, isDark, onClick, votes, onVote }) {
 
         {/* Info */}
         <div style={{ padding: '10px 12px 8px' }}>
+          <span style={{
+            fontSize: 9, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.4px',
+            color: 'var(--text-muted)', display: 'block', marginBottom: 3,
+          }}>Price comparison</span>
           <p style={{
             fontSize: 12, fontWeight: 600, color: 'var(--text)', lineHeight: 1.4,
             marginBottom: 6, overflow: 'hidden',
@@ -1270,6 +1274,9 @@ export default function Home() {
           setTimeout(() => window.scrollTo({ top: parseInt(sy), behavior: 'instant' }), 300);
         }
       }
+      // Restore sort after posting a deal (show user their new deal)
+      const rs = sessionStorage.getItem('dilzReturnSort');
+      if (rs) { setSortDeals(rs); sessionStorage.removeItem('dilzReturnSort'); }
     } catch {}
 
     fetch('/api/promos')
@@ -1414,8 +1421,12 @@ export default function Home() {
   const handlePostSuccess = (newId) => {
     setShowPostModal(false);
     if (newId) {
+      // When user navigates back, they'll see the feed sorted by New so their deal is visible
+      try { sessionStorage.setItem('dilzReturnSort', 'latest'); } catch {}
       router.push(`/deal/${newId}`);
     } else {
+      // No id returned — fall back to showing the feed sorted by New
+      setSortDeals('latest');
       setPostSuccess(true);
       setTimeout(() => {
         setPostSuccess(false);
@@ -1578,8 +1589,8 @@ export default function Home() {
               marginTop: 4, letterSpacing: '0.1px',
             }}>
               {lang === 'en'
-                ? `Official promos + community deals · ${cityLabel}`
-                : `מבצעי רשתות + דילים מהקהילה · ${cityLabel}`}
+                ? `Best prices + community finds · ${cityLabel}`
+                : `מחירים טובים + דילים מהקהילה · ${cityLabel}`}
             </p>
           </div>
         </div>
@@ -1648,7 +1659,7 @@ export default function Home() {
                   {gridPromos.length > 0 && (
                     <>
                       <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-sub)', marginBottom: 10, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                        {lang === 'en' ? `All promotions (${filteredPromos.length})` : `כל המבצעים (${filteredPromos.length})`}
+                        {lang === 'en' ? `Best store prices (${filteredPromos.length})` : `מחירי חנויות (${filteredPromos.length})`}
                       </p>
                       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 20 }}>
                         {gridPromos.map(p => (
@@ -1676,8 +1687,9 @@ export default function Home() {
                 <div style={{ display: 'flex', gap: 6, flex: 1, overflowX: 'auto' }}>
                   {[
                     { id: 'hot', label: '🔥 Hot' },
-                    { id: 'latest', label: '🕒 Latest' },
+                    { id: 'latest', label: '🕒 New' },
                     ...(userCoords ? [{ id: 'nearby', label: '📍 Nearby' }] : []),
+                    { id: 'ending', label: '⏳ Ending soon' },
                     ...(user ? [{ id: 'mine', label: '👤 Mine' }] : []),
                   ].map(s => {
                     const isMyDeals = s.id === 'mine';
@@ -1720,6 +1732,21 @@ export default function Home() {
                 })}
               </div>
 
+              {/* City context */}
+              {ville && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10 }}>
+                  <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>
+                    📍 {lang === 'en' ? `Deals in ${traduireVille(ville, 'en')}` : `דילים ב${ville}`}
+                  </span>
+                  <button onClick={() => setShowCityModal(true)} style={{
+                    background: 'none', border: 'none', color: ACCENT,
+                    fontSize: 12, fontWeight: 600, cursor: 'pointer', padding: 0,
+                  }}>
+                    {lang === 'en' ? '· Change' : '· שנה'}
+                  </button>
+                </div>
+              )}
+
               {/* Post CTA */}
               <button onClick={() => setShowPostModal(true)} style={{
                 width: '100%', padding: '14px 20px', borderRadius: 18, cursor: 'pointer',
@@ -1759,12 +1786,16 @@ export default function Home() {
                 }}>
                   <p style={{ fontSize: 44, marginBottom: 12 }}>🛍️</p>
                   <p style={{ fontSize: 17, fontWeight: 700, color: 'var(--text)', marginBottom: 6 }}>
-                    {myDealsOnly
-                      ? (lang === 'en' ? "You haven't posted any deals yet" : 'עדיין לא פרסמת דילים')
-                      : (lang === 'en' ? 'No deals yet in this category' : 'אין דילים עדיין בקטגוריה זו')}
+                    {sortDeals === 'ending'
+                      ? (lang === 'en' ? 'No deals ending soon' : 'אין דילים שמסתיימים בקרוב')
+                      : myDealsOnly
+                        ? (lang === 'en' ? "You haven't posted any deals yet" : 'עדיין לא פרסמת דילים')
+                        : (lang === 'en' ? 'No deals yet in this category' : 'אין דילים עדיין בקטגוריה זו')}
                   </p>
                   <p style={{ fontSize: 14, color: 'var(--text-sub)', marginBottom: 20, lineHeight: 1.6 }}>
-                    {lang === 'en' ? 'Be the first to share a deal!' : 'היה הראשון לשתף דיל!'}
+                    {sortDeals === 'ending'
+                      ? (lang === 'en' ? 'Deals with an expiration date will appear here.' : 'דילים עם תאריך סיום יופיעו כאן.')
+                      : (lang === 'en' ? 'Be the first to share a deal!' : 'היה הראשון לשתף דיל!')}
                   </p>
                   <button onClick={() => setShowPostModal(true)} style={{
                     padding: '12px 24px', borderRadius: 16, border: 'none',
@@ -1800,7 +1831,7 @@ export default function Home() {
                     background: `rgba(212,98,42,0.1)`, border: `1px solid ${ACCENT}`,
                     color: ACCENT, fontSize: 13, fontWeight: 600, cursor: 'pointer',
                   }}>
-                    {lang === 'en' ? '🏷️ Browse official promos' : '🏷️ מבצעי רשתות'}
+                    {lang === 'en' ? '🏷️ Browse store prices' : '🏷️ מחירי חנויות'}
                   </button>
                 </div>
               )}

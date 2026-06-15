@@ -331,7 +331,7 @@ export default function DealPage() {
   const handleShare = async () => {
     if (!deal) return;
     const url = window.location.href;
-    const text = `${deal.titre} — ₪${deal.prix} at ${deal.magasin} 🔥`;
+    const text = `${deal.titre} — ₪${deal.prix} at ${deal.magasin}${deal.ville ? `, ${deal.ville}` : ''} 🔥`;
     if (navigator.share) {
       try { await navigator.share({ title: deal.titre, text, url }); } catch {}
     } else {
@@ -392,7 +392,7 @@ export default function DealPage() {
       <meta property="og:type" content="article" />
       <meta name="twitter:card" content={deal.image_url ? 'summary_large_image' : 'summary'} />
     </Head>
-    <div style={{ minHeight: '100vh', background: 'var(--bg)', paddingBottom: 40 }}>
+    <div style={{ minHeight: '100vh', background: 'var(--bg)', paddingBottom: 80 }}>
       {/* Header */}
       <div style={{
         background: 'var(--nav-bg)', borderBottom: '0.5px solid var(--border)',
@@ -521,7 +521,7 @@ export default function DealPage() {
           {/* Share row */}
           <div style={{ display: 'flex', gap: 8, marginBottom: 24, paddingBottom: 16, borderBottom: '0.5px solid var(--border)' }}>
             <a
-              href={`https://wa.me/?text=${encodeURIComponent(`${deal.titre} — ₪${deal.prix} at ${deal.magasin} 🔥 ${typeof window !== 'undefined' ? window.location.href : ''}`)}`}
+              href={`https://wa.me/?text=${encodeURIComponent(`${deal.titre} — ₪${deal.prix} at ${deal.magasin}${deal.ville ? `, ${deal.ville}` : ''} 🔥 ${typeof window !== 'undefined' ? window.location.href : ''}`)}`}
               target="_blank" rel="noopener noreferrer"
               style={{
                 flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
@@ -534,7 +534,7 @@ export default function DealPage() {
               WhatsApp
             </a>
             <a
-              href={`https://t.me/share/url?url=${encodeURIComponent(typeof window !== 'undefined' ? window.location.href : '')}&text=${encodeURIComponent(`${deal.titre} — ₪${deal.prix} at ${deal.magasin} 🔥`)}`}
+              href={`https://t.me/share/url?url=${encodeURIComponent(typeof window !== 'undefined' ? window.location.href : '')}&text=${encodeURIComponent(`${deal.titre} — ₪${deal.prix} at ${deal.magasin}${deal.ville ? `, ${deal.ville}` : ''} 🔥`)}`}
               target="_blank" rel="noopener noreferrer"
               style={{
                 flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,

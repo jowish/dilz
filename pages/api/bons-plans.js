@@ -36,6 +36,12 @@ export default async function handler(req, res) {
 
       if (tri === 'oldest') query = query.order('created_at', { ascending: true });
       else if (tri === 'latest') query = query.order('created_at', { ascending: false });
+      else if (tri === 'ending') {
+        query = query
+          .not('date_fin', 'is', null)
+          .gt('date_fin', new Date().toISOString())
+          .order('date_fin', { ascending: true });
+      }
       else query = query.order('votes_chaud', { ascending: false });
 
       query = query.limit(Number(limit));
