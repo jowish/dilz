@@ -733,6 +733,7 @@ export default function Home() {
     const c = coords || (villeNom ? CITY_COORDS[villeNom] || null : null);
     setUserCoords(c);
     if (c) setSortDeals('nearby');
+    else setSortDeals('hot');
   };
 
   const handleVote = async (id, type) => {

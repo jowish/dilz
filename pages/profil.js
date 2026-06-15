@@ -3,8 +3,8 @@ import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { supabase } from '../lib/supabase';
 
-const ACCENT = '#D4622A';
-const ACCENT_DARK = '#B84E20';
+const ACCENT = '#0284C7';
+const ACCENT_DARK = '#0369A1';
 
 function timeAgo(date) {
   const diff = Date.now() - new Date(date).getTime();
@@ -142,7 +142,7 @@ export default function Profil() {
             <p style={{ fontSize: 32, marginBottom: 12 }}>🛍️</p>
             <p style={{ fontSize: 15, color: 'var(--text)', fontWeight: 600, marginBottom: 6 }}>No deals yet</p>
             <p style={{ fontSize: 13, color: 'var(--text-sub)', marginBottom: 20 }}>Share a deal you spotted!</p>
-            <Link href="/bons-plans" style={{
+            <Link href="/" style={{
               display: 'inline-block',
               padding: '12px 24px', borderRadius: 14,
               background: `linear-gradient(135deg, ${ACCENT}, ${ACCENT_DARK})`,

@@ -31,6 +31,7 @@ export default async function handler(req, res) {
       query = query.limit(Number(limit));
 
       if (ville) query = query.eq('ville', ville);
+      if (categorie && categorie !== 'all') query = query.eq('categorie', categorie);
 
       const { data, error } = await query;
       if (error) return res.status(500).json({ erreur: error.message });

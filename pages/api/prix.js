@@ -40,7 +40,7 @@ export default async function handler(req, res) {
                            px.enseigne_code === 'osher_ad' ? 'אושר עד' :
                            px.enseigne_code === 'victory' ? 'ויקטורי' :
                            px.enseigne_code === 'yohananof' ? 'יוחננוף' :
-                           px.enseigne_code === 'carrefour' ? 'קרפור' :
+                           px.enseigne_code === 'carrefour' ? 'כרפור' :
                            px.enseigne_code;
 
         indexParBarcode[p.barcode].tousLesPrix.push({
