@@ -289,8 +289,9 @@ function PromoCard({ promo, lang, isDark, onClick, votes, onVote }) {
       background: 'var(--bg-card)', borderRadius: 20, overflow: 'hidden',
       boxShadow: 'var(--shadow-card)',
       border: `0.5px solid ${isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)'}`,
+      display: 'flex', flexDirection: 'column',
     }}>
-      <div onClick={onClick} style={{ cursor: 'pointer' }}>
+      <div onClick={onClick} style={{ cursor: 'pointer', flex: 1, display: 'flex', flexDirection: 'column' }}>
         {/* Colored top */}
         <div style={{
           height: 80,
@@ -298,7 +299,7 @@ function PromoCard({ promo, lang, isDark, onClick, votes, onVote }) {
             ? `linear-gradient(135deg, ${s.dark}, #17171D)`
             : `linear-gradient(135deg, ${s.bg}, #fff)`,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          position: 'relative',
+          position: 'relative', flexShrink: 0,
         }}>
           {promo.image ? (
             <img src={promo.image} alt={nom} style={{ maxHeight: 72, maxWidth: '90%', objectFit: 'contain' }}
@@ -316,7 +317,7 @@ function PromoCard({ promo, lang, isDark, onClick, votes, onVote }) {
         </div>
 
         {/* Info */}
-        <div style={{ padding: '10px 12px 8px' }}>
+        <div style={{ padding: '10px 12px 8px', flex: 1, display: 'flex', flexDirection: 'column' }}>
           <span style={{
             fontSize: 9, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.4px',
             color: 'var(--text-muted)', display: 'block', marginBottom: 3,
@@ -326,12 +327,15 @@ function PromoCard({ promo, lang, isDark, onClick, votes, onVote }) {
             marginBottom: 6, overflow: 'hidden',
             display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical',
             textAlign: lang === 'he' ? 'right' : 'left',
+            minHeight: '2.8em',
           }}>{nom}</p>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 6 }}>
             <span style={{ fontSize: 20, fontWeight: 800, color: ACCENT }}>₪{promo.prixMin.toFixed(2)}</span>
             <span style={{ fontSize: 12, color: 'var(--text-muted)', textDecoration: 'line-through' }}>₪{promo.prixMax.toFixed(2)}</span>
           </div>
-          <StoreBadge store={promo.meilleurEnseigne} lang={lang} isDark={isDark} />
+          <div style={{ marginTop: 'auto' }}>
+            <StoreBadge store={promo.meilleurEnseigne} lang={lang} isDark={isDark} />
+          </div>
         </div>
       </div>
 
