@@ -3,8 +3,8 @@ import { useRouter } from 'next/router';
 import Link from 'next/link';
 import { supabase } from '../../lib/supabase';
 
-const ACCENT = '#D4622A';
-const ACCENT_DARK = '#B84E20';
+const ACCENT = '#0284C7';
+const ACCENT_DARK = '#0369A1';
 
 function timeAgo(date) {
   const diff = Date.now() - new Date(date).getTime();
@@ -65,7 +65,7 @@ export default function DealPage() {
     await fetch('/api/bons-plans', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id: Number(id), vote: type }),
+      body: JSON.stringify({ id, vote: type }),
     });
   };
 
@@ -78,7 +78,7 @@ export default function DealPage() {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        bon_plan_id: Number(id),
+        bon_plan_id: id,
         contenu: newComment.trim(),
         auteur_nom: displayName,
         auteur_id: user.id,

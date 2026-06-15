@@ -41,27 +41,23 @@ export default async function handler(req, res) {
         return res.status(400).json({ erreur: 'titre, prix et magasin sont requis' });
       }
 
+      const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
       const insertData = {
         titre, description: description || null,
-        prix, prix_original: prix_original || null,
+        prix: Number(prix) || 0,
+        prix_original: prix_original ? Number(prix_original) : null,
         magasin, ville: ville || null,
         auteur_nom: auteur_nom || 'Anonyme',
         image_url: image_url || null,
         votes_chaud: 0,
         votes_froid: 0,
+        statut: 'actif',
       };
-      // Optional columns — added once the migration has run:
-      // ALTER TABLE bons_plans ADD COLUMN statut TEXT DEFAULT 'actif';
-      // ALTER TABLE bons_plans ADD COLUMN auteur_id UUID;
-      // ALTER TABLE bons_plans ADD COLUMN categorie TEXT DEFAULT 'Food';
-      // ALTER TABLE bons_plans ADD COLUMN url_source TEXT;
-      // ALTER TABLE bons_plans ADD COLUMN date_debut TIMESTAMPTZ;
-      // ALTER TABLE bons_plans ADD COLUMN date_fin TIMESTAMPTZ;
-      if (auteur_id) insertData.auteur_id = auteur_id;
+      if (auteur_id && UUID_RE.test(String(auteur_id))) insertData.auteur_id = auteur_id;
       if (categorie) insertData.categorie = categorie;
-      if (url_source) insertData.url_source = url_source;
-      if (date_debut) insertData.date_debut = date_debut;
-      if (date_fin) insertData.date_fin = date_fin;
+      if (url_source && url_source.startsWith('http')) insertData.url_source = url_source;
+      if (date_debut && date_debut.trim()) insertData.date_debut = date_debut;
+      if (date_fin && date_fin.trim()) insertData.date_fin = date_fin;
 
       const { data, error } = await supabaseAdmin
         .from('bons_plans')

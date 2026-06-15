@@ -10,6 +10,7 @@ const NOM_ENSEIGNE = {
   rami_levy: 'רמי לוי',
   victory: 'ויקטורי',
   yohananof: 'יוחננוף',
+  osher_ad: 'אושר עד',
   carrefour: 'כרפור',
 };
 

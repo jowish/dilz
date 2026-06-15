@@ -5,8 +5,8 @@ import { useTheme } from 'next-themes';
 import { translations, traduireVille } from '../lib/translations';
 import { supabase } from '../lib/supabase';
 
-const ACCENT = '#D4622A';
-const ACCENT_DARK = '#B84E20';
+const ACCENT = '#0284C7';
+const ACCENT_DARK = '#0369A1';
 
 const STORE_COLORS = {
   'שופרסל': { color: '#2563EB', bg: '#EFF6FF', bgDark: '#1E2D4A', nameEn: 'Shufersal' },
@@ -331,7 +331,7 @@ function PromoModal({ promo, langue, isDark, onClose }) {
               <div key={p.enseigne} style={{
                 display: 'flex', justifyContent: 'space-between', alignItems: 'center',
                 padding: '14px 16px', borderRadius: 16,
-                background: isBest ? (isDark ? 'rgba(212,98,42,0.12)' : '#FEF0EB') : 'var(--bg-card2)',
+                background: isBest ? (isDark ? 'rgba(2,132,199,0.12)' : '#FEF0EB') : 'var(--bg-card2)',
                 border: isBest ? `1.5px solid ${ACCENT}` : '0.5px solid var(--border)',
               }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -379,7 +379,7 @@ function PromoModal({ promo, langue, isDark, onClose }) {
   );
 }
 
-function DealCard({ deal, langue, onVote, userCoords }) {
+function DealCard({ deal, langue, onVote, userCoords, votedDeal }) {
   const router = useRouter();
   const reduction = deal.prix_original && deal.prix_original > deal.prix
     ? Math.round((deal.prix_original - deal.prix) / deal.prix_original * 100)
@@ -471,7 +471,7 @@ function DealCard({ deal, langue, onVote, userCoords }) {
             {distance !== null && (
               <span style={{
                 marginLeft: 4,
-                background: distance <= 10 ? 'rgba(5,150,105,0.12)' : distance <= 50 ? 'rgba(212,98,42,0.1)' : 'var(--bg-card2)',
+                background: distance <= 10 ? 'rgba(5,150,105,0.12)' : distance <= 50 ? 'rgba(2,132,199,0.1)' : 'var(--bg-card2)',
                 color: distance <= 10 ? '#059669' : distance <= 50 ? ACCENT : 'var(--text-muted)',
                 fontSize: 10, fontWeight: 700,
                 padding: '1px 6px', borderRadius: 10,
@@ -483,17 +483,25 @@ function DealCard({ deal, langue, onVote, userCoords }) {
         </p>
 
         <div style={{ display: 'flex', gap: 8, borderTop: '0.5px solid var(--border)', paddingTop: 10 }}>
-          <button onClick={() => onVote(deal.id, 'chaud')} style={{
+          <button onClick={() => !votedDeal && onVote(deal.id, 'chaud')} style={{
             display: 'flex', alignItems: 'center', gap: 5,
             padding: '7px 14px', borderRadius: 20,
-            background: 'var(--bg-card2)', border: '0.5px solid var(--border)',
-            color: 'var(--text)', cursor: 'pointer', fontSize: 13, fontWeight: 600,
+            background: votedDeal === 'chaud' ? ACCENT : 'var(--bg-card2)',
+            border: votedDeal === 'chaud' ? `0.5px solid ${ACCENT}` : '0.5px solid var(--border)',
+            color: votedDeal === 'chaud' ? '#fff' : 'var(--text)',
+            cursor: votedDeal ? 'default' : 'pointer',
+            opacity: votedDeal && votedDeal !== 'chaud' ? 0.45 : 1,
+            fontSize: 13, fontWeight: 600, transition: 'all 0.15s',
           }}>🔥 {deal.votes_chaud}</button>
-          <button onClick={() => onVote(deal.id, 'froid')} style={{
+          <button onClick={() => !votedDeal && onVote(deal.id, 'froid')} style={{
             display: 'flex', alignItems: 'center', gap: 5,
             padding: '7px 14px', borderRadius: 20,
-            background: 'var(--bg-card2)', border: '0.5px solid var(--border)',
-            color: 'var(--text)', cursor: 'pointer', fontSize: 13, fontWeight: 600,
+            background: votedDeal === 'froid' ? '#4B9FE1' : 'var(--bg-card2)',
+            border: votedDeal === 'froid' ? '0.5px solid #4B9FE1' : '0.5px solid var(--border)',
+            color: votedDeal === 'froid' ? '#fff' : 'var(--text)',
+            cursor: votedDeal ? 'default' : 'pointer',
+            opacity: votedDeal && votedDeal !== 'froid' ? 0.45 : 1,
+            fontSize: 13, fontWeight: 600, transition: 'all 0.15s',
           }}>❄️ {deal.votes_froid}</button>
           <Link href={`/deal/${deal.id}`} style={{
             display: 'flex', alignItems: 'center', gap: 5,
@@ -585,7 +593,7 @@ function CityModal({ villes, villeActuelle, langue, onSelect, onClose }) {
             <button onClick={() => { onSelect(null, null); onClose(); }} style={{
               padding: '11px 14px', borderRadius: 14,
               border: !villeActuelle ? `2px solid ${ACCENT}` : '0.5px solid var(--border)',
-              background: !villeActuelle ? 'rgba(212,98,42,0.08)' : 'var(--bg-card2)',
+              background: !villeActuelle ? 'rgba(2,132,199,0.08)' : 'var(--bg-card2)',
               color: !villeActuelle ? ACCENT : 'var(--text)',
               fontSize: 14, fontWeight: !villeActuelle ? 700 : 400, cursor: 'pointer',
             }}>
@@ -608,7 +616,7 @@ function CityModal({ villes, villeActuelle, langue, onSelect, onClose }) {
               <button key={v} onClick={() => { onSelect(v, CITY_COORDS[v] || null); onClose(); }} style={{
                 padding: '11px 14px', borderRadius: 14,
                 border: villeActuelle === v ? `2px solid ${ACCENT}` : '0.5px solid var(--border)',
-                background: villeActuelle === v ? 'rgba(212,98,42,0.08)' : 'var(--bg-card2)',
+                background: villeActuelle === v ? 'rgba(2,132,199,0.08)' : 'var(--bg-card2)',
                 color: villeActuelle === v ? ACCENT : 'var(--text)',
                 fontSize: 14, fontWeight: villeActuelle === v ? 700 : 400, cursor: 'pointer',
                 textAlign: langue === 'he' ? 'right' : 'left',
@@ -645,6 +653,7 @@ export default function Home() {
   const [villes, setVilles] = useState([]);
   const [showCityModal, setShowCityModal] = useState(false);
   const [promoVotes, setPromoVotes] = useState({});
+  const [votedDeals, setVotedDeals] = useState({});
 
   const [user, setUser] = useState(null);
   const [postForm, setPostForm] = useState({
@@ -667,6 +676,8 @@ export default function Home() {
     try {
       const saved = localStorage.getItem('dilzPromoVotes');
       if (saved) setPromoVotes(JSON.parse(saved));
+      const savedDealVotes = localStorage.getItem('dilzDealVotes');
+      if (savedDealVotes) setVotedDeals(JSON.parse(savedDealVotes));
     } catch {}
     fetch('/api/promos')
       .then(r => r.json())
@@ -706,6 +717,12 @@ export default function Home() {
   };
 
   const handleVote = async (id, type) => {
+    if (votedDeals[id]) return;
+    setVotedDeals(prev => {
+      const next = { ...prev, [id]: type };
+      try { localStorage.setItem('dilzDealVotes', JSON.stringify(next)); } catch {}
+      return next;
+    });
     setDeals(prev => prev.map(d => {
       if (d.id !== id) return d;
       return { ...d, [`votes_${type}`]: (d[`votes_${type}`] || 0) + 1 };
@@ -863,7 +880,7 @@ export default function Home() {
                 onClick={() => setShowCityModal(true)}
                 style={{
                   display: 'flex', alignItems: 'center', gap: 5,
-                  background: ville ? 'rgba(212,98,42,0.1)' : 'var(--bg-card2)',
+                  background: ville ? 'rgba(2,132,199,0.1)' : 'var(--bg-card2)',
                   border: ville ? `1px solid ${ACCENT}` : '0.5px solid var(--border)',
                   borderRadius: 20, padding: '5px 12px',
                   cursor: 'pointer', fontSize: 12,
@@ -913,7 +930,7 @@ export default function Home() {
                       flexShrink: 0,
                       padding: '7px 16px', borderRadius: 20,
                       border: active ? `1.5px solid ${s ? s.color : ACCENT}` : '0.5px solid var(--border)',
-                      background: active ? (s ? (isDark ? s.bgDark : s.bg) : 'rgba(212,98,42,0.1)') : 'var(--bg-card)',
+                      background: active ? (s ? (isDark ? s.bgDark : s.bg) : 'rgba(2,132,199,0.1)') : 'var(--bg-card)',
                       color: active ? (s ? s.color : ACCENT) : 'var(--text-sub)',
                       fontSize: 13, fontWeight: active ? 700 : 400, cursor: 'pointer',
                       whiteSpace: 'nowrap',
@@ -976,7 +993,7 @@ export default function Home() {
                 <button key={s.id} onClick={() => setSortDeals(s.id)} style={{
                   padding: '6px 14px', borderRadius: 20,
                   border: sortDeals === s.id ? `1.5px solid ${ACCENT}` : '0.5px solid var(--border)',
-                  background: sortDeals === s.id ? 'rgba(212,98,42,0.1)' : 'var(--bg-card)',
+                  background: sortDeals === s.id ? 'rgba(2,132,199,0.1)' : 'var(--bg-card)',
                   color: sortDeals === s.id ? ACCENT : 'var(--text-sub)',
                   fontSize: 13, fontWeight: sortDeals === s.id ? 700 : 400, cursor: 'pointer',
                 }}>{s.label}</button>
@@ -999,7 +1016,7 @@ export default function Home() {
                       flexShrink: 0,
                       padding: '7px 16px', borderRadius: 20,
                       border: active ? `1.5px solid ${ACCENT}` : '0.5px solid var(--border)',
-                      background: active ? 'rgba(212,98,42,0.1)' : 'var(--bg-card)',
+                      background: active ? 'rgba(2,132,199,0.1)' : 'var(--bg-card)',
                       color: active ? ACCENT : 'var(--text-sub)',
                       fontSize: 13, fontWeight: active ? 700 : 400, cursor: 'pointer',
                       whiteSpace: 'nowrap',
@@ -1019,7 +1036,7 @@ export default function Home() {
               </div>
             ) : (
               deals.map(deal => (
-                <DealCard key={deal.id} deal={deal} langue={langue} onVote={handleVote} userCoords={userCoords} />
+                <DealCard key={deal.id} deal={deal} langue={langue} onVote={handleVote} userCoords={userCoords} votedDeal={votedDeals[deal.id] || null} />
               ))
             )}
           </div>
@@ -1041,7 +1058,7 @@ export default function Home() {
                   display: 'inline-block', padding: '14px 28px',
                   borderRadius: 18, background: `linear-gradient(135deg, ${ACCENT}, ${ACCENT_DARK})`,
                   color: '#fff', fontSize: 15, fontWeight: 700, textDecoration: 'none',
-                  boxShadow: '0 4px 18px rgba(212,98,42,0.4)',
+                  boxShadow: '0 4px 18px rgba(2,132,199,0.4)',
                 }}>
                   {langue === 'en' ? 'Sign in' : 'התחבר'}
                 </Link>
@@ -1120,7 +1137,7 @@ export default function Home() {
                       <button key={cat} onClick={() => setPostForm({ ...postForm, categorie: cat })} style={{
                         padding: '6px 12px', borderRadius: 20,
                         border: postForm.categorie === cat ? `1.5px solid ${ACCENT}` : '0.5px solid var(--border)',
-                        background: postForm.categorie === cat ? 'rgba(212,98,42,0.1)' : 'var(--bg-input)',
+                        background: postForm.categorie === cat ? 'rgba(2,132,199,0.1)' : 'var(--bg-input)',
                         color: postForm.categorie === cat ? ACCENT : 'var(--text-sub)',
                         fontSize: 13, fontWeight: postForm.categorie === cat ? 700 : 400, cursor: 'pointer',
                       }}>{cat}</button>
@@ -1156,7 +1173,7 @@ export default function Home() {
                   background: postSubmitting ? 'var(--bg-card2)' : `linear-gradient(135deg, ${ACCENT}, ${ACCENT_DARK})`,
                   color: postSubmitting ? 'var(--text-muted)' : '#fff',
                   fontSize: 16, fontWeight: 700, cursor: postSubmitting ? 'default' : 'pointer',
-                  boxShadow: postSubmitting ? 'none' : '0 4px 18px rgba(212,98,42,0.4)',
+                  boxShadow: postSubmitting ? 'none' : '0 4px 18px rgba(2,132,199,0.4)',
                 }}>
                   {postSubmitting ? (langue === 'en' ? 'Sharing...' : 'מפרסם...') : (langue === 'en' ? 'Share deal 🔥' : 'פרסם דיל 🔥')}
                 </button>
