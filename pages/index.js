@@ -1111,7 +1111,7 @@ function SearchTab({ promos, deals, lang, isDark, onPromoClick, userCoords, vote
 }
 
 // ─── ProfileTab ───────────────────────────────────────────────────────────────
-function ProfileTab({ user, lang }) {
+function ProfileTab({ user, lang, onOpenAlerts }) {
   if (!user) {
     return (
       <div style={{ padding: '40px 24px', textAlign: 'center' }}>
@@ -1198,6 +1198,20 @@ function ProfileTab({ user, lang }) {
         </Link>
       ))}
 
+      {/* Alerts link */}
+      <button onClick={onOpenAlerts} style={{
+        width: '100%', display: 'flex', alignItems: 'center', gap: 14,
+        background: 'var(--bg-card)', borderRadius: 18, padding: '16px 18px',
+        marginBottom: 10, border: 'none', cursor: 'pointer', textAlign: 'left',
+        boxShadow: 'var(--shadow-card)',
+      }}>
+        <span style={{ fontSize: 20 }}>🔔</span>
+        <span style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)' }}>
+          {lang === 'en' ? 'My deal alerts' : 'התראות שלי'}
+        </span>
+        <svg style={{ marginLeft: 'auto', color: 'var(--text-muted)' }} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+      </button>
+
       <button onClick={async () => { await supabase.auth.signOut(); window.location.reload(); }} style={{
         width: '100%', marginTop: 8, padding: '14px', borderRadius: 16, border: 'none',
         background: 'var(--bg-card2)', color: 'var(--text-sub)',
@@ -1205,6 +1219,388 @@ function ProfileTab({ user, lang }) {
       }}>
         {lang === 'en' ? 'Sign out' : 'התנתק'}
       </button>
+    </div>
+  );
+}
+
+// ─── AlertModal ───────────────────────────────────────────────────────────────
+function AlertModal({ user, lang, onClose }) {
+  const ACCENT = '#D4622A';
+  const [tab, setTab] = useState('list');
+  const [alerts, setAlerts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [form, setForm] = useState({ city: '', online_only: false, min_discount_percent: '', keyword: '' });
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    const esc = (e) => { if (e.key === 'Escape') onClose(); };
+    window.addEventListener('keydown', esc);
+    return () => window.removeEventListener('keydown', esc);
+  }, [onClose]);
+
+  useEffect(() => {
+    if (!user) { setLoading(false); return; }
+    supabase.auth.getSession().then(({ data }) => {
+      if (!data.session) { setLoading(false); return; }
+      fetch('/api/alerts', { headers: { 'Authorization': `Bearer ${data.session.access_token}` } })
+        .then(r => r.json())
+        .then(d => { setAlerts(d.alerts || []); setLoading(false); })
+        .catch(() => setLoading(false));
+    });
+  }, [user]);
+
+  const handleCreate = async () => {
+    setSaving(true); setError('');
+    const { data } = await supabase.auth.getSession();
+    if (!data.session) { setError('Session expired.'); setSaving(false); return; }
+
+    const body = {
+      city: form.city || null,
+      online_only: form.online_only,
+      min_discount_percent: form.min_discount_percent !== '' ? Number(form.min_discount_percent) : null,
+      keyword: form.keyword.trim() || null,
+    };
+
+    // Ask for push permission when creating first alert
+    if ('Notification' in window && Notification.permission === 'default') {
+      const perm = await Notification.requestPermission().catch(() => 'denied');
+      if (perm === 'granted' && 'serviceWorker' in navigator) {
+        try {
+          const reg = await navigator.serviceWorker.ready;
+          const vapidKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+          if (vapidKey) {
+            const sub = await reg.pushManager.subscribe({
+              userVisibleOnly: true,
+              applicationServerKey: vapidKey,
+            });
+            const k = sub.getKey('p256dh');
+            const a = sub.getKey('auth');
+            await fetch('/api/push-subscription', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${data.session.access_token}` },
+              body: JSON.stringify({
+                endpoint: sub.endpoint,
+                p256dh: k ? btoa(String.fromCharCode(...new Uint8Array(k))) : '',
+                auth: a ? btoa(String.fromCharCode(...new Uint8Array(a))) : '',
+              }),
+            }).catch(() => {});
+          }
+        } catch {}
+      }
+    }
+
+    const res = await fetch('/api/alerts', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${data.session.access_token}` },
+      body: JSON.stringify(body),
+    });
+    const result = await res.json();
+    if (!res.ok) { setError(result.erreur || 'Could not create alert.'); setSaving(false); return; }
+    setAlerts(prev => [result.alert, ...prev]);
+    setForm({ city: '', online_only: false, min_discount_percent: '', keyword: '' });
+    setTab('list');
+    setSaving(false);
+  };
+
+  const handleToggle = async (alert) => {
+    const { data } = await supabase.auth.getSession();
+    if (!data.session) return;
+    await fetch('/api/alerts', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${data.session.access_token}` },
+      body: JSON.stringify({ id: alert.id, is_active: !alert.is_active }),
+    });
+    setAlerts(prev => prev.map(a => a.id === alert.id ? { ...a, is_active: !a.is_active } : a));
+  };
+
+  const handleDelete = async (id) => {
+    const { data } = await supabase.auth.getSession();
+    if (!data.session) return;
+    await fetch(`/api/alerts?id=${id}`, {
+      method: 'DELETE',
+      headers: { 'Authorization': `Bearer ${data.session.access_token}` },
+    });
+    setAlerts(prev => prev.filter(a => a.id !== id));
+  };
+
+  function alertSummary(a) {
+    const parts = [];
+    if (a.city) parts.push(`📍 ${a.city}`);
+    if (a.online_only) parts.push('🌐 Online');
+    if (a.min_discount_percent != null) parts.push(`-${a.min_discount_percent}%+`);
+    if (a.keyword) parts.push(`"${a.keyword}"`);
+    return parts.join('  ·  ') || 'All new deals';
+  }
+
+  return (
+    <div onClick={onClose} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.65)', zIndex: 500, display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}>
+      <div onClick={e => e.stopPropagation()} style={{
+        background: 'var(--bg-card)', borderRadius: '26px 26px 0 0',
+        padding: '20px 16px 44px', width: '100%', maxWidth: 600,
+        maxHeight: '88vh', display: 'flex', flexDirection: 'column',
+      }}>
+        <div style={{ width: 40, height: 4, borderRadius: 2, background: 'var(--border)', margin: '0 auto 16px' }} />
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+          <p style={{ fontSize: 19, fontWeight: 800, color: 'var(--text)' }}>🔔 My Alerts</p>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', fontSize: 22, cursor: 'pointer', padding: '0 4px' }}>×</button>
+        </div>
+
+        {/* Tabs */}
+        <div style={{ display: 'flex', gap: 6, marginBottom: 16 }}>
+          {[['list', '📋 My alerts'], ['new', '+ New alert']].map(([id, label]) => (
+            <button key={id} onClick={() => setTab(id)} style={{
+              flex: 1, padding: '9px 0', borderRadius: 12, cursor: 'pointer', fontSize: 13, fontWeight: 700,
+              border: tab === id ? `1.5px solid ${ACCENT}` : '0.5px solid var(--border)',
+              background: tab === id ? `rgba(212,98,42,0.1)` : 'var(--bg-card2)',
+              color: tab === id ? ACCENT : 'var(--text-sub)',
+            }}>{label}</button>
+          ))}
+        </div>
+
+        <div style={{ overflowY: 'auto', flex: 1 }}>
+          {/* ── List tab ── */}
+          {tab === 'list' && (
+            loading ? (
+              <p style={{ textAlign: 'center', color: 'var(--text-muted)', paddingTop: 40, fontSize: 14 }}>Loading...</p>
+            ) : alerts.length === 0 ? (
+              <div style={{ textAlign: 'center', paddingTop: 40 }}>
+                <p style={{ fontSize: 40, marginBottom: 12 }}>🔔</p>
+                <p style={{ fontSize: 16, fontWeight: 700, color: 'var(--text)', marginBottom: 8 }}>No alerts yet</p>
+                <p style={{ fontSize: 14, color: 'var(--text-sub)', marginBottom: 20, lineHeight: 1.6 }}>
+                  Create an alert and get notified when new deals match your criteria.
+                </p>
+                <button onClick={() => setTab('new')} style={{
+                  padding: '11px 24px', borderRadius: 14, border: 'none',
+                  background: `linear-gradient(135deg, ${ACCENT}, #B84E20)`,
+                  color: '#fff', fontSize: 14, fontWeight: 700, cursor: 'pointer',
+                }}>+ Create your first alert</button>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                {alerts.map(a => (
+                  <div key={a.id} style={{
+                    padding: '14px 16px', borderRadius: 18,
+                    background: 'var(--bg-card2)',
+                    border: `0.5px solid ${a.is_active ? ACCENT + '44' : 'var(--border)'}`,
+                    opacity: a.is_active ? 1 : 0.6,
+                  }}>
+                    <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--text)', marginBottom: 10, lineHeight: 1.4 }}>
+                      {alertSummary(a)}
+                    </p>
+                    <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                      <button onClick={() => handleToggle(a)} style={{
+                        flex: 1, padding: '7px 0', borderRadius: 10, cursor: 'pointer', fontSize: 12, fontWeight: 700,
+                        border: a.is_active ? `1px solid ${ACCENT}` : '0.5px solid var(--border)',
+                        background: a.is_active ? `rgba(212,98,42,0.1)` : 'var(--bg-card)',
+                        color: a.is_active ? ACCENT : 'var(--text-muted)',
+                      }}>{a.is_active ? '● Active' : '○ Paused'}</button>
+                      <button onClick={() => handleDelete(a.id)} style={{
+                        padding: '7px 12px', borderRadius: 10, cursor: 'pointer', fontSize: 13,
+                        border: '0.5px solid var(--border)', background: 'var(--bg-card)',
+                        color: '#DC2626',
+                      }}>🗑</button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )
+          )}
+
+          {/* ── New alert tab ── */}
+          {tab === 'new' && (
+            <div>
+              <div style={{ marginBottom: 14 }}>
+                <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--text-sub)', marginBottom: 6 }}>City (optional)</label>
+                <select value={form.city} onChange={e => setForm(f => ({ ...f, city: e.target.value }))} style={{
+                  width: '100%', padding: '12px 14px', borderRadius: 14,
+                  border: '0.5px solid var(--border)', background: 'var(--bg-input)',
+                  color: form.city ? 'var(--text)' : 'var(--text-muted)',
+                  fontSize: 14, outline: 'none', cursor: 'pointer',
+                }}>
+                  <option value="">🌍 All of Israel</option>
+                  {POPULAR_CITIES.map(v => <option key={v} value={v}>{v}</option>)}
+                  <option value="אונליין">🌐 Online only</option>
+                </select>
+              </div>
+
+              <div style={{ marginBottom: 14 }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }}>
+                  <div
+                    onClick={() => setForm(f => ({ ...f, online_only: !f.online_only }))}
+                    style={{
+                      width: 42, height: 24, borderRadius: 12, position: 'relative', cursor: 'pointer',
+                      background: form.online_only ? ACCENT : 'var(--bg-card2)',
+                      border: '0.5px solid var(--border)', transition: 'background 0.2s',
+                    }}
+                  >
+                    <div style={{
+                      position: 'absolute', top: 2, left: form.online_only ? 20 : 2,
+                      width: 18, height: 18, borderRadius: '50%', background: '#fff',
+                      transition: 'left 0.2s', boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
+                    }} />
+                  </div>
+                  <span style={{ fontSize: 14, color: 'var(--text)', fontWeight: 500 }}>Online deals only 🌐</span>
+                </label>
+              </div>
+
+              <div style={{ marginBottom: 14 }}>
+                <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--text-sub)', marginBottom: 6 }}>Minimum discount % (optional)</label>
+                <input
+                  type="number" min="0" max="100" placeholder="e.g. 30"
+                  value={form.min_discount_percent}
+                  onChange={e => setForm(f => ({ ...f, min_discount_percent: e.target.value }))}
+                  style={{ width: '100%', padding: '12px 14px', borderRadius: 14, border: '0.5px solid var(--border)', background: 'var(--bg-input)', color: 'var(--text)', fontSize: 14, outline: 'none' }}
+                />
+              </div>
+
+              <div style={{ marginBottom: 20 }}>
+                <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--text-sub)', marginBottom: 6 }}>Keyword (optional)</label>
+                <input
+                  type="text" placeholder='e.g. Nike, iPhone, pizza…'
+                  value={form.keyword}
+                  onChange={e => setForm(f => ({ ...f, keyword: e.target.value }))}
+                  style={{ width: '100%', padding: '12px 14px', borderRadius: 14, border: '0.5px solid var(--border)', background: 'var(--bg-input)', color: 'var(--text)', fontSize: 14, outline: 'none' }}
+                />
+              </div>
+
+              {error && (
+                <p style={{ color: '#DC2626', fontSize: 13, marginBottom: 12, background: 'rgba(220,38,38,0.08)', borderRadius: 10, padding: '8px 12px' }}>{error}</p>
+              )}
+
+              <button onClick={handleCreate} disabled={saving} style={{
+                width: '100%', padding: 15, borderRadius: 16, border: 'none',
+                background: saving ? 'var(--bg-card2)' : `linear-gradient(135deg, ${ACCENT}, #B84E20)`,
+                color: saving ? 'var(--text-muted)' : '#fff',
+                fontSize: 15, fontWeight: 700, cursor: saving ? 'default' : 'pointer',
+                boxShadow: saving ? 'none' : `0 4px 18px rgba(212,98,42,0.4)`,
+              }}>
+                {saving ? 'Creating…' : '🔔 Create alert'}
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── NotificationSheet ────────────────────────────────────────────────────────
+function NotificationSheet({ user, lang, notifications, onClose, onMarkAllRead, onOpenAlerts }) {
+  const ACCENT = '#D4622A';
+  const router = useRouter();
+  const unread = notifications.filter(n => !n.is_read).length;
+
+  useEffect(() => {
+    const esc = (e) => { if (e.key === 'Escape') onClose(); };
+    window.addEventListener('keydown', esc);
+    return () => window.removeEventListener('keydown', esc);
+  }, [onClose]);
+
+  const handleNotifClick = async (notif) => {
+    if (!notif.is_read) {
+      const { data } = await supabase.auth.getSession();
+      if (data.session) {
+        await fetch('/api/notifications', {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${data.session.access_token}` },
+          body: JSON.stringify({ id: notif.id }),
+        }).catch(() => {});
+      }
+    }
+    onClose();
+    router.push(`/deal/${notif.deal_id}`);
+  };
+
+  function timeAgoShort(date) {
+    const d = Date.now() - new Date(date).getTime();
+    const m = Math.floor(d / 60000);
+    const h = Math.floor(d / 3600000);
+    const days = Math.floor(d / 86400000);
+    if (m < 2)  return 'now';
+    if (m < 60) return `${m}m`;
+    if (h < 24) return `${h}h`;
+    return `${days}d`;
+  }
+
+  return (
+    <div onClick={onClose} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.65)', zIndex: 500, display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}>
+      <div onClick={e => e.stopPropagation()} style={{
+        background: 'var(--bg-card)', borderRadius: '26px 26px 0 0',
+        padding: '20px 16px 44px', width: '100%', maxWidth: 600,
+        maxHeight: '80vh', display: 'flex', flexDirection: 'column',
+      }}>
+        <div style={{ width: 40, height: 4, borderRadius: 2, background: 'var(--border)', margin: '0 auto 16px' }} />
+
+        {/* Header row */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+          <p style={{ fontSize: 19, fontWeight: 800, color: 'var(--text)' }}>
+            🔔 Notifications {unread > 0 && <span style={{ fontSize: 13, fontWeight: 700, color: ACCENT, marginLeft: 6 }}>({unread} new)</span>}
+          </p>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', fontSize: 22, cursor: 'pointer', padding: '0 4px' }}>×</button>
+        </div>
+
+        {/* Actions row */}
+        <div style={{ display: 'flex', gap: 8, marginBottom: 14 }}>
+          <button onClick={() => { onClose(); onOpenAlerts(); }} style={{
+            flex: 1, padding: '9px 0', borderRadius: 12, cursor: 'pointer', fontSize: 13, fontWeight: 600,
+            border: `1px solid ${ACCENT}`, background: `rgba(212,98,42,0.08)`, color: ACCENT,
+          }}>⚙️ Manage alerts</button>
+          {unread > 0 && (
+            <button onClick={onMarkAllRead} style={{
+              flex: 1, padding: '9px 0', borderRadius: 12, cursor: 'pointer', fontSize: 13, fontWeight: 600,
+              border: '0.5px solid var(--border)', background: 'var(--bg-card2)', color: 'var(--text-sub)',
+            }}>✓ Mark all read</button>
+          )}
+        </div>
+
+        {/* List */}
+        <div style={{ overflowY: 'auto', flex: 1 }}>
+          {notifications.length === 0 ? (
+            <div style={{ textAlign: 'center', paddingTop: 40 }}>
+              <p style={{ fontSize: 40, marginBottom: 12 }}>🔕</p>
+              <p style={{ fontSize: 16, fontWeight: 700, color: 'var(--text)', marginBottom: 8 }}>No notifications yet</p>
+              <p style={{ fontSize: 14, color: 'var(--text-sub)', lineHeight: 1.6, marginBottom: 20 }}>
+                Create alerts to be notified when new deals match your criteria.
+              </p>
+              <button onClick={() => { onClose(); onOpenAlerts(); }} style={{
+                padding: '11px 24px', borderRadius: 14, border: 'none',
+                background: `linear-gradient(135deg, ${ACCENT}, #B84E20)`,
+                color: '#fff', fontSize: 14, fontWeight: 700, cursor: 'pointer',
+              }}>🔔 Set up alerts</button>
+            </div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {notifications.map(n => (
+                <div
+                  key={n.id}
+                  onClick={() => handleNotifClick(n)}
+                  style={{
+                    padding: '13px 14px', borderRadius: 16, cursor: 'pointer',
+                    background: n.is_read ? 'var(--bg-card2)' : `rgba(212,98,42,0.07)`,
+                    border: n.is_read ? '0.5px solid var(--border)' : `1px solid ${ACCENT}44`,
+                    display: 'flex', gap: 12, alignItems: 'flex-start',
+                  }}
+                >
+                  <div style={{
+                    width: 8, height: 8, borderRadius: '50%', flexShrink: 0, marginTop: 5,
+                    background: n.is_read ? 'var(--border)' : ACCENT,
+                  }} />
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <p style={{ fontSize: 14, fontWeight: 700, color: 'var(--text)', marginBottom: 3, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {n.title}
+                    </p>
+                    <p style={{ fontSize: 12, color: 'var(--text-sub)' }}>{n.message}</p>
+                  </div>
+                  <span style={{ fontSize: 11, color: 'var(--text-muted)', flexShrink: 0, paddingTop: 2 }}>
+                    {timeAgoShort(n.created_at)}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
@@ -1249,6 +1645,12 @@ export default function Home() {
   const [showPostModal, setShowPostModal] = useState(false);
   const [postSuccess, setPostSuccess] = useState(false);
 
+  // Alerts & Notifications
+  const [showAlertModal, setShowAlertModal] = useState(false);
+  const [showNotificationSheet, setShowNotificationSheet] = useState(false);
+  const [notifications, setNotifications] = useState([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+
   const t = translations[lang];
   const dir = lang === 'he' ? 'rtl' : 'ltr';
   const isDark = resolvedTheme === 'dark';
@@ -1290,7 +1692,18 @@ export default function Home() {
       .catch(() => {});
 
     supabase.auth.getSession().then(({ data }) => {
-      setUser(data.session?.user || null);
+      const u = data.session?.user || null;
+      setUser(u);
+      if (u && data.session) {
+        fetch('/api/notifications', { headers: { 'Authorization': `Bearer ${data.session.access_token}` } })
+          .then(r => r.ok ? r.json() : null)
+          .then(d => {
+            if (d) {
+              setNotifications(d.notifications || []);
+              setUnreadCount((d.notifications || []).filter(n => !n.is_read).length);
+            }
+          }).catch(() => {});
+      }
     });
   }, []);
 
@@ -1559,6 +1972,30 @@ export default function Home() {
                     {cityLabel}
                   </span>
                 </button>
+
+                {/* Bell / notifications */}
+                {user && (
+                  <button onClick={() => setShowNotificationSheet(true)} aria-label="Notifications" style={{
+                    position: 'relative', width: 34, height: 34, borderRadius: '50%',
+                    background: 'var(--bg-card2)', border: '0.5px solid var(--border)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    cursor: 'pointer', flexShrink: 0,
+                  }}>
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--text-sub)" strokeWidth="2" strokeLinecap="round">
+                      <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+                    </svg>
+                    {unreadCount > 0 && (
+                      <span style={{
+                        position: 'absolute', top: -2, right: -2,
+                        minWidth: 16, height: 16, borderRadius: 8,
+                        background: ACCENT, color: '#fff',
+                        fontSize: 9, fontWeight: 800,
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        padding: '0 3px',
+                      }}>{unreadCount > 9 ? '9+' : unreadCount}</span>
+                    )}
+                  </button>
+                )}
 
                 {/* Profile avatar */}
                 <button onClick={() => setTab('profile')} style={{
@@ -1852,7 +2289,7 @@ export default function Home() {
 
           {/* ══ PROFILE TAB ══ */}
           {tab === 'profile' && (
-            <ProfileTab user={user} lang={lang} />
+            <ProfileTab user={user} lang={lang} onOpenAlerts={() => setShowAlertModal(true)} />
           )}
         </div>
 
@@ -1929,6 +2366,28 @@ export default function Home() {
             user={user} lang={lang}
             onClose={() => setShowPostModal(false)}
             onSuccess={handlePostSuccess}
+          />
+        )}
+        {showAlertModal && user && (
+          <AlertModal user={user} lang={lang} onClose={() => setShowAlertModal(false)} />
+        )}
+        {showNotificationSheet && user && (
+          <NotificationSheet
+            user={user} lang={lang}
+            notifications={notifications}
+            onClose={() => setShowNotificationSheet(false)}
+            onMarkAllRead={async () => {
+              const { data } = await supabase.auth.getSession();
+              if (!data.session) return;
+              await fetch('/api/notifications', {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${data.session.access_token}` },
+                body: JSON.stringify({ markAllRead: true }),
+              }).catch(() => {});
+              setNotifications(prev => prev.map(n => ({ ...n, is_read: true })));
+              setUnreadCount(0);
+            }}
+            onOpenAlerts={() => setShowAlertModal(true)}
           />
         )}
       </div>

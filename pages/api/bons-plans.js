@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+import { processNewDeal } from '../../lib/alerts';
 
 export default async function handler(req, res) {
   const {
@@ -109,6 +110,14 @@ export default async function handler(req, res) {
         });
       }
       const newId = rows?.[0]?.id || null;
+
+      // Fire alert matching in the background — never blocks deal creation
+      if (newId) {
+        processNewDeal({ id: newId, ...insertData }, supabaseAdmin).catch(e => {
+          console.error('[alerts] processNewDeal error:', e.message);
+        });
+      }
+
       return res.status(201).json({
         bon_plan: { id: newId, ...insertData, created_at: new Date().toISOString() },
       });

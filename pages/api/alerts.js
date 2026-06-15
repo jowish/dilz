@@ -1,0 +1,148 @@
+import { createClient } from '@supabase/supabase-js';
+
+const MAX_ALERTS_PER_USER = 20;
+const MAX_KEYWORD_LEN = 80;
+
+export default async function handler(req, res) {
+  const {
+    NEXT_PUBLIC_SUPABASE_URL: url,
+    NEXT_PUBLIC_SUPABASE_ANON_KEY: anonKey,
+    SUPABASE_SERVICE_KEY: serviceKey,
+  } = process.env;
+
+  if (!url || !anonKey) return res.status(500).json({ erreur: 'Missing Supabase configuration' });
+
+  const supabase = createClient(url, anonKey);
+  const supabaseAdmin = serviceKey ? createClient(url, serviceKey) : supabase;
+
+  async function verifyUser() {
+    const token = (req.headers.authorization || '').replace('Bearer ', '').trim();
+    if (!token) return { user: null, error: 'Sign in to continue.' };
+    const { data: { user }, error } = await supabaseAdmin.auth.getUser(token);
+    if (error || !user) return { user: null, error: 'Session expired. Please sign in again.' };
+    return { user, error: null };
+  }
+
+  try {
+    // ─── GET — list user's alerts ─────────────────────────────────────────────
+    if (req.method === 'GET') {
+      const { user, error: authErr } = await verifyUser();
+      if (!user) return res.status(401).json({ erreur: authErr });
+
+      const { data, error } = await supabaseAdmin
+        .from('alerts')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+
+      if (error) return res.status(500).json({ erreur: error.message });
+      return res.status(200).json({ alerts: data || [] });
+    }
+
+    // ─── POST — create alert ──────────────────────────────────────────────────
+    if (req.method === 'POST') {
+      const { user, error: authErr } = await verifyUser();
+      if (!user) return res.status(401).json({ erreur: authErr });
+
+      let { city, online_only, min_discount_percent, keyword } = req.body;
+
+      // Validate
+      city = city ? String(city).trim().slice(0, 100) : null;
+      online_only = Boolean(online_only);
+      keyword = keyword ? String(keyword).trim().slice(0, MAX_KEYWORD_LEN) || null : null;
+
+      if (min_discount_percent != null) {
+        min_discount_percent = Number(min_discount_percent);
+        if (isNaN(min_discount_percent) || min_discount_percent < 0 || min_discount_percent > 100) {
+          return res.status(400).json({ erreur: 'min_discount_percent must be between 0 and 100.' });
+        }
+      } else {
+        min_discount_percent = null;
+      }
+
+      // Must have at least one criterion
+      if (!city && !online_only && min_discount_percent == null && !keyword) {
+        return res.status(400).json({ erreur: 'At least one alert criterion is required.' });
+      }
+
+      // Rate limit per user
+      const { count } = await supabaseAdmin
+        .from('alerts')
+        .select('id', { count: 'exact', head: true })
+        .eq('user_id', user.id);
+
+      if (count >= MAX_ALERTS_PER_USER) {
+        return res.status(400).json({ erreur: `Maximum ${MAX_ALERTS_PER_USER} alerts per user.` });
+      }
+
+      // Prevent exact duplicate
+      const { data: existing } = await supabaseAdmin
+        .from('alerts')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('city', city ?? '')
+        .eq('online_only', online_only)
+        .eq('keyword', keyword ?? '')
+        .maybeSingle();
+
+      if (existing) {
+        return res.status(409).json({ erreur: 'An identical alert already exists.' });
+      }
+
+      const { data: rows, error } = await supabaseAdmin
+        .from('alerts')
+        .insert([{ user_id: user.id, city, online_only, min_discount_percent, keyword }])
+        .select('*');
+
+      if (error) return res.status(500).json({ erreur: error.message });
+      return res.status(201).json({ alert: rows[0] });
+    }
+
+    // ─── PATCH — update alert (toggle is_active) ──────────────────────────────
+    if (req.method === 'PATCH') {
+      const { user, error: authErr } = await verifyUser();
+      if (!user) return res.status(401).json({ erreur: authErr });
+
+      const { id, is_active } = req.body;
+      if (!id) return res.status(400).json({ erreur: 'Missing id.' });
+
+      const { data: existing } = await supabaseAdmin
+        .from('alerts').select('user_id').eq('id', id).maybeSingle();
+
+      if (!existing || existing.user_id !== user.id) {
+        return res.status(403).json({ erreur: 'Not your alert.' });
+      }
+
+      const updates = { updated_at: new Date().toISOString() };
+      if (is_active !== undefined) updates.is_active = Boolean(is_active);
+
+      const { error } = await supabaseAdmin.from('alerts').update(updates).eq('id', id);
+      if (error) return res.status(500).json({ erreur: error.message });
+      return res.status(200).json({ ok: true });
+    }
+
+    // ─── DELETE — remove alert ────────────────────────────────────────────────
+    if (req.method === 'DELETE') {
+      const { user, error: authErr } = await verifyUser();
+      if (!user) return res.status(401).json({ erreur: authErr });
+
+      const id = req.query.id;
+      if (!id) return res.status(400).json({ erreur: 'Missing id query param.' });
+
+      const { data: existing } = await supabaseAdmin
+        .from('alerts').select('user_id').eq('id', id).maybeSingle();
+
+      if (!existing || existing.user_id !== user.id) {
+        return res.status(403).json({ erreur: 'Not your alert.' });
+      }
+
+      const { error } = await supabaseAdmin.from('alerts').delete().eq('id', id);
+      if (error) return res.status(500).json({ erreur: error.message });
+      return res.status(200).json({ ok: true });
+    }
+
+    res.status(405).end();
+  } catch (e) {
+    return res.status(500).json({ erreur: e.message || 'Internal server error' });
+  }
+}
