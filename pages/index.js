@@ -399,7 +399,10 @@ function DealCard({ deal, langue, onVote, userCoords, votedDeal }) {
       marginBottom: 12,
     }}>
       <div
-        onClick={() => router.push(`/deal/${deal.id}`)}
+        onClick={() => {
+          try { sessionStorage.setItem('dilzReturnTab', 'deals'); sessionStorage.setItem('dilzScrollY', String(window.scrollY)); } catch {}
+          router.push(`/deal/${deal.id}`);
+        }}
         style={{ cursor: 'pointer', position: 'relative', height: deal.image_url ? 200 : 72, background: 'var(--bg-card2)' }}
       >
         {deal.image_url ? (
@@ -450,7 +453,10 @@ function DealCard({ deal, langue, onVote, userCoords, votedDeal }) {
         )}
 
         <p
-          onClick={() => router.push(`/deal/${deal.id}`)}
+          onClick={() => {
+            try { sessionStorage.setItem('dilzReturnTab', 'deals'); sessionStorage.setItem('dilzScrollY', String(window.scrollY)); } catch {}
+            router.push(`/deal/${deal.id}`);
+          }}
           style={{
             fontSize: 15, fontWeight: 700, color: 'var(--text)',
             marginBottom: 6, cursor: 'pointer',
@@ -678,6 +684,17 @@ export default function Home() {
       if (saved) setPromoVotes(JSON.parse(saved));
       const savedDealVotes = localStorage.getItem('dilzDealVotes');
       if (savedDealVotes) setVotedDeals(JSON.parse(savedDealVotes));
+      // Restore tab + scroll when coming back from a deal page
+      const returnTab = sessionStorage.getItem('dilzReturnTab');
+      if (returnTab) {
+        setTab(returnTab);
+        sessionStorage.removeItem('dilzReturnTab');
+        const savedY = sessionStorage.getItem('dilzScrollY');
+        if (savedY) {
+          sessionStorage.removeItem('dilzScrollY');
+          setTimeout(() => window.scrollTo({ top: parseInt(savedY), behavior: 'instant' }), 300);
+        }
+      }
     } catch {}
     fetch('/api/promos')
       .then(r => r.json())
@@ -704,7 +721,7 @@ export default function Home() {
     setLoadingDeals(true);
     const params = new URLSearchParams();
     if (categoryFilter !== 'all') params.set('categorie', categoryFilter);
-    params.set('tri', sortDeals);
+    params.set('tri', sortDeals === 'nearby' ? 'latest' : sortDeals);
     fetch(`/api/bons-plans?${params}`)
       .then(r => r.json())
       .then(d => { setDeals(d.bons_plans || []); setLoadingDeals(false); })
@@ -713,7 +730,9 @@ export default function Home() {
 
   const handleCitySelect = (villeNom, coords) => {
     setVille(villeNom);
-    setUserCoords(coords || (villeNom ? CITY_COORDS[villeNom] || null : null));
+    const c = coords || (villeNom ? CITY_COORDS[villeNom] || null : null);
+    setUserCoords(c);
+    if (c) setSortDeals('nearby');
   };
 
   const handleVote = async (id, type) => {
@@ -812,6 +831,16 @@ export default function Home() {
     }
     setPostSubmitting(false);
   };
+
+  const displayedDeals = (sortDeals === 'nearby' && userCoords)
+    ? [...deals].sort((a, b) => {
+        const ca = a.ville ? CITY_COORDS[a.ville] : null;
+        const cb = b.ville ? CITY_COORDS[b.ville] : null;
+        const da = ca ? distanceKm(userCoords.lat, userCoords.lon, ca.lat, ca.lon) : Infinity;
+        const db = cb ? distanceKm(userCoords.lat, userCoords.lon, cb.lat, cb.lon) : Infinity;
+        return da - db;
+      })
+    : deals;
 
   const filteredPromos = storeFilter === 'all'
     ? promos
@@ -983,21 +1012,37 @@ export default function Home() {
         {/* ── DEALS TAB ── */}
         {tab === 'deals' && (
           <div>
-            {/* Sort bar */}
-            <div style={{ display: 'flex', gap: 8, marginBottom: 10 }}>
-              {[
-                { id: 'hot', label: '🔥 Plus hot' },
-                { id: 'latest', label: '🕒 Latest' },
-                { id: 'oldest', label: '📅 Oldest' },
-              ].map(s => (
-                <button key={s.id} onClick={() => setSortDeals(s.id)} style={{
+            {/* Sort bar + map button */}
+            <div style={{ display: 'flex', gap: 8, marginBottom: 10, alignItems: 'center' }}>
+              <div style={{ display: 'flex', gap: 8, flex: 1, overflowX: 'auto', scrollbarWidth: 'none' }}>
+                {[
+                  { id: 'hot', label: '🔥 Hot' },
+                  { id: 'latest', label: '🕒 Latest' },
+                  ...(userCoords ? [{ id: 'nearby', label: '📍 Nearby' }] : []),
+                ].map(s => (
+                  <button key={s.id} onClick={() => setSortDeals(s.id)} style={{
+                    flexShrink: 0,
+                    padding: '6px 14px', borderRadius: 20,
+                    border: sortDeals === s.id ? `1.5px solid ${ACCENT}` : '0.5px solid var(--border)',
+                    background: sortDeals === s.id ? 'rgba(2,132,199,0.1)' : 'var(--bg-card)',
+                    color: sortDeals === s.id ? ACCENT : 'var(--text-sub)',
+                    fontSize: 13, fontWeight: sortDeals === s.id ? 700 : 400, cursor: 'pointer',
+                    whiteSpace: 'nowrap',
+                  }}>{s.label}</button>
+                ))}
+              </div>
+              <button
+                onClick={() => router.push('/map')}
+                style={{
+                  flexShrink: 0,
+                  display: 'flex', alignItems: 'center', gap: 5,
                   padding: '6px 14px', borderRadius: 20,
-                  border: sortDeals === s.id ? `1.5px solid ${ACCENT}` : '0.5px solid var(--border)',
-                  background: sortDeals === s.id ? 'rgba(2,132,199,0.1)' : 'var(--bg-card)',
-                  color: sortDeals === s.id ? ACCENT : 'var(--text-sub)',
-                  fontSize: 13, fontWeight: sortDeals === s.id ? 700 : 400, cursor: 'pointer',
-                }}>{s.label}</button>
-              ))}
+                  border: '0.5px solid var(--border)', background: 'var(--bg-card)',
+                  color: 'var(--text-sub)', fontSize: 13, fontWeight: 500, cursor: 'pointer',
+                }}
+              >
+                🗺️ Map
+              </button>
             </div>
 
             {/* Category filter */}
@@ -1035,7 +1080,7 @@ export default function Home() {
                 {langue === 'en' ? 'No deals yet — be the first!' : 'אין דילים עדיין — היה הראשון!'}
               </div>
             ) : (
-              deals.map(deal => (
+              displayedDeals.map(deal => (
                 <DealCard key={deal.id} deal={deal} langue={langue} onVote={handleVote} userCoords={userCoords} votedDeal={votedDeals[deal.id] || null} />
               ))
             )}
@@ -1103,18 +1148,41 @@ export default function Home() {
                 </div>
 
                 {[
-                  ['Title *', 'titre', 'text', langue === 'en' ? 'e.g. Pizza 3+1 at Dominos' : 'לדוגמה: פיצה 3+1 בדומינוס'],
-                  ['Store / Place *', 'magasin', 'text', langue === 'en' ? 'e.g. Dominos, KSP' : 'לדוגמה: דומינוס, KSP'],
-                  ['City', 'ville', 'text', langue === 'en' ? 'e.g. Tel Aviv' : 'לדוגמה: תל אביב'],
-                ].map(([label, key, type, placeholder]) => (
+                  ['Title *', 'titre', langue === 'en' ? 'e.g. Pizza 3+1 at Dominos' : 'לדוגמה: פיצה 3+1 בדומינוס'],
+                  ['Store / Place *', 'magasin', langue === 'en' ? 'e.g. Dominos, KSP' : 'לדוגמה: דומינוס, KSP'],
+                ].map(([label, key, placeholder]) => (
                   <div key={key} style={{ marginBottom: 12 }}>
                     <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--text-sub)', marginBottom: 5 }}>{label}</label>
-                    <input type={type} placeholder={placeholder} value={postForm[key]}
+                    <input type="text" placeholder={placeholder} value={postForm[key]}
                       onChange={e => setPostForm({ ...postForm, [key]: e.target.value })}
                       style={{ width: '100%', padding: '12px 14px', borderRadius: 14, border: '0.5px solid var(--border)', background: 'var(--bg-input)', color: 'var(--text)', fontSize: 14, outline: 'none' }}
                     />
                   </div>
                 ))}
+
+                {/* City dropdown */}
+                <div style={{ marginBottom: 12 }}>
+                  <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--text-sub)', marginBottom: 5 }}>
+                    {langue === 'en' ? 'City' : 'עיר'}
+                  </label>
+                  <select
+                    value={postForm.ville}
+                    onChange={e => setPostForm({ ...postForm, ville: e.target.value })}
+                    style={{
+                      width: '100%', padding: '12px 14px', borderRadius: 14,
+                      border: '0.5px solid var(--border)', background: 'var(--bg-input)',
+                      color: postForm.ville ? 'var(--text)' : 'var(--text-muted)',
+                      fontSize: 14, outline: 'none', appearance: 'none',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    <option value="">{langue === 'en' ? 'Select a city…' : 'בחר עיר…'}</option>
+                    {Object.keys(CITY_COORDS).map(v => (
+                      <option key={v} value={v}>{traduireVille(v, langue)}</option>
+                    ))}
+                    <option value="אונליין">{langue === 'en' ? '🌐 Online deal' : '🌐 דיל אונליין'}</option>
+                  </select>
+                </div>
 
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 12 }}>
                   {[['Deal price *', 'prix', '₪39'], ['Original price', 'prix_original', '₪79']].map(([label, key, ph]) => (

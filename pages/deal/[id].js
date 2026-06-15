@@ -24,6 +24,7 @@ export default function DealPage() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [commentError, setCommentError] = useState('');
   const [myVote, setMyVote] = useState(null);
   const [mounted, setMounted] = useState(false);
 
@@ -73,19 +74,26 @@ export default function DealPage() {
     if (!user) { router.push(`/auth?redirect=/deal/${id}`); return; }
     if (!newComment.trim()) return;
     setSubmitting(true);
+    setCommentError('');
     const displayName = user.user_metadata?.display_name || user.email?.split('@')[0] || 'User';
-    await fetch('/api/commentaires', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        bon_plan_id: id,
-        contenu: newComment.trim(),
-        auteur_nom: displayName,
-        auteur_id: user.id,
-      }),
-    });
-    setNewComment('');
-    await fetchComments();
+    try {
+      const r = await fetch('/api/commentaires', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          bon_plan_id: id,
+          contenu: newComment.trim(),
+          auteur_nom: displayName,
+          auteur_id: user.id,
+        }),
+      });
+      const d = await r.json();
+      if (!r.ok || d.erreur) { setCommentError(d.erreur || 'Failed to post comment'); setSubmitting(false); return; }
+      setNewComment('');
+      await fetchComments();
+    } catch (e) {
+      setCommentError(e.message || 'Network error');
+    }
     setSubmitting(false);
   };
 
@@ -124,7 +132,10 @@ export default function DealPage() {
         WebkitBackdropFilter: 'blur(20px)',
       }}>
         <div style={{ maxWidth: 600, margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <button onClick={() => router.back()} style={{
+          <button onClick={() => {
+            try { sessionStorage.setItem('dilzReturnTab', 'deals'); } catch {}
+            router.back();
+          }} style={{
             background: 'none', border: 'none',
             color: 'var(--text-sub)', fontSize: 14, fontWeight: 500, cursor: 'pointer',
           }}>
@@ -274,6 +285,7 @@ export default function DealPage() {
           )}
 
           {/* Comment input */}
+          {commentError && <p style={{ color: '#DC2626', fontSize: 13, marginBottom: 8 }}>{commentError}</p>}
           {user ? (
             <div style={{ display: 'flex', gap: 10 }}>
               <input

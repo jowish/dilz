@@ -12,9 +12,12 @@ export default async function handler(req, res) {
   }
 
   const supabase = createClient(url, anonKey);
-  const supabaseAdmin = serviceKey ? createClient(url, serviceKey) : supabase;
 
   try {
+    const supabaseAdmin = (() => {
+      try { return serviceKey ? createClient(url, serviceKey) : supabase; }
+      catch { return supabase; }
+    })();
     if (req.method === 'GET') {
       const { ville, categorie, limit = 50, tri = 'hot' } = req.query;
       let query = supabase
@@ -59,14 +62,16 @@ export default async function handler(req, res) {
       if (date_debut && date_debut.trim()) insertData.date_debut = date_debut;
       if (date_fin && date_fin.trim()) insertData.date_fin = date_fin;
 
-      const { data, error } = await supabaseAdmin
+      const { error } = await supabaseAdmin
         .from('bons_plans')
-        .insert([insertData])
-        .select()
-        .single();
+        .insert([insertData]);
 
-      if (error) return res.status(500).json({ erreur: error.message });
-      return res.status(201).json({ bon_plan: data });
+      if (error) return res.status(500).json({
+        erreur: error.message,
+        code: error.code || null,
+        hint: error.hint || error.details || null,
+      });
+      return res.status(201).json({ bon_plan: { ...insertData, created_at: new Date().toISOString() } });
     }
 
     if (req.method === 'PATCH') {
