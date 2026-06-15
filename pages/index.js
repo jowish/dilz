@@ -774,16 +774,25 @@ function PostDealModal({ user, lang, onClose, onSuccess }) {
       uploadPath = path;
 
       setUploadPhase('saving');
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        setError('Session expired. Please sign in again.');
+        if (uploadPath) await deleteDealImage(uploadPath);
+        setSubmitting(false);
+        setUploadPhase(null);
+        return;
+      }
       const res = await fetch('/api/bons-plans', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`,
+        },
         body: JSON.stringify({
           ...form,
           prix: parseFloat(form.prix),
           prix_original: form.prix_original ? parseFloat(form.prix_original) : null,
           image_url: url,
-          auteur_id: user.id,
-          auteur_nom: user.user_metadata?.display_name || user.email?.split('@')[0] || 'Anonymous',
         }),
       });
       const data = await res.json();

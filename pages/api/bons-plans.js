@@ -51,17 +51,29 @@ export default async function handler(req, res) {
 
     // ─── POST ─────────────────────────────────────────────────────────────────
     if (req.method === 'POST') {
+      // Auth required — identity comes from JWT, never from body
+      const { user, error: authErr } = await verifyUser();
+      if (!user) return res.status(401).json({ erreur: authErr });
+
       const {
         titre, description, prix, prix_original, magasin, ville,
-        auteur_nom, auteur_id, categorie, url_source, image_url,
+        categorie, url_source, image_url,
         date_debut, date_fin,
       } = req.body;
 
       if (!titre || !prix || !magasin) {
         return res.status(400).json({ erreur: 'titre, prix and magasin are required.' });
       }
+      if (!image_url) {
+        return res.status(400).json({ erreur: 'image_url is required.' });
+      }
 
-      const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+      const auteur_nom =
+        user.user_metadata?.display_name ||
+        user.user_metadata?.full_name ||
+        user.email?.split('@')[0] ||
+        'Anonymous';
+
       const insertData = {
         titre,
         description: description || null,
@@ -69,10 +81,10 @@ export default async function handler(req, res) {
         prix_original: prix_original ? Number(prix_original) : null,
         magasin,
         ville: ville || null,
-        auteur_nom: auteur_nom || 'Anonymous',
-        image_url: image_url || null,
+        auteur_id: user.id,
+        auteur_nom,
+        image_url,
       };
-      if (auteur_id && UUID_RE.test(String(auteur_id))) insertData.auteur_id = auteur_id;
       if (categorie) insertData.categorie = categorie;
       if (url_source && url_source.startsWith('http')) insertData.url_source = url_source;
       if (date_debut && String(date_debut).trim()) insertData.date_debut = date_debut;
