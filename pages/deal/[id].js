@@ -4,8 +4,8 @@ import Link from 'next/link';
 import { supabase } from '../../lib/supabase';
 import { traduireVille } from '../../lib/translations';
 
-const ACCENT = '#0284C7';
-const ACCENT_DARK = '#0369A1';
+const ACCENT = '#D4622A';
+const ACCENT_DARK = '#B84E20';
 
 const CATEGORIES = ['Food', 'Tech', 'Fashion', 'Activities', 'Online'];
 

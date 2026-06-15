@@ -3,8 +3,8 @@ import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { supabase } from '../lib/supabase';
 
-const ACCENT = '#0284C7';
-const ACCENT_DARK = '#0369A1';
+const ACCENT = '#D4622A';
+const ACCENT_DARK = '#B84E20';
 
 function timeAgo(date) {
   const diff = Date.now() - new Date(date).getTime();

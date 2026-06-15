@@ -7,6 +7,7 @@
 :root {
   --accent: #D4622A;
   --accent-dark: #B84E20;
+  --accent-rgb: 212,98,42;
 
   --bg: #F5F3EF;
   --bg-card: #FFFFFF;
@@ -16,41 +17,71 @@
   --text: #1A1814;
   --text-sub: #8A8070;
   --text-muted: #C5BDB0;
-  --nav-bg: rgba(245,243,239,0.95);
+  --nav-bg: rgba(245,243,239,0.92);
 
   --shadow-card: 0 2px 16px rgba(0,0,0,0.06);
-  --shadow-float: 0 8px 28px rgba(0,0,0,0.12);
-  --shadow-accent: 0 4px 18px rgba(212,98,42,0.4);
+  --shadow-float: 0 8px 32px rgba(0,0,0,0.12);
+  --shadow-nav: 0 -1px 0 rgba(0,0,0,0.06);
+  --shadow-accent: 0 4px 18px rgba(212,98,42,0.35);
 }
 
 .dark {
-  --bg: #141418;
-  --bg-card: #1D1D23;
-  --bg-card2: #25252D;
-  --bg-input: #25252D;
-  --border: #32323E;
-  --text: #E8E4DE;
-  --text-sub: #8A8898;
-  --text-muted: #5C5A6A;
-  --nav-bg: rgba(20,20,24,0.95);
+  --bg: #0E0E12;
+  --bg-card: #17171D;
+  --bg-card2: #1E1E26;
+  --bg-input: #1E1E26;
+  --border: #2A2A35;
+  --text: #F0EDE8;
+  --text-sub: #9A948C;
+  --text-muted: #5C5869;
+  --nav-bg: rgba(14,14,18,0.92);
 
-  --shadow-card: none;
-  --shadow-float: 0 8px 28px rgba(0,0,0,0.4);
+  --shadow-card: 0 2px 16px rgba(0,0,0,0.3);
+  --shadow-float: 0 8px 32px rgba(0,0,0,0.5);
+  --shadow-nav: 0 -1px 0 rgba(255,255,255,0.04);
   --shadow-accent: 0 4px 18px rgba(212,98,42,0.3);
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', Helvetica, Arial, sans-serif;
   background: var(--bg);
   color: var(--text);
   -webkit-font-smoothing: antialiased;
-  transition: background 0.3s ease, color 0.3s ease;
+  -moz-osx-font-smoothing: grayscale;
+  transition: background 0.25s ease, color 0.25s ease;
+  overscroll-behavior: none;
 }
 
 input, button, select, textarea {
   font-family: inherit;
 }
 
+::-webkit-scrollbar {
+  display: none;
+}
+
 * {
-  transition: background-color 0.3s ease, border-color 0.3s ease;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+/* Smooth theme transitions on targeted properties only */
+*,
+*::before,
+*::after {
+  transition-property: background-color, border-color, color, box-shadow;
+  transition-duration: 0.2s;
+  transition-timing-function: ease;
+}
+
+/* But never transition transforms/opacity (breaks animations) */
+button,
+a,
+img {
+  transition-property: background-color, border-color, color, box-shadow, opacity, transform;
+  transition-duration: 0.15s;
 }

@@ -1,20 +1,22 @@
 import { useState, useEffect, useRef } from 'react';
+import Head from 'next/head';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useTheme } from 'next-themes';
 import { translations, traduireVille } from '../lib/translations';
 import { supabase } from '../lib/supabase';
 
-const ACCENT = '#0284C7';
-const ACCENT_DARK = '#0369A1';
+// ─── Design tokens ────────────────────────────────────────────────────────────
+const ACCENT = '#D4622A';
+const ACCENT_DARK = '#B84E20';
 
 const STORE_COLORS = {
-  'שופרסל': { color: '#2563EB', bg: '#EFF6FF', bgDark: '#1E2D4A', nameEn: 'Shufersal' },
-  'רמי לוי': { color: '#DC2626', bg: '#FEF2F2', bgDark: '#3D1A1A', nameEn: 'Rami Levy' },
-  'ויקטורי': { color: '#7C3AED', bg: '#F5F3FF', bgDark: '#2D1F4A', nameEn: 'Victory' },
-  'יוחננוף': { color: '#059669', bg: '#ECFDF5', bgDark: '#1A3D2E', nameEn: 'Yohananof' },
-  'אושר עד': { color: '#D97706', bg: '#FFFBEB', bgDark: '#3D2E0A', nameEn: 'Osher Ad' },
-  'כרפור': { color: '#0070CC', bg: '#EFF6FF', bgDark: '#162A3D', nameEn: 'Carrefour' },
+  'שופרסל':  { color: '#2563EB', bg: '#EFF6FF', dark: '#1A2744', nameEn: 'Shufersal' },
+  'רמי לוי': { color: '#DC2626', bg: '#FEF2F2', dark: '#3D1212', nameEn: 'Rami Levy' },
+  'ויקטורי': { color: '#7C3AED', bg: '#F5F3FF', dark: '#2A1845', nameEn: 'Victory' },
+  'יוחננוף': { color: '#059669', bg: '#ECFDF5', dark: '#0F3025', nameEn: 'Yohananof' },
+  'אושר עד': { color: '#D97706', bg: '#FFFBEB', dark: '#3B2500', nameEn: 'Osher Ad' },
+  'כרפור':   { color: '#0284C7', bg: '#F0F9FF', dark: '#0C2336', nameEn: 'Carrefour' },
 };
 
 const STORE_FILTERS = [
@@ -24,85 +26,99 @@ const STORE_FILTERS = [
   { id: 'ויקטורי', nameEn: 'Victory' },
   { id: 'יוחננוף', nameEn: 'Yohananof' },
   { id: 'אושר עד', nameEn: 'Osher Ad' },
-  { id: 'כרפור', nameEn: 'Carrefour' },
+  { id: 'כרפור',   nameEn: 'Carrefour' },
 ];
 
 const CATEGORIES = ['all', 'Food', 'Tech', 'Fashion', 'Activities', 'Online'];
+const CATEGORY_ICONS = { all: '✦', Food: '🍕', Tech: '💻', Fashion: '👗', Activities: '⚽', Online: '🌐' };
+
+const POPULAR_CITIES = ['תל אביב', 'ירושלים', 'חיפה', 'ראשון לציון', 'נתניה', 'רעננה', 'הרצליה', 'כפר סבא', 'רמת גן', 'פתח תקווה'];
 
 const CITY_COORDS = {
-  'תל אביב': { lat: 32.0853, lon: 34.7818 },
-  'ירושלים': { lat: 31.7683, lon: 35.2137 },
-  'חיפה': { lat: 32.7940, lon: 34.9896 },
-  'באר שבע': { lat: 31.2518, lon: 34.7913 },
-  'אילת': { lat: 29.5577, lon: 34.9519 },
-  'נתניה': { lat: 32.3226, lon: 34.8533 },
-  'ראשון לציון': { lat: 31.9730, lon: 34.7925 },
-  'פתח תקווה': { lat: 32.0878, lon: 34.8878 },
-  'אשדוד': { lat: 31.7918, lon: 34.6495 },
-  'אשקלון': { lat: 31.6688, lon: 34.5743 },
-  'הרצליה': { lat: 32.1652, lon: 34.8440 },
-  'כפר סבא': { lat: 32.1786, lon: 34.9078 },
-  'רמת גן': { lat: 32.0821, lon: 34.8137 },
-  'בני ברק': { lat: 32.0804, lon: 34.8338 },
-  'חולון': { lat: 32.0114, lon: 34.7794 },
-  'בת ים': { lat: 32.0204, lon: 34.7508 },
-  'נהריה': { lat: 33.0073, lon: 35.0987 },
-  'עכו': { lat: 32.9225, lon: 35.0779 },
-  'טבריה': { lat: 32.7956, lon: 35.5310 },
-  'צפת': { lat: 32.9646, lon: 35.4966 },
-  'נצרת': { lat: 32.6996, lon: 35.3034 },
-  'רחובות': { lat: 31.8928, lon: 34.8113 },
-  'מודיעין': { lat: 31.8979, lon: 35.0100 },
-  'לוד': { lat: 31.9519, lon: 34.8893 },
-  'רמלה': { lat: 31.9283, lon: 34.8635 },
-  'קריית גת': { lat: 31.6095, lon: 34.7748 },
-  'דימונה': { lat: 31.0638, lon: 35.0278 },
-  'אופקים': { lat: 31.3120, lon: 34.6221 },
-  'עפולה': { lat: 32.6078, lon: 35.2897 },
-  'כרמיאל': { lat: 32.9146, lon: 35.2962 },
-  'ראש העין': { lat: 32.0969, lon: 34.9566 },
-  'רעננה': { lat: 32.1836, lon: 34.8711 },
-  'יהוד': { lat: 32.0326, lon: 34.8881 },
-  'גבעתיים': { lat: 32.0704, lon: 34.8118 },
-  'אור יהודה': { lat: 32.0267, lon: 34.8569 },
-  'קריית אונו': { lat: 32.0639, lon: 34.8556 },
+  'תל אביב':      { lat: 32.0853, lon: 34.7818 },
+  'ירושלים':      { lat: 31.7683, lon: 35.2137 },
+  'חיפה':         { lat: 32.7940, lon: 34.9896 },
+  'באר שבע':      { lat: 31.2518, lon: 34.7913 },
+  'אילת':         { lat: 29.5577, lon: 34.9519 },
+  'נתניה':        { lat: 32.3226, lon: 34.8533 },
+  'ראשון לציון':  { lat: 31.9730, lon: 34.7925 },
+  'פתח תקווה':    { lat: 32.0878, lon: 34.8878 },
+  'אשדוד':        { lat: 31.7918, lon: 34.6495 },
+  'אשקלון':       { lat: 31.6688, lon: 34.5743 },
+  'הרצליה':       { lat: 32.1652, lon: 34.8440 },
+  'כפר סבא':      { lat: 32.1786, lon: 34.9078 },
+  'רמת גן':       { lat: 32.0821, lon: 34.8137 },
+  'בני ברק':      { lat: 32.0804, lon: 34.8338 },
+  'חולון':        { lat: 32.0114, lon: 34.7794 },
+  'בת ים':        { lat: 32.0204, lon: 34.7508 },
+  'נהריה':        { lat: 33.0073, lon: 35.0987 },
+  'עכו':          { lat: 32.9225, lon: 35.0779 },
+  'טבריה':        { lat: 32.7956, lon: 35.5310 },
+  'צפת':          { lat: 32.9646, lon: 35.4966 },
+  'נצרת':         { lat: 32.6996, lon: 35.3034 },
+  'רחובות':       { lat: 31.8928, lon: 34.8113 },
+  'מודיעין':      { lat: 31.8979, lon: 35.0100 },
+  'לוד':          { lat: 31.9519, lon: 34.8893 },
+  'רמלה':         { lat: 31.9283, lon: 34.8635 },
+  'קריית גת':     { lat: 31.6095, lon: 34.7748 },
+  'דימונה':       { lat: 31.0638, lon: 35.0278 },
+  'אופקים':       { lat: 31.3120, lon: 34.6221 },
+  'עפולה':        { lat: 32.6078, lon: 35.2897 },
+  'כרמיאל':       { lat: 32.9146, lon: 35.2962 },
+  'ראש העין':     { lat: 32.0969, lon: 34.9566 },
+  'רעננה':        { lat: 32.1836, lon: 34.8711 },
+  'יהוד':         { lat: 32.0326, lon: 34.8881 },
+  'גבעתיים':      { lat: 32.0704, lon: 34.8118 },
+  'אור יהודה':    { lat: 32.0267, lon: 34.8569 },
+  'קריית אונו':   { lat: 32.0639, lon: 34.8556 },
 };
 
+// ─── Helpers ──────────────────────────────────────────────────────────────────
 function distanceKm(lat1, lon1, lat2, lon2) {
   const R = 6371;
   const dLat = (lat2 - lat1) * Math.PI / 180;
   const dLon = (lon2 - lon1) * Math.PI / 180;
-  const a = Math.sin(dLat / 2) ** 2 +
-    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon / 2) ** 2;
+  const a = Math.sin(dLat / 2) ** 2
+    + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon / 2) ** 2;
   return Math.round(R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)));
 }
 
-function timeAgo(date, langue) {
+function timeAgo(date, lang) {
   const diff = Date.now() - new Date(date).getTime();
+  const m = Math.floor(diff / 60000);
   const h = Math.floor(diff / 3600000);
-  if (h < 1) return langue === 'en' ? 'Just now' : 'זה עתה';
-  if (h < 24) return langue === 'en' ? `${h}h ago` : `${h}ש' `;
-  return langue === 'en' ? `${Math.floor(h / 24)}d ago` : `${Math.floor(h / 24)} ימים`;
+  const d = Math.floor(diff / 86400000);
+  if (m < 2)  return lang === 'he' ? 'זה עתה'       : 'Just now';
+  if (m < 60) return lang === 'he' ? `${m}ד'`       : `${m}m ago`;
+  if (h < 24) return lang === 'he' ? `${h}ש'`       : `${h}h ago`;
+  return       lang === 'he' ? `${d} ימים`           : `${d}d ago`;
 }
 
+function matchSearch(text, q) {
+  if (!q || !text) return !q;
+  return text.toLowerCase().includes(q.toLowerCase());
+}
 
+// ─── ThemeToggle ─────────────────────────────────────────────────────────────
 function ThemeToggle() {
   const { setTheme, resolvedTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
-  if (!mounted) return <div style={{ width: 32, height: 32 }} />;
-  const isDark = resolvedTheme === 'dark';
+  if (!mounted) return <div style={{ width: 34, height: 34 }} />;
+  const dark = resolvedTheme === 'dark';
   return (
     <button
-      onClick={() => setTheme(isDark ? 'light' : 'dark')}
+      onClick={() => setTheme(dark ? 'light' : 'dark')}
+      aria-label="Toggle theme"
       style={{
-        background: 'none', border: 'none', cursor: 'pointer',
-        color: 'var(--text-sub)', padding: 6,
-        display: 'flex', alignItems: 'center', borderRadius: 8,
+        width: 34, height: 34, borderRadius: 10,
+        background: 'var(--bg-card2)', border: '0.5px solid var(--border)',
+        cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+        color: 'var(--text-sub)',
       }}
     >
-      {isDark ? (
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+      {dark ? (
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
           <circle cx="12" cy="12" r="5" />
           <line x1="12" y1="1" x2="12" y2="3" /><line x1="12" y1="21" x2="12" y2="23" />
           <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" /><line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
@@ -110,7 +126,7 @@ function ThemeToggle() {
           <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" /><line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
         </svg>
       ) : (
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
           <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
         </svg>
       )}
@@ -118,174 +134,188 @@ function ThemeToggle() {
   );
 }
 
-function StoreBadge({ enseigne, langue, isDark }) {
-  const s = STORE_COLORS[enseigne];
+// ─── StoreBadge ──────────────────────────────────────────────────────────────
+function StoreBadge({ store, lang, isDark, size = 'sm' }) {
+  const s = STORE_COLORS[store];
+  const label = lang === 'en' ? (s?.nameEn || store) : store;
+  const pad = size === 'md' ? '4px 10px' : '3px 8px';
+  const fs = size === 'md' ? 12 : 11;
   if (!s) return (
-    <span style={{ fontSize: 11, fontWeight: 600, padding: '3px 8px', borderRadius: 20, background: 'var(--bg-card2)', color: 'var(--text-sub)' }}>
-      {enseigne}
-    </span>
+    <span style={{ fontSize: fs, fontWeight: 600, padding: pad, borderRadius: 20, background: 'var(--bg-card2)', color: 'var(--text-sub)' }}>{label}</span>
   );
   return (
-    <span style={{
-      fontSize: 11, fontWeight: 600,
-      padding: '3px 8px', borderRadius: 20,
-      background: isDark ? s.bgDark : s.bg,
-      color: s.color,
-    }}>
-      {langue === 'en' ? s.nameEn : enseigne}
+    <span style={{ fontSize: fs, fontWeight: 700, padding: pad, borderRadius: 20, background: isDark ? s.dark : s.bg, color: s.color }}>
+      {label}
     </span>
   );
 }
 
-function HeroPromoCard({ promo, langue, isDark, onClick, votes, onVote }) {
-  const s = STORE_COLORS[promo.meilleurEnseigne] || { color: ACCENT, bg: '#FEF0EB', bgDark: '#2A1A12', nameEn: promo.meilleurEnseigne };
-  const nom = (langue === 'en' && promo.nom_en) ? promo.nom_en : promo.nom;
+// ─── DiscountBadge ───────────────────────────────────────────────────────────
+function DiscountBadge({ pct, size = 'sm' }) {
+  if (!pct || pct < 3) return null;
+  const fs = size === 'lg' ? 14 : 11;
+  const pad = size === 'lg' ? '5px 12px' : '3px 8px';
+  return (
+    <span style={{ fontSize: fs, fontWeight: 800, padding: pad, borderRadius: 20, background: ACCENT, color: '#fff' }}>
+      -{pct}%
+    </span>
+  );
+}
+
+// ─── HeroPromoCard ───────────────────────────────────────────────────────────
+function HeroPromoCard({ promo, lang, isDark, onClick, votes, onVote }) {
+  const s = STORE_COLORS[promo.meilleurEnseigne] || { color: ACCENT, bg: '#FEF0EB', dark: '#2A1210', nameEn: promo.meilleurEnseigne };
+  const nom = (lang === 'en' && promo.nom_en) ? promo.nom_en : promo.nom;
   const myVote = votes?.myVote;
 
   return (
-    <div
-      style={{
-        borderRadius: 22,
-        overflow: 'hidden',
-        marginBottom: 16,
-        background: isDark
-          ? `linear-gradient(135deg, ${s.bgDark} 0%, #17171D 100%)`
-          : `linear-gradient(135deg, ${s.bg} 0%, #fff 100%)`,
-        boxShadow: 'var(--shadow-float)',
-        position: 'relative',
-      }}
-    >
-      <div onClick={onClick} style={{ padding: '20px 20px 16px', cursor: 'pointer' }}>
-        <div style={{
-          display: 'inline-flex', alignItems: 'center', gap: 6,
-          background: ACCENT, color: '#fff',
-          fontSize: 12, fontWeight: 800,
-          padding: '4px 10px', borderRadius: 20,
-          marginBottom: 14,
-        }}>
-          🔥 -{promo.reduction}% {langue === 'en' ? 'OFF' : 'הנחה'}
+    <div style={{
+      borderRadius: 24, overflow: 'hidden', marginBottom: 16,
+      background: isDark
+        ? `linear-gradient(145deg, ${s.dark} 0%, #0E0E12 100%)`
+        : `linear-gradient(145deg, ${s.bg} 0%, #FFFFFF 100%)`,
+      boxShadow: 'var(--shadow-float)',
+      border: `0.5px solid ${isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)'}`,
+    }}>
+      {/* Image or gradient banner */}
+      <div
+        onClick={onClick}
+        style={{
+          height: 160, cursor: 'pointer', position: 'relative',
+          background: isDark
+            ? `linear-gradient(145deg, ${s.dark}, #17171D)`
+            : `linear-gradient(145deg, ${s.bg}, #fff)`,
+          display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden',
+        }}
+      >
+        {promo.image ? (
+          <img
+            src={promo.image} alt={nom}
+            style={{ maxHeight: '100%', maxWidth: '100%', objectFit: 'contain' }}
+            onError={e => { e.target.style.display = 'none'; }}
+          />
+        ) : (
+          <div style={{ fontSize: 64, opacity: 0.6 }}>🛍️</div>
+        )}
+        {/* Overlay badges */}
+        <div style={{ position: 'absolute', top: 12, left: 12 }}>
+          <StoreBadge store={promo.meilleurEnseigne} lang={lang} isDark={isDark} size="md" />
         </div>
-
-        <p style={{
-          fontSize: 16, fontWeight: 700,
-          color: isDark ? '#F0EDE8' : '#1A1814',
-          marginBottom: 12,
-          lineHeight: 1.4,
-          textAlign: langue === 'he' ? 'right' : 'left',
-        }}>{nom}</p>
-
-        <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, justifyContent: langue === 'he' ? 'flex-end' : 'flex-start' }}>
-          <span style={{ fontSize: 32, fontWeight: 900, color: ACCENT }}>₪{promo.prixMin}</span>
-          <span style={{ fontSize: 16, color: 'var(--text-sub)', textDecoration: 'line-through' }}>₪{promo.prixMax}</span>
-        </div>
-
-        <div style={{ marginTop: 12 }}>
-          <StoreBadge enseigne={promo.meilleurEnseigne} langue={langue} isDark={isDark} />
+        <div style={{ position: 'absolute', top: 12, right: 12 }}>
+          <DiscountBadge pct={promo.reduction} size="sm" />
         </div>
       </div>
 
-      {/* Vote buttons */}
+      {/* Info row */}
+      <div onClick={onClick} style={{ padding: '16px 20px 12px', cursor: 'pointer' }}>
+        <p style={{
+          fontSize: 15, fontWeight: 700, color: 'var(--text)',
+          marginBottom: 8, lineHeight: 1.4, textAlign: lang === 'he' ? 'right' : 'left',
+        }}>{nom}</p>
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: 10 }}>
+          <span style={{ fontSize: 34, fontWeight: 900, color: ACCENT, letterSpacing: '-1px' }}>
+            ₪{promo.prixMin.toFixed(2)}
+          </span>
+          <span style={{ fontSize: 17, color: 'var(--text-muted)', textDecoration: 'line-through' }}>
+            ₪{promo.prixMax.toFixed(2)}
+          </span>
+          <span style={{ fontSize: 13, fontWeight: 700, color: '#10B981', marginLeft: 'auto' }}>
+            Save ₪{(promo.prixMax - promo.prixMin).toFixed(2)}
+          </span>
+        </div>
+      </div>
+
+      {/* Vote row */}
       <div style={{
-        display: 'flex', gap: 8, padding: '12px 20px 20px',
-        borderTop: `0.5px solid ${isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'}`,
+        display: 'flex', gap: 8, padding: '10px 20px 18px',
+        borderTop: `0.5px solid ${isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)'}`,
       }}>
         <button onClick={() => onVote(promo.barcode, 'chaud')} style={{
           flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-          padding: '10px', borderRadius: 14, border: 'none',
-          background: myVote === 'chaud' ? ACCENT : (isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'),
-          color: myVote === 'chaud' ? '#fff' : (isDark ? '#F0EDE8' : '#1A1814'),
-          fontSize: 13, fontWeight: 700, cursor: 'pointer',
-          transition: 'all 0.15s',
-        }}>🔥 {votes?.chaud || 0}</button>
+          padding: '10px 0', borderRadius: 14, border: 'none',
+          background: myVote === 'chaud' ? ACCENT : 'var(--bg-card2)',
+          color: myVote === 'chaud' ? '#fff' : 'var(--text)',
+          fontSize: 14, fontWeight: 700, cursor: 'pointer',
+        }}>🔥 {votes?.chaud || 0} <span style={{ fontSize: 11, opacity: 0.7, fontWeight: 500 }}>Hot</span></button>
         <button onClick={() => onVote(promo.barcode, 'froid')} style={{
           flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-          padding: '10px', borderRadius: 14, border: 'none',
-          background: myVote === 'froid' ? '#4B9FE1' : (isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'),
-          color: myVote === 'froid' ? '#fff' : (isDark ? '#F0EDE8' : '#1A1814'),
-          fontSize: 13, fontWeight: 700, cursor: 'pointer',
-          transition: 'all 0.15s',
-        }}>❄️ {votes?.froid || 0}</button>
+          padding: '10px 0', borderRadius: 14, border: 'none',
+          background: myVote === 'froid' ? '#6B7280' : 'var(--bg-card2)',
+          color: myVote === 'froid' ? '#fff' : 'var(--text)',
+          fontSize: 14, fontWeight: 700, cursor: 'pointer',
+        }}>❄️ {votes?.froid || 0} <span style={{ fontSize: 11, opacity: 0.7, fontWeight: 500 }}>Cold</span></button>
+        <button onClick={onClick} style={{
+          padding: '10px 16px', borderRadius: 14, border: 'none',
+          background: 'var(--bg-card2)', color: 'var(--text-sub)',
+          fontSize: 13, fontWeight: 600, cursor: 'pointer',
+        }}>↗</button>
       </div>
     </div>
   );
 }
 
-function PromoCard({ promo, langue, isDark, onClick, votes, onVote }) {
-  const s = STORE_COLORS[promo.meilleurEnseigne] || { color: ACCENT, bg: '#FEF0EB', bgDark: '#2A1A12', nameEn: promo.meilleurEnseigne };
-  const nom = (langue === 'en' && promo.nom_en) ? promo.nom_en : promo.nom;
-  const initials = (nom || '').split(' ').slice(0, 2).map(w => w[0] || '').join('').toUpperCase() || '?';
+// ─── PromoCard (compact grid) ─────────────────────────────────────────────────
+function PromoCard({ promo, lang, isDark, onClick, votes, onVote }) {
+  const s = STORE_COLORS[promo.meilleurEnseigne] || { color: ACCENT, bg: '#FEF0EB', dark: '#2A1210', nameEn: promo.meilleurEnseigne };
+  const nom = (lang === 'en' && promo.nom_en) ? promo.nom_en : promo.nom;
   const myVote = votes?.myVote;
 
   return (
-    <div
-      style={{
-        background: 'var(--bg-card)',
-        borderRadius: 20,
-        overflow: 'hidden',
-        boxShadow: 'var(--shadow-card)',
-      }}
-    >
+    <div style={{
+      background: 'var(--bg-card)', borderRadius: 20, overflow: 'hidden',
+      boxShadow: 'var(--shadow-card)',
+      border: `0.5px solid ${isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)'}`,
+    }}>
       <div onClick={onClick} style={{ cursor: 'pointer' }}>
+        {/* Colored top */}
         <div style={{
-          height: 90,
+          height: 80,
           background: isDark
-            ? `linear-gradient(135deg, ${s.bgDark}, #1E1E26)`
+            ? `linear-gradient(135deg, ${s.dark}, #17171D)`
             : `linear-gradient(135deg, ${s.bg}, #fff)`,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
           position: 'relative',
         }}>
-          <div style={{
-            position: 'absolute', top: 10,
-            [langue === 'he' ? 'left' : 'right']: 10,
-            background: ACCENT, color: '#fff',
-            fontSize: 10, fontWeight: 800,
-            padding: '3px 7px', borderRadius: 20,
-          }}>-{promo.reduction}%</div>
-
-          <div style={{
-            width: 48, height: 48, borderRadius: 14,
-            background: s.color,
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-          }}>
-            <span style={{ color: '#fff', fontSize: 16, fontWeight: 700 }}>{initials}</span>
+          {promo.image ? (
+            <img src={promo.image} alt={nom} style={{ maxHeight: 72, maxWidth: '90%', objectFit: 'contain' }}
+              onError={e => { e.target.style.display = 'none'; }} />
+          ) : (
+            <span style={{ fontSize: 36, opacity: 0.7 }}>🛍️</span>
+          )}
+          <div style={{ position: 'absolute', top: 6, right: 6 }}>
+            <DiscountBadge pct={promo.reduction} />
           </div>
         </div>
 
+        {/* Info */}
         <div style={{ padding: '10px 12px 8px' }}>
           <p style={{
-            fontSize: 12, fontWeight: 600, color: 'var(--text)',
-            marginBottom: 8, lineHeight: 1.4,
-            textAlign: langue === 'he' ? 'right' : 'left',
-            overflow: 'hidden',
-            display: '-webkit-box',
-            WebkitLineClamp: 2,
-            WebkitBoxOrient: 'vertical',
+            fontSize: 12, fontWeight: 600, color: 'var(--text)', lineHeight: 1.4,
+            marginBottom: 6, overflow: 'hidden',
+            display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical',
+            textAlign: lang === 'he' ? 'right' : 'left',
           }}>{nom}</p>
-
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 6 }}>
-            <span style={{ fontSize: 20, fontWeight: 800, color: ACCENT }}>₪{promo.prixMin}</span>
-            <span style={{ fontSize: 12, color: 'var(--text-muted)', textDecoration: 'line-through' }}>₪{promo.prixMax}</span>
+            <span style={{ fontSize: 20, fontWeight: 800, color: ACCENT }}>₪{promo.prixMin.toFixed(2)}</span>
+            <span style={{ fontSize: 12, color: 'var(--text-muted)', textDecoration: 'line-through' }}>₪{promo.prixMax.toFixed(2)}</span>
           </div>
-
-          <StoreBadge enseigne={promo.meilleurEnseigne} langue={langue} isDark={isDark} />
+          <StoreBadge store={promo.meilleurEnseigne} lang={lang} isDark={isDark} />
         </div>
       </div>
 
-      {/* Compact vote buttons */}
-      <div style={{ display: 'flex', gap: 4, padding: '8px 10px 10px', borderTop: '0.5px solid var(--border)' }}>
+      {/* Compact vote row */}
+      <div style={{ display: 'flex', gap: 4, padding: '6px 8px 10px', borderTop: '0.5px solid var(--border)' }}>
         <button onClick={() => onVote(promo.barcode, 'chaud')} style={{
           flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 3,
-          padding: '5px 4px', borderRadius: 10, border: 'none',
+          padding: '5px 0', borderRadius: 10, border: 'none',
           background: myVote === 'chaud' ? ACCENT : 'var(--bg-card2)',
           color: myVote === 'chaud' ? '#fff' : 'var(--text)',
           fontSize: 11, fontWeight: 700, cursor: 'pointer',
         }}>🔥 {votes?.chaud || 0}</button>
         <button onClick={() => onVote(promo.barcode, 'froid')} style={{
           flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 3,
-          padding: '5px 4px', borderRadius: 10, border: 'none',
-          background: myVote === 'froid' ? '#4B9FE1' : 'var(--bg-card2)',
+          padding: '5px 0', borderRadius: 10, border: 'none',
+          background: myVote === 'froid' ? '#6B7280' : 'var(--bg-card2)',
           color: myVote === 'froid' ? '#fff' : 'var(--text)',
           fontSize: 11, fontWeight: 700, cursor: 'pointer',
         }}>❄️ {votes?.froid || 0}</button>
@@ -294,244 +324,268 @@ function PromoCard({ promo, langue, isDark, onClick, votes, onVote }) {
   );
 }
 
-function PromoModal({ promo, langue, isDark, onClose }) {
-  const s = STORE_COLORS[promo.meilleurEnseigne] || { color: ACCENT, bg: '#FEF0EB', bgDark: '#2A1A12', nameEn: promo.meilleurEnseigne };
-  const nom = (langue === 'en' && promo.nom_en) ? promo.nom_en : promo.nom;
+// ─── PromoModal ───────────────────────────────────────────────────────────────
+function PromoModal({ promo, lang, isDark, onClose }) {
+  const nom = (lang === 'en' && promo.nom_en) ? promo.nom_en : promo.nom;
+  useEffect(() => {
+    const esc = (e) => { if (e.key === 'Escape') onClose(); };
+    window.addEventListener('keydown', esc);
+    return () => window.removeEventListener('keydown', esc);
+  }, [onClose]);
 
   return (
-    <div
-      onClick={onClose}
-      style={{
-        position: 'fixed', inset: 0,
-        background: 'rgba(0,0,0,0.6)', zIndex: 200,
-        display: 'flex', alignItems: 'flex-end', justifyContent: 'center',
-      }}
-    >
-      <div
-        onClick={e => e.stopPropagation()}
-        style={{
-          background: 'var(--bg-card)',
-          borderRadius: '24px 24px 0 0',
-          padding: '20px 20px 44px',
-          width: '100%', maxWidth: 600,
-        }}
-      >
-        <div style={{ width: 36, height: 4, borderRadius: 2, background: 'var(--border)', margin: '0 auto 20px' }} />
+    <div onClick={onClose} style={{
+      position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.65)',
+      zIndex: 200, display: 'flex', alignItems: 'flex-end', justifyContent: 'center',
+    }}>
+      <div onClick={e => e.stopPropagation()} style={{
+        background: 'var(--bg-card)', borderRadius: '26px 26px 0 0',
+        padding: '20px 20px 48px', width: '100%', maxWidth: 600,
+        maxHeight: '80vh', overflowY: 'auto',
+      }}>
+        <div style={{ width: 40, height: 4, borderRadius: 2, background: 'var(--border)', margin: '0 auto 20px' }} />
+
+        {/* Product name */}
         <p style={{
-          fontSize: 17, fontWeight: 700, color: 'var(--text)',
-          textAlign: langue === 'he' ? 'right' : 'left',
-          marginBottom: 20, lineHeight: 1.4,
+          fontSize: 18, fontWeight: 800, color: 'var(--text)',
+          textAlign: lang === 'he' ? 'right' : 'left',
+          marginBottom: 20, lineHeight: 1.35,
         }}>{nom}</p>
 
+        {/* Price comparison */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           {promo.tousLesPrix.map(p => {
             const isBest = p.prix === promo.prixMin;
-            const ps = STORE_COLORS[p.enseigne] || { color: ACCENT, bg: '#FEF0EB', bgDark: '#2A1A12', nameEn: p.enseigne };
+            const ps = STORE_COLORS[p.enseigne] || { color: ACCENT, bg: '#FEF0EB', dark: '#2A1210' };
             return (
               <div key={p.enseigne} style={{
                 display: 'flex', justifyContent: 'space-between', alignItems: 'center',
                 padding: '14px 16px', borderRadius: 16,
-                background: isBest ? (isDark ? 'rgba(2,132,199,0.12)' : '#FEF0EB') : 'var(--bg-card2)',
+                background: isBest
+                  ? (isDark ? `rgba(212,98,42,0.12)` : '#FEF0EB')
+                  : 'var(--bg-card2)',
                 border: isBest ? `1.5px solid ${ACCENT}` : '0.5px solid var(--border)',
               }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  {isBest ? (
-                    <span style={{ fontSize: 11, fontWeight: 700, color: ACCENT }}>✓ {langue === 'en' ? 'Best' : 'הכי זול'}</span>
-                  ) : (
-                    <span style={{ fontSize: 12, color: 'var(--text-sub)' }}>+{(p.prix - promo.prixMin).toFixed(2)}₪</span>
-                  )}
-                </div>
+                <StoreBadge store={p.enseigne} lang={lang} isDark={isDark} size="md" />
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                  <span style={{ fontSize: 22, fontWeight: 800, color: isBest ? ACCENT : 'var(--text-sub)' }}>₪{p.prix}</span>
-                  <StoreBadge enseigne={p.enseigne} langue={langue} isDark={isDark} />
+                  {isBest && (
+                    <span style={{ fontSize: 11, fontWeight: 700, color: '#10B981', background: 'rgba(16,185,129,0.12)', padding: '2px 8px', borderRadius: 20 }}>
+                      ✓ Best
+                    </span>
+                  )}
+                  <span style={{ fontSize: 22, fontWeight: 900, color: isBest ? ACCENT : 'var(--text)' }}>
+                    ₪{p.prix.toFixed(2)}
+                  </span>
                 </div>
               </div>
             );
           })}
         </div>
 
+        {/* Saving summary */}
         <div style={{
-          marginTop: 16, padding: '14px 16px',
-          borderRadius: 16, background: 'var(--bg-card2)',
-          textAlign: 'center',
+          marginTop: 16, padding: '14px 20px', borderRadius: 16,
+          background: 'var(--bg-card2)', textAlign: 'center',
         }}>
           <span style={{ fontSize: 14, color: 'var(--text-sub)' }}>
-            {langue === 'en' ? 'Save up to' : 'חיסכון עד'}{' '}
-            <span style={{ fontWeight: 800, color: ACCENT }}>
-              ₪{(promo.prixMax - promo.prixMin).toFixed(2)}
-            </span>
+            {lang === 'en' ? 'Max saving:' : 'חיסכון מקסימלי:'}{' '}
+            <strong style={{ color: ACCENT, fontWeight: 800 }}>
+              ₪{(promo.prixMax - promo.prixMin).toFixed(2)} ({promo.reduction}% off)
+            </strong>
           </span>
         </div>
 
-        <button
-          onClick={onClose}
-          style={{
-            width: '100%', marginTop: 12, padding: 16,
-            borderRadius: 16, border: 'none',
-            background: 'var(--bg-card2)', color: 'var(--text-sub)',
-            fontSize: 15, fontWeight: 500, cursor: 'pointer',
-          }}
-        >
-          {langue === 'en' ? 'Close' : 'סגור'}
+        <button onClick={onClose} style={{
+          width: '100%', marginTop: 14, padding: 15, borderRadius: 16, border: 'none',
+          background: 'var(--bg-card2)', color: 'var(--text-sub)',
+          fontSize: 15, fontWeight: 600, cursor: 'pointer',
+        }}>
+          {lang === 'en' ? 'Close' : 'סגור'}
         </button>
       </div>
     </div>
   );
 }
 
-function DealCard({ deal, langue, onVote, userCoords, votedDeal, user }) {
+// ─── DealCard ─────────────────────────────────────────────────────────────────
+function DealCard({ deal, lang, onVote, userCoords, votedDeal, user, isDark }) {
   const router = useRouter();
   const reduction = deal.prix_original && deal.prix_original > deal.prix
     ? Math.round((deal.prix_original - deal.prix) / deal.prix_original * 100)
     : null;
 
   const dealCoords = deal.ville ? CITY_COORDS[deal.ville] : null;
-  const distance = (userCoords && dealCoords)
+  const dist = (userCoords && dealCoords)
     ? distanceKm(userCoords.lat, userCoords.lon, dealCoords.lat, dealCoords.lon)
     : null;
 
   const isOwner = user && user.id === deal.auteur_id;
+  const commentCount = deal.commentaires?.[0]?.count || 0;
+
+  const go = () => {
+    try {
+      sessionStorage.setItem('dilzReturnTab', 'deals');
+      sessionStorage.setItem('dilzScrollY', String(window.scrollY));
+    } catch {}
+    router.push(`/deal/${deal.id}`);
+  };
 
   return (
     <div style={{
-      background: 'var(--bg-card)',
-      borderRadius: 20,
-      overflow: 'hidden',
+      background: 'var(--bg-card)', borderRadius: 22, overflow: 'hidden',
       boxShadow: 'var(--shadow-card)',
-      marginBottom: 12,
+      border: `0.5px solid ${isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)'}`,
+      marginBottom: 14,
     }}>
-      <div
-        onClick={() => {
-          try { sessionStorage.setItem('dilzReturnTab', 'deals'); sessionStorage.setItem('dilzScrollY', String(window.scrollY)); } catch {}
-          router.push(`/deal/${deal.id}`);
-        }}
-        style={{ cursor: 'pointer', position: 'relative', height: deal.image_url ? 200 : 72, background: 'var(--bg-card2)' }}
-      >
+      {/* Image area */}
+      <div onClick={go} style={{
+        position: 'relative', cursor: 'pointer',
+        height: deal.image_url ? 210 : 80,
+        background: deal.image_url ? '#000' : 'var(--bg-card2)',
+        overflow: 'hidden',
+      }}>
         {deal.image_url ? (
           <img
-            src={deal.image_url}
-            alt={deal.titre}
-            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+            src={deal.image_url} alt={deal.titre}
+            style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.95 }}
             onError={e => { e.target.style.display = 'none'; }}
           />
         ) : (
           <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <span style={{ fontSize: 28 }}>🛍️</span>
+            <span style={{ fontSize: 32 }}>
+              {CATEGORY_ICONS[deal.categorie] || '🛍️'}
+            </span>
           </div>
         )}
 
+        {/* Overlaid badges */}
         {deal.categorie && (
-          <span style={{
-            position: 'absolute', top: 10, left: 10,
-            background: 'rgba(0,0,0,0.65)', color: '#fff',
-            fontSize: 11, fontWeight: 600, padding: '3px 8px', borderRadius: 20,
-          }}>{deal.categorie}</span>
+          <div style={{ position: 'absolute', top: 12, left: 12 }}>
+            <span style={{
+              fontSize: 11, fontWeight: 700, padding: '4px 10px', borderRadius: 20,
+              background: 'rgba(0,0,0,0.6)', color: '#fff', backdropFilter: 'blur(8px)',
+            }}>
+              {CATEGORY_ICONS[deal.categorie]} {deal.categorie}
+            </span>
+          </div>
         )}
         {reduction !== null && (
-          <span style={{
-            position: 'absolute', top: 10, right: 10,
-            background: ACCENT, color: '#fff',
-            fontSize: 11, fontWeight: 800, padding: '3px 8px', borderRadius: 20,
-          }}>-{reduction}% OFF</span>
+          <div style={{ position: 'absolute', top: 12, right: 12 }}>
+            <span style={{
+              fontSize: 12, fontWeight: 800, padding: '4px 10px', borderRadius: 20,
+              background: ACCENT, color: '#fff',
+            }}>
+              -{reduction}%
+            </span>
+          </div>
         )}
-        {deal.image_url && deal.prix && (
+
+        {/* Price overlay on image */}
+        {deal.image_url && (
           <div style={{
-            position: 'absolute', bottom: 10, left: 10,
-            background: 'rgba(0,0,0,0.7)', color: '#fff',
-            padding: '5px 12px', borderRadius: 12,
-            display: 'flex', alignItems: 'baseline', gap: 6,
+            position: 'absolute', bottom: 12, left: 12,
+            background: 'rgba(0,0,0,0.72)', backdropFilter: 'blur(8px)',
+            padding: '6px 12px', borderRadius: 14,
+            display: 'flex', alignItems: 'baseline', gap: 8,
           }}>
-            <span style={{ fontSize: 18, fontWeight: 800 }}>₪{deal.prix}</span>
+            <span style={{ fontSize: 20, fontWeight: 900, color: '#fff' }}>₪{deal.prix}</span>
             {deal.prix_original && (
-              <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.55)', textDecoration: 'line-through' }}>₪{deal.prix_original}</span>
+              <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)', textDecoration: 'line-through' }}>
+                ₪{deal.prix_original}
+              </span>
             )}
+          </div>
+        )}
+
+        {isOwner && (
+          <div style={{ position: 'absolute', bottom: 12, right: 12 }}>
+            <span style={{
+              fontSize: 11, fontWeight: 700, padding: '4px 8px', borderRadius: 10,
+              background: `${ACCENT}CC`, color: '#fff',
+            }}>✏️ Mine</span>
           </div>
         )}
       </div>
 
-      <div style={{ padding: '12px 16px 14px' }}>
+      {/* Content */}
+      <div style={{ padding: '13px 16px 0' }}>
         {!deal.image_url && (
-          <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 6, justifyContent: langue === 'he' ? 'flex-end' : 'flex-start' }}>
-            <span style={{ fontSize: 22, fontWeight: 800, color: ACCENT }}>₪{deal.prix}</span>
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 6 }}>
+            <span style={{ fontSize: 24, fontWeight: 900, color: ACCENT }}>₪{deal.prix}</span>
             {deal.prix_original && (
-              <span style={{ fontSize: 13, color: 'var(--text-muted)', textDecoration: 'line-through' }}>₪{deal.prix_original}</span>
+              <span style={{ fontSize: 14, color: 'var(--text-muted)', textDecoration: 'line-through' }}>₪{deal.prix_original}</span>
             )}
           </div>
         )}
 
-        <p
-          onClick={() => {
-            try { sessionStorage.setItem('dilzReturnTab', 'deals'); sessionStorage.setItem('dilzScrollY', String(window.scrollY)); } catch {}
-            router.push(`/deal/${deal.id}`);
-          }}
-          style={{
-            fontSize: 15, fontWeight: 700, color: 'var(--text)',
-            marginBottom: 6, cursor: 'pointer',
-            textAlign: langue === 'he' ? 'right' : 'left',
-          }}
-        >{deal.titre}</p>
+        <p onClick={go} style={{
+          fontSize: 15, fontWeight: 700, color: 'var(--text)', cursor: 'pointer',
+          marginBottom: 6, lineHeight: 1.35, textAlign: lang === 'he' ? 'right' : 'left',
+        }}>{deal.titre}</p>
 
+        {/* Meta row */}
         <p style={{
-          fontSize: 12, color: 'var(--text-sub)',
-          marginBottom: 12,
-          textAlign: langue === 'he' ? 'right' : 'left',
-          display: 'flex', alignItems: 'center', gap: 4,
-          justifyContent: langue === 'he' ? 'flex-end' : 'flex-start',
+          fontSize: 12, color: 'var(--text-sub)', marginBottom: 12,
+          display: 'flex', alignItems: 'center', gap: 4, flexWrap: 'wrap',
+          textAlign: lang === 'he' ? 'right' : 'left',
+          justifyContent: lang === 'he' ? 'flex-end' : 'flex-start',
         }}>
-          <span>📍</span>
-          <span>
-            {[deal.magasin, deal.ville].filter(Boolean).join(' · ')}
-            {distance !== null && (
-              <span style={{
-                marginLeft: 4,
-                background: distance <= 10 ? 'rgba(5,150,105,0.12)' : distance <= 50 ? 'rgba(2,132,199,0.1)' : 'var(--bg-card2)',
-                color: distance <= 10 ? '#059669' : distance <= 50 ? ACCENT : 'var(--text-muted)',
-                fontSize: 10, fontWeight: 700,
-                padding: '1px 6px', borderRadius: 10,
-              }}>~{distance} km</span>
-            )}
-            {' · '}{timeAgo(deal.created_at, langue)}
+          📍 {[deal.magasin, deal.ville ? traduireVille(deal.ville, lang) : null].filter(Boolean).join(' · ')}
+          {dist !== null && (
+            <span style={{
+              marginLeft: 4,
+              background: dist <= 10 ? 'rgba(16,185,129,0.12)' : dist <= 50 ? 'rgba(212,98,42,0.1)' : 'var(--bg-card2)',
+              color: dist <= 10 ? '#10B981' : dist <= 50 ? ACCENT : 'var(--text-muted)',
+              fontSize: 10, fontWeight: 700, padding: '1px 6px', borderRadius: 10,
+            }}>~{dist}km</span>
+          )}
+          <span style={{ color: 'var(--text-muted)', marginLeft: 4 }}>
+            · {timeAgo(deal.created_at, lang)}
             {deal.auteur_nom ? ` · ${deal.auteur_nom}` : ''}
           </span>
         </p>
 
-        <div style={{ display: 'flex', gap: 8, borderTop: '0.5px solid var(--border)', paddingTop: 10, alignItems: 'center' }}>
+        {/* Action row */}
+        <div style={{
+          display: 'flex', gap: 6, paddingTop: 10, paddingBottom: 14,
+          borderTop: '0.5px solid var(--border)',
+        }}>
           <button onClick={() => !votedDeal && onVote(deal.id, 'chaud')} style={{
             display: 'flex', alignItems: 'center', gap: 5,
             padding: '7px 14px', borderRadius: 20,
             background: votedDeal === 'chaud' ? ACCENT : 'var(--bg-card2)',
-            border: votedDeal === 'chaud' ? `0.5px solid ${ACCENT}` : '0.5px solid var(--border)',
+            border: votedDeal === 'chaud' ? `none` : '0.5px solid var(--border)',
             color: votedDeal === 'chaud' ? '#fff' : 'var(--text)',
             cursor: votedDeal ? 'default' : 'pointer',
-            opacity: votedDeal && votedDeal !== 'chaud' ? 0.45 : 1,
-            fontSize: 13, fontWeight: 600, transition: 'all 0.15s',
-          }}>🔥 {deal.votes_chaud}</button>
+            opacity: votedDeal && votedDeal !== 'chaud' ? 0.4 : 1,
+            fontSize: 13, fontWeight: 700,
+          }}>🔥 {deal.votes_chaud || 0}</button>
+
           <button onClick={() => !votedDeal && onVote(deal.id, 'froid')} style={{
             display: 'flex', alignItems: 'center', gap: 5,
             padding: '7px 14px', borderRadius: 20,
-            background: votedDeal === 'froid' ? '#4B9FE1' : 'var(--bg-card2)',
-            border: votedDeal === 'froid' ? '0.5px solid #4B9FE1' : '0.5px solid var(--border)',
+            background: votedDeal === 'froid' ? '#6B7280' : 'var(--bg-card2)',
+            border: votedDeal === 'froid' ? 'none' : '0.5px solid var(--border)',
             color: votedDeal === 'froid' ? '#fff' : 'var(--text)',
             cursor: votedDeal ? 'default' : 'pointer',
-            opacity: votedDeal && votedDeal !== 'froid' ? 0.45 : 1,
-            fontSize: 13, fontWeight: 600, transition: 'all 0.15s',
-          }}>❄️ {deal.votes_froid}</button>
-          <Link href={`/deal/${deal.id}`} style={{
-            display: 'flex', alignItems: 'center', gap: 5,
-            padding: '7px 14px', borderRadius: 20,
+            opacity: votedDeal && votedDeal !== 'froid' ? 0.4 : 1,
+            fontSize: 13, fontWeight: 700,
+          }}>❄️ {deal.votes_froid || 0}</button>
+
+          <button onClick={go} style={{
+            display: 'flex', alignItems: 'center', gap: 4,
+            padding: '7px 12px', borderRadius: 20,
             background: 'var(--bg-card2)', border: '0.5px solid var(--border)',
-            color: 'var(--text)', textDecoration: 'none', fontSize: 13, fontWeight: 600,
+            color: 'var(--text-sub)', fontSize: 13, fontWeight: 600, cursor: 'pointer',
             marginLeft: 'auto',
-          }}>
-            💬 {deal.commentaires?.[0]?.count || 0}
-          </Link>
+          }}>💬 {commentCount}</button>
+
           {isOwner && (
-            <Link href={`/deal/${deal.id}`} style={{
-              display: 'flex', alignItems: 'center',
+            <button onClick={go} style={{
               padding: '7px 10px', borderRadius: 20,
-              background: 'rgba(2,132,199,0.1)', border: `0.5px solid ${ACCENT}`,
-              color: ACCENT, textDecoration: 'none', fontSize: 13, fontWeight: 600,
-            }}>✏️</Link>
+              background: `rgba(212,98,42,0.1)`, border: `0.5px solid ${ACCENT}`,
+              color: ACCENT, fontSize: 13, fontWeight: 600, cursor: 'pointer',
+            }}>✏️</button>
           )}
         </div>
       </div>
@@ -539,110 +593,104 @@ function DealCard({ deal, langue, onVote, userCoords, votedDeal, user }) {
   );
 }
 
-function CityModal({ villes, villeActuelle, langue, onSelect, onClose }) {
+// ─── CityModal ────────────────────────────────────────────────────────────────
+function CityModal({ villes, current, lang, onSelect, onClose }) {
   const [search, setSearch] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [gpsLoading, setGpsLoading] = useState(false);
+  const inputRef = useRef(null);
+  useEffect(() => { setTimeout(() => inputRef.current?.focus(), 80); }, []);
 
-  const filtered = villes.filter(v =>
+  const allCities = [...new Set([...POPULAR_CITIES, ...villes])];
+  const filtered = allCities.filter(v =>
     v.toLowerCase().includes(search.toLowerCase()) ||
-    traduireVille(v, 'en').toLowerCase().includes(search.toLowerCase())
+    (traduireVille(v, 'en') || '').toLowerCase().includes(search.toLowerCase())
   );
 
   const handleGps = () => {
-    setLoading(true);
-    if (!navigator.geolocation) { setLoading(false); return; }
+    setGpsLoading(true);
+    if (!navigator.geolocation) { setGpsLoading(false); return; }
     navigator.geolocation.getCurrentPosition(
-      async (pos) => {
-        const { latitude, longitude } = pos.coords;
+      async ({ coords: { latitude, longitude } }) => {
         try {
           const r = await fetch(
             `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json&accept-language=he`
           );
           const d = await r.json();
           const v = d.address?.city || d.address?.town || d.address?.village || null;
-          if (v) { onSelect(v, { lat: latitude, lon: longitude }); onClose(); }
+          onSelect(v, { lat: latitude, lon: longitude });
+          onClose();
         } catch {}
-        setLoading(false);
+        setGpsLoading(false);
       },
-      () => setLoading(false),
-      { timeout: 5000 }
+      () => setGpsLoading(false),
+      { timeout: 6000 }
     );
   };
 
   return (
-    <div
-      onClick={onClose}
-      style={{
-        position: 'fixed', inset: 0,
-        background: 'rgba(0,0,0,0.6)', zIndex: 300,
-        display: 'flex', alignItems: 'flex-end', justifyContent: 'center',
-      }}
-    >
-      <div
-        onClick={e => e.stopPropagation()}
-        style={{
-          background: 'var(--bg-card)',
-          borderRadius: '24px 24px 0 0',
-          padding: '20px 16px 40px',
-          width: '100%', maxWidth: 600,
-          maxHeight: '80vh',
-          display: 'flex', flexDirection: 'column',
-        }}
-      >
-        <div style={{ width: 36, height: 4, borderRadius: 2, background: 'var(--border)', margin: '0 auto 16px' }} />
-        <p style={{ fontSize: 17, fontWeight: 700, color: 'var(--text)', textAlign: 'center', marginBottom: 14 }}>
-          {langue === 'en' ? 'Select city' : 'בחר עיר'}
+    <div onClick={onClose} style={{
+      position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)',
+      zIndex: 300, display: 'flex', alignItems: 'flex-end', justifyContent: 'center',
+    }}>
+      <div onClick={e => e.stopPropagation()} style={{
+        background: 'var(--bg-card)', borderRadius: '26px 26px 0 0',
+        padding: '20px 16px 40px', width: '100%', maxWidth: 600,
+        maxHeight: '82vh', display: 'flex', flexDirection: 'column',
+      }}>
+        <div style={{ width: 40, height: 4, borderRadius: 2, background: 'var(--border)', margin: '0 auto 16px' }} />
+        <p style={{ fontSize: 18, fontWeight: 800, color: 'var(--text)', textAlign: 'center', marginBottom: 14 }}>
+          {lang === 'en' ? '📍 Select your city' : '📍 בחר עיר'}
         </p>
 
+        {/* Search */}
         <input
+          ref={inputRef}
           type="text"
-          placeholder={langue === 'en' ? 'Search city...' : 'חפש עיר...'}
+          placeholder={lang === 'en' ? 'Search city...' : 'חפש עיר...'}
           value={search}
           onChange={e => setSearch(e.target.value)}
-          autoFocus
           style={{
-            width: '100%', padding: '11px 14px',
-            borderRadius: 14, border: '0.5px solid var(--border)',
-            background: 'var(--bg-input)', color: 'var(--text)',
-            fontSize: 15, outline: 'none', marginBottom: 12,
-            textAlign: langue === 'he' ? 'right' : 'left',
+            width: '100%', padding: '12px 16px', borderRadius: 16,
+            border: '0.5px solid var(--border)', background: 'var(--bg-input)',
+            color: 'var(--text)', fontSize: 15, outline: 'none', marginBottom: 12,
           }}
         />
 
         <div style={{ overflowY: 'auto', flex: 1 }}>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+            {/* All Israel */}
             <button onClick={() => { onSelect(null, null); onClose(); }} style={{
-              padding: '11px 14px', borderRadius: 14,
-              border: !villeActuelle ? `2px solid ${ACCENT}` : '0.5px solid var(--border)',
-              background: !villeActuelle ? 'rgba(2,132,199,0.08)' : 'var(--bg-card2)',
-              color: !villeActuelle ? ACCENT : 'var(--text)',
-              fontSize: 14, fontWeight: !villeActuelle ? 700 : 400, cursor: 'pointer',
+              padding: '12px 14px', borderRadius: 14, cursor: 'pointer',
+              border: !current ? `2px solid ${ACCENT}` : '0.5px solid var(--border)',
+              background: !current ? `rgba(212,98,42,0.08)` : 'var(--bg-card2)',
+              color: !current ? ACCENT : 'var(--text)',
+              fontSize: 14, fontWeight: !current ? 700 : 400,
             }}>
-              {langue === 'en' ? '🇮🇱 All Israel' : '🇮🇱 כל הארץ'}
+              🇮🇱 {lang === 'en' ? 'All Israel' : 'כל הארץ'}
             </button>
 
-            <button onClick={handleGps} disabled={loading} style={{
-              padding: '11px 14px', borderRadius: 14,
-              border: '0.5px solid var(--border)',
-              background: 'var(--bg-card2)',
-              color: ACCENT,
-              fontSize: 14, fontWeight: 500, cursor: 'pointer',
+            {/* GPS */}
+            <button onClick={handleGps} disabled={gpsLoading} style={{
+              padding: '12px 14px', borderRadius: 14, cursor: 'pointer',
+              border: '0.5px solid var(--border)', background: 'var(--bg-card2)',
+              color: ACCENT, fontSize: 14, fontWeight: 600,
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
             }}>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="3" /><path d="M12 2v3M12 19v3M2 12h3M19 12h3" /></svg>
-              {loading ? '...' : (langue === 'en' ? 'My location' : 'מיקום נוכחי')}
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
+              {gpsLoading ? '...' : (lang === 'en' ? 'My location' : 'מיקומי')}
             </button>
 
+            {/* Cities */}
             {filtered.map(v => (
               <button key={v} onClick={() => { onSelect(v, CITY_COORDS[v] || null); onClose(); }} style={{
-                padding: '11px 14px', borderRadius: 14,
-                border: villeActuelle === v ? `2px solid ${ACCENT}` : '0.5px solid var(--border)',
-                background: villeActuelle === v ? 'rgba(2,132,199,0.08)' : 'var(--bg-card2)',
-                color: villeActuelle === v ? ACCENT : 'var(--text)',
-                fontSize: 14, fontWeight: villeActuelle === v ? 700 : 400, cursor: 'pointer',
-                textAlign: langue === 'he' ? 'right' : 'left',
+                padding: '12px 14px', borderRadius: 14, cursor: 'pointer',
+                border: current === v ? `2px solid ${ACCENT}` : '0.5px solid var(--border)',
+                background: current === v ? `rgba(212,98,42,0.08)` : 'var(--bg-card2)',
+                color: current === v ? ACCENT : 'var(--text)',
+                fontSize: 14, fontWeight: current === v ? 700 : 400,
+                textAlign: lang === 'he' ? 'right' : 'left',
               }}>
-                {traduireVille(v, langue)}
+                {traduireVille(v, lang)}
               </button>
             ))}
           </div>
@@ -652,88 +700,528 @@ function CityModal({ villes, villeActuelle, langue, onSelect, onClose }) {
   );
 }
 
+// ─── PostDealModal ────────────────────────────────────────────────────────────
+function PostDealModal({ user, lang, onClose, onSuccess }) {
+  const CATS = ['Food', 'Tech', 'Fashion', 'Activities', 'Online'];
+  const [form, setForm] = useState({
+    titre: '', description: '', prix: '', prix_original: '',
+    magasin: '', ville: '', categorie: 'Food', url_source: '',
+  });
+  const [imageFile, setImageFile] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState('');
+
+  const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
+
+  const handleImage = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setImageFile(file);
+    const reader = new FileReader();
+    reader.onload = ev => setImagePreview(ev.target.result);
+    reader.readAsDataURL(file);
+  };
+
+  const handleSubmit = async () => {
+    if (!form.titre || !form.prix || !form.magasin) {
+      setError('Title, price and store are required');
+      return;
+    }
+    setSubmitting(true);
+    setError('');
+    try {
+      let image_url = null;
+      if (imageFile) {
+        const reader = new FileReader();
+        const base64 = await new Promise(resolve => {
+          reader.onload = e => resolve(e.target.result.split(',')[1]);
+          reader.readAsDataURL(imageFile);
+        });
+        const up = await fetch('/api/upload', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ image: base64, filename: imageFile.name, mimeType: imageFile.type }),
+        });
+        const upData = await up.json();
+        if (upData.url) image_url = upData.url;
+        else setError('Photo upload failed — deal will post without image');
+      }
+
+      const res = await fetch('/api/bons-plans', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...form,
+          prix: parseFloat(form.prix),
+          prix_original: form.prix_original ? parseFloat(form.prix_original) : null,
+          image_url,
+          auteur_id: user?.id || null,
+          auteur_nom: user?.user_metadata?.display_name || user?.email?.split('@')[0] || 'Anonymous',
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok || data.erreur) {
+        setError(data.erreur || 'Failed to post deal');
+        setSubmitting(false);
+        return;
+      }
+      onSuccess();
+    } catch (e) {
+      setError(e.message || 'Network error');
+    }
+    setSubmitting(false);
+  };
+
+  useEffect(() => {
+    const esc = (e) => { if (e.key === 'Escape') onClose(); };
+    window.addEventListener('keydown', esc);
+    return () => window.removeEventListener('keydown', esc);
+  }, [onClose]);
+
+  if (!user) {
+    return (
+      <div onClick={onClose} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.65)', zIndex: 400, display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}>
+        <div onClick={e => e.stopPropagation()} style={{
+          background: 'var(--bg-card)', borderRadius: '26px 26px 0 0',
+          padding: '28px 20px 48px', width: '100%', maxWidth: 600, textAlign: 'center',
+        }}>
+          <div style={{ width: 40, height: 4, borderRadius: 2, background: 'var(--border)', margin: '0 auto 20px' }} />
+          <div style={{ fontSize: 52, marginBottom: 14 }}>📸</div>
+          <p style={{ fontSize: 20, fontWeight: 800, color: 'var(--text)', marginBottom: 8 }}>Share a deal</p>
+          <p style={{ fontSize: 14, color: 'var(--text-sub)', lineHeight: 1.6, marginBottom: 24, padding: '0 20px' }}>
+            Sign in to post deals, vote, and comment with the community.
+          </p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <Link href="/auth" style={{
+              display: 'block', padding: '15px', borderRadius: 16,
+              background: `linear-gradient(135deg, ${ACCENT}, ${ACCENT_DARK})`,
+              color: '#fff', textDecoration: 'none', fontSize: 15, fontWeight: 700,
+              boxShadow: `0 4px 18px rgba(212,98,42,0.4)`,
+            }}>Sign in to post</Link>
+            <button onClick={onClose} style={{
+              padding: 14, borderRadius: 16, border: 'none',
+              background: 'var(--bg-card2)', color: 'var(--text-sub)',
+              fontSize: 15, cursor: 'pointer',
+            }}>Cancel</button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div onClick={onClose} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.65)', zIndex: 400, display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}>
+      <div onClick={e => e.stopPropagation()} style={{
+        background: 'var(--bg-card)', borderRadius: '26px 26px 0 0',
+        padding: '20px 16px 44px', width: '100%', maxWidth: 600,
+        maxHeight: '92vh', overflowY: 'auto',
+      }}>
+        <div style={{ width: 40, height: 4, borderRadius: 2, background: 'var(--border)', margin: '0 auto 16px' }} />
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
+          <p style={{ fontSize: 19, fontWeight: 800, color: 'var(--text)' }}>🔥 Share a deal</p>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', fontSize: 22, cursor: 'pointer', padding: '0 4px' }}>×</button>
+        </div>
+
+        {/* Photo upload */}
+        <label style={{ cursor: 'pointer', display: 'block', marginBottom: 14 }}>
+          <div style={{
+            height: imagePreview ? 180 : 90, borderRadius: 18,
+            border: `2px dashed ${imagePreview ? ACCENT : 'var(--border)'}`,
+            background: imagePreview ? 'transparent' : 'var(--bg-card2)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden',
+          }}>
+            {imagePreview ? (
+              <img src={imagePreview} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            ) : (
+              <div style={{ textAlign: 'center', color: 'var(--text-muted)' }}>
+                <div style={{ fontSize: 28, marginBottom: 4 }}>📸</div>
+                <div style={{ fontSize: 13, fontWeight: 500 }}>
+                  {lang === 'en' ? 'Add photo (recommended)' : 'הוסף תמונה (מומלץ)'}
+                </div>
+              </div>
+            )}
+          </div>
+          <input type="file" accept="image/*" capture="environment" onChange={handleImage} style={{ display: 'none' }} />
+        </label>
+
+        {/* Title + Store */}
+        {[['Title *', 'titre', lang === 'en' ? 'e.g. Pizza 3+1 at Dominos' : 'לדוגמה: פיצה 3+1 בדומינוס'],
+          ['Store / Place *', 'magasin', lang === 'en' ? 'e.g. Rami Levy, KSP, Zara' : 'לדוגמה: רמי לוי, קסטרו']
+        ].map(([label, key, ph]) => (
+          <div key={key} style={{ marginBottom: 12 }}>
+            <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--text-sub)', marginBottom: 5 }}>{label}</label>
+            <input type="text" placeholder={ph} value={form[key]}
+              onChange={e => set(key, e.target.value)}
+              style={{ width: '100%', padding: '12px 14px', borderRadius: 14, border: '0.5px solid var(--border)', background: 'var(--bg-input)', color: 'var(--text)', fontSize: 14, outline: 'none' }}
+            />
+          </div>
+        ))}
+
+        {/* City */}
+        <div style={{ marginBottom: 12 }}>
+          <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--text-sub)', marginBottom: 5 }}>City</label>
+          <select value={form.ville} onChange={e => set('ville', e.target.value)}
+            style={{ width: '100%', padding: '12px 14px', borderRadius: 14, border: '0.5px solid var(--border)', background: 'var(--bg-input)', color: form.ville ? 'var(--text)' : 'var(--text-muted)', fontSize: 14, outline: 'none', appearance: 'none', cursor: 'pointer' }}
+          >
+            <option value="">{lang === 'en' ? 'Select a city…' : 'בחר עיר…'}</option>
+            {Object.keys(CITY_COORDS).map(v => <option key={v} value={v}>{traduireVille(v, lang)}</option>)}
+            <option value="אונליין">🌐 Online deal</option>
+          </select>
+        </div>
+
+        {/* Prices */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 12 }}>
+          {[['Deal price *', 'prix', '₪39'], ['Original price', 'prix_original', '₪79']].map(([label, key, ph]) => (
+            <div key={key}>
+              <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--text-sub)', marginBottom: 5 }}>{label}</label>
+              <input type="number" placeholder={ph} value={form[key]}
+                onChange={e => set(key, e.target.value)}
+                style={{ width: '100%', padding: '12px 14px', borderRadius: 14, border: '0.5px solid var(--border)', background: 'var(--bg-input)', color: 'var(--text)', fontSize: 14, outline: 'none' }}
+              />
+            </div>
+          ))}
+        </div>
+
+        {/* Category */}
+        <div style={{ marginBottom: 12 }}>
+          <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--text-sub)', marginBottom: 5 }}>Category</label>
+          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+            {CATS.map(cat => (
+              <button key={cat} onClick={() => set('categorie', cat)} style={{
+                padding: '6px 14px', borderRadius: 20, cursor: 'pointer', fontSize: 13,
+                border: form.categorie === cat ? `1.5px solid ${ACCENT}` : '0.5px solid var(--border)',
+                background: form.categorie === cat ? `rgba(212,98,42,0.1)` : 'var(--bg-input)',
+                color: form.categorie === cat ? ACCENT : 'var(--text-sub)',
+                fontWeight: form.categorie === cat ? 700 : 400,
+              }}>{CATEGORY_ICONS[cat]} {cat}</button>
+            ))}
+          </div>
+        </div>
+
+        {/* Link + Description */}
+        <div style={{ marginBottom: 12 }}>
+          <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--text-sub)', marginBottom: 5 }}>Link (optional)</label>
+          <input type="url" placeholder="https://..." value={form.url_source}
+            onChange={e => set('url_source', e.target.value)}
+            style={{ width: '100%', padding: '12px 14px', borderRadius: 14, border: '0.5px solid var(--border)', background: 'var(--bg-input)', color: 'var(--text)', fontSize: 14, outline: 'none' }}
+          />
+        </div>
+        <div style={{ marginBottom: 16 }}>
+          <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--text-sub)', marginBottom: 5 }}>Description (optional)</label>
+          <textarea placeholder={lang === 'en' ? 'More details about the deal...' : 'פרטים נוספים...'} value={form.description}
+            onChange={e => set('description', e.target.value)} rows={2}
+            style={{ width: '100%', padding: '12px 14px', borderRadius: 14, border: '0.5px solid var(--border)', background: 'var(--bg-input)', color: 'var(--text)', fontSize: 14, outline: 'none', resize: 'vertical' }}
+          />
+        </div>
+
+        {error && <p style={{ color: '#DC2626', fontSize: 13, marginBottom: 10 }}>{error}</p>}
+
+        <button onClick={handleSubmit} disabled={submitting} style={{
+          width: '100%', padding: 16, borderRadius: 16, border: 'none',
+          background: submitting ? 'var(--bg-card2)' : `linear-gradient(135deg, ${ACCENT}, ${ACCENT_DARK})`,
+          color: submitting ? 'var(--text-muted)' : '#fff',
+          fontSize: 16, fontWeight: 700, cursor: submitting ? 'default' : 'pointer',
+          boxShadow: submitting ? 'none' : `0 4px 18px rgba(212,98,42,0.4)`,
+        }}>
+          {submitting ? 'Posting...' : 'Share deal 🔥'}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ─── SearchTab ────────────────────────────────────────────────────────────────
+function SearchTab({ promos, deals, lang, isDark, onPromoClick, userCoords, votedDeals, onDealVote, user }) {
+  const [q, setQ] = useState('');
+  const inputRef = useRef(null);
+  useEffect(() => { setTimeout(() => inputRef.current?.focus(), 80); }, []);
+
+  const mPromos = q.length > 1
+    ? promos.filter(p => matchSearch(p.nom, q) || matchSearch(p.nom_en, q))
+    : [];
+  const mDeals = q.length > 1
+    ? deals.filter(d => matchSearch(d.titre, q) || matchSearch(d.magasin, q) || matchSearch(d.ville, q))
+    : [];
+
+  const total = mPromos.length + mDeals.length;
+
+  return (
+    <div style={{ padding: '0 14px' }}>
+      {/* Search input */}
+      <div style={{
+        display: 'flex', alignItems: 'center', gap: 10,
+        background: 'var(--bg-card)', borderRadius: 18,
+        border: '0.5px solid var(--border)', padding: '0 16px',
+        boxShadow: 'var(--shadow-card)', marginBottom: 20,
+      }}>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="2" strokeLinecap="round" style={{ flexShrink: 0 }}>
+          <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
+        </svg>
+        <input
+          ref={inputRef}
+          type="text"
+          value={q}
+          onChange={e => setQ(e.target.value)}
+          placeholder={lang === 'en' ? 'Search deals, stores, products...' : 'חפש דילים, חנויות, מוצרים...'}
+          style={{
+            flex: 1, padding: '14px 0', background: 'none', border: 'none',
+            color: 'var(--text)', fontSize: 16, outline: 'none',
+          }}
+        />
+        {q && (
+          <button onClick={() => setQ('')} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', fontSize: 18, cursor: 'pointer', padding: 0 }}>×</button>
+        )}
+      </div>
+
+      {!q && (
+        <div style={{ textAlign: 'center', paddingTop: 40 }}>
+          <p style={{ fontSize: 42, marginBottom: 14 }}>🔍</p>
+          <p style={{ fontSize: 17, fontWeight: 700, color: 'var(--text)', marginBottom: 8 }}>
+            {lang === 'en' ? 'Search Dilz' : 'חיפוש בדילז'}
+          </p>
+          <p style={{ fontSize: 14, color: 'var(--text-sub)', lineHeight: 1.6 }}>
+            {lang === 'en'
+              ? 'Try: milk, diapers, pizza\nחלב, חיתולים, פיצה'
+              : 'נסה: חלב, חיתולים, פיצה'}
+          </p>
+        </div>
+      )}
+
+      {q.length > 0 && q.length < 2 && (
+        <p style={{ textAlign: 'center', color: 'var(--text-muted)', fontSize: 14 }}>
+          {lang === 'en' ? 'Keep typing...' : 'המשך להקליד...'}
+        </p>
+      )}
+
+      {q.length >= 2 && total === 0 && (
+        <div style={{ textAlign: 'center', paddingTop: 40 }}>
+          <p style={{ fontSize: 36, marginBottom: 12 }}>🤷</p>
+          <p style={{ fontSize: 17, fontWeight: 700, color: 'var(--text)', marginBottom: 6 }}>
+            {lang === 'en' ? 'No results for' : 'לא נמצאו תוצאות עבור'} "{q}"
+          </p>
+          <p style={{ fontSize: 14, color: 'var(--text-sub)', lineHeight: 1.6 }}>
+            {lang === 'en'
+              ? 'Try a different spelling or search in Hebrew'
+              : 'נסה איות אחר או חפש באנגלית'}
+          </p>
+        </div>
+      )}
+
+      {mPromos.length > 0 && (
+        <>
+          <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-sub)', marginBottom: 10, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+            Store Promotions ({mPromos.length})
+          </p>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 20 }}>
+            {mPromos.slice(0, 6).map(p => (
+              <PromoCard key={p.barcode} promo={p} lang={lang} isDark={isDark}
+                onClick={() => onPromoClick(p)} votes={{}} onVote={() => {}} />
+            ))}
+          </div>
+        </>
+      )}
+
+      {mDeals.length > 0 && (
+        <>
+          <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-sub)', marginBottom: 10, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+            Community Deals ({mDeals.length})
+          </p>
+          {mDeals.slice(0, 5).map(d => (
+            <DealCard key={d.id} deal={d} lang={lang} isDark={isDark}
+              userCoords={userCoords} votedDeal={votedDeals[d.id] || null}
+              onVote={onDealVote} user={user} />
+          ))}
+        </>
+      )}
+    </div>
+  );
+}
+
+// ─── ProfileTab ───────────────────────────────────────────────────────────────
+function ProfileTab({ user, lang }) {
+  if (!user) {
+    return (
+      <div style={{ padding: '40px 24px', textAlign: 'center' }}>
+        <div style={{ fontSize: 64, marginBottom: 16 }}>👤</div>
+        <p style={{ fontSize: 22, fontWeight: 800, color: 'var(--text)', marginBottom: 8 }}>
+          {lang === 'en' ? 'Join Dilz' : 'הצטרף לדילז'}
+        </p>
+        <p style={{ fontSize: 15, color: 'var(--text-sub)', lineHeight: 1.7, marginBottom: 28 }}>
+          {lang === 'en'
+            ? 'Sign in to post deals, vote, comment, and save your favorites.'
+            : 'התחבר כדי לשתף דילים, להצביע, להגיב ולשמור מועדפים.'}
+        </p>
+
+        {/* Benefits */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 28, textAlign: 'left' }}>
+          {[
+            ['📸', lang === 'en' ? 'Post deals from any store' : 'פרסם דילים מכל חנות'],
+            ['🔥', lang === 'en' ? 'Vote hot or cold on deals' : 'הצבע חם או קר על דילים'],
+            ['💬', lang === 'en' ? 'Comment and discuss' : 'הגב ודון עם הקהילה'],
+            ['❤️', lang === 'en' ? 'Save your favorite deals' : 'שמור דילים מועדפים'],
+          ].map(([icon, text]) => (
+            <div key={text} style={{
+              display: 'flex', alignItems: 'center', gap: 12,
+              background: 'var(--bg-card)', padding: '14px 16px', borderRadius: 16,
+              boxShadow: 'var(--shadow-card)',
+            }}>
+              <span style={{ fontSize: 20 }}>{icon}</span>
+              <span style={{ fontSize: 14, color: 'var(--text)', fontWeight: 500 }}>{text}</span>
+            </div>
+          ))}
+        </div>
+
+        <Link href="/auth" style={{
+          display: 'block', padding: '16px', borderRadius: 18, textDecoration: 'none',
+          background: `linear-gradient(135deg, ${ACCENT}, ${ACCENT_DARK})`,
+          color: '#fff', fontSize: 16, fontWeight: 700,
+          boxShadow: `0 4px 20px rgba(212,98,42,0.4)`,
+        }}>
+          {lang === 'en' ? 'Sign in / Sign up' : 'התחבר / הרשם'}
+        </Link>
+      </div>
+    );
+  }
+
+  const displayName = user.user_metadata?.display_name || user.email?.split('@')[0] || 'User';
+  const initials = displayName.slice(0, 2).toUpperCase();
+
+  return (
+    <div style={{ padding: '0 14px' }}>
+      {/* Profile card */}
+      <div style={{
+        background: 'var(--bg-card)', borderRadius: 24, padding: '22px 20px',
+        marginBottom: 16, boxShadow: 'var(--shadow-card)',
+        display: 'flex', alignItems: 'center', gap: 16,
+      }}>
+        <div style={{
+          width: 58, height: 58, borderRadius: '50%', flexShrink: 0,
+          background: `linear-gradient(135deg, ${ACCENT}, ${ACCENT_DARK})`,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+        }}>
+          <span style={{ color: '#fff', fontSize: 20, fontWeight: 800 }}>{initials}</span>
+        </div>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <p style={{ fontSize: 18, fontWeight: 800, color: 'var(--text)', marginBottom: 2 }}>{displayName}</p>
+          <p style={{ fontSize: 13, color: 'var(--text-sub)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user.email}</p>
+        </div>
+      </div>
+
+      {/* Quick links */}
+      {[
+        { icon: '🛍️', label: lang === 'en' ? 'My posted deals' : 'הדילים שלי', href: '/profil' },
+        { icon: '⚙️', label: lang === 'en' ? 'Account settings' : 'הגדרות חשבון', href: '/profil' },
+        { icon: '🗺️', label: lang === 'en' ? 'Deals map' : 'מפת דילים', href: '/map' },
+      ].map(item => (
+        <Link key={item.href + item.label} href={item.href} style={{
+          display: 'flex', alignItems: 'center', gap: 14,
+          background: 'var(--bg-card)', borderRadius: 18, padding: '16px 18px',
+          marginBottom: 10, textDecoration: 'none',
+          boxShadow: 'var(--shadow-card)',
+        }}>
+          <span style={{ fontSize: 20 }}>{item.icon}</span>
+          <span style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)' }}>{item.label}</span>
+          <svg style={{ marginLeft: 'auto', color: 'var(--text-muted)' }} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+        </Link>
+      ))}
+
+      <button onClick={async () => { await supabase.auth.signOut(); window.location.reload(); }} style={{
+        width: '100%', marginTop: 8, padding: '14px', borderRadius: 16, border: 'none',
+        background: 'var(--bg-card2)', color: 'var(--text-sub)',
+        fontSize: 14, fontWeight: 600, cursor: 'pointer',
+      }}>
+        {lang === 'en' ? 'Sign out' : 'התנתק'}
+      </button>
+    </div>
+  );
+}
+
+// ─── Main Home component ──────────────────────────────────────────────────────
 export default function Home() {
   const { resolvedTheme } = useTheme();
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
-  const [langue, setLangue] = useState('en');
+  const [lang, setLang] = useState('en');
 
+  // Tab
   const [tab, setTab] = useState('sales');
+
+  // Data
   const [promos, setPromos] = useState([]);
   const [loadingPromos, setLoadingPromos] = useState(true);
-  const [storeFilter, setStoreFilter] = useState('all');
-  const [selectedPromo, setSelectedPromo] = useState(null);
-
   const [deals, setDeals] = useState([]);
   const [loadingDeals, setLoadingDeals] = useState(false);
+
+  // Filters
+  const [storeFilter, setStoreFilter] = useState('all');
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [sortDeals, setSortDeals] = useState('hot');
   const [myDealsOnly, setMyDealsOnly] = useState(false);
 
+  // City
   const [ville, setVille] = useState(null);
   const [userCoords, setUserCoords] = useState(null);
   const [villes, setVilles] = useState([]);
   const [showCityModal, setShowCityModal] = useState(false);
+
+  // Votes
   const [promoVotes, setPromoVotes] = useState({});
   const [votedDeals, setVotedDeals] = useState({});
 
+  // Auth
   const [user, setUser] = useState(null);
-  const [postForm, setPostForm] = useState({
-    titre: '', description: '', prix: '', prix_original: '',
-    magasin: '', ville: '', auteur_nom: '', categorie: 'Food',
-    url_source: '', date_debut: '', date_fin: '',
-  });
-  const [postImageFile, setPostImageFile] = useState(null);
-  const [postImagePreview, setPostImagePreview] = useState(null);
-  const [postSubmitting, setPostSubmitting] = useState(false);
-  const [postError, setPostError] = useState('');
+
+  // Modals
+  const [selectedPromo, setSelectedPromo] = useState(null);
+  const [showPostModal, setShowPostModal] = useState(false);
   const [postSuccess, setPostSuccess] = useState(false);
 
-  const t = translations[langue];
-  const dir = langue === 'he' ? 'rtl' : 'ltr';
+  const t = translations[lang];
+  const dir = lang === 'he' ? 'rtl' : 'ltr';
   const isDark = resolvedTheme === 'dark';
 
+  // ── Init ──
   useEffect(() => {
     setMounted(true);
     try {
-      const saved = localStorage.getItem('dilzPromoVotes');
-      if (saved) setPromoVotes(JSON.parse(saved));
-      const savedDealVotes = localStorage.getItem('dilzDealVotes');
-      if (savedDealVotes) setVotedDeals(JSON.parse(savedDealVotes));
-      // Restore tab + scroll when coming back from a deal page
-      const returnTab = sessionStorage.getItem('dilzReturnTab');
-      if (returnTab) {
-        setTab(returnTab);
+      const pv = localStorage.getItem('dilzPromoVotes');
+      if (pv) setPromoVotes(JSON.parse(pv));
+      const dv = localStorage.getItem('dilzDealVotes');
+      if (dv) setVotedDeals(JSON.parse(dv));
+      const ll = localStorage.getItem('dilzLang');
+      if (ll) setLang(ll);
+      // Restore tab from back-nav
+      const rt = sessionStorage.getItem('dilzReturnTab');
+      if (rt) {
+        setTab(rt);
         sessionStorage.removeItem('dilzReturnTab');
-        const savedY = sessionStorage.getItem('dilzScrollY');
-        if (savedY) {
+        const sy = sessionStorage.getItem('dilzScrollY');
+        if (sy) {
           sessionStorage.removeItem('dilzScrollY');
-          setTimeout(() => window.scrollTo({ top: parseInt(savedY), behavior: 'instant' }), 300);
+          setTimeout(() => window.scrollTo({ top: parseInt(sy), behavior: 'instant' }), 300);
         }
       }
     } catch {}
+
     fetch('/api/promos')
       .then(r => r.json())
       .then(d => { setPromos(d.promos || []); setLoadingPromos(false); })
       .catch(() => setLoadingPromos(false));
+
     fetch('/api/villes')
       .then(r => r.json())
       .then(d => setVilles(d.villes || []))
       .catch(() => {});
+
     supabase.auth.getSession().then(({ data }) => {
-      const u = data.session?.user || null;
-      setUser(u);
-      if (u) {
-        setPostForm(prev => ({
-          ...prev,
-          auteur_nom: u.user_metadata?.display_name || u.email?.split('@')[0] || '',
-        }));
-      }
+      setUser(data.session?.user || null);
     });
   }, []);
 
+  // ── Deals fetch ──
   useEffect(() => {
-    if (tab !== 'deals') return;
+    if (tab !== 'deals' && tab !== 'search') return;
     setLoadingDeals(true);
     const params = new URLSearchParams();
     if (categoryFilter !== 'all') params.set('categorie', categoryFilter);
@@ -745,6 +1233,17 @@ export default function Home() {
       .catch(() => setLoadingDeals(false));
   }, [tab, categoryFilter, sortDeals, myDealsOnly, user]);
 
+  // Also fetch deals when switching to search tab if empty
+  useEffect(() => {
+    if (tab === 'search' && deals.length === 0 && !loadingDeals) {
+      setLoadingDeals(true);
+      fetch('/api/bons-plans?tri=latest')
+        .then(r => r.json())
+        .then(d => { setDeals(d.bons_plans || []); setLoadingDeals(false); })
+        .catch(() => setLoadingDeals(false));
+    }
+  }, [tab]);
+
   const handleCitySelect = (villeNom, coords) => {
     setVille(villeNom);
     const c = coords || (villeNom ? CITY_COORDS[villeNom] || null : null);
@@ -753,17 +1252,20 @@ export default function Home() {
     else setSortDeals('hot');
   };
 
-  const handleVote = async (id, type) => {
+  const handleLangToggle = () => {
+    const next = lang === 'en' ? 'he' : 'en';
+    setLang(next);
+    try { localStorage.setItem('dilzLang', next); } catch {}
+  };
+
+  const handleDealVote = async (id, type) => {
     if (votedDeals[id]) return;
     setVotedDeals(prev => {
       const next = { ...prev, [id]: type };
       try { localStorage.setItem('dilzDealVotes', JSON.stringify(next)); } catch {}
       return next;
     });
-    setDeals(prev => prev.map(d => {
-      if (d.id !== id) return d;
-      return { ...d, [`votes_${type}`]: (d[`votes_${type}`] || 0) + 1 };
-    }));
+    setDeals(prev => prev.map(d => d.id !== id ? d : { ...d, [`votes_${type}`]: (d[`votes_${type}`] || 0) + 1 }));
     await fetch('/api/bons-plans', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
@@ -787,75 +1289,21 @@ export default function Home() {
     });
   };
 
-  const handlePostImage = (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setPostImageFile(file);
-    const reader = new FileReader();
-    reader.onload = (ev) => setPostImagePreview(ev.target.result);
-    reader.readAsDataURL(file);
+  const handlePostSuccess = () => {
+    setShowPostModal(false);
+    setPostSuccess(true);
+    setTimeout(() => {
+      setPostSuccess(false);
+      setTab('deals');
+      setLoadingDeals(true);
+      fetch('/api/bons-plans?tri=latest')
+        .then(r => r.json())
+        .then(d => { setDeals(d.bons_plans || []); setLoadingDeals(false); })
+        .catch(() => setLoadingDeals(false));
+    }, 1800);
   };
 
-  const handlePostDeal = async () => {
-    if (!postForm.titre || !postForm.prix || !postForm.magasin) {
-      setPostError('Title, price and store are required');
-      return;
-    }
-    setPostSubmitting(true);
-    setPostError('');
-    try {
-      let image_url = null;
-      if (postImageFile) {
-        const reader = new FileReader();
-        const base64 = await new Promise((resolve) => {
-          reader.onload = (e) => resolve(e.target.result.split(',')[1]);
-          reader.readAsDataURL(postImageFile);
-        });
-        const uploadRes = await fetch('/api/upload', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ image: base64, filename: postImageFile.name, mimeType: postImageFile.type }),
-        });
-        const uploadData = await uploadRes.json();
-        if (uploadData.url) {
-          image_url = uploadData.url;
-        } else {
-          setPostError(uploadData.erreur ? `Photo upload failed: ${uploadData.erreur}` : 'Photo upload failed. Deal will be posted without image.');
-        }
-      }
-
-      const res = await fetch('/api/bons-plans', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...postForm,
-          prix: parseFloat(postForm.prix),
-          prix_original: postForm.prix_original ? parseFloat(postForm.prix_original) : null,
-          image_url,
-          auteur_id: user?.id || null,
-        }),
-      });
-      const data = await res.json();
-      if (!res.ok || data.erreur) {
-        const msg = data.erreur || 'Failed to post deal';
-        const detail = [data.code, data.hint].filter(Boolean).join(' — ');
-        setPostError(detail ? `${msg} [${detail}]` : msg);
-        setPostSubmitting(false);
-        return;
-      }
-      if (data.bon_plan) {
-        setPostSuccess(true);
-        setPostForm(prev => ({ ...prev, titre: '', description: '', prix: '', prix_original: '', magasin: '', ville: '', url_source: '', date_debut: '', date_fin: '', categorie: 'Food' }));
-        setPostImageFile(null);
-        setPostImagePreview(null);
-        setTimeout(() => { setPostSuccess(false); setTab('deals'); }, 1600);
-      }
-    } catch (e) {
-      setPostError(e?.message ? `Erreur: ${e.message}` : 'Network error — check your connection and try again.');
-    }
-    setPostSubmitting(false);
-  };
-
+  // Computed displayed deals (proximity sort)
   const displayedDeals = (sortDeals === 'nearby' && userCoords)
     ? [...deals].sort((a, b) => {
         const ca = a.ville ? CITY_COORDS[a.ville] : null;
@@ -866,485 +1314,467 @@ export default function Home() {
       })
     : deals;
 
-  const filteredPromos = storeFilter === 'all'
-    ? promos
-    : promos.filter(p => p.meilleurEnseigne === storeFilter);
-
+  const filteredPromos = storeFilter === 'all' ? promos : promos.filter(p => p.meilleurEnseigne === storeFilter);
   const heroPromo = filteredPromos[0] || null;
   const gridPromos = filteredPromos.slice(1);
 
   if (!mounted) return null;
 
-  const navItems = [
+  const cityLabel = ville ? traduireVille(ville, lang) : (lang === 'en' ? 'All Israel' : 'כל הארץ');
+
+  // ── Nav items ──
+  const NAV = [
     {
-      id: 'sales', label: langue === 'en' ? 'Sales' : 'מבצעים',
+      id: 'sales',
+      label: t.nav.sales,
       icon: (active) => (
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={active ? ACCENT : 'var(--text-sub)'} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><polyline points="9 22 9 12 15 12 15 22" />
+          <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z" /><line x1="7" y1="7" x2="7.01" y2="7" />
         </svg>
       ),
     },
     {
-      id: 'deals', label: langue === 'en' ? 'Deals' : 'דילים',
+      id: 'deals',
+      label: t.nav.deals,
       icon: (active) => (
         <svg width="22" height="22" viewBox="0 0 24 24" fill={active ? ACCENT : 'none'} stroke={active ? ACCENT : 'var(--text-sub)'} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+          <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
         </svg>
       ),
     },
     {
-      id: 'post', label: langue === 'en' ? 'Post' : 'פרסם',
+      id: 'search',
+      label: t.nav.search,
       icon: (active) => (
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={active ? ACCENT : 'var(--text-sub)'} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-          <circle cx="12" cy="12" r="10" />
-          <line x1="12" y1="8" x2="12" y2="16" /><line x1="8" y1="12" x2="16" y2="12" />
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={active ? ACCENT : 'var(--text-sub)'} strokeWidth="1.8" strokeLinecap="round">
+          <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+      ),
+    },
+    {
+      id: 'profile',
+      label: t.nav.profile,
+      icon: (active) => (
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={active ? ACCENT : 'var(--text-sub)'} strokeWidth="1.8" strokeLinecap="round">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
         </svg>
       ),
     },
   ];
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg)', paddingBottom: 80 }} dir={dir}>
+    <>
+      <Head>
+        <title>Dilz — Best deals & promotions in Israel</title>
+        <meta name="description" content="Compare supermarket prices, discover community deals, and save money in Israel. Official promos from Shufersal, Rami Levy, Victory, Yohananof and more." />
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+        <meta property="og:title" content="Dilz — Smart deals in Israel" />
+        <meta property="og:description" content="Official supermarket promos + community deals. Find the best prices near you." />
+        <meta name="theme-color" content="#D4622A" />
+      </Head>
 
-      {/* Header */}
-      <div style={{
-        background: 'var(--nav-bg)',
-        borderBottom: '0.5px solid var(--border)',
-        padding: '12px 16px 14px',
-        position: 'sticky', top: 0, zIndex: 100,
-        backdropFilter: 'blur(20px)',
-        WebkitBackdropFilter: 'blur(20px)',
-      }}>
-        <div style={{ maxWidth: 600, margin: '0 auto' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-              <ThemeToggle />
-              <button
-                onClick={() => setLangue(langue === 'he' ? 'en' : 'he')}
-                style={{
-                  background: 'var(--bg-card2)', border: 'none',
-                  borderRadius: 10, padding: '5px 10px',
-                  cursor: 'pointer', fontSize: 12, color: 'var(--text-sub)', fontWeight: 700,
-                }}
-              >
-                {langue === 'he' ? 'EN' : 'עב'}
-              </button>
-              <button
-                onClick={() => setShowCityModal(true)}
-                style={{
-                  display: 'flex', alignItems: 'center', gap: 5,
-                  background: ville ? 'rgba(2,132,199,0.1)' : 'var(--bg-card2)',
+      <div style={{ minHeight: '100vh', background: 'var(--bg)', paddingBottom: 84 }} dir={dir}>
+
+        {/* ── Sticky Header ── */}
+        <div style={{
+          position: 'sticky', top: 0, zIndex: 100,
+          background: 'var(--nav-bg)',
+          borderBottom: `0.5px solid var(--border)`,
+          backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)',
+        }}>
+          <div style={{ maxWidth: 600, margin: '0 auto', padding: '10px 14px 10px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+
+              {/* Left controls */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <ThemeToggle />
+                <button onClick={handleLangToggle} style={{
+                  height: 34, padding: '0 10px', borderRadius: 10,
+                  background: 'var(--bg-card2)', border: '0.5px solid var(--border)',
+                  color: 'var(--text-sub)', fontSize: 12, fontWeight: 700, cursor: 'pointer',
+                }}>
+                  {lang === 'en' ? 'עב' : 'EN'}
+                </button>
+              </div>
+
+              {/* Logo — centered */}
+              <div style={{ flex: 1, textAlign: 'center' }}>
+                <span style={{ fontSize: 24, fontWeight: 900, color: 'var(--text)', letterSpacing: '-0.5px', cursor: 'pointer' }}
+                  onClick={() => setTab('sales')}>
+                  dil<span style={{ color: ACCENT }}>z</span>
+                </span>
+              </div>
+
+              {/* Right controls */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                {/* City selector */}
+                <button onClick={() => setShowCityModal(true)} style={{
+                  display: 'flex', alignItems: 'center', gap: 4,
+                  height: 34, padding: '0 10px', borderRadius: 20,
+                  background: ville ? `rgba(212,98,42,0.1)` : 'var(--bg-card2)',
                   border: ville ? `1px solid ${ACCENT}` : '0.5px solid var(--border)',
-                  borderRadius: 20, padding: '5px 12px',
-                  cursor: 'pointer', fontSize: 12,
-                  color: ville ? ACCENT : 'var(--text-sub)', fontWeight: 500,
-                }}
-              >
-                <span style={{ fontSize: 14 }}>📍</span>
-                {ville ? traduireVille(ville, langue) : (langue === 'en' ? 'All Israel' : 'כל הארץ')}
-              </button>
+                  color: ville ? ACCENT : 'var(--text-sub)',
+                  fontSize: 12, fontWeight: 600, cursor: 'pointer',
+                  maxWidth: 100, overflow: 'hidden',
+                }}>
+                  <span style={{ fontSize: 12 }}>📍</span>
+                  <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {cityLabel}
+                  </span>
+                </button>
+
+                {/* Profile avatar */}
+                <button onClick={() => setTab('profile')} style={{
+                  width: 34, height: 34, borderRadius: '50%',
+                  background: user
+                    ? `linear-gradient(135deg, ${ACCENT}, ${ACCENT_DARK})`
+                    : 'var(--bg-card2)',
+                  border: '0.5px solid var(--border)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  cursor: 'pointer', flexShrink: 0,
+                }}>
+                  {user ? (
+                    <span style={{ color: '#fff', fontSize: 12, fontWeight: 800 }}>
+                      {(user.user_metadata?.display_name || user.email || 'U').slice(0, 2).toUpperCase()}
+                    </span>
+                  ) : (
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--text-sub)" strokeWidth="2" strokeLinecap="round">
+                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+                    </svg>
+                  )}
+                </button>
+              </div>
             </div>
-            <span style={{ fontSize: 22, fontWeight: 900, color: 'var(--text)', letterSpacing: -1 }}>
-              dil<span style={{ color: ACCENT }}>z</span>
-            </span>
-            <Link href="/profil" style={{
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              width: 34, height: 34, borderRadius: '50%',
-              background: 'var(--bg-card2)', textDecoration: 'none',
+
+            {/* Value prop / city context */}
+            <p style={{
+              textAlign: 'center', fontSize: 11, color: 'var(--text-muted)',
+              marginTop: 4, letterSpacing: '0.1px',
             }}>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-sub)" strokeWidth="2" strokeLinecap="round">
-                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" />
-              </svg>
-            </Link>
+              {lang === 'en'
+                ? `Official promos + community deals · ${cityLabel}`
+                : `מבצעי רשתות + דילים מהקהילה · ${cityLabel}`}
+            </p>
           </div>
         </div>
-      </div>
 
-      {/* Main content */}
-      <div style={{ maxWidth: 600, margin: '0 auto', padding: '16px 14px 0' }}>
+        {/* ── Content ── */}
+        <div style={{ maxWidth: 600, margin: '0 auto', padding: '16px 0 0' }}>
 
-        {/* ── SALES TAB ── */}
-        {tab === 'sales' && (
-          <div>
-            {/* Store filter chips */}
-            <div style={{
-              display: 'flex', gap: 8, overflowX: 'auto', marginBottom: 16,
-              paddingBottom: 4,
-              scrollbarWidth: 'none', msOverflowStyle: 'none',
-            }}>
-              {STORE_FILTERS.map(f => {
-                const active = storeFilter === f.id;
-                const s = f.id !== 'all' ? STORE_COLORS[f.id] : null;
-                return (
-                  <button
-                    key={f.id}
-                    onClick={() => setStoreFilter(f.id)}
-                    style={{
-                      flexShrink: 0,
-                      padding: '7px 16px', borderRadius: 20,
-                      border: active ? `1.5px solid ${s ? s.color : ACCENT}` : '0.5px solid var(--border)',
-                      background: active ? (s ? (isDark ? s.bgDark : s.bg) : 'rgba(2,132,199,0.1)') : 'var(--bg-card)',
-                      color: active ? (s ? s.color : ACCENT) : 'var(--text-sub)',
-                      fontSize: 13, fontWeight: active ? 700 : 400, cursor: 'pointer',
-                      whiteSpace: 'nowrap',
-                    }}
-                  >
-                    {f.id === 'all' ? t.filters.all : (langue === 'en' ? f.nameEn : f.id)}
-                  </button>
-                );
-              })}
-            </div>
-
-            {loadingPromos ? (
-              <div style={{ textAlign: 'center', padding: '60px 0', color: 'var(--text-muted)' }}>
-                {t.loadingDeals}
+          {/* ══ SALES TAB ══ */}
+          {tab === 'sales' && (
+            <div style={{ padding: '0 14px' }}>
+              {/* Store filter */}
+              <div style={{
+                display: 'flex', gap: 8, overflowX: 'auto', marginBottom: 16, paddingBottom: 2,
+              }}>
+                {STORE_FILTERS.map(f => {
+                  const active = storeFilter === f.id;
+                  const s = f.id !== 'all' ? STORE_COLORS[f.id] : null;
+                  return (
+                    <button key={f.id} onClick={() => setStoreFilter(f.id)} style={{
+                      flexShrink: 0, padding: '7px 16px', borderRadius: 20, cursor: 'pointer',
+                      border: active ? `1.5px solid ${s?.color || ACCENT}` : '0.5px solid var(--border)',
+                      background: active
+                        ? (s ? (isDark ? s.dark : s.bg) : `rgba(212,98,42,0.1)`)
+                        : 'var(--bg-card)',
+                      color: active ? (s?.color || ACCENT) : 'var(--text-sub)',
+                      fontSize: 13, fontWeight: active ? 700 : 400, whiteSpace: 'nowrap',
+                    }}>
+                      {f.id === 'all' ? (lang === 'en' ? '✦ All stores' : '✦ כל הרשתות') : (lang === 'en' ? f.nameEn : f.id)}
+                    </button>
+                  );
+                })}
               </div>
-            ) : filteredPromos.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: '60px 0', color: 'var(--text-muted)', fontSize: 14 }}>
-                {langue === 'en' ? 'No promotions found' : 'לא נמצאו מבצעים'}
-              </div>
-            ) : (
-              <>
-                {heroPromo && (
-                  <HeroPromoCard
-                    promo={heroPromo}
-                    langue={langue}
-                    isDark={isDark}
-                    onClick={() => setSelectedPromo(heroPromo)}
-                    votes={promoVotes[heroPromo.barcode]}
-                    onVote={handlePromoVote}
-                  />
-                )}
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-                  {gridPromos.map(p => (
-                    <PromoCard
-                      key={p.barcode}
-                      promo={p}
-                      langue={langue}
-                      isDark={isDark}
-                      onClick={() => setSelectedPromo(p)}
-                      votes={promoVotes[p.barcode]}
+
+              {/* Content */}
+              {loadingPromos ? (
+                <div style={{ textAlign: 'center', padding: '60px 0' }}>
+                  <div style={{ fontSize: 32, marginBottom: 12, opacity: 0.4 }}>🏷️</div>
+                  <p style={{ color: 'var(--text-muted)', fontSize: 14 }}>{t.loadingDeals}</p>
+                </div>
+              ) : filteredPromos.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '60px 20px' }}>
+                  <p style={{ fontSize: 40, marginBottom: 12 }}>🔍</p>
+                  <p style={{ fontSize: 17, fontWeight: 700, color: 'var(--text)', marginBottom: 6 }}>
+                    {lang === 'en' ? 'No promotions found' : 'לא נמצאו מבצעים'}
+                  </p>
+                  <p style={{ fontSize: 13, color: 'var(--text-sub)', lineHeight: 1.6 }}>
+                    {lang === 'en' ? 'Try another store or check back later.' : 'נסה חנות אחרת או בדוק שוב מאוחר יותר.'}
+                  </p>
+                  <button onClick={() => setStoreFilter('all')} style={{
+                    marginTop: 16, padding: '10px 20px', borderRadius: 14,
+                    background: `rgba(212,98,42,0.1)`, border: `1px solid ${ACCENT}`,
+                    color: ACCENT, fontSize: 14, fontWeight: 600, cursor: 'pointer',
+                  }}>Show all stores</button>
+                </div>
+              ) : (
+                <>
+                  {heroPromo && (
+                    <HeroPromoCard
+                      promo={heroPromo} lang={lang} isDark={isDark}
+                      onClick={() => setSelectedPromo(heroPromo)}
+                      votes={promoVotes[heroPromo.barcode]}
                       onVote={handlePromoVote}
                     />
-                  ))}
-                </div>
-              </>
-            )}
-          </div>
-        )}
+                  )}
 
-        {/* ── DEALS TAB ── */}
-        {tab === 'deals' && (
-          <div>
-            {/* Sort bar + map button */}
-            <div style={{ display: 'flex', gap: 8, marginBottom: 10, alignItems: 'center' }}>
-              <div style={{ display: 'flex', gap: 8, flex: 1, overflowX: 'auto', scrollbarWidth: 'none' }}>
-                {[
-                  { id: 'hot', label: '🔥 Hot' },
-                  { id: 'latest', label: '🕒 Latest' },
-                  ...(userCoords ? [{ id: 'nearby', label: '📍 Nearby' }] : []),
-                ].map(s => (
-                  <button key={s.id} onClick={() => setSortDeals(s.id)} style={{
-                    flexShrink: 0,
-                    padding: '6px 14px', borderRadius: 20,
-                    border: sortDeals === s.id ? `1.5px solid ${ACCENT}` : '0.5px solid var(--border)',
-                    background: sortDeals === s.id ? 'rgba(2,132,199,0.1)' : 'var(--bg-card)',
-                    color: sortDeals === s.id ? ACCENT : 'var(--text-sub)',
-                    fontSize: 13, fontWeight: sortDeals === s.id ? 700 : 400, cursor: 'pointer',
-                    whiteSpace: 'nowrap',
-                  }}>{s.label}</button>
-                ))}
-                {user && (
-                  <button onClick={() => setMyDealsOnly(v => !v)} style={{
-                    flexShrink: 0,
-                    padding: '6px 14px', borderRadius: 20,
-                    border: myDealsOnly ? `1.5px solid ${ACCENT}` : '0.5px solid var(--border)',
-                    background: myDealsOnly ? 'rgba(2,132,199,0.1)' : 'var(--bg-card)',
-                    color: myDealsOnly ? ACCENT : 'var(--text-sub)',
-                    fontSize: 13, fontWeight: myDealsOnly ? 700 : 400, cursor: 'pointer',
-                    whiteSpace: 'nowrap',
-                  }}>👤 My Deals</button>
-                )}
-              </div>
-              <button
-                onClick={() => router.push('/map')}
-                style={{
-                  flexShrink: 0,
-                  display: 'flex', alignItems: 'center', gap: 5,
-                  padding: '6px 14px', borderRadius: 20,
-                  border: '0.5px solid var(--border)', background: 'var(--bg-card)',
-                  color: 'var(--text-sub)', fontSize: 13, fontWeight: 500, cursor: 'pointer',
-                }}
-              >
-                🗺️ Map
-              </button>
-            </div>
-
-            {/* Category filter */}
-            <div style={{
-              display: 'flex', gap: 8, overflowX: 'auto', marginBottom: 14,
-              paddingBottom: 4,
-              scrollbarWidth: 'none', msOverflowStyle: 'none',
-            }}>
-              {CATEGORIES.map(cat => {
-                const active = categoryFilter === cat;
-                return (
-                  <button
-                    key={cat}
-                    onClick={() => setCategoryFilter(cat)}
-                    style={{
-                      flexShrink: 0,
-                      padding: '7px 16px', borderRadius: 20,
-                      border: active ? `1.5px solid ${ACCENT}` : '0.5px solid var(--border)',
-                      background: active ? 'rgba(2,132,199,0.1)' : 'var(--bg-card)',
-                      color: active ? ACCENT : 'var(--text-sub)',
-                      fontSize: 13, fontWeight: active ? 700 : 400, cursor: 'pointer',
-                      whiteSpace: 'nowrap',
-                    }}
-                  >
-                    {t.categories[cat] || cat}
-                  </button>
-                );
-              })}
-            </div>
-
-            {loadingDeals ? (
-              <div style={{ textAlign: 'center', padding: '60px 0', color: 'var(--text-muted)' }}>{t.loading}</div>
-            ) : deals.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: '60px 0', color: 'var(--text-muted)', fontSize: 14 }}>
-                {langue === 'en' ? 'No deals yet — be the first!' : 'אין דילים עדיין — היה הראשון!'}
-              </div>
-            ) : (
-              displayedDeals.map(deal => (
-                <DealCard key={deal.id} deal={deal} langue={langue} onVote={handleVote} userCoords={userCoords} votedDeal={votedDeals[deal.id] || null} user={user} />
-              ))
-            )}
-          </div>
-        )}
-
-        {/* ── POST TAB ── */}
-        {tab === 'post' && (
-          <div style={{ paddingBottom: 20 }}>
-            {!user ? (
-              <div style={{ textAlign: 'center', padding: '80px 20px' }}>
-                <div style={{ fontSize: 52, marginBottom: 16 }}>📸</div>
-                <p style={{ fontSize: 20, fontWeight: 800, color: 'var(--text)', marginBottom: 8 }}>
-                  {langue === 'en' ? 'Share a deal' : 'שתף דיל'}
-                </p>
-                <p style={{ fontSize: 14, color: 'var(--text-sub)', marginBottom: 28, lineHeight: 1.6 }}>
-                  {langue === 'en' ? 'Sign in to share deals with the community' : 'התחבר כדי לשתף דילים עם הקהילה'}
-                </p>
-                <Link href="/auth" style={{
-                  display: 'inline-block', padding: '14px 28px',
-                  borderRadius: 18, background: `linear-gradient(135deg, ${ACCENT}, ${ACCENT_DARK})`,
-                  color: '#fff', fontSize: 15, fontWeight: 700, textDecoration: 'none',
-                  boxShadow: '0 4px 18px rgba(2,132,199,0.4)',
-                }}>
-                  {langue === 'en' ? 'Sign in' : 'התחבר'}
-                </Link>
-              </div>
-            ) : postSuccess ? (
-              <div style={{ textAlign: 'center', padding: '80px 20px' }}>
-                <div style={{ fontSize: 52, marginBottom: 16 }}>🔥</div>
-                <p style={{ fontSize: 20, fontWeight: 800, color: 'var(--text)', marginBottom: 8 }}>
-                  {langue === 'en' ? 'Deal shared!' : 'הדיל פורסם!'}
-                </p>
-                <p style={{ fontSize: 14, color: 'var(--text-sub)' }}>
-                  {langue === 'en' ? 'Taking you to deals...' : 'מעביר אותך לדילים...'}
-                </p>
-              </div>
-            ) : (
-              <>
-                <p style={{ fontSize: 20, fontWeight: 800, color: 'var(--text)', marginBottom: 20 }}>
-                  🔥 {langue === 'en' ? 'Share a deal' : 'שתף דיל'}
-                </p>
-
-                {/* Image upload */}
-                <div style={{ marginBottom: 16 }}>
-                  <label style={{ cursor: 'pointer' }}>
-                    <div style={{
-                      height: postImagePreview ? 180 : 90,
-                      borderRadius: 16,
-                      border: `2px dashed ${postImagePreview ? ACCENT : 'var(--border)'}`,
-                      background: postImagePreview ? 'transparent' : 'var(--bg-card)',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden',
-                    }}>
-                      {postImagePreview ? (
-                        <img src={postImagePreview} alt="preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                      ) : (
-                        <div style={{ textAlign: 'center', color: 'var(--text-muted)' }}>
-                          <div style={{ fontSize: 24, marginBottom: 4 }}>📸</div>
-                          <div style={{ fontSize: 13 }}>{langue === 'en' ? 'Add photo' : 'הוסף תמונה'}</div>
-                        </div>
-                      )}
-                    </div>
-                    <input type="file" accept="image/*" capture="environment" onChange={handlePostImage} style={{ display: 'none' }} />
-                  </label>
-                </div>
-
-                {[
-                  ['Title *', 'titre', langue === 'en' ? 'e.g. Pizza 3+1 at Dominos' : 'לדוגמה: פיצה 3+1 בדומינוס'],
-                  ['Store / Place *', 'magasin', langue === 'en' ? 'e.g. Dominos, KSP' : 'לדוגמה: דומינוס, KSP'],
-                ].map(([label, key, placeholder]) => (
-                  <div key={key} style={{ marginBottom: 12 }}>
-                    <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--text-sub)', marginBottom: 5 }}>{label}</label>
-                    <input type="text" placeholder={placeholder} value={postForm[key]}
-                      onChange={e => setPostForm({ ...postForm, [key]: e.target.value })}
-                      style={{ width: '100%', padding: '12px 14px', borderRadius: 14, border: '0.5px solid var(--border)', background: 'var(--bg-input)', color: 'var(--text)', fontSize: 14, outline: 'none' }}
-                    />
-                  </div>
-                ))}
-
-                {/* City dropdown */}
-                <div style={{ marginBottom: 12 }}>
-                  <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--text-sub)', marginBottom: 5 }}>
-                    {langue === 'en' ? 'City' : 'עיר'}
-                  </label>
-                  <select
-                    value={postForm.ville}
-                    onChange={e => setPostForm({ ...postForm, ville: e.target.value })}
-                    style={{
-                      width: '100%', padding: '12px 14px', borderRadius: 14,
-                      border: '0.5px solid var(--border)', background: 'var(--bg-input)',
-                      color: postForm.ville ? 'var(--text)' : 'var(--text-muted)',
-                      fontSize: 14, outline: 'none', appearance: 'none',
-                      cursor: 'pointer',
-                    }}
-                  >
-                    <option value="">{langue === 'en' ? 'Select a city…' : 'בחר עיר…'}</option>
-                    {Object.keys(CITY_COORDS).map(v => (
-                      <option key={v} value={v}>{traduireVille(v, langue)}</option>
-                    ))}
-                    <option value="אונליין">{langue === 'en' ? '🌐 Online deal' : '🌐 דיל אונליין'}</option>
-                  </select>
-                </div>
-
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 12 }}>
-                  {[['Deal price *', 'prix', '₪39'], ['Original price', 'prix_original', '₪79']].map(([label, key, ph]) => (
-                    <div key={key}>
-                      <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--text-sub)', marginBottom: 5 }}>{label}</label>
-                      <input type="number" placeholder={ph} value={postForm[key]}
-                        onChange={e => setPostForm({ ...postForm, [key]: e.target.value })}
-                        style={{ width: '100%', padding: '12px 14px', borderRadius: 14, border: '0.5px solid var(--border)', background: 'var(--bg-input)', color: 'var(--text)', fontSize: 14, outline: 'none' }}
-                      />
-                    </div>
-                  ))}
-                </div>
-
-                <div style={{ marginBottom: 12 }}>
-                  <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--text-sub)', marginBottom: 5 }}>
-                    {langue === 'en' ? 'Category' : 'קטגוריה'}
-                  </label>
-                  <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-                    {['Food', 'Tech', 'Fashion', 'Activities', 'Online'].map(cat => (
-                      <button key={cat} onClick={() => setPostForm({ ...postForm, categorie: cat })} style={{
-                        padding: '6px 12px', borderRadius: 20,
-                        border: postForm.categorie === cat ? `1.5px solid ${ACCENT}` : '0.5px solid var(--border)',
-                        background: postForm.categorie === cat ? 'rgba(2,132,199,0.1)' : 'var(--bg-input)',
-                        color: postForm.categorie === cat ? ACCENT : 'var(--text-sub)',
-                        fontSize: 13, fontWeight: postForm.categorie === cat ? 700 : 400, cursor: 'pointer',
-                      }}>{cat}</button>
-                    ))}
-                  </div>
-                </div>
-
-                <div style={{ marginBottom: 12 }}>
-                  <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--text-sub)', marginBottom: 5 }}>
-                    {langue === 'en' ? 'Link (optional)' : 'קישור (אופציונלי)'}
-                  </label>
-                  <input type="url" placeholder="https://..." value={postForm.url_source}
-                    onChange={e => setPostForm({ ...postForm, url_source: e.target.value })}
-                    style={{ width: '100%', padding: '12px 14px', borderRadius: 14, border: '0.5px solid var(--border)', background: 'var(--bg-input)', color: 'var(--text)', fontSize: 14, outline: 'none' }}
-                  />
-                </div>
-
-                <div style={{ marginBottom: 16 }}>
-                  <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--text-sub)', marginBottom: 5 }}>
-                    {langue === 'en' ? 'Description (optional)' : 'תיאור (אופציונלי)'}
-                  </label>
-                  <textarea placeholder={langue === 'en' ? 'More details...' : 'פרטים נוספים...'} value={postForm.description}
-                    onChange={e => setPostForm({ ...postForm, description: e.target.value })}
-                    rows={3}
-                    style={{ width: '100%', padding: '12px 14px', borderRadius: 14, border: '0.5px solid var(--border)', background: 'var(--bg-input)', color: 'var(--text)', fontSize: 14, outline: 'none', resize: 'vertical' }}
-                  />
-                </div>
-
-                {postError && <p style={{ color: '#DC2626', fontSize: 13, marginBottom: 12 }}>{postError}</p>}
-
-                <button onClick={handlePostDeal} disabled={postSubmitting} style={{
-                  width: '100%', padding: 16, borderRadius: 16, border: 'none',
-                  background: postSubmitting ? 'var(--bg-card2)' : `linear-gradient(135deg, ${ACCENT}, ${ACCENT_DARK})`,
-                  color: postSubmitting ? 'var(--text-muted)' : '#fff',
-                  fontSize: 16, fontWeight: 700, cursor: postSubmitting ? 'default' : 'pointer',
-                  boxShadow: postSubmitting ? 'none' : '0 4px 18px rgba(2,132,199,0.4)',
-                }}>
-                  {postSubmitting ? (langue === 'en' ? 'Sharing...' : 'מפרסם...') : (langue === 'en' ? 'Share deal 🔥' : 'פרסם דיל 🔥')}
-                </button>
-              </>
-            )}
-          </div>
-        )}
-      </div>
-
-      {/* Bottom Nav */}
-      <div style={{
-        position: 'fixed', bottom: 0, left: 0, right: 0,
-        background: 'var(--nav-bg)',
-        borderTop: '0.5px solid var(--border)',
-        display: 'flex', justifyContent: 'space-around',
-        padding: '10px 0 24px',
-        zIndex: 50,
-        backdropFilter: 'blur(20px)',
-        WebkitBackdropFilter: 'blur(20px)',
-      }}>
-        {navItems.map(item => {
-          const active = tab === item.id;
-          return (
-            <button
-              key={item.id}
-              onClick={() => setTab(item.id)}
-              style={{
-                display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4,
-                background: 'none', border: 'none', cursor: 'pointer',
-                position: 'relative', minWidth: 64, padding: '4px 0',
-              }}
-            >
-              {item.icon(active)}
-              <span style={{
-                fontSize: 10, fontWeight: active ? 700 : 400,
-                color: active ? ACCENT : 'var(--text-sub)',
-              }}>{item.label}</span>
-              {active && (
-                <div style={{
-                  width: 4, height: 4, borderRadius: '50%',
-                  background: ACCENT, position: 'absolute', bottom: -2,
-                }} />
+                  {gridPromos.length > 0 && (
+                    <>
+                      <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-sub)', marginBottom: 10, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                        {lang === 'en' ? `All promotions (${filteredPromos.length})` : `כל המבצעים (${filteredPromos.length})`}
+                      </p>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 20 }}>
+                        {gridPromos.map(p => (
+                          <PromoCard
+                            key={p.barcode} promo={p} lang={lang} isDark={isDark}
+                            onClick={() => setSelectedPromo(p)}
+                            votes={promoVotes[p.barcode]}
+                            onVote={handlePromoVote}
+                          />
+                        ))}
+                      </div>
+                    </>
+                  )}
+                </>
               )}
-            </button>
-          );
-        })}
+            </div>
+          )}
+
+          {/* ══ DEALS TAB ══ */}
+          {tab === 'deals' && (
+            <div style={{ padding: '0 14px' }}>
+
+              {/* Sort row */}
+              <div style={{ display: 'flex', gap: 8, marginBottom: 10, alignItems: 'center' }}>
+                <div style={{ display: 'flex', gap: 6, flex: 1, overflowX: 'auto' }}>
+                  {[
+                    { id: 'hot', label: '🔥 Hot' },
+                    { id: 'latest', label: '🕒 Latest' },
+                    ...(userCoords ? [{ id: 'nearby', label: '📍 Nearby' }] : []),
+                    ...(user ? [{ id: 'mine', label: '👤 Mine' }] : []),
+                  ].map(s => {
+                    const isMyDeals = s.id === 'mine';
+                    const active = isMyDeals ? myDealsOnly : sortDeals === s.id;
+                    return (
+                      <button key={s.id} onClick={() => {
+                        if (isMyDeals) setMyDealsOnly(v => !v);
+                        else setSortDeals(s.id);
+                      }} style={{
+                        flexShrink: 0, padding: '6px 14px', borderRadius: 20, cursor: 'pointer',
+                        border: active ? `1.5px solid ${ACCENT}` : '0.5px solid var(--border)',
+                        background: active ? `rgba(212,98,42,0.1)` : 'var(--bg-card)',
+                        color: active ? ACCENT : 'var(--text-sub)',
+                        fontSize: 13, fontWeight: active ? 700 : 400, whiteSpace: 'nowrap',
+                      }}>{s.label}</button>
+                    );
+                  })}
+                </div>
+                {/* Map button */}
+                <button onClick={() => router.push('/map')} style={{
+                  flexShrink: 0, padding: '6px 12px', borderRadius: 20, cursor: 'pointer',
+                  border: '0.5px solid var(--border)', background: 'var(--bg-card)',
+                  color: 'var(--text-sub)', fontSize: 13, fontWeight: 500,
+                }}>🗺️</button>
+              </div>
+
+              {/* Category filter */}
+              <div style={{ display: 'flex', gap: 6, overflowX: 'auto', marginBottom: 14, paddingBottom: 2 }}>
+                {CATEGORIES.map(cat => {
+                  const active = categoryFilter === cat;
+                  return (
+                    <button key={cat} onClick={() => setCategoryFilter(cat)} style={{
+                      flexShrink: 0, padding: '6px 14px', borderRadius: 20, cursor: 'pointer',
+                      border: active ? `1.5px solid ${ACCENT}` : '0.5px solid var(--border)',
+                      background: active ? `rgba(212,98,42,0.1)` : 'var(--bg-card)',
+                      color: active ? ACCENT : 'var(--text-sub)',
+                      fontSize: 13, fontWeight: active ? 700 : 400, whiteSpace: 'nowrap',
+                    }}>{CATEGORY_ICONS[cat]} {t.categories[cat] || cat}</button>
+                  );
+                })}
+              </div>
+
+              {/* Post CTA */}
+              <button onClick={() => setShowPostModal(true)} style={{
+                width: '100%', padding: '14px 20px', borderRadius: 18, cursor: 'pointer',
+                border: `1.5px dashed ${ACCENT}`,
+                background: `rgba(212,98,42,0.06)`,
+                color: ACCENT, fontSize: 15, fontWeight: 700, marginBottom: 16,
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+              }}>
+                📸 {lang === 'en' ? 'Spotted a deal? Share it now' : 'ראית דיל? שתף אותו עכשיו'}
+              </button>
+
+              {/* Post success banner */}
+              {postSuccess && (
+                <div style={{
+                  padding: '14px 20px', borderRadius: 16, marginBottom: 14,
+                  background: 'rgba(16,185,129,0.12)', border: '1px solid rgba(16,185,129,0.3)',
+                  display: 'flex', alignItems: 'center', gap: 10,
+                }}>
+                  <span style={{ fontSize: 22 }}>🔥</span>
+                  <span style={{ fontSize: 14, fontWeight: 700, color: '#10B981' }}>
+                    {lang === 'en' ? 'Deal shared! Refreshing...' : 'הדיל פורסם! מרענן...'}
+                  </span>
+                </div>
+              )}
+
+              {/* Deals list */}
+              {loadingDeals ? (
+                <div style={{ textAlign: 'center', padding: '60px 0' }}>
+                  <div style={{ fontSize: 32, opacity: 0.4, marginBottom: 12 }}>🔥</div>
+                  <p style={{ color: 'var(--text-muted)', fontSize: 14 }}>{t.loading}</p>
+                </div>
+              ) : displayedDeals.length === 0 ? (
+                <div style={{
+                  textAlign: 'center', padding: '50px 20px',
+                  background: 'var(--bg-card)', borderRadius: 22,
+                  boxShadow: 'var(--shadow-card)',
+                }}>
+                  <p style={{ fontSize: 44, marginBottom: 12 }}>🛍️</p>
+                  <p style={{ fontSize: 17, fontWeight: 700, color: 'var(--text)', marginBottom: 6 }}>
+                    {myDealsOnly
+                      ? (lang === 'en' ? "You haven't posted any deals yet" : 'עדיין לא פרסמת דילים')
+                      : (lang === 'en' ? 'No deals yet in this category' : 'אין דילים עדיין בקטגוריה זו')}
+                  </p>
+                  <p style={{ fontSize: 14, color: 'var(--text-sub)', marginBottom: 20, lineHeight: 1.6 }}>
+                    {lang === 'en' ? 'Be the first to share a deal!' : 'היה הראשון לשתף דיל!'}
+                  </p>
+                  <button onClick={() => setShowPostModal(true)} style={{
+                    padding: '12px 24px', borderRadius: 16, border: 'none',
+                    background: `linear-gradient(135deg, ${ACCENT}, ${ACCENT_DARK})`,
+                    color: '#fff', fontSize: 14, fontWeight: 700, cursor: 'pointer',
+                    boxShadow: `0 4px 16px rgba(212,98,42,0.35)`,
+                  }}>
+                    📸 {lang === 'en' ? 'Share a deal' : 'שתף דיל'}
+                  </button>
+                </div>
+              ) : (
+                displayedDeals.map(deal => (
+                  <DealCard
+                    key={deal.id} deal={deal} lang={lang} isDark={isDark}
+                    onVote={handleDealVote} userCoords={userCoords}
+                    votedDeal={votedDeals[deal.id] || null}
+                    user={user}
+                  />
+                ))
+              )}
+
+              {/* Footer: Sales promo link */}
+              {!loadingDeals && displayedDeals.length > 0 && (
+                <div style={{
+                  textAlign: 'center', padding: '24px 0 8px',
+                  borderTop: '0.5px solid var(--border)', marginTop: 8,
+                }}>
+                  <p style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 10 }}>
+                    {lang === 'en' ? 'Looking for supermarket prices?' : 'מחפש מחירי סופרמרקט?'}
+                  </p>
+                  <button onClick={() => setTab('sales')} style={{
+                    padding: '10px 20px', borderRadius: 14,
+                    background: `rgba(212,98,42,0.1)`, border: `1px solid ${ACCENT}`,
+                    color: ACCENT, fontSize: 13, fontWeight: 600, cursor: 'pointer',
+                  }}>
+                    {lang === 'en' ? '🏷️ Browse official promos' : '🏷️ מבצעי רשתות'}
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* ══ SEARCH TAB ══ */}
+          {tab === 'search' && (
+            <SearchTab
+              promos={promos} deals={deals} lang={lang} isDark={isDark}
+              onPromoClick={setSelectedPromo}
+              userCoords={userCoords}
+              votedDeals={votedDeals}
+              onDealVote={handleDealVote}
+              user={user}
+            />
+          )}
+
+          {/* ══ PROFILE TAB ══ */}
+          {tab === 'profile' && (
+            <ProfileTab user={user} lang={lang} />
+          )}
+        </div>
+
+        {/* ── Bottom Nav ── */}
+        <nav style={{
+          position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 100,
+          background: 'var(--nav-bg)',
+          borderTop: '0.5px solid var(--border)',
+          backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)',
+          padding: '8px 0 24px',
+          boxShadow: 'var(--shadow-nav)',
+        }}>
+          <div style={{
+            maxWidth: 600, margin: '0 auto',
+            display: 'flex', justifyContent: 'space-around',
+          }}>
+            {NAV.map(item => {
+              const active = tab === item.id;
+              return (
+                <button key={item.id} onClick={() => setTab(item.id)} style={{
+                  display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3,
+                  background: 'none', border: 'none', cursor: 'pointer',
+                  minWidth: 60, padding: '4px 0', position: 'relative',
+                }}>
+                  {item.icon(active)}
+                  <span style={{
+                    fontSize: 10, fontWeight: active ? 700 : 400,
+                    color: active ? ACCENT : 'var(--text-sub)',
+                  }}>{item.label}</span>
+                  {active && (
+                    <div style={{
+                      position: 'absolute', top: -8, left: '50%', transform: 'translateX(-50%)',
+                      width: 20, height: 3, borderRadius: '0 0 4px 4px',
+                      background: ACCENT,
+                    }} />
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        </nav>
+
+        {/* Floating post button — visible on deals + sales tabs */}
+        {(tab === 'deals' || tab === 'sales') && (
+          <button
+            onClick={() => setShowPostModal(true)}
+            aria-label="Post a deal"
+            style={{
+              position: 'fixed', bottom: 84, right: 20, zIndex: 99,
+              width: 52, height: 52, borderRadius: '50%', border: 'none',
+              background: `linear-gradient(135deg, ${ACCENT}, ${ACCENT_DARK})`,
+              color: '#fff', fontSize: 24, cursor: 'pointer',
+              boxShadow: `0 4px 20px rgba(212,98,42,0.5)`,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}
+          >
+            +
+          </button>
+        )}
+
+        {/* ── Modals ── */}
+        {selectedPromo && (
+          <PromoModal promo={selectedPromo} lang={lang} isDark={isDark} onClose={() => setSelectedPromo(null)} />
+        )}
+        {showCityModal && (
+          <CityModal
+            villes={villes} current={ville} lang={lang}
+            onSelect={handleCitySelect}
+            onClose={() => setShowCityModal(false)}
+          />
+        )}
+        {showPostModal && (
+          <PostDealModal
+            user={user} lang={lang}
+            onClose={() => setShowPostModal(false)}
+            onSuccess={handlePostSuccess}
+          />
+        )}
       </div>
-
-      {/* Promo modal */}
-      {selectedPromo && (
-        <PromoModal
-          promo={selectedPromo}
-          langue={langue}
-          isDark={isDark}
-          onClose={() => setSelectedPromo(null)}
-        />
-      )}
-
-      {/* City modal */}
-      {showCityModal && (
-        <CityModal
-          villes={villes}
-          villeActuelle={ville}
-          langue={langue}
-          onSelect={handleCitySelect}
-          onClose={() => setShowCityModal(false)}
-        />
-      )}
-    </div>
+    </>
   );
 }
