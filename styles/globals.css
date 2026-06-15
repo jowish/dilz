@@ -9,37 +9,44 @@
   --accent-dark: #B84E20;
   --accent-rgb: 212,98,42;
 
-  --bg: #F5F3EF;
+  /* Light palette */
+  --bg: #F7F6F3;
   --bg-card: #FFFFFF;
-  --bg-card2: #F0EDE8;
-  --bg-input: #EBEBEB;
-  --border: #E8E3DC;
-  --text: #1A1814;
-  --text-sub: #8A8070;
-  --text-muted: #C5BDB0;
-  --nav-bg: rgba(245,243,239,0.92);
+  --bg-card2: #F2F0EC;
+  --bg-input: #F2F0EC;
+  --border: #E4E0D8;
+  --text: #18171A;
+  --text-sub: #6B6560;
+  --text-muted: #B0A99E;
+  --nav-bg: rgba(247,246,243,0.94);
 
-  --shadow-card: 0 2px 16px rgba(0,0,0,0.06);
-  --shadow-float: 0 8px 32px rgba(0,0,0,0.12);
-  --shadow-nav: 0 -1px 0 rgba(0,0,0,0.06);
-  --shadow-accent: 0 4px 18px rgba(212,98,42,0.35);
+  --shadow-card: 0 1px 4px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-float: 0 8px 28px rgba(0,0,0,0.10), 0 2px 8px rgba(0,0,0,0.06);
+  --shadow-nav: 0 -1px 0 rgba(0,0,0,0.07);
+  --shadow-accent: 0 3px 14px rgba(212,98,42,0.28);
+
+  /* Radius scale */
+  --r-sm: 6px;
+  --r-md: 10px;
+  --r-lg: 16px;
+  --r-xl: 20px;
 }
 
 .dark {
-  --bg: #0E0E12;
-  --bg-card: #17171D;
-  --bg-card2: #1E1E26;
-  --bg-input: #1E1E26;
-  --border: #2A2A35;
-  --text: #F0EDE8;
-  --text-sub: #9A948C;
-  --text-muted: #5C5869;
-  --nav-bg: rgba(14,14,18,0.92);
+  --bg: #0F0F13;
+  --bg-card: #18181E;
+  --bg-card2: #1F1F27;
+  --bg-input: #1F1F27;
+  --border: #2C2C38;
+  --text: #EFEDE8;
+  --text-sub: #918B84;
+  --text-muted: #58535A;
+  --nav-bg: rgba(15,15,19,0.94);
 
-  --shadow-card: 0 2px 16px rgba(0,0,0,0.3);
-  --shadow-float: 0 8px 32px rgba(0,0,0,0.5);
-  --shadow-nav: 0 -1px 0 rgba(255,255,255,0.04);
-  --shadow-accent: 0 4px 18px rgba(212,98,42,0.3);
+  --shadow-card: 0 1px 4px rgba(0,0,0,0.28), 0 1px 2px rgba(0,0,0,0.18);
+  --shadow-float: 0 8px 28px rgba(0,0,0,0.48);
+  --shadow-nav: 0 -1px 0 rgba(255,255,255,0.05);
+  --shadow-accent: 0 3px 14px rgba(212,98,42,0.25);
 }
 
 html {
@@ -52,7 +59,6 @@ body {
   color: var(--text);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  transition: background 0.25s ease, color 0.25s ease;
   overscroll-behavior: none;
 }
 
@@ -69,19 +75,50 @@ input, button, select, textarea {
   -ms-overflow-style: none;
 }
 
-/* Smooth theme transitions on targeted properties only */
+/* Theme transitions only on color props */
 *,
 *::before,
 *::after {
   transition-property: background-color, border-color, color, box-shadow;
-  transition-duration: 0.2s;
+  transition-duration: 0.18s;
   transition-timing-function: ease;
 }
 
-/* But never transition transforms/opacity (breaks animations) */
 button,
 a,
 img {
-  transition-property: background-color, border-color, color, box-shadow, opacity, transform;
-  transition-duration: 0.15s;
+  transition-property: background-color, border-color, color, box-shadow, opacity;
+  transition-duration: 0.14s;
+}
+
+/* Focus states for accessibility */
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Input focus highlight */
+input:not([type='file']):focus,
+select:focus,
+textarea:focus {
+  border-color: rgba(212,98,42,0.5) !important;
+}
+
+/* Loading spinner */
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+.dilz-spinner {
+  width: 22px;
+  height: 22px;
+  border: 2px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.65s linear infinite;
+  margin: 0 auto 14px;
 }

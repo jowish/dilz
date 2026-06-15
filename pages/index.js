@@ -208,7 +208,11 @@ function HeroPromoCard({ promo, lang, isDark, onClick, votes, onVote }) {
             onError={e => { e.target.style.display = 'none'; }}
           />
         ) : (
-          <div style={{ fontSize: 64, opacity: 0.6 }}>🛍️</div>
+          <div style={{ opacity: 0.25 }}>
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/>
+            </svg>
+          </div>
         )}
         {/* Overlay badges */}
         <div style={{ position: 'absolute', top: 12, left: 12 }}>
@@ -247,28 +251,28 @@ function HeroPromoCard({ promo, lang, isDark, onClick, votes, onVote }) {
 
       {/* Vote row */}
       <div style={{
-        display: 'flex', gap: 8, padding: '10px 20px 18px',
-        borderTop: `0.5px solid ${isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)'}`,
+        display: 'flex', gap: 7, padding: '10px 20px 18px',
+        borderTop: '1px solid var(--border)',
       }}>
         <button onClick={() => onVote(promo.barcode, 'chaud')} style={{
-          flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-          padding: '10px 0', borderRadius: 14, border: 'none',
-          background: myVote === 'chaud' ? ACCENT : 'var(--bg-card2)',
-          color: myVote === 'chaud' ? '#fff' : 'var(--text)',
-          fontSize: 14, fontWeight: 700, cursor: 'pointer',
-        }}>🔥 {votes?.chaud || 0} <span style={{ fontSize: 11, opacity: 0.7, fontWeight: 500 }}>Hot</span></button>
+          flex: 1, padding: '9px 0', borderRadius: 8,
+          border: myVote === 'chaud' ? `1px solid ${ACCENT}` : '1px solid var(--border)',
+          background: myVote === 'chaud' ? ACCENT : 'transparent',
+          color: myVote === 'chaud' ? '#fff' : 'var(--text-sub)',
+          fontSize: 12, fontWeight: 600, cursor: 'pointer',
+        }}>Hot · {votes?.chaud || 0}</button>
         <button onClick={() => onVote(promo.barcode, 'froid')} style={{
-          flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-          padding: '10px 0', borderRadius: 14, border: 'none',
-          background: myVote === 'froid' ? '#6B7280' : 'var(--bg-card2)',
-          color: myVote === 'froid' ? '#fff' : 'var(--text)',
-          fontSize: 14, fontWeight: 700, cursor: 'pointer',
-        }}>❄️ {votes?.froid || 0} <span style={{ fontSize: 11, opacity: 0.7, fontWeight: 500 }}>Cold</span></button>
+          flex: 1, padding: '9px 0', borderRadius: 8,
+          border: myVote === 'froid' ? '1px solid #64748B' : '1px solid var(--border)',
+          background: myVote === 'froid' ? '#64748B' : 'transparent',
+          color: myVote === 'froid' ? '#fff' : 'var(--text-sub)',
+          fontSize: 12, fontWeight: 600, cursor: 'pointer',
+        }}>Cold · {votes?.froid || 0}</button>
         <button onClick={onClick} style={{
-          padding: '10px 16px', borderRadius: 14, border: 'none',
-          background: 'var(--bg-card2)', color: 'var(--text-sub)',
-          fontSize: 13, fontWeight: 600, cursor: 'pointer',
-        }}>↗</button>
+          padding: '9px 14px', borderRadius: 8, border: '1px solid var(--border)',
+          background: 'transparent', color: 'var(--text-muted)',
+          fontSize: 12, fontWeight: 500, cursor: 'pointer',
+        }}>View</button>
       </div>
     </div>
   );
@@ -300,7 +304,11 @@ function PromoCard({ promo, lang, isDark, onClick, votes, onVote }) {
             <img src={promo.image} alt={nom} style={{ maxHeight: 72, maxWidth: '90%', objectFit: 'contain' }}
               onError={e => { e.target.style.display = 'none'; }} />
           ) : (
-            <span style={{ fontSize: 36, opacity: 0.7 }}>🛍️</span>
+            <div style={{ opacity: 0.2 }}>
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/>
+              </svg>
+            </div>
           )}
           <div style={{ position: 'absolute', top: 6, right: 6 }}>
             <DiscountBadge pct={promo.reduction} />
@@ -328,21 +336,21 @@ function PromoCard({ promo, lang, isDark, onClick, votes, onVote }) {
       </div>
 
       {/* Compact vote row */}
-      <div style={{ display: 'flex', gap: 4, padding: '6px 8px 10px', borderTop: '0.5px solid var(--border)' }}>
+      <div style={{ display: 'flex', gap: 4, padding: '6px 8px 10px', borderTop: '1px solid var(--border)' }}>
         <button onClick={() => onVote(promo.barcode, 'chaud')} style={{
-          flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 3,
-          padding: '5px 0', borderRadius: 10, border: 'none',
-          background: myVote === 'chaud' ? ACCENT : 'var(--bg-card2)',
-          color: myVote === 'chaud' ? '#fff' : 'var(--text)',
-          fontSize: 11, fontWeight: 700, cursor: 'pointer',
-        }}>🔥 {votes?.chaud || 0}</button>
+          flex: 1, padding: '5px 0', borderRadius: 6,
+          border: myVote === 'chaud' ? `1px solid ${ACCENT}` : '1px solid var(--border)',
+          background: myVote === 'chaud' ? ACCENT : 'transparent',
+          color: myVote === 'chaud' ? '#fff' : 'var(--text-sub)',
+          fontSize: 10, fontWeight: 600, cursor: 'pointer',
+        }}>Hot · {votes?.chaud || 0}</button>
         <button onClick={() => onVote(promo.barcode, 'froid')} style={{
-          flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 3,
-          padding: '5px 0', borderRadius: 10, border: 'none',
-          background: myVote === 'froid' ? '#6B7280' : 'var(--bg-card2)',
-          color: myVote === 'froid' ? '#fff' : 'var(--text)',
-          fontSize: 11, fontWeight: 700, cursor: 'pointer',
-        }}>❄️ {votes?.froid || 0}</button>
+          flex: 1, padding: '5px 0', borderRadius: 6,
+          border: myVote === 'froid' ? '1px solid #64748B' : '1px solid var(--border)',
+          background: myVote === 'froid' ? '#64748B' : 'transparent',
+          color: myVote === 'froid' ? '#fff' : 'var(--text-sub)',
+          fontSize: 10, fontWeight: 600, cursor: 'pointer',
+        }}>Cold · {votes?.froid || 0}</button>
       </div>
     </div>
   );
@@ -448,6 +456,7 @@ function DealCard({ deal, lang, onVote, userCoords, votedDeal, user, isDark }) {
 
   const isOwner = user && user.id === deal.auteur_id;
   const commentCount = deal.commentaires?.[0]?.count || 0;
+  const isOnline = deal.ville === 'אונליין' || deal.categorie === 'Online';
 
   const go = () => {
     try {
@@ -459,160 +468,156 @@ function DealCard({ deal, lang, onVote, userCoords, votedDeal, user, isDark }) {
 
   return (
     <div style={{
-      background: 'var(--bg-card)', borderRadius: 22, overflow: 'hidden',
-      boxShadow: 'var(--shadow-card)',
-      border: `0.5px solid ${isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)'}`,
-      marginBottom: 14,
+      background: 'var(--bg-card)',
+      borderRadius: 16,
+      overflow: 'hidden',
+      border: '1px solid var(--border)',
+      marginBottom: 10,
     }}>
-      {/* Image area */}
-      <div onClick={go} style={{
-        position: 'relative', cursor: 'pointer',
-        height: deal.image_url ? 210 : 80,
-        background: deal.image_url ? '#000' : 'var(--bg-card2)',
-        overflow: 'hidden',
-      }}>
-        {deal.image_url ? (
+      {/* Image */}
+      {deal.image_url && (
+        <div onClick={go} style={{ position: 'relative', cursor: 'pointer', height: 196, overflow: 'hidden', background: 'var(--bg-card2)' }}>
           <img
             src={deal.image_url} alt={deal.titre}
-            style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.95 }}
+            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
             onError={e => { e.target.style.display = 'none'; }}
           />
-        ) : (
-          <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <span style={{ fontSize: 32 }}>
-              {CATEGORY_ICONS[deal.categorie] || '🛍️'}
-            </span>
-          </div>
-        )}
-
-        {/* Overlaid badges */}
-        {deal.categorie && (
-          <div style={{ position: 'absolute', top: 12, left: 12 }}>
-            <span style={{
-              fontSize: 11, fontWeight: 700, padding: '4px 10px', borderRadius: 20,
-              background: 'rgba(0,0,0,0.6)', color: '#fff', backdropFilter: 'blur(8px)',
-            }}>
-              {CATEGORY_ICONS[deal.categorie]} {deal.categorie}
-            </span>
-          </div>
-        )}
-        {reduction !== null && (
-          <div style={{ position: 'absolute', top: 12, right: 12 }}>
-            <span style={{
-              fontSize: 12, fontWeight: 800, padding: '4px 10px', borderRadius: 20,
-              background: ACCENT, color: '#fff',
-            }}>
-              -{reduction}%
-            </span>
-          </div>
-        )}
-
-        {/* Price overlay on image */}
-        {deal.image_url && (
+          {/* Gradient for legibility */}
           <div style={{
-            position: 'absolute', bottom: 12, left: 12,
-            background: 'rgba(0,0,0,0.72)', backdropFilter: 'blur(8px)',
-            padding: '6px 12px', borderRadius: 14,
-            display: 'flex', alignItems: 'baseline', gap: 8,
-          }}>
-            <span style={{ fontSize: 20, fontWeight: 900, color: '#fff' }}>₪{deal.prix}</span>
+            position: 'absolute', inset: 0,
+            background: 'linear-gradient(to top, rgba(0,0,0,0.52) 0%, transparent 48%)',
+            pointerEvents: 'none',
+          }} />
+          {/* Top badges */}
+          <div style={{ position: 'absolute', top: 10, left: 10, display: 'flex', gap: 5, flexWrap: 'wrap' }}>
+            {reduction !== null && (
+              <span style={{ fontSize: 11, fontWeight: 700, padding: '3px 8px', borderRadius: 5, background: ACCENT, color: '#fff', letterSpacing: '0.1px' }}>
+                -{reduction}%
+              </span>
+            )}
+            {isOnline && (
+              <span style={{ fontSize: 11, fontWeight: 600, padding: '3px 8px', borderRadius: 5, background: 'rgba(0,0,0,0.52)', color: '#fff' }}>
+                Online
+              </span>
+            )}
+            {deal.categorie && deal.categorie !== 'Online' && (
+              <span style={{ fontSize: 11, fontWeight: 500, padding: '3px 8px', borderRadius: 5, background: 'rgba(0,0,0,0.42)', color: '#fff' }}>
+                {deal.categorie}
+              </span>
+            )}
+          </div>
+          {/* Bottom price */}
+          <div style={{ position: 'absolute', bottom: 10, left: 12, display: 'flex', alignItems: 'baseline', gap: 7 }}>
+            <span style={{ fontSize: 20, fontWeight: 800, color: '#fff', letterSpacing: '-0.2px' }}>₪{deal.prix}</span>
             {deal.prix_original && (
-              <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)', textDecoration: 'line-through' }}>
-                ₪{deal.prix_original}
+              <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.55)', textDecoration: 'line-through' }}>₪{deal.prix_original}</span>
+            )}
+          </div>
+          {isOwner && (
+            <div style={{ position: 'absolute', top: 10, right: 10 }}>
+              <span style={{ fontSize: 10, fontWeight: 700, padding: '3px 8px', borderRadius: 5, background: `${ACCENT}DD`, color: '#fff' }}>
+                My deal
+              </span>
+            </div>
+          )}
+        </div>
+      )}
+
+      <div style={{ padding: '13px 15px' }}>
+        {/* Price row — no image */}
+        {!deal.image_url && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+            <span style={{ fontSize: 21, fontWeight: 800, color: ACCENT, letterSpacing: '-0.2px' }}>₪{deal.prix}</span>
+            {deal.prix_original && (
+              <span style={{ fontSize: 13, color: 'var(--text-muted)', textDecoration: 'line-through' }}>₪{deal.prix_original}</span>
+            )}
+            {reduction !== null && (
+              <span style={{ fontSize: 11, fontWeight: 700, padding: '2px 7px', borderRadius: 5, background: `rgba(212,98,42,0.1)`, color: ACCENT }}>
+                -{reduction}%
+              </span>
+            )}
+            {isOnline && (
+              <span style={{ fontSize: 10, fontWeight: 600, padding: '2px 7px', borderRadius: 5, background: 'rgba(59,130,246,0.09)', color: '#3B82F6', marginLeft: 'auto' }}>
+                Online
+              </span>
+            )}
+            {isOwner && (
+              <span style={{ fontSize: 10, fontWeight: 600, padding: '2px 7px', borderRadius: 5, background: `rgba(212,98,42,0.1)`, color: ACCENT, marginLeft: isOnline ? 0 : 'auto' }}>
+                My deal
               </span>
             )}
           </div>
         )}
 
-        {isOwner && (
-          <div style={{ position: 'absolute', bottom: 12, right: 12 }}>
-            <span style={{
-              fontSize: 11, fontWeight: 700, padding: '4px 8px', borderRadius: 10,
-              background: `${ACCENT}CC`, color: '#fff',
-            }}>✏️ Mine</span>
-          </div>
-        )}
-      </div>
-
-      {/* Content */}
-      <div style={{ padding: '13px 16px 0' }}>
-        {!deal.image_url && (
-          <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 6 }}>
-            <span style={{ fontSize: 24, fontWeight: 900, color: ACCENT }}>₪{deal.prix}</span>
-            {deal.prix_original && (
-              <span style={{ fontSize: 14, color: 'var(--text-muted)', textDecoration: 'line-through' }}>₪{deal.prix_original}</span>
-            )}
-          </div>
-        )}
-
+        {/* Title */}
         <p onClick={go} style={{
-          fontSize: 15, fontWeight: 700, color: 'var(--text)', cursor: 'pointer',
-          marginBottom: 6, lineHeight: 1.35, textAlign: lang === 'he' ? 'right' : 'left',
+          fontSize: 14, fontWeight: 600, color: 'var(--text)', cursor: 'pointer',
+          marginBottom: 6, lineHeight: 1.45,
         }}>{deal.titre}</p>
 
-        {/* Meta row */}
-        <p style={{
-          fontSize: 12, color: 'var(--text-sub)', marginBottom: 12,
-          display: 'flex', alignItems: 'center', gap: 4, flexWrap: 'wrap',
-          textAlign: lang === 'he' ? 'right' : 'left',
-          justifyContent: lang === 'he' ? 'flex-end' : 'flex-start',
-        }}>
-          📍 {[deal.magasin, deal.ville ? traduireVille(deal.ville, lang) : null].filter(Boolean).join(' · ')}
-          {dist !== null && (
-            <span style={{
-              marginLeft: 4,
-              background: dist <= 10 ? 'rgba(16,185,129,0.12)' : dist <= 50 ? 'rgba(212,98,42,0.1)' : 'var(--bg-card2)',
-              color: dist <= 10 ? '#10B981' : dist <= 50 ? ACCENT : 'var(--text-muted)',
-              fontSize: 10, fontWeight: 700, padding: '1px 6px', borderRadius: 10,
-            }}>~{dist}km</span>
+        {/* Meta */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginBottom: 12, flexWrap: 'wrap' }}>
+          <span style={{ fontSize: 12, color: 'var(--text-sub)', fontWeight: 500 }}>{deal.magasin}</span>
+          {deal.ville && deal.ville !== 'אונליין' && (
+            <>
+              <span style={{ color: 'var(--border)', fontSize: 11 }}>·</span>
+              <span style={{ fontSize: 12, color: 'var(--text-sub)' }}>
+                {lang === 'he' ? deal.ville : traduireVille(deal.ville, 'en')}
+              </span>
+              {dist !== null && (
+                <span style={{
+                  fontSize: 10, fontWeight: 600, padding: '1px 5px', borderRadius: 4,
+                  background: dist <= 10 ? 'rgba(5,150,105,0.1)' : 'var(--bg-card2)',
+                  color: dist <= 10 ? '#059669' : 'var(--text-muted)',
+                }}>{dist}km</span>
+              )}
+            </>
           )}
-          <span style={{ color: 'var(--text-muted)', marginLeft: 4 }}>
-            · {timeAgo(deal.created_at, lang)}
-            {deal.auteur_nom ? ` · ${deal.auteur_nom}` : ''}
+          {deal.auteur_nom && (
+            <>
+              <span style={{ color: 'var(--border)', fontSize: 11 }}>·</span>
+              <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>{deal.auteur_nom}</span>
+            </>
+          )}
+          <span style={{ fontSize: 11, color: 'var(--text-muted)', marginLeft: 'auto' }}>
+            {timeAgo(deal.created_at, lang)}
           </span>
-        </p>
+        </div>
 
-        {/* Action row */}
-        <div style={{
-          display: 'flex', gap: 6, paddingTop: 10, paddingBottom: 14,
-          borderTop: '0.5px solid var(--border)',
-        }}>
+        {/* Actions */}
+        <div style={{ display: 'flex', gap: 5, paddingTop: 10, borderTop: '1px solid var(--border)' }}>
           <button onClick={() => onVote(deal.id, 'chaud')} style={{
-            display: 'flex', alignItems: 'center', gap: 5,
-            padding: '7px 14px', borderRadius: 20,
-            background: votedDeal === 'chaud' ? ACCENT : 'var(--bg-card2)',
-            border: votedDeal === 'chaud' ? `none` : '0.5px solid var(--border)',
-            color: votedDeal === 'chaud' ? '#fff' : 'var(--text)',
-            cursor: 'pointer',
-            opacity: votedDeal && votedDeal !== 'chaud' ? 0.6 : 1,
-            fontSize: 13, fontWeight: 700,
-          }}>🔥 {deal.votes_chaud || 0}</button>
+            display: 'flex', alignItems: 'center', gap: 4,
+            padding: '6px 12px', borderRadius: 7,
+            background: votedDeal === 'chaud' ? ACCENT : 'transparent',
+            border: votedDeal === 'chaud' ? `1px solid ${ACCENT}` : '1px solid var(--border)',
+            color: votedDeal === 'chaud' ? '#fff' : 'var(--text-sub)',
+            cursor: 'pointer', fontSize: 12, fontWeight: 600,
+          }}>Hot · {deal.votes_chaud || 0}</button>
 
           <button onClick={() => onVote(deal.id, 'froid')} style={{
-            display: 'flex', alignItems: 'center', gap: 5,
-            padding: '7px 14px', borderRadius: 20,
-            background: votedDeal === 'froid' ? '#6B7280' : 'var(--bg-card2)',
-            border: votedDeal === 'froid' ? 'none' : '0.5px solid var(--border)',
-            color: votedDeal === 'froid' ? '#fff' : 'var(--text)',
-            cursor: 'pointer',
-            opacity: votedDeal && votedDeal !== 'froid' ? 0.6 : 1,
-            fontSize: 13, fontWeight: 700,
-          }}>❄️ {deal.votes_froid || 0}</button>
+            display: 'flex', alignItems: 'center', gap: 4,
+            padding: '6px 12px', borderRadius: 7,
+            background: votedDeal === 'froid' ? '#64748B' : 'transparent',
+            border: votedDeal === 'froid' ? '1px solid #64748B' : '1px solid var(--border)',
+            color: votedDeal === 'froid' ? '#fff' : 'var(--text-sub)',
+            cursor: 'pointer', fontSize: 12, fontWeight: 600,
+          }}>Cold · {deal.votes_froid || 0}</button>
 
           <button onClick={go} style={{
-            display: 'flex', alignItems: 'center', gap: 4,
-            padding: '7px 12px', borderRadius: 20,
-            background: 'var(--bg-card2)', border: '0.5px solid var(--border)',
-            color: 'var(--text-sub)', fontSize: 13, fontWeight: 600, cursor: 'pointer',
+            display: 'flex', alignItems: 'center', gap: 3,
+            padding: '6px 10px', borderRadius: 7,
+            background: 'transparent', border: '1px solid var(--border)',
+            color: 'var(--text-muted)', fontSize: 11, fontWeight: 500, cursor: 'pointer',
             marginLeft: 'auto',
-          }}>💬 {commentCount}</button>
+          }}>{commentCount} {commentCount === 1 ? 'comment' : 'comments'}</button>
 
-          {isOwner && (
+          {isOwner && !deal.image_url && (
             <button onClick={go} style={{
-              padding: '7px 10px', borderRadius: 20,
-              background: `rgba(212,98,42,0.1)`, border: `0.5px solid ${ACCENT}`,
-              color: ACCENT, fontSize: 13, fontWeight: 600, cursor: 'pointer',
-            }}>✏️</button>
+              padding: '6px 10px', borderRadius: 7,
+              background: 'transparent', border: '1px solid var(--border)',
+              color: 'var(--text-muted)', fontSize: 11, fontWeight: 500, cursor: 'pointer',
+            }}>Edit</button>
           )}
         </div>
       </div>
@@ -830,8 +835,7 @@ function PostDealModal({ user, lang, onClose, onSuccess }) {
           padding: '28px 20px 48px', width: '100%', maxWidth: 600, textAlign: 'center',
         }}>
           <div style={{ width: 40, height: 4, borderRadius: 2, background: 'var(--border)', margin: '0 auto 20px' }} />
-          <div style={{ fontSize: 52, marginBottom: 14 }}>📸</div>
-          <p style={{ fontSize: 20, fontWeight: 800, color: 'var(--text)', marginBottom: 8 }}>Share a deal</p>
+          <p style={{ fontSize: 18, fontWeight: 700, color: 'var(--text)', marginBottom: 8 }}>Share a deal</p>
           <p style={{ fontSize: 14, color: 'var(--text-sub)', lineHeight: 1.6, marginBottom: 24, padding: '0 20px' }}>
             Sign in to post deals, vote, and comment with the community.
           </p>
@@ -862,7 +866,7 @@ function PostDealModal({ user, lang, onClose, onSuccess }) {
       }}>
         <div style={{ width: 40, height: 4, borderRadius: 2, background: 'var(--border)', margin: '0 auto 16px' }} />
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
-          <p style={{ fontSize: 19, fontWeight: 800, color: 'var(--text)' }}>🔥 Share a deal</p>
+          <p style={{ fontSize: 17, fontWeight: 700, color: 'var(--text)' }}>Share a deal</p>
           <button onClick={onClose} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', fontSize: 22, cursor: 'pointer', padding: '0 4px' }}>×</button>
         </div>
 
@@ -879,12 +883,15 @@ function PostDealModal({ user, lang, onClose, onSuccess }) {
               <img src={imagePreview} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.95 }} />
             ) : (
               <div style={{ textAlign: 'center', color: 'var(--text-muted)' }}>
-                <div style={{ fontSize: 32, marginBottom: 6 }}>📸</div>
-                <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-sub)', marginBottom: 2 }}>
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginBottom: 8, opacity: 0.5 }}>
+                  <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+                  <circle cx="12" cy="13" r="4"/>
+                </svg>
+                <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-sub)', marginBottom: 2 }}>
                   {lang === 'en' ? 'Add a photo' : 'הוסף תמונה'}
                 </div>
                 <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>
-                  JPEG · PNG · WebP · Max 5 MB
+                  JPEG · PNG · WebP · up to 5 MB
                 </div>
               </div>
             )}
@@ -993,10 +1000,10 @@ function PostDealModal({ user, lang, onClose, onSuccess }) {
           boxShadow: submitting ? 'none' : `0 4px 18px rgba(212,98,42,0.4)`,
         }}>
           {uploadPhase === 'photo'
-            ? (lang === 'en' ? '📤 Uploading photo...' : '📤 מעלה תמונה...')
+            ? (lang === 'en' ? 'Uploading photo...' : 'מעלה תמונה...')
             : uploadPhase === 'saving'
-              ? (lang === 'en' ? '💾 Saving deal...' : '💾 שומר דיל...')
-              : (lang === 'en' ? 'Share deal 🔥' : 'שתף דיל 🔥')}
+              ? (lang === 'en' ? 'Saving deal...' : 'שומר דיל...')
+              : (lang === 'en' ? 'Publish deal' : 'פרסם דיל')}
         </button>
       </div>
     </div>
@@ -1114,41 +1121,39 @@ function SearchTab({ promos, deals, lang, isDark, onPromoClick, userCoords, vote
 function ProfileTab({ user, lang, onOpenAlerts }) {
   if (!user) {
     return (
-      <div style={{ padding: '40px 24px', textAlign: 'center' }}>
-        <div style={{ fontSize: 64, marginBottom: 16 }}>👤</div>
-        <p style={{ fontSize: 22, fontWeight: 800, color: 'var(--text)', marginBottom: 8 }}>
+      <div style={{ padding: '40px 20px', textAlign: 'center' }}>
+        <p style={{ fontSize: 20, fontWeight: 700, color: 'var(--text)', marginBottom: 8 }}>
           {lang === 'en' ? 'Join Dilz' : 'הצטרף לדילז'}
         </p>
-        <p style={{ fontSize: 15, color: 'var(--text-sub)', lineHeight: 1.7, marginBottom: 28 }}>
+        <p style={{ fontSize: 14, color: 'var(--text-sub)', lineHeight: 1.7, marginBottom: 24 }}>
           {lang === 'en'
-            ? 'Sign in to post deals, vote, comment, and save your favorites.'
-            : 'התחבר כדי לשתף דילים, להצביע, להגיב ולשמור מועדפים.'}
+            ? 'Sign in to post deals, vote, comment, and get alerts.'
+            : 'התחבר כדי לשתף דילים, להצביע, להגיב ולקבל התראות.'}
         </p>
 
         {/* Benefits */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 28, textAlign: 'left' }}>
           {[
-            ['📸', lang === 'en' ? 'Post deals from any store' : 'פרסם דילים מכל חנות'],
-            ['🔥', lang === 'en' ? 'Vote hot or cold on deals' : 'הצבע חם או קר על דילים'],
-            ['💬', lang === 'en' ? 'Comment and discuss' : 'הגב ודון עם הקהילה'],
-            ['❤️', lang === 'en' ? 'Save your favorite deals' : 'שמור דילים מועדפים'],
-          ].map(([icon, text]) => (
+            lang === 'en' ? 'Post deals from any store' : 'פרסם דילים מכל חנות',
+            lang === 'en' ? 'Vote and surface the best deals' : 'הצבע על הדילים הטובים ביותר',
+            lang === 'en' ? 'Comment and discuss with the community' : 'הגב ודון עם הקהילה',
+            lang === 'en' ? 'Get alerts for deals that match your needs' : 'קבל התראות על דילים רלוונטיים',
+          ].map((text) => (
             <div key={text} style={{
-              display: 'flex', alignItems: 'center', gap: 12,
-              background: 'var(--bg-card)', padding: '14px 16px', borderRadius: 16,
-              boxShadow: 'var(--shadow-card)',
+              display: 'flex', alignItems: 'center', gap: 10,
+              padding: '11px 14px', borderRadius: 10,
+              background: 'var(--bg-card2)',
             }}>
-              <span style={{ fontSize: 20 }}>{icon}</span>
-              <span style={{ fontSize: 14, color: 'var(--text)', fontWeight: 500 }}>{text}</span>
+              <span style={{ width: 6, height: 6, borderRadius: '50%', background: ACCENT, flexShrink: 0 }} />
+              <span style={{ fontSize: 13, color: 'var(--text)', fontWeight: 500 }}>{text}</span>
             </div>
           ))}
         </div>
 
         <Link href="/auth" style={{
-          display: 'block', padding: '16px', borderRadius: 18, textDecoration: 'none',
-          background: `linear-gradient(135deg, ${ACCENT}, ${ACCENT_DARK})`,
-          color: '#fff', fontSize: 16, fontWeight: 700,
-          boxShadow: `0 4px 20px rgba(212,98,42,0.4)`,
+          display: 'block', padding: '14px', borderRadius: 10, textDecoration: 'none',
+          background: ACCENT,
+          color: '#fff', fontSize: 14, fontWeight: 600,
         }}>
           {lang === 'en' ? 'Sign in / Sign up' : 'התחבר / הרשם'}
         </Link>
@@ -1163,59 +1168,55 @@ function ProfileTab({ user, lang, onOpenAlerts }) {
     <div style={{ padding: '0 14px' }}>
       {/* Profile card */}
       <div style={{
-        background: 'var(--bg-card)', borderRadius: 24, padding: '22px 20px',
-        marginBottom: 16, boxShadow: 'var(--shadow-card)',
-        display: 'flex', alignItems: 'center', gap: 16,
+        background: 'var(--bg-card)', borderRadius: 14, padding: '18px 16px',
+        marginBottom: 12, border: '1px solid var(--border)',
+        display: 'flex', alignItems: 'center', gap: 14,
       }}>
         <div style={{
-          width: 58, height: 58, borderRadius: '50%', flexShrink: 0,
-          background: `linear-gradient(135deg, ${ACCENT}, ${ACCENT_DARK})`,
+          width: 48, height: 48, borderRadius: '50%', flexShrink: 0,
+          background: ACCENT,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
         }}>
-          <span style={{ color: '#fff', fontSize: 20, fontWeight: 800 }}>{initials}</span>
+          <span style={{ color: '#fff', fontSize: 17, fontWeight: 700 }}>{initials}</span>
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <p style={{ fontSize: 18, fontWeight: 800, color: 'var(--text)', marginBottom: 2 }}>{displayName}</p>
-          <p style={{ fontSize: 13, color: 'var(--text-sub)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user.email}</p>
+          <p style={{ fontSize: 16, fontWeight: 700, color: 'var(--text)', marginBottom: 2 }}>{displayName}</p>
+          <p style={{ fontSize: 12, color: 'var(--text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user.email}</p>
         </div>
       </div>
 
       {/* Quick links */}
-      {[
-        { icon: '🛍️', label: lang === 'en' ? 'My posted deals' : 'הדילים שלי', href: '/profil' },
-        { icon: '⚙️', label: lang === 'en' ? 'Account settings' : 'הגדרות חשבון', href: '/profil' },
-        { icon: '🗺️', label: lang === 'en' ? 'Deals map' : 'מפת דילים', href: '/map' },
-      ].map(item => (
-        <Link key={item.href + item.label} href={item.href} style={{
-          display: 'flex', alignItems: 'center', gap: 14,
-          background: 'var(--bg-card)', borderRadius: 18, padding: '16px 18px',
-          marginBottom: 10, textDecoration: 'none',
-          boxShadow: 'var(--shadow-card)',
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 2, marginBottom: 12 }}>
+        {[
+          { label: lang === 'en' ? 'My deals' : 'הדילים שלי', href: '/profil' },
+          { label: lang === 'en' ? 'Account settings' : 'הגדרות חשבון', href: '/profil' },
+          { label: lang === 'en' ? 'Deals map' : 'מפת דילים', href: '/map' },
+        ].map(item => (
+          <Link key={item.href + item.label} href={item.href} style={{
+            display: 'flex', alignItems: 'center',
+            background: 'var(--bg-card)', borderRadius: 10, padding: '14px 16px',
+            textDecoration: 'none', border: '1px solid var(--border)',
+          }}>
+            <span style={{ fontSize: 14, fontWeight: 500, color: 'var(--text)' }}>{item.label}</span>
+            <svg style={{ marginLeft: 'auto', color: 'var(--text-muted)' }} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+          </Link>
+        ))}
+        <button onClick={onOpenAlerts} style={{
+          display: 'flex', alignItems: 'center',
+          background: 'var(--bg-card)', borderRadius: 10, padding: '14px 16px',
+          border: '1px solid var(--border)', cursor: 'pointer', textAlign: 'left', width: '100%',
         }}>
-          <span style={{ fontSize: 20 }}>{item.icon}</span>
-          <span style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)' }}>{item.label}</span>
-          <svg style={{ marginLeft: 'auto', color: 'var(--text-muted)' }} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><polyline points="9 18 15 12 9 6"/></svg>
-        </Link>
-      ))}
-
-      {/* Alerts link */}
-      <button onClick={onOpenAlerts} style={{
-        width: '100%', display: 'flex', alignItems: 'center', gap: 14,
-        background: 'var(--bg-card)', borderRadius: 18, padding: '16px 18px',
-        marginBottom: 10, border: 'none', cursor: 'pointer', textAlign: 'left',
-        boxShadow: 'var(--shadow-card)',
-      }}>
-        <span style={{ fontSize: 20 }}>🔔</span>
-        <span style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)' }}>
-          {lang === 'en' ? 'My deal alerts' : 'התראות שלי'}
-        </span>
-        <svg style={{ marginLeft: 'auto', color: 'var(--text-muted)' }} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><polyline points="9 18 15 12 9 6"/></svg>
-      </button>
+          <span style={{ fontSize: 14, fontWeight: 500, color: 'var(--text)' }}>
+            {lang === 'en' ? 'My deal alerts' : 'התראות שלי'}
+          </span>
+          <svg style={{ marginLeft: 'auto', color: 'var(--text-muted)' }} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+        </button>
+      </div>
 
       <button onClick={async () => { await supabase.auth.signOut(); window.location.reload(); }} style={{
-        width: '100%', marginTop: 8, padding: '14px', borderRadius: 16, border: 'none',
-        background: 'var(--bg-card2)', color: 'var(--text-sub)',
-        fontSize: 14, fontWeight: 600, cursor: 'pointer',
+        width: '100%', padding: '12px', borderRadius: 10, border: '1px solid var(--border)',
+        background: 'transparent', color: 'var(--text-sub)',
+        fontSize: 13, fontWeight: 500, cursor: 'pointer',
       }}>
         {lang === 'en' ? 'Sign out' : 'התנתק'}
       </button>
@@ -1326,11 +1327,11 @@ function AlertModal({ user, lang, onClose }) {
 
   function alertSummary(a) {
     const parts = [];
-    if (a.city) parts.push(`📍 ${a.city}`);
-    if (a.online_only) parts.push('🌐 Online');
+    if (a.city) parts.push(a.city);
+    if (a.online_only) parts.push('Online');
     if (a.min_discount_percent != null) parts.push(`-${a.min_discount_percent}%+`);
     if (a.keyword) parts.push(`"${a.keyword}"`);
-    return parts.join('  ·  ') || 'All new deals';
+    return parts.join(' · ') || 'All new deals';
   }
 
   return (
@@ -1342,17 +1343,17 @@ function AlertModal({ user, lang, onClose }) {
       }}>
         <div style={{ width: 40, height: 4, borderRadius: 2, background: 'var(--border)', margin: '0 auto 16px' }} />
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-          <p style={{ fontSize: 19, fontWeight: 800, color: 'var(--text)' }}>🔔 My Alerts</p>
+          <p style={{ fontSize: 17, fontWeight: 700, color: 'var(--text)' }}>My Alerts</p>
           <button onClick={onClose} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', fontSize: 22, cursor: 'pointer', padding: '0 4px' }}>×</button>
         </div>
 
         {/* Tabs */}
         <div style={{ display: 'flex', gap: 6, marginBottom: 16 }}>
-          {[['list', '📋 My alerts'], ['new', '+ New alert']].map(([id, label]) => (
+          {[['list', 'My alerts'], ['new', '+ New alert']].map(([id, label]) => (
             <button key={id} onClick={() => setTab(id)} style={{
-              flex: 1, padding: '9px 0', borderRadius: 12, cursor: 'pointer', fontSize: 13, fontWeight: 700,
-              border: tab === id ? `1.5px solid ${ACCENT}` : '0.5px solid var(--border)',
-              background: tab === id ? `rgba(212,98,42,0.1)` : 'var(--bg-card2)',
+              flex: 1, padding: '8px 0', borderRadius: 7, cursor: 'pointer', fontSize: 12, fontWeight: 600,
+              border: tab === id ? `1px solid ${ACCENT}` : '1px solid var(--border)',
+              background: tab === id ? `rgba(212,98,42,0.09)` : 'transparent',
               color: tab === id ? ACCENT : 'var(--text-sub)',
             }}>{label}</button>
           ))}
@@ -1362,44 +1363,46 @@ function AlertModal({ user, lang, onClose }) {
           {/* ── List tab ── */}
           {tab === 'list' && (
             loading ? (
-              <p style={{ textAlign: 'center', color: 'var(--text-muted)', paddingTop: 40, fontSize: 14 }}>Loading...</p>
+              <div style={{ textAlign: 'center', paddingTop: 40 }}>
+                <div className="dilz-spinner" style={{ margin: '0 auto 12px' }} />
+                <p style={{ color: 'var(--text-muted)', fontSize: 13 }}>Loading...</p>
+              </div>
             ) : alerts.length === 0 ? (
               <div style={{ textAlign: 'center', paddingTop: 40 }}>
-                <p style={{ fontSize: 40, marginBottom: 12 }}>🔔</p>
-                <p style={{ fontSize: 16, fontWeight: 700, color: 'var(--text)', marginBottom: 8 }}>No alerts yet</p>
-                <p style={{ fontSize: 14, color: 'var(--text-sub)', marginBottom: 20, lineHeight: 1.6 }}>
-                  Create an alert and get notified when new deals match your criteria.
+                <p style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)', marginBottom: 8 }}>No alerts yet</p>
+                <p style={{ fontSize: 13, color: 'var(--text-sub)', marginBottom: 20, lineHeight: 1.6 }}>
+                  Create an alert to get notified when new deals match your criteria.
                 </p>
                 <button onClick={() => setTab('new')} style={{
-                  padding: '11px 24px', borderRadius: 14, border: 'none',
-                  background: `linear-gradient(135deg, ${ACCENT}, #B84E20)`,
-                  color: '#fff', fontSize: 14, fontWeight: 700, cursor: 'pointer',
-                }}>+ Create your first alert</button>
+                  padding: '10px 22px', borderRadius: 8, border: 'none',
+                  background: ACCENT,
+                  color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer',
+                }}>Create your first alert</button>
               </div>
             ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 {alerts.map(a => (
                   <div key={a.id} style={{
-                    padding: '14px 16px', borderRadius: 18,
+                    padding: '13px 14px', borderRadius: 10,
                     background: 'var(--bg-card2)',
-                    border: `0.5px solid ${a.is_active ? ACCENT + '44' : 'var(--border)'}`,
-                    opacity: a.is_active ? 1 : 0.6,
+                    border: `1px solid ${a.is_active ? ACCENT + '44' : 'var(--border)'}`,
+                    opacity: a.is_active ? 1 : 0.55,
                   }}>
-                    <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--text)', marginBottom: 10, lineHeight: 1.4 }}>
+                    <p style={{ fontSize: 13, fontWeight: 500, color: 'var(--text)', marginBottom: 10, lineHeight: 1.4 }}>
                       {alertSummary(a)}
                     </p>
                     <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
                       <button onClick={() => handleToggle(a)} style={{
-                        flex: 1, padding: '7px 0', borderRadius: 10, cursor: 'pointer', fontSize: 12, fontWeight: 700,
-                        border: a.is_active ? `1px solid ${ACCENT}` : '0.5px solid var(--border)',
-                        background: a.is_active ? `rgba(212,98,42,0.1)` : 'var(--bg-card)',
+                        flex: 1, padding: '6px 0', borderRadius: 7, cursor: 'pointer', fontSize: 11, fontWeight: 600,
+                        border: a.is_active ? `1px solid ${ACCENT}` : '1px solid var(--border)',
+                        background: 'transparent',
                         color: a.is_active ? ACCENT : 'var(--text-muted)',
-                      }}>{a.is_active ? '● Active' : '○ Paused'}</button>
+                      }}>{a.is_active ? 'Active' : 'Paused'}</button>
                       <button onClick={() => handleDelete(a.id)} style={{
-                        padding: '7px 12px', borderRadius: 10, cursor: 'pointer', fontSize: 13,
-                        border: '0.5px solid var(--border)', background: 'var(--bg-card)',
-                        color: '#DC2626',
-                      }}>🗑</button>
+                        padding: '6px 12px', borderRadius: 7, cursor: 'pointer', fontSize: 11,
+                        border: '1px solid var(--border)', background: 'transparent',
+                        color: '#DC2626', fontWeight: 500,
+                      }}>Delete</button>
                     </div>
                   </div>
                 ))}
@@ -1418,9 +1421,9 @@ function AlertModal({ user, lang, onClose }) {
                   color: form.city ? 'var(--text)' : 'var(--text-muted)',
                   fontSize: 14, outline: 'none', cursor: 'pointer',
                 }}>
-                  <option value="">🌍 All of Israel</option>
+                  <option value="">All of Israel</option>
                   {POPULAR_CITIES.map(v => <option key={v} value={v}>{v}</option>)}
-                  <option value="אונליין">🌐 Online only</option>
+                  <option value="אונליין">Online only</option>
                 </select>
               </div>
 
@@ -1440,7 +1443,7 @@ function AlertModal({ user, lang, onClose }) {
                       transition: 'left 0.2s', boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
                     }} />
                   </div>
-                  <span style={{ fontSize: 14, color: 'var(--text)', fontWeight: 500 }}>Online deals only 🌐</span>
+                  <span style={{ fontSize: 13, color: 'var(--text)', fontWeight: 500 }}>Online deals only</span>
                 </label>
               </div>
 
@@ -1469,13 +1472,12 @@ function AlertModal({ user, lang, onClose }) {
               )}
 
               <button onClick={handleCreate} disabled={saving} style={{
-                width: '100%', padding: 15, borderRadius: 16, border: 'none',
-                background: saving ? 'var(--bg-card2)' : `linear-gradient(135deg, ${ACCENT}, #B84E20)`,
+                width: '100%', padding: 14, borderRadius: 8, border: 'none',
+                background: saving ? 'var(--bg-card2)' : ACCENT,
                 color: saving ? 'var(--text-muted)' : '#fff',
-                fontSize: 15, fontWeight: 700, cursor: saving ? 'default' : 'pointer',
-                boxShadow: saving ? 'none' : `0 4px 18px rgba(212,98,42,0.4)`,
+                fontSize: 14, fontWeight: 600, cursor: saving ? 'default' : 'pointer',
               }}>
-                {saving ? 'Creating…' : '🔔 Create alert'}
+                {saving ? 'Creating...' : 'Create alert'}
               </button>
             </div>
           )}
@@ -1534,8 +1536,8 @@ function NotificationSheet({ user, lang, notifications, onClose, onMarkAllRead, 
 
         {/* Header row */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
-          <p style={{ fontSize: 19, fontWeight: 800, color: 'var(--text)' }}>
-            🔔 Notifications {unread > 0 && <span style={{ fontSize: 13, fontWeight: 700, color: ACCENT, marginLeft: 6 }}>({unread} new)</span>}
+          <p style={{ fontSize: 17, fontWeight: 700, color: 'var(--text)' }}>
+            Notifications {unread > 0 && <span style={{ fontSize: 12, fontWeight: 600, color: ACCENT, marginLeft: 6 }}>{unread} new</span>}
           </p>
           <button onClick={onClose} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', fontSize: 22, cursor: 'pointer', padding: '0 4px' }}>×</button>
         </div>
@@ -1543,14 +1545,14 @@ function NotificationSheet({ user, lang, notifications, onClose, onMarkAllRead, 
         {/* Actions row */}
         <div style={{ display: 'flex', gap: 8, marginBottom: 14 }}>
           <button onClick={() => { onClose(); onOpenAlerts(); }} style={{
-            flex: 1, padding: '9px 0', borderRadius: 12, cursor: 'pointer', fontSize: 13, fontWeight: 600,
+            flex: 1, padding: '8px 0', borderRadius: 7, cursor: 'pointer', fontSize: 12, fontWeight: 600,
             border: `1px solid ${ACCENT}`, background: `rgba(212,98,42,0.08)`, color: ACCENT,
-          }}>⚙️ Manage alerts</button>
+          }}>Manage alerts</button>
           {unread > 0 && (
             <button onClick={onMarkAllRead} style={{
-              flex: 1, padding: '9px 0', borderRadius: 12, cursor: 'pointer', fontSize: 13, fontWeight: 600,
-              border: '0.5px solid var(--border)', background: 'var(--bg-card2)', color: 'var(--text-sub)',
-            }}>✓ Mark all read</button>
+              flex: 1, padding: '8px 0', borderRadius: 7, cursor: 'pointer', fontSize: 12, fontWeight: 600,
+              border: '1px solid var(--border)', background: 'transparent', color: 'var(--text-sub)',
+            }}>Mark all read</button>
           )}
         </div>
 
@@ -1558,16 +1560,15 @@ function NotificationSheet({ user, lang, notifications, onClose, onMarkAllRead, 
         <div style={{ overflowY: 'auto', flex: 1 }}>
           {notifications.length === 0 ? (
             <div style={{ textAlign: 'center', paddingTop: 40 }}>
-              <p style={{ fontSize: 40, marginBottom: 12 }}>🔕</p>
-              <p style={{ fontSize: 16, fontWeight: 700, color: 'var(--text)', marginBottom: 8 }}>No notifications yet</p>
-              <p style={{ fontSize: 14, color: 'var(--text-sub)', lineHeight: 1.6, marginBottom: 20 }}>
-                Create alerts to be notified when new deals match your criteria.
+              <p style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)', marginBottom: 8 }}>No notifications yet</p>
+              <p style={{ fontSize: 13, color: 'var(--text-sub)', lineHeight: 1.6, marginBottom: 20 }}>
+                Set up alerts to get notified when new deals match your criteria.
               </p>
               <button onClick={() => { onClose(); onOpenAlerts(); }} style={{
-                padding: '11px 24px', borderRadius: 14, border: 'none',
-                background: `linear-gradient(135deg, ${ACCENT}, #B84E20)`,
-                color: '#fff', fontSize: 14, fontWeight: 700, cursor: 'pointer',
-              }}>🔔 Set up alerts</button>
+                padding: '10px 22px', borderRadius: 8, border: 'none',
+                background: ACCENT,
+                color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer',
+              }}>Set up alerts</button>
             </div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -2123,11 +2124,11 @@ export default function Home() {
               <div style={{ display: 'flex', gap: 8, marginBottom: 10, alignItems: 'center' }}>
                 <div style={{ display: 'flex', gap: 6, flex: 1, overflowX: 'auto' }}>
                   {[
-                    { id: 'hot', label: '🔥 Hot' },
-                    { id: 'latest', label: '🕒 New' },
-                    ...(userCoords ? [{ id: 'nearby', label: '📍 Nearby' }] : []),
-                    { id: 'ending', label: '⏳ Ending soon' },
-                    ...(user ? [{ id: 'mine', label: '👤 Mine' }] : []),
+                    { id: 'hot', label: 'Hot' },
+                    { id: 'latest', label: 'New' },
+                    ...(userCoords ? [{ id: 'nearby', label: 'Near me' }] : []),
+                    { id: 'ending', label: 'Ending soon' },
+                    ...(user ? [{ id: 'mine', label: 'My deals' }] : []),
                   ].map(s => {
                     const isMyDeals = s.id === 'mine';
                     const active = isMyDeals ? myDealsOnly : sortDeals === s.id;
@@ -2136,21 +2137,21 @@ export default function Home() {
                         if (isMyDeals) setMyDealsOnly(v => !v);
                         else setSortDeals(s.id);
                       }} style={{
-                        flexShrink: 0, padding: '6px 14px', borderRadius: 20, cursor: 'pointer',
-                        border: active ? `1.5px solid ${ACCENT}` : '0.5px solid var(--border)',
-                        background: active ? `rgba(212,98,42,0.1)` : 'var(--bg-card)',
+                        flexShrink: 0, padding: '6px 14px', borderRadius: 7, cursor: 'pointer',
+                        border: active ? `1px solid ${ACCENT}` : '1px solid var(--border)',
+                        background: active ? `rgba(212,98,42,0.09)` : 'transparent',
                         color: active ? ACCENT : 'var(--text-sub)',
-                        fontSize: 13, fontWeight: active ? 700 : 400, whiteSpace: 'nowrap',
+                        fontSize: 12, fontWeight: active ? 600 : 400, whiteSpace: 'nowrap',
                       }}>{s.label}</button>
                     );
                   })}
                 </div>
                 {/* Map button */}
                 <button onClick={() => router.push('/map')} style={{
-                  flexShrink: 0, padding: '6px 12px', borderRadius: 20, cursor: 'pointer',
-                  border: '0.5px solid var(--border)', background: 'var(--bg-card)',
-                  color: 'var(--text-sub)', fontSize: 13, fontWeight: 500,
-                }}>🗺️</button>
+                  flexShrink: 0, padding: '6px 12px', borderRadius: 7, cursor: 'pointer',
+                  border: '1px solid var(--border)', background: 'transparent',
+                  color: 'var(--text-muted)', fontSize: 12, fontWeight: 500,
+                }}>Map</button>
               </div>
 
               {/* Category filter */}
@@ -2159,12 +2160,12 @@ export default function Home() {
                   const active = categoryFilter === cat;
                   return (
                     <button key={cat} onClick={() => setCategoryFilter(cat)} style={{
-                      flexShrink: 0, padding: '6px 14px', borderRadius: 20, cursor: 'pointer',
-                      border: active ? `1.5px solid ${ACCENT}` : '0.5px solid var(--border)',
-                      background: active ? `rgba(212,98,42,0.1)` : 'var(--bg-card)',
+                      flexShrink: 0, padding: '6px 14px', borderRadius: 7, cursor: 'pointer',
+                      border: active ? `1px solid ${ACCENT}` : '1px solid var(--border)',
+                      background: active ? `rgba(212,98,42,0.09)` : 'transparent',
                       color: active ? ACCENT : 'var(--text-sub)',
-                      fontSize: 13, fontWeight: active ? 700 : 400, whiteSpace: 'nowrap',
-                    }}>{CATEGORY_ICONS[cat]} {t.categories[cat] || cat}</button>
+                      fontSize: 12, fontWeight: active ? 600 : 400, whiteSpace: 'nowrap',
+                    }}>{t.categories[cat] || cat}</button>
                   );
                 })}
               </div>
@@ -2173,7 +2174,7 @@ export default function Home() {
               {ville && (
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10 }}>
                   <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>
-                    📍 {lang === 'en' ? `Deals in ${traduireVille(ville, 'en')}` : `דילים ב${ville}`}
+                    {lang === 'en' ? `Deals in ${traduireVille(ville, 'en')}` : `דילים ב${ville}`}
                   </span>
                   <button onClick={() => setShowCityModal(true)} style={{
                     background: 'none', border: 'none', color: ACCENT,
@@ -2186,25 +2187,24 @@ export default function Home() {
 
               {/* Post CTA */}
               <button onClick={() => setShowPostModal(true)} style={{
-                width: '100%', padding: '14px 20px', borderRadius: 18, cursor: 'pointer',
-                border: `1.5px dashed ${ACCENT}`,
-                background: `rgba(212,98,42,0.06)`,
-                color: ACCENT, fontSize: 15, fontWeight: 700, marginBottom: 16,
+                width: '100%', padding: '13px 20px', borderRadius: 10, cursor: 'pointer',
+                border: `1px dashed var(--border)`,
+                background: 'var(--bg-card)',
+                color: 'var(--text-sub)', fontSize: 14, fontWeight: 500, marginBottom: 14,
                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
               }}>
-                📸 {lang === 'en' ? 'Spotted a deal? Share it now' : 'ראית דיל? שתף אותו עכשיו'}
+                <span style={{ fontSize: 16, color: ACCENT }}>+</span>
+                {lang === 'en' ? 'Share a deal' : 'שתף דיל'}
               </button>
 
               {/* Post success banner */}
               {postSuccess && (
                 <div style={{
-                  padding: '14px 20px', borderRadius: 16, marginBottom: 14,
-                  background: 'rgba(16,185,129,0.12)', border: '1px solid rgba(16,185,129,0.3)',
-                  display: 'flex', alignItems: 'center', gap: 10,
+                  padding: '12px 16px', borderRadius: 10, marginBottom: 14,
+                  background: 'rgba(5,150,105,0.08)', border: '1px solid rgba(5,150,105,0.2)',
                 }}>
-                  <span style={{ fontSize: 22 }}>🔥</span>
-                  <span style={{ fontSize: 14, fontWeight: 700, color: '#10B981' }}>
-                    {lang === 'en' ? 'Deal shared! Refreshing...' : 'הדיל פורסם! מרענן...'}
+                  <span style={{ fontSize: 13, fontWeight: 600, color: '#059669' }}>
+                    {lang === 'en' ? 'Deal published! Refreshing...' : 'הדיל פורסם! מרענן...'}
                   </span>
                 </div>
               )}
@@ -2212,35 +2212,33 @@ export default function Home() {
               {/* Deals list */}
               {loadingDeals ? (
                 <div style={{ textAlign: 'center', padding: '60px 0' }}>
-                  <div style={{ fontSize: 32, opacity: 0.4, marginBottom: 12 }}>🔥</div>
-                  <p style={{ color: 'var(--text-muted)', fontSize: 14 }}>{t.loading}</p>
+                  <div className="dilz-spinner" style={{ margin: '0 auto 14px' }} />
+                  <p style={{ color: 'var(--text-muted)', fontSize: 13 }}>{t.loading}</p>
                 </div>
               ) : displayedDeals.length === 0 ? (
                 <div style={{
-                  textAlign: 'center', padding: '50px 20px',
-                  background: 'var(--bg-card)', borderRadius: 22,
-                  boxShadow: 'var(--shadow-card)',
+                  textAlign: 'center', padding: '44px 20px',
+                  background: 'var(--bg-card)', borderRadius: 14,
+                  border: '1px solid var(--border)',
                 }}>
-                  <p style={{ fontSize: 44, marginBottom: 12 }}>🛍️</p>
-                  <p style={{ fontSize: 17, fontWeight: 700, color: 'var(--text)', marginBottom: 6 }}>
+                  <p style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)', marginBottom: 6 }}>
                     {sortDeals === 'ending'
                       ? (lang === 'en' ? 'No deals ending soon' : 'אין דילים שמסתיימים בקרוב')
                       : myDealsOnly
                         ? (lang === 'en' ? "You haven't posted any deals yet" : 'עדיין לא פרסמת דילים')
-                        : (lang === 'en' ? 'No deals yet in this category' : 'אין דילים עדיין בקטגוריה זו')}
+                        : (lang === 'en' ? 'No deals in this category yet' : 'אין דילים עדיין בקטגוריה זו')}
                   </p>
-                  <p style={{ fontSize: 14, color: 'var(--text-sub)', marginBottom: 20, lineHeight: 1.6 }}>
+                  <p style={{ fontSize: 13, color: 'var(--text-sub)', marginBottom: 20, lineHeight: 1.6 }}>
                     {sortDeals === 'ending'
                       ? (lang === 'en' ? 'Deals with an expiration date will appear here.' : 'דילים עם תאריך סיום יופיעו כאן.')
-                      : (lang === 'en' ? 'Be the first to share a deal!' : 'היה הראשון לשתף דיל!')}
+                      : (lang === 'en' ? 'Be the first to share a deal with the community.' : 'היה הראשון לשתף דיל!')}
                   </p>
                   <button onClick={() => setShowPostModal(true)} style={{
-                    padding: '12px 24px', borderRadius: 16, border: 'none',
-                    background: `linear-gradient(135deg, ${ACCENT}, ${ACCENT_DARK})`,
-                    color: '#fff', fontSize: 14, fontWeight: 700, cursor: 'pointer',
-                    boxShadow: `0 4px 16px rgba(212,98,42,0.35)`,
+                    padding: '10px 22px', borderRadius: 8, border: 'none',
+                    background: ACCENT,
+                    color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer',
                   }}>
-                    📸 {lang === 'en' ? 'Share a deal' : 'שתף דיל'}
+                    {lang === 'en' ? 'Share a deal' : 'שתף דיל'}
                   </button>
                 </div>
               ) : (

@@ -411,21 +411,21 @@ export default function DealPage() {
           </span>
           <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
             <button onClick={handleShare} style={{
-              background: copySuccess ? 'rgba(16,185,129,0.1)' : 'var(--bg-card2)',
-              border: copySuccess ? '1px solid #10B981' : '0.5px solid var(--border)',
-              borderRadius: 12, padding: '5px 10px',
-              color: copySuccess ? '#10B981' : 'var(--text-sub)',
-              fontSize: 13, fontWeight: 600, cursor: 'pointer',
+              background: copySuccess ? 'rgba(5,150,105,0.08)' : 'transparent',
+              border: copySuccess ? '1px solid #059669' : '1px solid var(--border)',
+              borderRadius: 8, padding: '5px 12px',
+              color: copySuccess ? '#059669' : 'var(--text-sub)',
+              fontSize: 12, fontWeight: 600, cursor: 'pointer',
             }}>
-              {copySuccess ? '✓ Copied' : '↗ Share'}
+              {copySuccess ? 'Copied' : 'Share'}
             </button>
             {isOwner && (
               <button onClick={() => setIsEditing(true)} style={{
-                background: 'rgba(212,98,42,0.1)', border: `1px solid ${ACCENT}`,
-                borderRadius: 12, padding: '5px 12px',
-                color: ACCENT, fontSize: 13, fontWeight: 600, cursor: 'pointer',
+                background: 'transparent', border: `1px solid ${ACCENT}`,
+                borderRadius: 8, padding: '5px 12px',
+                color: ACCENT, fontSize: 12, fontWeight: 600, cursor: 'pointer',
               }}>
-                ✏️ Edit
+                Edit
               </button>
             )}
           </div>
@@ -443,7 +443,9 @@ export default function DealPage() {
               onError={e => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }}
             />
             <div style={{ display: 'none', height: 280, background: 'var(--bg-card2)', alignItems: 'center', justifyContent: 'center' }}>
-              <span style={{ fontSize: 48 }}>🛍️</span>
+              <div style={{ opacity: 0.2 }}>
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
+              </div>
             </div>
             {deal.categorie && (
               <span style={{ position: 'absolute', top: 16, left: 16, background: 'rgba(0,0,0,0.65)', color: '#fff', fontSize: 12, fontWeight: 600, padding: '4px 10px', borderRadius: 20 }}>{deal.categorie}</span>
@@ -454,7 +456,9 @@ export default function DealPage() {
           </div>
         ) : (
           <div style={{ height: 140, background: 'var(--bg-card2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <span style={{ fontSize: 48 }}>🛍️</span>
+            <div style={{ opacity: 0.15 }}>
+              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
+            </div>
           </div>
         )}
 
@@ -469,13 +473,10 @@ export default function DealPage() {
 
           <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text)', marginBottom: 10, lineHeight: 1.3 }}>{deal.titre}</h1>
 
-          <p style={{ fontSize: 14, color: 'var(--text-sub)', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 6 }}>
-            <span>📍</span>
-            <span>
-              {[deal.magasin, deal.ville ? traduireVille(deal.ville, 'en') : null].filter(Boolean).join(' · ')}
-              {' · '}{timeAgo(deal.created_at)}
-              {deal.auteur_nom ? ` · by ${deal.auteur_nom}` : ''}
-            </span>
+          <p style={{ fontSize: 13, color: 'var(--text-sub)', marginBottom: 16 }}>
+            {[deal.magasin, deal.ville ? traduireVille(deal.ville, 'en') : null].filter(Boolean).join(' · ')}
+            {' · '}{timeAgo(deal.created_at)}
+            {deal.auteur_nom ? ` · by ${deal.auteur_nom}` : ''}
           </p>
 
           {deal.description && (
@@ -491,69 +492,68 @@ export default function DealPage() {
               marginBottom: 16, textDecoration: 'none', color: ACCENT, fontWeight: 600, fontSize: 14,
               boxShadow: 'var(--shadow-card)',
             }}>
-              🔗 View online deal ↗
+              View online deal ↗
             </a>
           )}
 
           {/* Votes */}
-          <div style={{ display: 'flex', gap: 12, padding: '16px 0 12px', borderTop: '0.5px solid var(--border)' }}>
+          <div style={{ display: 'flex', gap: 8, padding: '14px 0 12px', borderTop: '1px solid var(--border)' }}>
             <button onClick={() => handleVote('chaud')} style={{
-              flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-              padding: '14px 20px', borderRadius: 16, border: 'none',
-              background: myVote === 'chaud' ? `linear-gradient(135deg, ${ACCENT}, ${ACCENT_DARK})` : 'var(--bg-card)',
-              color: myVote === 'chaud' ? '#fff' : 'var(--text)',
-              fontSize: 15, fontWeight: 700, cursor: 'pointer', boxShadow: 'var(--shadow-card)',
+              flex: 1, padding: '12px 20px', borderRadius: 9,
+              border: myVote === 'chaud' ? `1px solid ${ACCENT}` : '1px solid var(--border)',
+              background: myVote === 'chaud' ? ACCENT : 'transparent',
+              color: myVote === 'chaud' ? '#fff' : 'var(--text-sub)',
+              fontSize: 14, fontWeight: 600, cursor: 'pointer',
             }}>
-              🔥 {deal.votes_chaud || 0} <span style={{ fontSize: 12, opacity: 0.7 }}>Hot</span>
+              Hot · {deal.votes_chaud || 0}
             </button>
             <button onClick={() => handleVote('froid')} style={{
-              flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-              padding: '14px 20px', borderRadius: 16,
-              background: myVote === 'froid' ? 'var(--bg-card2)' : 'var(--bg-card)',
-              color: myVote === 'froid' ? '#6B7280' : 'var(--text)',
-              fontSize: 15, fontWeight: 700, cursor: 'pointer', boxShadow: 'var(--shadow-card)',
-              border: myVote === 'froid' ? '1.5px solid #6B7280' : '0.5px solid var(--border)',
+              flex: 1, padding: '12px 20px', borderRadius: 9,
+              border: myVote === 'froid' ? '1px solid #64748B' : '1px solid var(--border)',
+              background: myVote === 'froid' ? '#64748B' : 'transparent',
+              color: myVote === 'froid' ? '#fff' : 'var(--text-sub)',
+              fontSize: 14, fontWeight: 600, cursor: 'pointer',
             }}>
-              ❄️ {deal.votes_froid || 0} <span style={{ fontSize: 12, opacity: 0.7 }}>Cold</span>
+              Cold · {deal.votes_froid || 0}
             </button>
           </div>
 
           {/* Share row */}
-          <div style={{ display: 'flex', gap: 8, marginBottom: 24, paddingBottom: 16, borderBottom: '0.5px solid var(--border)' }}>
+          <div style={{ display: 'flex', gap: 6, marginBottom: 24, paddingBottom: 16, borderBottom: '1px solid var(--border)' }}>
             <a
-              href={`https://wa.me/?text=${encodeURIComponent(`${deal.titre} — ₪${deal.prix} at ${deal.magasin}${deal.ville ? `, ${deal.ville}` : ''} 🔥 ${typeof window !== 'undefined' ? window.location.href : ''}`)}`}
+              href={`https://wa.me/?text=${encodeURIComponent(`${deal.titre} — ₪${deal.prix} at ${deal.magasin}${deal.ville ? `, ${deal.ville}` : ''} ${typeof window !== 'undefined' ? window.location.href : ''}`)}`}
               target="_blank" rel="noopener noreferrer"
               style={{
-                flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-                padding: '10px 0', borderRadius: 14,
-                background: 'rgba(37,211,102,0.1)', border: '0.5px solid rgba(37,211,102,0.3)',
-                color: '#25D366', textDecoration: 'none', fontSize: 13, fontWeight: 700,
+                flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5,
+                padding: '9px 0', borderRadius: 8,
+                background: 'transparent', border: '1px solid rgba(37,211,102,0.35)',
+                color: '#25D366', textDecoration: 'none', fontSize: 12, fontWeight: 600,
               }}
             >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
               WhatsApp
             </a>
             <a
-              href={`https://t.me/share/url?url=${encodeURIComponent(typeof window !== 'undefined' ? window.location.href : '')}&text=${encodeURIComponent(`${deal.titre} — ₪${deal.prix} at ${deal.magasin}${deal.ville ? `, ${deal.ville}` : ''} 🔥`)}`}
+              href={`https://t.me/share/url?url=${encodeURIComponent(typeof window !== 'undefined' ? window.location.href : '')}&text=${encodeURIComponent(`${deal.titre} — ₪${deal.prix} at ${deal.magasin}${deal.ville ? `, ${deal.ville}` : ''}`)}`}
               target="_blank" rel="noopener noreferrer"
               style={{
-                flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-                padding: '10px 0', borderRadius: 14,
-                background: 'rgba(42,171,238,0.1)', border: '0.5px solid rgba(42,171,238,0.3)',
-                color: '#2AABEE', textDecoration: 'none', fontSize: 13, fontWeight: 700,
+                flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5,
+                padding: '9px 0', borderRadius: 8,
+                background: 'transparent', border: '1px solid rgba(42,171,238,0.35)',
+                color: '#2AABEE', textDecoration: 'none', fontSize: 12, fontWeight: 600,
               }}
             >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg>
               Telegram
             </a>
             <button onClick={handleShare} style={{
-              flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-              padding: '10px 0', borderRadius: 14, border: '0.5px solid var(--border)',
-              background: copySuccess ? 'rgba(16,185,129,0.1)' : 'var(--bg-card)',
-              color: copySuccess ? '#10B981' : 'var(--text-sub)',
-              fontSize: 13, fontWeight: 700, cursor: 'pointer',
+              flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center',
+              padding: '9px 0', borderRadius: 8, border: '1px solid var(--border)',
+              background: copySuccess ? 'rgba(5,150,105,0.08)' : 'transparent',
+              color: copySuccess ? '#059669' : 'var(--text-sub)',
+              fontSize: 12, fontWeight: 600, cursor: 'pointer',
             }}>
-              {copySuccess ? '✓ Copied' : '🔗 Copy link'}
+              {copySuccess ? 'Copied' : 'Copy link'}
             </button>
           </div>
 
@@ -596,21 +596,21 @@ export default function DealPage() {
                         <p style={{ fontSize: 14, color: 'var(--text)', lineHeight: 1.5 }}>{c.contenu}</p>
 
                         {/* Comment actions */}
-                        <div style={{ display: 'flex', gap: 10, marginTop: 8, alignItems: 'center' }}>
+                        <div style={{ display: 'flex', gap: 8, marginTop: 8, alignItems: 'center' }}>
                           <button onClick={() => handleCommentVote(c.id, 'chaud')} style={{
-                            display: 'flex', alignItems: 'center', gap: 3,
-                            background: myCommentVote === 'chaud' ? ACCENT : 'var(--bg-card2)',
-                            border: 'none', borderRadius: 10, padding: '3px 8px',
-                            color: myCommentVote === 'chaud' ? '#fff' : 'var(--text-sub)',
-                            fontSize: 12, fontWeight: 600, cursor: 'pointer',
-                          }}>🔥</button>
+                            background: 'transparent',
+                            border: myCommentVote === 'chaud' ? `1px solid ${ACCENT}` : '1px solid var(--border)',
+                            borderRadius: 6, padding: '2px 8px',
+                            color: myCommentVote === 'chaud' ? ACCENT : 'var(--text-muted)',
+                            fontSize: 11, fontWeight: 500, cursor: 'pointer',
+                          }}>+1</button>
                           <button onClick={() => handleCommentVote(c.id, 'froid')} style={{
-                            display: 'flex', alignItems: 'center', gap: 3,
-                            background: myCommentVote === 'froid' ? '#4B9FE1' : 'var(--bg-card2)',
-                            border: 'none', borderRadius: 10, padding: '3px 8px',
-                            color: myCommentVote === 'froid' ? '#fff' : 'var(--text-sub)',
-                            fontSize: 12, fontWeight: 600, cursor: 'pointer',
-                          }}>❄️</button>
+                            background: 'transparent',
+                            border: myCommentVote === 'froid' ? '1px solid #64748B' : '1px solid var(--border)',
+                            borderRadius: 6, padding: '2px 8px',
+                            color: myCommentVote === 'froid' ? '#64748B' : 'var(--text-muted)',
+                            fontSize: 11, fontWeight: 500, cursor: 'pointer',
+                          }}>-1</button>
                           {user && !isReply && (
                             <button onClick={() => {
                               setReplyTo({ id: c.id, auteur_nom: c.auteur_nom });
@@ -714,7 +714,7 @@ export default function DealPage() {
             }}
           >
             <div style={{ width: 36, height: 4, borderRadius: 2, background: 'var(--border)', margin: '0 auto 16px' }} />
-            <p style={{ fontSize: 18, fontWeight: 800, color: 'var(--text)', marginBottom: 16 }}>✏️ Edit deal</p>
+            <p style={{ fontSize: 17, fontWeight: 700, color: 'var(--text)', marginBottom: 16 }}>Edit deal</p>
 
             {/* Image */}
             <label style={{ cursor: 'pointer', display: 'block', marginBottom: 14 }}>
@@ -814,11 +814,10 @@ export default function DealPage() {
                 background: 'var(--bg-card2)', color: 'var(--text-sub)', fontSize: 15, cursor: 'pointer',
               }}>Cancel</button>
               <button onClick={handleEditSubmit} disabled={editSubmitting} style={{
-                flex: 2, padding: 14, borderRadius: 14, border: 'none',
-                background: editSubmitting ? 'var(--bg-card2)' : `linear-gradient(135deg, ${ACCENT}, ${ACCENT_DARK})`,
+                flex: 2, padding: 14, borderRadius: 9, border: 'none',
+                background: editSubmitting ? 'var(--bg-card2)' : ACCENT,
                 color: editSubmitting ? 'var(--text-muted)' : '#fff',
-                fontSize: 15, fontWeight: 700, cursor: editSubmitting ? 'default' : 'pointer',
-                boxShadow: editSubmitting ? 'none' : `0 4px 18px rgba(212,98,42,0.4)`,
+                fontSize: 14, fontWeight: 600, cursor: editSubmitting ? 'default' : 'pointer',
               }}>
                 {editSubmitting ? 'Saving...' : 'Save changes'}
               </button>
