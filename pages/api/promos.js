@@ -29,7 +29,15 @@ export default async function handler(req, res) {
     const promos = [];
 
     (data || []).forEach(produit => {
-      const tousLesPrix = (produit.prix || []).filter(p => p.prix > 0);
+      // Deduplicate: keep lowest price per store
+      const byStore = {};
+      for (const p of (produit.prix || [])) {
+        if (p.prix <= 0) continue;
+        if (!byStore[p.enseigne_code] || p.prix < byStore[p.enseigne_code]) {
+          byStore[p.enseigne_code] = p.prix;
+        }
+      }
+      const tousLesPrix = Object.entries(byStore).map(([enseigne_code, prix]) => ({ enseigne_code, prix }));
       if (tousLesPrix.length < 2) return;
 
       const prixMin = Math.min(...tousLesPrix.map(p => p.prix));
@@ -53,8 +61,8 @@ export default async function handler(req, res) {
         meilleurEnseigne: NOM_ENSEIGNE[meilleur.enseigne_code] || meilleur.enseigne_code,
         tousLesPrix: tousLesPrix.map(p => ({
           enseigne: NOM_ENSEIGNE[p.enseigne_code] || p.enseigne_code,
-          prix: p.prix
-        }))
+          prix: p.prix,
+        })),
       });
     });
 

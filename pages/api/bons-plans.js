@@ -19,7 +19,7 @@ export default async function handler(req, res) {
       catch { return supabase; }
     })();
     if (req.method === 'GET') {
-      const { ville, categorie, limit = 50, tri = 'hot' } = req.query;
+      const { ville, categorie, limit = 50, tri = 'hot', auteur_id: filterAuteurId } = req.query;
       let query = supabase
         .from('bons_plans')
         .select('*, commentaires(count)');
@@ -32,6 +32,7 @@ export default async function handler(req, res) {
 
       if (ville) query = query.eq('ville', ville);
       if (categorie && categorie !== 'all') query = query.eq('categorie', categorie);
+      if (filterAuteurId) query = query.eq('auteur_id', filterAuteurId);
 
       const { data, error } = await query;
       if (error) return res.status(500).json({ erreur: error.message });
@@ -73,7 +74,36 @@ export default async function handler(req, res) {
     }
 
     if (req.method === 'PATCH') {
-      const { id, vote } = req.body;
+      const { id, vote, action } = req.body;
+
+      // Full deal edit
+      if (action === 'edit') {
+        const { auteur_id, titre, description, prix, prix_original, magasin, ville, categorie, url_source, image_url } = req.body;
+
+        // Verify ownership before allowing edit
+        const { data: existing } = await supabaseAdmin
+          .from('bons_plans').select('auteur_id').eq('id', id).single();
+        if (!existing || existing.auteur_id !== auteur_id) {
+          return res.status(403).json({ erreur: 'Non autorisé' });
+        }
+
+        const updateData = {
+          titre, description: description || null,
+          prix: Number(prix) || 0,
+          prix_original: prix_original ? Number(prix_original) : null,
+          magasin, ville: ville || null,
+          image_url: image_url || null,
+        };
+        if (categorie) updateData.categorie = categorie;
+        if (url_source && url_source.startsWith('http')) updateData.url_source = url_source;
+        else updateData.url_source = null;
+
+        const { error } = await supabaseAdmin.from('bons_plans').update(updateData).eq('id', id);
+        if (error) return res.status(500).json({ erreur: error.message });
+        return res.status(200).json({ ok: true });
+      }
+
+      // Vote update
       const champ = vote === 'chaud' ? 'votes_chaud' : 'votes_froid';
 
       const { data: current } = await supabaseAdmin

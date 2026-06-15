@@ -379,7 +379,7 @@ function PromoModal({ promo, langue, isDark, onClose }) {
   );
 }
 
-function DealCard({ deal, langue, onVote, userCoords, votedDeal }) {
+function DealCard({ deal, langue, onVote, userCoords, votedDeal, user }) {
   const router = useRouter();
   const reduction = deal.prix_original && deal.prix_original > deal.prix
     ? Math.round((deal.prix_original - deal.prix) / deal.prix_original * 100)
@@ -389,6 +389,8 @@ function DealCard({ deal, langue, onVote, userCoords, votedDeal }) {
   const distance = (userCoords && dealCoords)
     ? distanceKm(userCoords.lat, userCoords.lon, dealCoords.lat, dealCoords.lon)
     : null;
+
+  const isOwner = user && user.id === deal.auteur_id;
 
   return (
     <div style={{
@@ -406,7 +408,12 @@ function DealCard({ deal, langue, onVote, userCoords, votedDeal }) {
         style={{ cursor: 'pointer', position: 'relative', height: deal.image_url ? 200 : 72, background: 'var(--bg-card2)' }}
       >
         {deal.image_url ? (
-          <img src={deal.image_url} alt={deal.titre} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+          <img
+            src={deal.image_url}
+            alt={deal.titre}
+            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+            onError={e => { e.target.style.display = 'none'; }}
+          />
         ) : (
           <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <span style={{ fontSize: 28 }}>🛍️</span>
@@ -488,7 +495,7 @@ function DealCard({ deal, langue, onVote, userCoords, votedDeal }) {
           </span>
         </p>
 
-        <div style={{ display: 'flex', gap: 8, borderTop: '0.5px solid var(--border)', paddingTop: 10 }}>
+        <div style={{ display: 'flex', gap: 8, borderTop: '0.5px solid var(--border)', paddingTop: 10, alignItems: 'center' }}>
           <button onClick={() => !votedDeal && onVote(deal.id, 'chaud')} style={{
             display: 'flex', alignItems: 'center', gap: 5,
             padding: '7px 14px', borderRadius: 20,
@@ -518,6 +525,14 @@ function DealCard({ deal, langue, onVote, userCoords, votedDeal }) {
           }}>
             💬 {deal.commentaires?.[0]?.count || 0}
           </Link>
+          {isOwner && (
+            <Link href={`/deal/${deal.id}`} style={{
+              display: 'flex', alignItems: 'center',
+              padding: '7px 10px', borderRadius: 20,
+              background: 'rgba(2,132,199,0.1)', border: `0.5px solid ${ACCENT}`,
+              color: ACCENT, textDecoration: 'none', fontSize: 13, fontWeight: 600,
+            }}>✏️</Link>
+          )}
         </div>
       </div>
     </div>
@@ -653,6 +668,7 @@ export default function Home() {
   const [loadingDeals, setLoadingDeals] = useState(false);
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [sortDeals, setSortDeals] = useState('hot');
+  const [myDealsOnly, setMyDealsOnly] = useState(false);
 
   const [ville, setVille] = useState(null);
   const [userCoords, setUserCoords] = useState(null);
@@ -722,11 +738,12 @@ export default function Home() {
     const params = new URLSearchParams();
     if (categoryFilter !== 'all') params.set('categorie', categoryFilter);
     params.set('tri', sortDeals === 'nearby' ? 'latest' : sortDeals);
+    if (myDealsOnly && user?.id) params.set('auteur_id', user.id);
     fetch(`/api/bons-plans?${params}`)
       .then(r => r.json())
       .then(d => { setDeals(d.bons_plans || []); setLoadingDeals(false); })
       .catch(() => setLoadingDeals(false));
-  }, [tab, categoryFilter, sortDeals]);
+  }, [tab, categoryFilter, sortDeals, myDealsOnly, user]);
 
   const handleCitySelect = (villeNom, coords) => {
     setVille(villeNom);
@@ -800,7 +817,11 @@ export default function Home() {
           body: JSON.stringify({ image: base64, filename: postImageFile.name, mimeType: postImageFile.type }),
         });
         const uploadData = await uploadRes.json();
-        if (uploadData.url) image_url = uploadData.url;
+        if (uploadData.url) {
+          image_url = uploadData.url;
+        } else {
+          setPostError(uploadData.erreur ? `Photo upload failed: ${uploadData.erreur}` : 'Photo upload failed. Deal will be posted without image.');
+        }
       }
 
       const res = await fetch('/api/bons-plans', {
@@ -1033,6 +1054,17 @@ export default function Home() {
                     whiteSpace: 'nowrap',
                   }}>{s.label}</button>
                 ))}
+                {user && (
+                  <button onClick={() => setMyDealsOnly(v => !v)} style={{
+                    flexShrink: 0,
+                    padding: '6px 14px', borderRadius: 20,
+                    border: myDealsOnly ? `1.5px solid ${ACCENT}` : '0.5px solid var(--border)',
+                    background: myDealsOnly ? 'rgba(2,132,199,0.1)' : 'var(--bg-card)',
+                    color: myDealsOnly ? ACCENT : 'var(--text-sub)',
+                    fontSize: 13, fontWeight: myDealsOnly ? 700 : 400, cursor: 'pointer',
+                    whiteSpace: 'nowrap',
+                  }}>👤 My Deals</button>
+                )}
               </div>
               <button
                 onClick={() => router.push('/map')}
@@ -1084,7 +1116,7 @@ export default function Home() {
               </div>
             ) : (
               displayedDeals.map(deal => (
-                <DealCard key={deal.id} deal={deal} langue={langue} onVote={handleVote} userCoords={userCoords} votedDeal={votedDeals[deal.id] || null} />
+                <DealCard key={deal.id} deal={deal} langue={langue} onVote={handleVote} userCoords={userCoords} votedDeal={votedDeals[deal.id] || null} user={user} />
               ))
             )}
           </div>
