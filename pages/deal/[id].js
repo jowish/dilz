@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
+import Head from 'next/head';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import { supabase } from '../../lib/supabase';
 import { traduireVille } from '../../lib/translations';
+import { uploadDealImage, validateImageFile, deleteDealImage } from '../../lib/uploadImage';
 
 const ACCENT = '#D4622A';
 const ACCENT_DARK = '#B84E20';
@@ -19,6 +21,18 @@ const CITY_COORDS = {
   'ראש העין': {}, 'רעננה': {}, 'יהוד': {}, 'גבעתיים': {}, 'אור יהודה': {},
   'קריית אונו': {},
 };
+
+function computeVoteDeltas(current, next) {
+  if (current === next) {
+    return { chaud_delta: next === 'chaud' ? -1 : 0, froid_delta: next === 'froid' ? -1 : 0, newVote: null };
+  }
+  const d = { chaud_delta: 0, froid_delta: 0 };
+  if (current === 'chaud') d.chaud_delta -= 1;
+  if (current === 'froid') d.froid_delta -= 1;
+  if (next === 'chaud') d.chaud_delta += 1;
+  if (next === 'froid') d.froid_delta += 1;
+  return { ...d, newVote: next };
+}
 
 function timeAgo(date) {
   const diff = Date.now() - new Date(date).getTime();
@@ -57,6 +71,10 @@ export default function DealPage() {
   const [editError, setEditError] = useState('');
   const [editImageFile, setEditImageFile] = useState(null);
   const [editImagePreview, setEditImagePreview] = useState(null);
+  const [editImageError, setEditImageError] = useState('');
+
+  // Share feedback
+  const [copySuccess, setCopySuccess] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -73,6 +91,10 @@ export default function DealPage() {
     if (!id) return;
     fetchDeal();
     fetchComments();
+    try {
+      const dv = localStorage.getItem('dilzDealVotes');
+      if (dv) { const parsed = JSON.parse(dv); setMyVote(parsed[id] || null); }
+    } catch {}
   }, [id]);
 
   const fetchDeal = async () => {
@@ -103,14 +125,72 @@ export default function DealPage() {
 
   const handleVote = async (type) => {
     if (!user) { router.push(`/auth?redirect=/deal/${id}`); return; }
-    if (myVote === type) { setMyVote(null); return; }
-    setMyVote(type);
-    setDeal(prev => ({ ...prev, [`votes_${type}`]: (prev[`votes_${type}`] || 0) + 1 }));
-    await fetch('/api/bons-plans', {
+
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) { router.push(`/auth?redirect=/deal/${id}`); return; }
+
+    // Compute optimistic toggle
+    const optimisticNewVote = myVote === type ? null : type;
+    const chaud_delta = (myVote === 'chaud' ? -1 : 0) + (optimisticNewVote === 'chaud' ? 1 : 0);
+    const froid_delta = (myVote === 'froid' ? -1 : 0) + (optimisticNewVote === 'froid' ? 1 : 0);
+    const prevVote = myVote;
+
+    // Optimistic update
+    setMyVote(optimisticNewVote);
+    try {
+      const dv = JSON.parse(localStorage.getItem('dilzDealVotes') || '{}');
+      dv[id] = optimisticNewVote;
+      localStorage.setItem('dilzDealVotes', JSON.stringify(dv));
+    } catch {}
+    setDeal(prev => ({
+      ...prev,
+      votes_chaud: Math.max(0, (prev.votes_chaud || 0) + chaud_delta),
+      votes_froid: Math.max(0, (prev.votes_froid || 0) + froid_delta),
+    }));
+
+    const apiRes = await fetch('/api/bons-plans', {
       method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id, vote: type }),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${session.access_token}`,
+      },
+      body: JSON.stringify({
+        action: 'vote', id, type,
+        chaud_delta, froid_delta, // fallback deltas
+      }),
     });
+
+    if (apiRes.ok) {
+      const data = await apiRes.json();
+      // Reconcile with server-authoritative state
+      const serverVote = data.newType ?? null;
+      setMyVote(serverVote);
+      try {
+        const dv = JSON.parse(localStorage.getItem('dilzDealVotes') || '{}');
+        dv[id] = serverVote;
+        localStorage.setItem('dilzDealVotes', JSON.stringify(dv));
+      } catch {}
+      if (data.votes_chaud !== undefined) {
+        setDeal(prev => ({
+          ...prev,
+          votes_chaud: data.votes_chaud,
+          votes_froid: data.votes_froid,
+        }));
+      }
+    } else {
+      // Rollback
+      setMyVote(prevVote);
+      try {
+        const dv = JSON.parse(localStorage.getItem('dilzDealVotes') || '{}');
+        dv[id] = prevVote;
+        localStorage.setItem('dilzDealVotes', JSON.stringify(dv));
+      } catch {}
+      setDeal(prev => ({
+        ...prev,
+        votes_chaud: Math.max(0, (prev.votes_chaud || 0) - chaud_delta),
+        votes_froid: Math.max(0, (prev.votes_froid || 0) - froid_delta),
+      }));
+    }
   };
 
   const handleCommentVote = (commentId, type) => {
@@ -128,15 +208,18 @@ export default function DealPage() {
     if (!newComment.trim()) return;
     setSubmitting(true);
     setCommentError('');
-    const displayName = user.user_metadata?.display_name || user.email?.split('@')[0] || 'User';
     try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) { router.push(`/auth?redirect=/deal/${id}`); setSubmitting(false); return; }
       const r = await fetch('/api/commentaires', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`,
+        },
         body: JSON.stringify({
           bon_plan_id: id,
           contenu: newComment.trim(),
-          auteur_nom: displayName,
         }),
       });
       const d = await r.json();
@@ -152,15 +235,18 @@ export default function DealPage() {
   const handleReply = async () => {
     if (!user || !replyTo || !replyText.trim()) return;
     setReplySubmitting(true);
-    const displayName = user.user_metadata?.display_name || user.email?.split('@')[0] || 'User';
     try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) { setReplySubmitting(false); return; }
       const r = await fetch('/api/commentaires', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`,
+        },
         body: JSON.stringify({
           bon_plan_id: id,
           contenu: `↩ @${replyTo.auteur_nom}: ${replyText.trim()}`,
-          auteur_nom: displayName,
         }),
       });
       const d = await r.json();
@@ -173,9 +259,12 @@ export default function DealPage() {
     setReplySubmitting(false);
   };
 
-  const handleEditImage = async (e) => {
+  const handleEditImage = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    const err = validateImageFile(file);
+    if (err) { setEditImageError(err); e.target.value = ''; return; }
+    setEditImageError('');
     setEditImageFile(file);
     const reader = new FileReader();
     reader.onload = (ev) => setEditImagePreview(ev.target.result);
@@ -189,30 +278,31 @@ export default function DealPage() {
     }
     setEditSubmitting(true);
     setEditError('');
+    let newUploadPath = null;
     try {
       let image_url = deal.image_url;
 
       if (editImageFile) {
-        const reader = new FileReader();
-        const base64 = await new Promise((resolve) => {
-          reader.onload = (e) => resolve(e.target.result.split(',')[1]);
-          reader.readAsDataURL(editImageFile);
-        });
-        const uploadRes = await fetch('/api/upload', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ image: base64, filename: editImageFile.name, mimeType: editImageFile.type }),
-        });
-        const uploadData = await uploadRes.json();
-        if (uploadData.url) image_url = uploadData.url;
+        const { url, path } = await uploadDealImage(editImageFile, user.id);
+        image_url = url;
+        newUploadPath = path;
+      }
+
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        setEditError('Session expired. Please sign in again.');
+        setEditSubmitting(false);
+        return;
       }
 
       const res = await fetch('/api/bons-plans', {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`,
+        },
         body: JSON.stringify({
           action: 'edit', id,
-          auteur_id: user.id,
           ...editForm,
           prix: parseFloat(editForm.prix),
           prix_original: editForm.prix_original ? parseFloat(editForm.prix_original) : null,
@@ -221,6 +311,7 @@ export default function DealPage() {
       });
       const data = await res.json();
       if (!res.ok || data.erreur) {
+        if (newUploadPath) await deleteDealImage(newUploadPath);
         setEditError(data.erreur || 'Failed to update');
         setEditSubmitting(false);
         return;
@@ -228,11 +319,37 @@ export default function DealPage() {
       setIsEditing(false);
       setEditImageFile(null);
       setEditImagePreview(null);
+      setEditImageError('');
       await fetchDeal();
     } catch (e) {
+      if (newUploadPath) await deleteDealImage(newUploadPath);
       setEditError(e.message || 'Network error');
     }
     setEditSubmitting(false);
+  };
+
+  const handleShare = async () => {
+    if (!deal) return;
+    const url = window.location.href;
+    const text = `${deal.titre} — ₪${deal.prix} at ${deal.magasin} 🔥`;
+    if (navigator.share) {
+      try { await navigator.share({ title: deal.titre, text, url }); } catch {}
+    } else {
+      try {
+        await navigator.clipboard.writeText(url);
+        setCopySuccess(true);
+        setTimeout(() => setCopySuccess(false), 2000);
+      } catch {
+        const ta = document.createElement('textarea');
+        ta.value = url;
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+        setCopySuccess(true);
+        setTimeout(() => setCopySuccess(false), 2000);
+      }
+    }
   };
 
   if (!mounted) return null;
@@ -259,8 +376,22 @@ export default function DealPage() {
     : null;
 
   const isOwner = user && user.id === deal.auteur_id;
+  const pageTitle = `${deal.titre} — ₪${deal.prix} at ${deal.magasin} | Dilz`;
+  const pageDesc = deal.description
+    ? `${deal.description.slice(0, 120)}…`
+    : `${deal.titre} for ₪${deal.prix} at ${deal.magasin}${deal.ville ? `, ${deal.ville}` : ''}. Found on Dilz.`;
 
   return (
+    <>
+    <Head>
+      <title>{pageTitle}</title>
+      <meta name="description" content={pageDesc} />
+      <meta property="og:title" content={pageTitle} />
+      <meta property="og:description" content={pageDesc} />
+      {deal.image_url && <meta property="og:image" content={deal.image_url} />}
+      <meta property="og:type" content="article" />
+      <meta name="twitter:card" content={deal.image_url ? 'summary_large_image' : 'summary'} />
+    </Head>
     <div style={{ minHeight: '100vh', background: 'var(--bg)', paddingBottom: 40 }}>
       {/* Header */}
       <div style={{
@@ -278,15 +409,26 @@ export default function DealPage() {
           <span style={{ fontSize: 18, fontWeight: 800, color: 'var(--text)' }}>
             dil<span style={{ color: ACCENT }}>z</span>
           </span>
-          {isOwner ? (
-            <button onClick={() => setIsEditing(true)} style={{
-              background: 'rgba(2,132,199,0.1)', border: `1px solid ${ACCENT}`,
-              borderRadius: 12, padding: '5px 12px',
-              color: ACCENT, fontSize: 13, fontWeight: 600, cursor: 'pointer',
+          <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+            <button onClick={handleShare} style={{
+              background: copySuccess ? 'rgba(16,185,129,0.1)' : 'var(--bg-card2)',
+              border: copySuccess ? '1px solid #10B981' : '0.5px solid var(--border)',
+              borderRadius: 12, padding: '5px 10px',
+              color: copySuccess ? '#10B981' : 'var(--text-sub)',
+              fontSize: 13, fontWeight: 600, cursor: 'pointer',
             }}>
-              ✏️ Edit
+              {copySuccess ? '✓ Copied' : '↗ Share'}
             </button>
-          ) : <div style={{ width: 48 }} />}
+            {isOwner && (
+              <button onClick={() => setIsEditing(true)} style={{
+                background: 'rgba(212,98,42,0.1)', border: `1px solid ${ACCENT}`,
+                borderRadius: 12, padding: '5px 12px',
+                color: ACCENT, fontSize: 13, fontWeight: 600, cursor: 'pointer',
+              }}>
+                ✏️ Edit
+              </button>
+            )}
+          </div>
         </div>
       </div>
 
@@ -354,7 +496,7 @@ export default function DealPage() {
           )}
 
           {/* Votes */}
-          <div style={{ display: 'flex', gap: 12, marginBottom: 24, padding: '16px 0', borderTop: '0.5px solid var(--border)', borderBottom: '0.5px solid var(--border)' }}>
+          <div style={{ display: 'flex', gap: 12, padding: '16px 0 12px', borderTop: '0.5px solid var(--border)' }}>
             <button onClick={() => handleVote('chaud')} style={{
               flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
               padding: '14px 20px', borderRadius: 16, border: 'none',
@@ -362,17 +504,56 @@ export default function DealPage() {
               color: myVote === 'chaud' ? '#fff' : 'var(--text)',
               fontSize: 15, fontWeight: 700, cursor: 'pointer', boxShadow: 'var(--shadow-card)',
             }}>
-              🔥 {deal.votes_chaud} <span style={{ fontSize: 12, opacity: 0.7 }}>Hot</span>
+              🔥 {deal.votes_chaud || 0} <span style={{ fontSize: 12, opacity: 0.7 }}>Hot</span>
             </button>
             <button onClick={() => handleVote('froid')} style={{
               flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-              padding: '14px 20px', borderRadius: 16, border: 'none',
+              padding: '14px 20px', borderRadius: 16,
               background: myVote === 'froid' ? 'var(--bg-card2)' : 'var(--bg-card)',
-              color: myVote === 'froid' ? '#4B9FE1' : 'var(--text)',
+              color: myVote === 'froid' ? '#6B7280' : 'var(--text)',
               fontSize: 15, fontWeight: 700, cursor: 'pointer', boxShadow: 'var(--shadow-card)',
-              border: myVote === 'froid' ? '1.5px solid #4B9FE1' : '0.5px solid var(--border)',
+              border: myVote === 'froid' ? '1.5px solid #6B7280' : '0.5px solid var(--border)',
             }}>
-              ❄️ {deal.votes_froid} <span style={{ fontSize: 12, opacity: 0.7 }}>Cold</span>
+              ❄️ {deal.votes_froid || 0} <span style={{ fontSize: 12, opacity: 0.7 }}>Cold</span>
+            </button>
+          </div>
+
+          {/* Share row */}
+          <div style={{ display: 'flex', gap: 8, marginBottom: 24, paddingBottom: 16, borderBottom: '0.5px solid var(--border)' }}>
+            <a
+              href={`https://wa.me/?text=${encodeURIComponent(`${deal.titre} — ₪${deal.prix} at ${deal.magasin} 🔥 ${typeof window !== 'undefined' ? window.location.href : ''}`)}`}
+              target="_blank" rel="noopener noreferrer"
+              style={{
+                flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                padding: '10px 0', borderRadius: 14,
+                background: 'rgba(37,211,102,0.1)', border: '0.5px solid rgba(37,211,102,0.3)',
+                color: '#25D366', textDecoration: 'none', fontSize: 13, fontWeight: 700,
+              }}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+              WhatsApp
+            </a>
+            <a
+              href={`https://t.me/share/url?url=${encodeURIComponent(typeof window !== 'undefined' ? window.location.href : '')}&text=${encodeURIComponent(`${deal.titre} — ₪${deal.prix} at ${deal.magasin} 🔥`)}`}
+              target="_blank" rel="noopener noreferrer"
+              style={{
+                flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                padding: '10px 0', borderRadius: 14,
+                background: 'rgba(42,171,238,0.1)', border: '0.5px solid rgba(42,171,238,0.3)',
+                color: '#2AABEE', textDecoration: 'none', fontSize: 13, fontWeight: 700,
+              }}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg>
+              Telegram
+            </a>
+            <button onClick={handleShare} style={{
+              flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+              padding: '10px 0', borderRadius: 14, border: '0.5px solid var(--border)',
+              background: copySuccess ? 'rgba(16,185,129,0.1)' : 'var(--bg-card)',
+              color: copySuccess ? '#10B981' : 'var(--text-sub)',
+              fontSize: 13, fontWeight: 700, cursor: 'pointer',
+            }}>
+              {copySuccess ? '✓ Copied' : '🔗 Copy link'}
             </button>
           </div>
 
@@ -402,7 +583,7 @@ export default function DealPage() {
                     <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
                       <div style={{
                         width: 34, height: 34, borderRadius: '50%', flexShrink: 0,
-                        background: isReply ? `rgba(2,132,199,0.15)` : 'var(--bg-card2)',
+                        background: isReply ? `rgba(212,98,42,0.12)` : 'var(--bg-card2)',
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
                       }}>
                         <span style={{ fontSize: 12, fontWeight: 700, color: isReply ? ACCENT : 'var(--text-sub)' }}>{initials}</span>
@@ -552,7 +733,7 @@ export default function DealPage() {
                   </div>
                 )}
               </div>
-              <input type="file" accept="image/*" onChange={handleEditImage} style={{ display: 'none' }} />
+              <input type="file" accept="image/jpeg,image/png,image/webp" onChange={handleEditImage} style={{ display: 'none' }} />
             </label>
 
             {/* Fields */}
@@ -599,7 +780,7 @@ export default function DealPage() {
                   <button key={cat} onClick={() => setEditForm({ ...editForm, categorie: cat })} style={{
                     padding: '5px 12px', borderRadius: 20, cursor: 'pointer', fontSize: 13,
                     border: editForm.categorie === cat ? `1.5px solid ${ACCENT}` : '0.5px solid var(--border)',
-                    background: editForm.categorie === cat ? 'rgba(2,132,199,0.1)' : 'var(--bg-input)',
+                    background: editForm.categorie === cat ? 'rgba(212,98,42,0.1)' : 'var(--bg-input)',
                     color: editForm.categorie === cat ? ACCENT : 'var(--text-sub)',
                     fontWeight: editForm.categorie === cat ? 700 : 400,
                   }}>{cat}</button>
@@ -624,6 +805,7 @@ export default function DealPage() {
               />
             </div>
 
+            {editImageError && <p style={{ color: '#DC2626', fontSize: 13, marginBottom: 8 }}>{editImageError}</p>}
             {editError && <p style={{ color: '#DC2626', fontSize: 13, marginBottom: 12 }}>{editError}</p>}
 
             <div style={{ display: 'flex', gap: 10 }}>
@@ -636,7 +818,7 @@ export default function DealPage() {
                 background: editSubmitting ? 'var(--bg-card2)' : `linear-gradient(135deg, ${ACCENT}, ${ACCENT_DARK})`,
                 color: editSubmitting ? 'var(--text-muted)' : '#fff',
                 fontSize: 15, fontWeight: 700, cursor: editSubmitting ? 'default' : 'pointer',
-                boxShadow: editSubmitting ? 'none' : '0 4px 18px rgba(2,132,199,0.4)',
+                boxShadow: editSubmitting ? 'none' : `0 4px 18px rgba(212,98,42,0.4)`,
               }}>
                 {editSubmitting ? 'Saving...' : 'Save changes'}
               </button>
@@ -645,5 +827,6 @@ export default function DealPage() {
         </div>
       )}
     </div>
+    </>
   );
 }

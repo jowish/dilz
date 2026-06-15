@@ -5,6 +5,7 @@ import { useRouter } from 'next/router';
 import { useTheme } from 'next-themes';
 import { translations, traduireVille } from '../lib/translations';
 import { supabase } from '../lib/supabase';
+import { uploadDealImage, validateImageFile, deleteDealImage } from '../lib/uploadImage';
 
 // ─── Design tokens ────────────────────────────────────────────────────────────
 const ACCENT = '#D4622A';
@@ -97,6 +98,18 @@ function timeAgo(date, lang) {
 function matchSearch(text, q) {
   if (!q || !text) return !q;
   return text.toLowerCase().includes(q.toLowerCase());
+}
+
+function computeVoteDeltas(current, next) {
+  if (current === next) {
+    return { chaud_delta: next === 'chaud' ? -1 : 0, froid_delta: next === 'froid' ? -1 : 0, newVote: null };
+  }
+  const d = { chaud_delta: 0, froid_delta: 0 };
+  if (current === 'chaud') d.chaud_delta -= 1;
+  if (current === 'froid') d.froid_delta -= 1;
+  if (next === 'chaud') d.chaud_delta += 1;
+  if (next === 'froid') d.froid_delta += 1;
+  return { ...d, newVote: next };
 }
 
 // ─── ThemeToggle ─────────────────────────────────────────────────────────────
@@ -208,6 +221,13 @@ function HeroPromoCard({ promo, lang, isDark, onClick, votes, onVote }) {
 
       {/* Info row */}
       <div onClick={onClick} style={{ padding: '16px 20px 12px', cursor: 'pointer' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
+          <span style={{
+            fontSize: 10, fontWeight: 700, padding: '2px 7px', borderRadius: 20,
+            background: 'var(--bg-card2)', color: 'var(--text-muted)', letterSpacing: '0.3px',
+            textTransform: 'uppercase',
+          }}>Price comparison</span>
+        </div>
         <p style={{
           fontSize: 15, fontWeight: 700, color: 'var(--text)',
           marginBottom: 8, lineHeight: 1.4, textAlign: lang === 'he' ? 'right' : 'left',
@@ -219,8 +239,8 @@ function HeroPromoCard({ promo, lang, isDark, onClick, votes, onVote }) {
           <span style={{ fontSize: 17, color: 'var(--text-muted)', textDecoration: 'line-through' }}>
             ₪{promo.prixMax.toFixed(2)}
           </span>
-          <span style={{ fontSize: 13, fontWeight: 700, color: '#10B981', marginLeft: 'auto' }}>
-            Save ₪{(promo.prixMax - promo.prixMin).toFixed(2)}
+          <span style={{ fontSize: 12, fontWeight: 700, color: '#10B981', marginLeft: 'auto', background: 'rgba(16,185,129,0.1)', padding: '3px 8px', borderRadius: 20 }}>
+            ₪{(promo.prixMax - promo.prixMin).toFixed(2)} cheaper
           </span>
         </div>
       </div>
@@ -382,17 +402,20 @@ function PromoModal({ promo, lang, isDark, onClose }) {
           })}
         </div>
 
-        {/* Saving summary */}
+        {/* Price comparison summary */}
         <div style={{
           marginTop: 16, padding: '14px 20px', borderRadius: 16,
           background: 'var(--bg-card2)', textAlign: 'center',
         }}>
           <span style={{ fontSize: 14, color: 'var(--text-sub)' }}>
-            {lang === 'en' ? 'Max saving:' : 'חיסכון מקסימלי:'}{' '}
+            {lang === 'en' ? 'Price difference:' : 'הפרש מחירים:'}{' '}
             <strong style={{ color: ACCENT, fontWeight: 800 }}>
-              ₪{(promo.prixMax - promo.prixMin).toFixed(2)} ({promo.reduction}% off)
+              ₪{(promo.prixMax - promo.prixMin).toFixed(2)} ({promo.reduction}% cheaper at best store)
             </strong>
           </span>
+          <p style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 6 }}>
+            {lang === 'en' ? 'Price comparison across supermarkets — not an official promotion' : 'השוואת מחירים בין רשתות — לא מבצע רשמי'}
+          </p>
         </div>
 
         <button onClick={onClose} style={{
@@ -550,25 +573,25 @@ function DealCard({ deal, lang, onVote, userCoords, votedDeal, user, isDark }) {
           display: 'flex', gap: 6, paddingTop: 10, paddingBottom: 14,
           borderTop: '0.5px solid var(--border)',
         }}>
-          <button onClick={() => !votedDeal && onVote(deal.id, 'chaud')} style={{
+          <button onClick={() => onVote(deal.id, 'chaud')} style={{
             display: 'flex', alignItems: 'center', gap: 5,
             padding: '7px 14px', borderRadius: 20,
             background: votedDeal === 'chaud' ? ACCENT : 'var(--bg-card2)',
             border: votedDeal === 'chaud' ? `none` : '0.5px solid var(--border)',
             color: votedDeal === 'chaud' ? '#fff' : 'var(--text)',
-            cursor: votedDeal ? 'default' : 'pointer',
-            opacity: votedDeal && votedDeal !== 'chaud' ? 0.4 : 1,
+            cursor: 'pointer',
+            opacity: votedDeal && votedDeal !== 'chaud' ? 0.6 : 1,
             fontSize: 13, fontWeight: 700,
           }}>🔥 {deal.votes_chaud || 0}</button>
 
-          <button onClick={() => !votedDeal && onVote(deal.id, 'froid')} style={{
+          <button onClick={() => onVote(deal.id, 'froid')} style={{
             display: 'flex', alignItems: 'center', gap: 5,
             padding: '7px 14px', borderRadius: 20,
             background: votedDeal === 'froid' ? '#6B7280' : 'var(--bg-card2)',
             border: votedDeal === 'froid' ? 'none' : '0.5px solid var(--border)',
             color: votedDeal === 'froid' ? '#fff' : 'var(--text)',
-            cursor: votedDeal ? 'default' : 'pointer',
-            opacity: votedDeal && votedDeal !== 'froid' ? 0.4 : 1,
+            cursor: 'pointer',
+            opacity: votedDeal && votedDeal !== 'froid' ? 0.6 : 1,
             fontSize: 13, fontWeight: 700,
           }}>❄️ {deal.votes_froid || 0}</button>
 
@@ -703,6 +726,7 @@ function CityModal({ villes, current, lang, onSelect, onClose }) {
 // ─── PostDealModal ────────────────────────────────────────────────────────────
 function PostDealModal({ user, lang, onClose, onSuccess }) {
   const CATS = ['Food', 'Tech', 'Fashion', 'Activities', 'Online'];
+  const router = useRouter();
   const [form, setForm] = useState({
     titre: '', description: '', prix: '', prix_original: '',
     magasin: '', ville: '', categorie: 'Food', url_source: '',
@@ -710,6 +734,7 @@ function PostDealModal({ user, lang, onClose, onSuccess }) {
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
   const [submitting, setSubmitting] = useState(false);
+  const [uploadPhase, setUploadPhase] = useState(null); // null | 'photo' | 'saving'
   const [error, setError] = useState('');
 
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
@@ -717,6 +742,13 @@ function PostDealModal({ user, lang, onClose, onSuccess }) {
   const handleImage = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    const err = validateImageFile(file);
+    if (err) {
+      setError(err);
+      e.target.value = '';
+      return;
+    }
+    setError('');
     setImageFile(file);
     const reader = new FileReader();
     reader.onload = ev => setImagePreview(ev.target.result);
@@ -724,30 +756,24 @@ function PostDealModal({ user, lang, onClose, onSuccess }) {
   };
 
   const handleSubmit = async () => {
-    if (!form.titre || !form.prix || !form.magasin) {
-      setError('Title, price and store are required');
+    if (!user) { setError('Please sign in to post a deal.'); return; }
+    if (!imageFile) {
+      setError(lang === 'en' ? 'A photo is required to post a deal.' : 'נדרשת תמונה לפרסום הדיל.');
       return;
     }
+    if (!form.titre.trim()) { setError('Title is required.'); return; }
+    if (!form.prix) { setError('Price is required.'); return; }
+    if (!form.magasin.trim()) { setError('Store / place is required.'); return; }
+
     setSubmitting(true);
     setError('');
+    let uploadPath = null;
     try {
-      let image_url = null;
-      if (imageFile) {
-        const reader = new FileReader();
-        const base64 = await new Promise(resolve => {
-          reader.onload = e => resolve(e.target.result.split(',')[1]);
-          reader.readAsDataURL(imageFile);
-        });
-        const up = await fetch('/api/upload', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ image: base64, filename: imageFile.name, mimeType: imageFile.type }),
-        });
-        const upData = await up.json();
-        if (upData.url) image_url = upData.url;
-        else setError('Photo upload failed — deal will post without image');
-      }
+      setUploadPhase('photo');
+      const { url, path } = await uploadDealImage(imageFile, user.id);
+      uploadPath = path;
 
+      setUploadPhase('saving');
       const res = await fetch('/api/bons-plans', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -755,22 +781,26 @@ function PostDealModal({ user, lang, onClose, onSuccess }) {
           ...form,
           prix: parseFloat(form.prix),
           prix_original: form.prix_original ? parseFloat(form.prix_original) : null,
-          image_url,
-          auteur_id: user?.id || null,
-          auteur_nom: user?.user_metadata?.display_name || user?.email?.split('@')[0] || 'Anonymous',
+          image_url: url,
+          auteur_id: user.id,
+          auteur_nom: user.user_metadata?.display_name || user.email?.split('@')[0] || 'Anonymous',
         }),
       });
       const data = await res.json();
       if (!res.ok || data.erreur) {
+        if (uploadPath) await deleteDealImage(uploadPath);
         setError(data.erreur || 'Failed to post deal');
         setSubmitting(false);
+        setUploadPhase(null);
         return;
       }
-      onSuccess();
+      onSuccess(data.bon_plan?.id || null);
     } catch (e) {
-      setError(e.message || 'Network error');
+      if (uploadPath) await deleteDealImage(uploadPath);
+      setError(e.message || 'Network error. Please try again.');
+      setSubmitting(false);
+      setUploadPhase(null);
     }
-    setSubmitting(false);
   };
 
   useEffect(() => {
@@ -823,26 +853,45 @@ function PostDealModal({ user, lang, onClose, onSuccess }) {
           <button onClick={onClose} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', fontSize: 22, cursor: 'pointer', padding: '0 4px' }}>×</button>
         </div>
 
-        {/* Photo upload */}
-        <label style={{ cursor: 'pointer', display: 'block', marginBottom: 14 }}>
+        {/* Photo upload — required */}
+        <label style={{ cursor: submitting ? 'default' : 'pointer', display: 'block', marginBottom: 14 }}>
           <div style={{
-            height: imagePreview ? 180 : 90, borderRadius: 18,
-            border: `2px dashed ${imagePreview ? ACCENT : 'var(--border)'}`,
-            background: imagePreview ? 'transparent' : 'var(--bg-card2)',
+            height: imagePreview ? 200 : 100, borderRadius: 18,
+            border: `2px dashed ${imagePreview ? ACCENT : error && !imageFile ? '#DC2626' : 'var(--border)'}`,
+            background: imagePreview ? '#000' : 'var(--bg-card2)',
             display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden',
+            position: 'relative',
           }}>
             {imagePreview ? (
-              <img src={imagePreview} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              <img src={imagePreview} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.95 }} />
             ) : (
               <div style={{ textAlign: 'center', color: 'var(--text-muted)' }}>
-                <div style={{ fontSize: 28, marginBottom: 4 }}>📸</div>
-                <div style={{ fontSize: 13, fontWeight: 500 }}>
-                  {lang === 'en' ? 'Add photo (recommended)' : 'הוסף תמונה (מומלץ)'}
+                <div style={{ fontSize: 32, marginBottom: 6 }}>📸</div>
+                <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-sub)', marginBottom: 2 }}>
+                  {lang === 'en' ? 'Add a photo' : 'הוסף תמונה'}
+                </div>
+                <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>
+                  JPEG · PNG · WebP · Max 5 MB
                 </div>
               </div>
             )}
+            {imagePreview && (
+              <div style={{
+                position: 'absolute', bottom: 8, right: 8,
+                background: 'rgba(0,0,0,0.55)', borderRadius: 10, padding: '4px 9px',
+                color: '#fff', fontSize: 11, fontWeight: 600,
+              }}>
+                {lang === 'en' ? 'Tap to change' : 'לחץ לשינוי'}
+              </div>
+            )}
           </div>
-          <input type="file" accept="image/*" capture="environment" onChange={handleImage} style={{ display: 'none' }} />
+          <input
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            onChange={handleImage}
+            disabled={submitting}
+            style={{ display: 'none' }}
+          />
         </label>
 
         {/* Title + Store */}
@@ -915,7 +964,13 @@ function PostDealModal({ user, lang, onClose, onSuccess }) {
           />
         </div>
 
-        {error && <p style={{ color: '#DC2626', fontSize: 13, marginBottom: 10 }}>{error}</p>}
+        {error && (
+          <p style={{
+            color: '#DC2626', fontSize: 13, marginBottom: 10,
+            background: 'rgba(220,38,38,0.08)', borderRadius: 10,
+            padding: '8px 12px', lineHeight: 1.5,
+          }}>{error}</p>
+        )}
 
         <button onClick={handleSubmit} disabled={submitting} style={{
           width: '100%', padding: 16, borderRadius: 16, border: 'none',
@@ -924,7 +979,11 @@ function PostDealModal({ user, lang, onClose, onSuccess }) {
           fontSize: 16, fontWeight: 700, cursor: submitting ? 'default' : 'pointer',
           boxShadow: submitting ? 'none' : `0 4px 18px rgba(212,98,42,0.4)`,
         }}>
-          {submitting ? 'Posting...' : 'Share deal 🔥'}
+          {uploadPhase === 'photo'
+            ? (lang === 'en' ? '📤 Uploading photo...' : '📤 מעלה תמונה...')
+            : uploadPhase === 'saving'
+              ? (lang === 'en' ? '💾 Saving deal...' : '💾 שומר דיל...')
+              : (lang === 'en' ? 'Share deal 🔥' : 'שתף דיל 🔥')}
         </button>
       </div>
     </div>
@@ -1259,18 +1318,72 @@ export default function Home() {
   };
 
   const handleDealVote = async (id, type) => {
-    if (votedDeals[id]) return;
+    if (!user) { router.push('/auth'); return; }
+
+    // Get auth token
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) { router.push('/auth'); return; }
+
+    // Compute optimistic state
+    const currentVote = votedDeals[id] || null;
+    const optimisticNewVote = currentVote === type ? null : type;
+    const chaud_delta = (currentVote === 'chaud' ? -1 : 0) + (optimisticNewVote === 'chaud' ? 1 : 0);
+    const froid_delta = (currentVote === 'froid' ? -1 : 0) + (optimisticNewVote === 'froid' ? 1 : 0);
+
+    // Optimistic update
     setVotedDeals(prev => {
-      const next = { ...prev, [id]: type };
+      const next = { ...prev, [id]: optimisticNewVote };
       try { localStorage.setItem('dilzDealVotes', JSON.stringify(next)); } catch {}
       return next;
     });
-    setDeals(prev => prev.map(d => d.id !== id ? d : { ...d, [`votes_${type}`]: (d[`votes_${type}`] || 0) + 1 }));
-    await fetch('/api/bons-plans', {
+    setDeals(prev => prev.map(d => d.id !== id ? d : {
+      ...d,
+      votes_chaud: Math.max(0, (d.votes_chaud || 0) + chaud_delta),
+      votes_froid: Math.max(0, (d.votes_froid || 0) + froid_delta),
+    }));
+
+    const apiRes = await fetch('/api/bons-plans', {
       method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id, vote: type }),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${session.access_token}`,
+      },
+      body: JSON.stringify({
+        action: 'vote', id, type,
+        // Fallback deltas for when votes table isn't set up yet
+        chaud_delta, froid_delta,
+      }),
     });
+
+    if (apiRes.ok) {
+      const data = await apiRes.json();
+      // Reconcile with server-authoritative state
+      const serverVote = data.newType ?? null;
+      setVotedDeals(prev => {
+        const next = { ...prev, [id]: serverVote };
+        try { localStorage.setItem('dilzDealVotes', JSON.stringify(next)); } catch {}
+        return next;
+      });
+      if (data.votes_chaud !== undefined) {
+        setDeals(prev => prev.map(d => d.id !== id ? d : {
+          ...d,
+          votes_chaud: data.votes_chaud,
+          votes_froid: data.votes_froid,
+        }));
+      }
+    } else {
+      // Rollback
+      setVotedDeals(prev => {
+        const next = { ...prev, [id]: currentVote };
+        try { localStorage.setItem('dilzDealVotes', JSON.stringify(next)); } catch {}
+        return next;
+      });
+      setDeals(prev => prev.map(d => d.id !== id ? d : {
+        ...d,
+        votes_chaud: Math.max(0, (d.votes_chaud || 0) - chaud_delta),
+        votes_froid: Math.max(0, (d.votes_froid || 0) - froid_delta),
+      }));
+    }
   };
 
   const handlePromoVote = (barcode, type) => {
@@ -1289,18 +1402,22 @@ export default function Home() {
     });
   };
 
-  const handlePostSuccess = () => {
+  const handlePostSuccess = (newId) => {
     setShowPostModal(false);
-    setPostSuccess(true);
-    setTimeout(() => {
-      setPostSuccess(false);
-      setTab('deals');
-      setLoadingDeals(true);
-      fetch('/api/bons-plans?tri=latest')
-        .then(r => r.json())
-        .then(d => { setDeals(d.bons_plans || []); setLoadingDeals(false); })
-        .catch(() => setLoadingDeals(false));
-    }, 1800);
+    if (newId) {
+      router.push(`/deal/${newId}`);
+    } else {
+      setPostSuccess(true);
+      setTimeout(() => {
+        setPostSuccess(false);
+        setTab('deals');
+        setLoadingDeals(true);
+        fetch('/api/bons-plans?tri=latest')
+          .then(r => r.json())
+          .then(d => { setDeals(d.bons_plans || []); setLoadingDeals(false); })
+          .catch(() => setLoadingDeals(false));
+      }, 1800);
+    }
   };
 
   // Computed displayed deals (proximity sort)
