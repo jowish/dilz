@@ -203,8 +203,34 @@ function DiscountBadge({ pct, size = 'sm' }) {
   );
 }
 
+function SaveButton({ saved, onClick, lang, compact = false }) {
+  return (
+    <button
+      type="button"
+      onClick={(event) => {
+        event.stopPropagation();
+        onClick();
+      }}
+      aria-pressed={saved}
+      style={{
+        padding: compact ? '5px 8px' : '7px 10px',
+        borderRadius: compact ? 6 : 7,
+        border: saved ? `1px solid ${ACCENT}` : '1px solid var(--border)',
+        background: saved ? 'rgba(212,98,42,0.10)' : 'transparent',
+        color: saved ? ACCENT : 'var(--text-sub)',
+        cursor: 'pointer',
+        fontSize: compact ? 10 : 11,
+        fontWeight: 700,
+        whiteSpace: 'nowrap',
+      }}
+    >
+      {saved ? (lang === 'he' ? 'שמור' : 'Saved') : (lang === 'he' ? 'שמור' : 'Save')}
+    </button>
+  );
+}
+
 // ─── HeroPromoCard ───────────────────────────────────────────────────────────
-function HeroPromoCard({ promo, lang, isDark, onClick, votes, onVote }) {
+function HeroPromoCard({ promo, lang, isDark, onClick, votes, onVote, isSaved, onSave }) {
   const s = STORE_COLORS[promo.meilleurEnseigne] || { color: ACCENT, bg: '#FEF0EB', dark: '#2A1210', nameEn: promo.meilleurEnseigne };
   const nom = (lang === 'en' && promo.nom_en) ? promo.nom_en : promo.nom;
   const myVote = votes?.myVote;
@@ -295,13 +321,14 @@ function HeroPromoCard({ promo, lang, isDark, onClick, votes, onVote }) {
           background: 'transparent', color: 'var(--text-muted)',
           fontSize: 12, fontWeight: 500, cursor: 'pointer',
         }}>View</button>
+        {onSave && <SaveButton saved={isSaved} onClick={onSave} lang={lang} />}
       </div>
     </div>
   );
 }
 
 // ─── PromoCard (compact grid) ─────────────────────────────────────────────────
-function PromoCard({ promo, lang, isDark, onClick, votes, onVote }) {
+function PromoCard({ promo, lang, isDark, onClick, votes, onVote, isSaved, onSave }) {
   const s = STORE_COLORS[promo.meilleurEnseigne] || { color: ACCENT, bg: '#FEF0EB', dark: '#2A1210', nameEn: promo.meilleurEnseigne };
   const nom = (lang === 'en' && promo.nom_en) ? promo.nom_en : promo.nom;
   const myVote = votes?.myVote;
@@ -371,6 +398,7 @@ function PromoCard({ promo, lang, isDark, onClick, votes, onVote }) {
           color: myVote === 'froid' ? '#fff' : 'var(--text-sub)',
           fontSize: 10, fontWeight: 600, cursor: 'pointer',
         }}>❄️ {votes?.froid || 0}</button>
+        {onSave && <SaveButton saved={isSaved} onClick={onSave} lang={lang} compact />}
       </div>
     </div>
   );
@@ -472,7 +500,7 @@ function PromoModal({ promo, lang, isDark, onClose }) {
 }
 
 // ─── DealCard ─────────────────────────────────────────────────────────────────
-function DealCard({ deal, lang, onVote, userCoords, votedDeal, user, isDark }) {
+function DealCard({ deal, lang, onVote, userCoords, votedDeal, user, isDark, isSaved, onSave }) {
   const router = useRouter();
   const reduction = deal.prix_original && deal.prix_original > deal.prix
     ? Math.round((deal.prix_original - deal.prix) / deal.prix_original * 100)
@@ -646,6 +674,8 @@ function DealCard({ deal, lang, onVote, userCoords, votedDeal, user, isDark }) {
             color: votedDeal === 'froid' ? '#fff' : 'var(--text-sub)',
             cursor: 'pointer', fontSize: 12, fontWeight: 600,
           }}>❄️ {deal.votes_froid || 0}</button>
+
+          {onSave && <SaveButton saved={isSaved} onClick={onSave} lang={lang} />}
 
           <button onClick={go} style={{
             display: 'flex', alignItems: 'center', gap: 3,
@@ -1084,7 +1114,7 @@ function PostDealModal({ user, lang, onClose, onSuccess }) {
 }
 
 // ─── SearchTab ────────────────────────────────────────────────────────────────
-function SearchTab({ promos, deals, lang, isDark, onPromoClick, userCoords, promoVotes, onPromoVote, votedDeals, onDealVote, user }) {
+function SearchTab({ promos, deals, lang, isDark, onPromoClick, userCoords, promoVotes, onPromoVote, savedKeys, onToggleSave, votedDeals, onDealVote, user }) {
   const [q, setQ] = useState('');
   const inputRef = useRef(null);
   useEffect(() => { setTimeout(() => inputRef.current?.focus(), 80); }, []);
@@ -1168,7 +1198,9 @@ function SearchTab({ promos, deals, lang, isDark, onPromoClick, userCoords, prom
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 20 }}>
             {mPromos.slice(0, 6).map(p => (
               <PromoCard key={p.barcode} promo={p} lang={lang} isDark={isDark}
-                onClick={() => onPromoClick(p)} votes={promoVotes[p.barcode]} onVote={onPromoVote} />
+                onClick={() => onPromoClick(p)} votes={promoVotes[p.barcode]} onVote={onPromoVote}
+                isSaved={Boolean(savedKeys[`product:${p.barcode}`])}
+                onSave={() => onToggleSave('product', p.barcode)} />
             ))}
           </div>
         </>
@@ -1182,7 +1214,9 @@ function SearchTab({ promos, deals, lang, isDark, onPromoClick, userCoords, prom
           {mDeals.slice(0, 5).map(d => (
             <DealCard key={d.id} deal={d} lang={lang} isDark={isDark}
               userCoords={userCoords} votedDeal={votedDeals[d.id] || null}
-              onVote={onDealVote} user={user} />
+              onVote={onDealVote} user={user}
+              isSaved={Boolean(savedKeys[`deal:${d.id}`])}
+              onSave={() => onToggleSave('deal', d.id)} />
           ))}
         </>
       )}
@@ -1191,7 +1225,7 @@ function SearchTab({ promos, deals, lang, isDark, onPromoClick, userCoords, prom
 }
 
 // ─── ProfileTab ───────────────────────────────────────────────────────────────
-function ProfileTab({ user, lang, onOpenAlerts }) {
+function ProfileTab({ user, lang, savedItems = [], onToggleSave, onOpenAlerts }) {
   if (!user) {
     return (
       <div style={{ padding: '40px 20px', textAlign: 'center' }}>
@@ -1284,6 +1318,99 @@ function ProfileTab({ user, lang, onOpenAlerts }) {
           </span>
           <svg style={{ marginLeft: 'auto', color: 'var(--text-muted)' }} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><polyline points="9 18 15 12 9 6"/></svg>
         </button>
+      </div>
+
+      {/* Saved items */}
+      <div style={{
+        background: 'var(--bg-card)', borderRadius: 12,
+        border: '1px solid var(--border)', padding: '14px 14px',
+        marginBottom: 12,
+      }}>
+        <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 10 }}>
+          <p style={{ fontSize: 15, fontWeight: 700, color: 'var(--text)' }}>
+            {lang === 'he' ? 'שמורים' : 'Saved items'}
+          </p>
+          <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>{savedItems.length}</span>
+        </div>
+
+        {savedItems.length === 0 ? (
+          <p style={{ fontSize: 13, color: 'var(--text-sub)', lineHeight: 1.6 }}>
+            {lang === 'he'
+              ? 'שמור מוצרים או דילים כדי למצוא אותם כאן מהר.'
+              : 'Save products or deals to find them here quickly.'}
+          </p>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {savedItems.slice(0, 8).map(item => {
+              const snap = item.snapshot || {};
+              const title = snap.title || item.item_id;
+              const isDeal = item.item_type === 'deal';
+              const content = (
+                <>
+                  <div style={{
+                    width: 44, height: 44, borderRadius: 8, background: 'var(--bg-card2)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    overflow: 'hidden', flexShrink: 0,
+                  }}>
+                    {snap.image ? (
+                      <img src={snap.image} alt="" style={{ width: '100%', height: '100%', objectFit: isDeal ? 'cover' : 'contain' }} />
+                    ) : (
+                      <span style={{ fontSize: 10, color: 'var(--text-muted)', fontWeight: 700 }}>
+                        {isDeal ? 'Deal' : 'Product'}
+                      </span>
+                    )}
+                  </div>
+                  <div style={{ minWidth: 0, flex: 1 }}>
+                    <p style={{
+                      fontSize: 13, fontWeight: 600, color: 'var(--text)',
+                      overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                      marginBottom: 3,
+                    }}>{title}</p>
+                    <p style={{ fontSize: 11, color: 'var(--text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {[
+                        isDeal ? (lang === 'he' ? 'דיל' : 'Deal') : (lang === 'he' ? 'מוצר' : 'Product'),
+                        snap.store,
+                        snap.price != null ? `₪${Number(snap.price).toFixed(2)}` : null,
+                      ].filter(Boolean).join(' · ')}
+                    </p>
+                  </div>
+                </>
+              );
+
+              return (
+                <div key={`${item.item_type}:${item.item_id}`} style={{
+                  display: 'flex', alignItems: 'center', gap: 10,
+                  padding: '9px 10px', borderRadius: 10,
+                  background: 'var(--bg-card2)',
+                }}>
+                  {isDeal ? (
+                    <Link href={`/deal/${item.item_id}`} style={{
+                      display: 'flex', alignItems: 'center', gap: 10,
+                      minWidth: 0, flex: 1, textDecoration: 'none',
+                    }}>
+                      {content}
+                    </Link>
+                  ) : (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0, flex: 1 }}>
+                      {content}
+                    </div>
+                  )}
+                  <button
+                    onClick={() => onToggleSave?.(item.item_type, item.item_id)}
+                    style={{
+                      padding: '6px 9px', borderRadius: 7,
+                      border: '1px solid var(--border)', background: 'transparent',
+                      color: 'var(--text-muted)', fontSize: 11, fontWeight: 600,
+                      cursor: 'pointer', flexShrink: 0,
+                    }}
+                  >
+                    {lang === 'he' ? 'הסר' : 'Remove'}
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
 
       <button onClick={async () => { await supabase.auth.signOut(); window.location.reload(); }} style={{
@@ -1699,6 +1826,7 @@ export default function Home() {
   const [storeFilter, setStoreFilter] = useState('all');
   const [promoCategory, setPromoCategory] = useState('all');
   const [promoSort, setPromoSort] = useState('discount');
+  const [showPromoFilters, setShowPromoFilters] = useState(false);
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [sortDeals, setSortDeals] = useState('hot');
   const [myDealsOnly, setMyDealsOnly] = useState(false);
@@ -1712,6 +1840,10 @@ export default function Home() {
   // Votes
   const [promoVotes, setPromoVotes] = useState({});
   const [votedDeals, setVotedDeals] = useState({});
+
+  // Saved items
+  const [savedItems, setSavedItems] = useState([]);
+  const [savedKeys, setSavedKeys] = useState({});
 
   // Auth
   const [user, setUser] = useState(null);
@@ -1739,6 +1871,8 @@ export default function Home() {
       if (dv) setVotedDeals(JSON.parse(dv));
       const ll = localStorage.getItem('dilzLang');
       if (ll) setLang(ll);
+      const savedPromoFilters = localStorage.getItem('dilzShowPromoFilters');
+      if (savedPromoFilters !== null) setShowPromoFilters(savedPromoFilters === 'true');
       // Restore tab from back-nav
       const rt = sessionStorage.getItem('dilzReturnTab');
       if (rt) {
@@ -1764,6 +1898,14 @@ export default function Home() {
       const u = data.session?.user || null;
       setUser(u);
       if (u && data.session) {
+        fetch('/api/saved-items', { headers: { 'Authorization': `Bearer ${data.session.access_token}` } })
+          .then(r => r.ok ? r.json() : null)
+          .then(d => {
+            if (!d) return;
+            const items = d.saved_items || [];
+            setSavedItems(items);
+            setSavedKeys(Object.fromEntries(items.map(item => [`${item.item_type}:${item.item_id}`, true])));
+          }).catch(() => {});
         fetch('/api/product-votes', { headers: { 'Authorization': `Bearer ${data.session.access_token}` } })
           .then(r => r.ok ? r.json() : null)
           .then(d => {
@@ -1851,6 +1993,14 @@ export default function Home() {
     const next = lang === 'en' ? 'he' : 'en';
     setLang(next);
     try { localStorage.setItem('dilzLang', next); } catch {}
+  };
+
+  const togglePromoFilters = () => {
+    setShowPromoFilters(current => {
+      const next = !current;
+      try { localStorage.setItem('dilzShowPromoFilters', String(next)); } catch {}
+      return next;
+    });
   };
 
   const handleDealVote = async (id, type) => {
@@ -1957,6 +2107,55 @@ export default function Home() {
       }));
     } catch {
       setPromoVotes(prev => ({ ...prev, [barcode]: previous }));
+    }
+  };
+
+  const handleToggleSave = async (itemType, itemId) => {
+    if (!user) { router.push('/auth'); return; }
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) { router.push('/auth'); return; }
+
+    const key = `${itemType}:${itemId}`;
+    const wasSaved = Boolean(savedKeys[key]);
+    setSavedKeys(prev => ({ ...prev, [key]: !wasSaved }));
+    if (wasSaved) {
+      setSavedItems(prev => prev.filter(item => `${item.item_type}:${item.item_id}` !== key));
+    }
+
+    try {
+      const response = await fetch('/api/saved-items', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({ item_type: itemType, item_id: String(itemId) }),
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.erreur || 'Save failed');
+
+      if (result.saved && result.item) {
+        setSavedKeys(prev => ({ ...prev, [key]: true }));
+        setSavedItems(prev => [result.item, ...prev.filter(item => `${item.item_type}:${item.item_id}` !== key)]);
+      } else {
+        setSavedKeys(prev => {
+          const next = { ...prev };
+          delete next[key];
+          return next;
+        });
+        setSavedItems(prev => prev.filter(item => `${item.item_type}:${item.item_id}` !== key));
+      }
+    } catch {
+      setSavedKeys(prev => ({ ...prev, [key]: wasSaved }));
+      if (!wasSaved) return;
+      fetch('/api/saved-items', { headers: { 'Authorization': `Bearer ${session.access_token}` } })
+        .then(r => r.ok ? r.json() : null)
+        .then(d => {
+          if (!d) return;
+          const items = d.saved_items || [];
+          setSavedItems(items);
+          setSavedKeys(Object.fromEntries(items.map(item => [`${item.item_type}:${item.item_id}`, true])));
+        }).catch(() => {});
     }
   };
 
@@ -2167,6 +2366,45 @@ export default function Home() {
           {/* ══ SALES TAB ══ */}
           {tab === 'sales' && (
             <div style={{ padding: '0 14px' }}>
+              <button
+                type="button"
+                onClick={togglePromoFilters}
+                aria-expanded={showPromoFilters}
+                aria-controls="supermarket-filters"
+                style={{
+                  width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                  gap: 10, padding: '10px 12px', marginBottom: showPromoFilters ? 10 : 14,
+                  borderRadius: 9, border: '1px solid var(--border)',
+                  background: 'var(--bg-card)', color: 'var(--text-sub)', cursor: 'pointer',
+                }}
+              >
+                <span style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M4 6h16M7 12h10M10 18h4" />
+                  </svg>
+                  <span style={{ fontSize: 13, fontWeight: 600 }}>
+                    {lang === 'he' ? (showPromoFilters ? 'הסתר מסננים' : 'הצג מסננים') : (showPromoFilters ? 'Hide filters' : 'Show filters')}
+                  </span>
+                  {(storeFilter !== 'all' || promoCategory !== 'all' || promoSort !== 'discount') && (
+                    <span style={{
+                      minWidth: 20, height: 20, padding: '0 6px', borderRadius: 10,
+                      display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                      background: ACCENT, color: '#fff', fontSize: 10, fontWeight: 800,
+                    }}>
+                      {[storeFilter !== 'all', promoCategory !== 'all', promoSort !== 'discount'].filter(Boolean).length}
+                    </span>
+                  )}
+                </span>
+                <svg
+                  width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                  strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+                  style={{ transform: showPromoFilters ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}
+                >
+                  <path d="M6 9l6 6 6-6" />
+                </svg>
+              </button>
+
+              <div id="supermarket-filters" hidden={!showPromoFilters}>
               {/* Product sort */}
               <div style={{ display: 'flex', gap: 6, overflowX: 'auto', marginBottom: 10, paddingBottom: 2 }}>
                 {[
@@ -2230,6 +2468,7 @@ export default function Home() {
                   );
                 })}
               </div>
+              </div>
 
               {/* Content */}
               {loadingPromos ? (
@@ -2261,6 +2500,8 @@ export default function Home() {
                       onClick={() => setSelectedPromo(heroPromo)}
                       votes={promoVotes[heroPromo.barcode]}
                       onVote={handlePromoVote}
+                      isSaved={Boolean(savedKeys[`product:${heroPromo.barcode}`])}
+                      onSave={() => handleToggleSave('product', heroPromo.barcode)}
                     />
                   )}
 
@@ -2276,6 +2517,8 @@ export default function Home() {
                             onClick={() => setSelectedPromo(p)}
                             votes={promoVotes[p.barcode]}
                             onVote={handlePromoVote}
+                            isSaved={Boolean(savedKeys[`product:${p.barcode}`])}
+                            onSave={() => handleToggleSave('product', p.barcode)}
                           />
                         ))}
                       </div>
@@ -2418,6 +2661,8 @@ export default function Home() {
                     onVote={handleDealVote} userCoords={userCoords}
                     votedDeal={votedDeals[deal.id] || null}
                     user={user}
+                    isSaved={Boolean(savedKeys[`deal:${deal.id}`])}
+                    onSave={() => handleToggleSave('deal', deal.id)}
                   />
                 ))
               )}
@@ -2451,6 +2696,8 @@ export default function Home() {
               userCoords={userCoords}
               promoVotes={promoVotes}
               onPromoVote={handlePromoVote}
+              savedKeys={savedKeys}
+              onToggleSave={handleToggleSave}
               votedDeals={votedDeals}
               onDealVote={handleDealVote}
               user={user}
@@ -2459,7 +2706,13 @@ export default function Home() {
 
           {/* ══ PROFILE TAB ══ */}
           {tab === 'profile' && (
-            <ProfileTab user={user} lang={lang} onOpenAlerts={() => setShowAlertModal(true)} />
+            <ProfileTab
+              user={user}
+              lang={lang}
+              savedItems={savedItems}
+              onToggleSave={handleToggleSave}
+              onOpenAlerts={() => setShowAlertModal(true)}
+            />
           )}
         </div>
 
