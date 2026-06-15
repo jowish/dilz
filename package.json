@@ -6,9 +6,11 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "test": "node --test tests/adminAuth.test.js tests/dealValidation.test.js tests/productImages.test.js",
+    "test": "node --test tests/adminAuth.test.js tests/dealValidation.test.js tests/productCategories.test.js tests/productImages.test.js",
     "images:stats": "node scripts/import-images.js --stats",
     "images:import": "node scripts/import-images.js",
+    "products:classify": "node scripts/classify-products.js",
+    "products:reclassify": "node scripts/classify-products.js --reclassify-other",
     "check": "npm test && npm run build"
   },
   "dependencies": {

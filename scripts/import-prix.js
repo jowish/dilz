@@ -1,6 +1,7 @@
 const { createClient } = require('@supabase/supabase-js');
 const https = require('https');
 const zlib = require('zlib');
+const { inferProductCategory } = require('../lib/productCategories');
 
 require('dotenv').config({ path: '.env.local' });
 
@@ -64,6 +65,24 @@ async function fetchHtml(url) {
   });
 }
 
+async function getShufersalStoreChains() {
+  const html = await fetchHtml('https://prices.shufersal.co.il/FileObject/UpdateCategory?catID=5&storeId=0&take=5');
+  const link = html.match(/href="(https:\/\/pricesprodpublic[^"]+\.gz[^"]*)"/i)?.[1];
+  if (!link) return new Map();
+
+  const xml = await telechargerGZ(link.replace(/&amp;/g, '&'));
+  const chains = new Map();
+  const storeRegex = /<Store>([\s\S]*?)<\/Store>/g;
+  let match;
+  while ((match = storeRegex.exec(xml)) !== null) {
+    const value = match[1];
+    const storeId = value.match(/<StoreID>(.*?)<\/StoreID>/)?.[1]?.trim();
+    const storeName = value.match(/<StoreName>(.*?)<\/StoreName>/)?.[1]?.trim() || '';
+    if (storeId) chains.set(storeId, /(^|\s)BE(?:\s|$)/i.test(storeName) ? 'be' : 'shufersal');
+  }
+  return chains;
+}
+
 async function sauvegarderEnBase(produits, enseigneCode, storeId) {
   const batchSize = 100;
   for (let i = 0; i < produits.length; i += batchSize) {
@@ -72,6 +91,8 @@ async function sauvegarderEnBase(produits, enseigneCode, storeId) {
       batch.map(p => ({
         barcode: p.barcode,
         nom: p.nom,
+        categorie: inferProductCategory(p.nom),
+        updated_at: new Date().toISOString(),
         ...(p.image ? {
           image: p.image,
           image_source: enseigneCode,
@@ -108,27 +129,33 @@ async function importerShufersal() {
 
   console.log(`  ${urls.length} fichiers trouves`);
 
-  const tousLesProduits = new Map();
+  const storeChains = await getShufersalStoreChains().catch(() => new Map());
+  const produitsParEnseigne = new Map([
+    ['shufersal', new Map()],
+    ['be', new Map()],
+  ]);
   let magasinsTraites = 0;
 
   for (const url of urls) {
     try {
       const storeMatch = url.match(/PriceFull\d+-\d+-(\d+)-/);
       const storeId = storeMatch ? storeMatch[1] : '000';
+      const enseigneCode = storeChains.get(storeId) || 'shufersal';
 
       console.log(`  Magasin ${storeId}...`);
       const xml = await telechargerGZ(url);
       const produits = parseXMLPrix(xml);
 
       let nouveaux = 0;
+      const produitsEnseigne = produitsParEnseigne.get(enseigneCode);
       produits.forEach(p => {
-        if (!tousLesProduits.has(p.barcode)) {
-          tousLesProduits.set(p.barcode, { ...p, storeId });
+        if (!produitsEnseigne.has(p.barcode)) {
+          produitsEnseigne.set(p.barcode, { ...p, storeId });
           nouveaux++;
         }
       });
 
-      console.log(`    ${produits.length} produits, ${nouveaux} nouveaux (total: ${tousLesProduits.size})`);
+      console.log(`    ${produits.length} produits ${enseigneCode}, ${nouveaux} nouveaux (total: ${produitsEnseigne.size})`);
       magasinsTraites++;
 
       await new Promise(r => setTimeout(r, 300));
@@ -137,12 +164,13 @@ async function importerShufersal() {
     }
   }
 
-  console.log(`\n  Total Shufersal: ${tousLesProduits.size} produits uniques sur ${magasinsTraites} magasins`);
-
-  // Sauvegarder par batch
-  const produits = Array.from(tousLesProduits.values());
-  await sauvegarderEnBase(produits, 'shufersal', '001');
-  console.log('  Shufersal OK !');
+  for (const [enseigneCode, productMap] of produitsParEnseigne) {
+    if (productMap.size === 0) continue;
+    console.log(`\n  Total ${enseigneCode}: ${productMap.size} produits uniques sur ${magasinsTraites} magasins`);
+    const produits = Array.from(productMap.values());
+    await sauvegarderEnBase(produits, enseigneCode, produits[0]?.storeId || '001');
+  }
+  console.log('  Shufersal + BE OK !');
 }
 
 async function postRL(body) {

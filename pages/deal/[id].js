@@ -112,6 +112,8 @@ export default function DealPage() {
         ville: data.bon_plan.ville || '',
         categorie: data.bon_plan.categorie || 'Food',
         url_source: data.bon_plan.url_source || '',
+        date_debut: data.bon_plan.date_debut || '',
+        date_fin: data.bon_plan.date_fin || '',
       });
     }
     setLoading(false);
@@ -479,6 +481,18 @@ export default function DealPage() {
             {deal.auteur_nom ? ` · by ${deal.auteur_nom}` : ''}
           </p>
 
+          {(deal.date_debut || deal.date_fin) && (
+            <div style={{
+              display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 16,
+              padding: '10px 12px', borderRadius: 8,
+              background: 'var(--bg-card)', border: '1px solid var(--border)',
+              color: 'var(--text-sub)', fontSize: 12,
+            }}>
+              {deal.date_debut && <span>Starts: {new Date(`${deal.date_debut}T00:00:00`).toLocaleDateString('en-GB')}</span>}
+              {deal.date_fin && <span>Ends: {new Date(`${deal.date_fin}T00:00:00`).toLocaleDateString('en-GB')}</span>}
+            </div>
+          )}
+
           {deal.description && (
             <div style={{ background: 'var(--bg-card)', borderRadius: 10, padding: '14px 16px', marginBottom: 16, border: '1px solid var(--border)' }}>
               <p style={{ fontSize: 14, color: 'var(--text)', lineHeight: 1.6 }}>{deal.description}</p>
@@ -769,6 +783,24 @@ export default function DealPage() {
                   />
                 </div>
               ))}
+            </div>
+
+            {/* Dates */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 12 }}>
+              <div>
+                <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--text-sub)', marginBottom: 5 }}>Start date</label>
+                <input type="date" value={editForm.date_debut || ''} max={editForm.date_fin || undefined}
+                  onChange={e => setEditForm({ ...editForm, date_debut: e.target.value })}
+                  style={{ width: '100%', padding: '11px 10px', borderRadius: 8, border: '1px solid var(--border)', background: 'var(--bg-input)', color: 'var(--text)', fontSize: 13, outline: 'none' }}
+                />
+              </div>
+              <div>
+                <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--text-sub)', marginBottom: 5 }}>End date</label>
+                <input type="date" value={editForm.date_fin || ''} min={editForm.date_debut || undefined}
+                  onChange={e => setEditForm({ ...editForm, date_fin: e.target.value })}
+                  style={{ width: '100%', padding: '11px 10px', borderRadius: 8, border: '1px solid var(--border)', background: 'var(--bg-input)', color: 'var(--text)', fontSize: 13, outline: 'none' }}
+                />
+              </div>
             </div>
 
             {/* Category */}

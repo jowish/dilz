@@ -7,6 +7,8 @@ import { translations, traduireVille } from '../lib/translations';
 import { supabase } from '../lib/supabase';
 import { uploadDealImage, validateImageFile, deleteDealImage } from '../lib/uploadImage';
 
+const { PRODUCT_CATEGORIES, getProductCategoryLabel } = require('../lib/productCategories');
+
 // ─── Design tokens ────────────────────────────────────────────────────────────
 const ACCENT = '#D4622A';
 const ACCENT_DARK = '#B84E20';
@@ -20,6 +22,8 @@ const STORE_COLORS = {
   'כרפור':   { color: '#0284C7', bg: '#F0F9FF', dark: '#0C2336', nameEn: 'Carrefour' },
 };
 
+STORE_COLORS.BE = { color: '#0F766E', bg: '#F0FDFA', dark: '#12322F', nameEn: 'BE' };
+
 const STORE_FILTERS = [
   { id: 'all' },
   { id: 'שופרסל', nameEn: 'Shufersal' },
@@ -29,6 +33,8 @@ const STORE_FILTERS = [
   { id: 'אושר עד', nameEn: 'Osher Ad' },
   { id: 'כרפור',   nameEn: 'Carrefour' },
 ];
+
+STORE_FILTERS.push({ id: 'BE', nameEn: 'BE' });
 
 const CATEGORIES = ['all', 'Food', 'Tech', 'Fashion', 'Activities', 'Online'];
 const CATEGORY_ICONS = { all: '✦', Food: '🍕', Tech: '💻', Fashion: '👗', Activities: '⚽', Online: '🌐' };
@@ -93,6 +99,28 @@ function timeAgo(date, lang) {
   if (m < 60) return lang === 'he' ? `${m}ד'`       : `${m}m ago`;
   if (h < 24) return lang === 'he' ? `${h}ש'`       : `${h}h ago`;
   return       lang === 'he' ? `${d} ימים`           : `${d}d ago`;
+}
+
+function dealDateStatus(deal, lang) {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const start = deal.date_debut ? new Date(`${deal.date_debut}T00:00:00`) : null;
+  const end = deal.date_fin ? new Date(`${deal.date_fin}T23:59:59`) : null;
+
+  if (start && start > today) {
+    return { label: lang === 'he' ? `מתחיל ב-${start.toLocaleDateString('he-IL')}` : `Starts ${start.toLocaleDateString('en-GB')}`, tone: '#2563EB' };
+  }
+  if (end) {
+    if (end < today) return { label: lang === 'he' ? 'הסתיים' : 'Expired', tone: '#64748B' };
+    const days = Math.ceil((end.getTime() - today.getTime()) / 86400000);
+    return {
+      label: days <= 1
+        ? (lang === 'he' ? 'מסתיים היום' : 'Ends today')
+        : (lang === 'he' ? `עוד ${days} ימים` : `${days} days left`),
+      tone: days <= 2 ? '#DC2626' : '#059669',
+    };
+  }
+  return null;
 }
 
 function matchSearch(text, q) {
@@ -457,6 +485,7 @@ function DealCard({ deal, lang, onVote, userCoords, votedDeal, user, isDark }) {
 
   const isOwner = user && user.id === deal.auteur_id;
   const commentCount = deal.commentaires?.[0]?.count || 0;
+  const dateStatus = dealDateStatus(deal, lang);
   const isOnline = deal.ville === 'אונליין' || deal.categorie === 'Online';
 
   const go = () => {
@@ -584,6 +613,19 @@ function DealCard({ deal, lang, onVote, userCoords, votedDeal, user, isDark }) {
             {timeAgo(deal.created_at, lang)}
           </span>
         </div>
+
+        {dateStatus && (
+          <div style={{ marginBottom: 10 }}>
+            <span style={{
+              display: 'inline-block', fontSize: 11, fontWeight: 700,
+              padding: '4px 8px', borderRadius: 6,
+              color: dateStatus.tone, background: `${dateStatus.tone}12`,
+              border: `1px solid ${dateStatus.tone}33`,
+            }}>
+              {dateStatus.label}
+            </span>
+          </div>
+        )}
 
         {/* Actions */}
         <div style={{ display: 'flex', gap: 5, paddingTop: 10, borderTop: '1px solid var(--border)' }}>
@@ -743,6 +785,7 @@ function PostDealModal({ user, lang, onClose, onSuccess }) {
   const [form, setForm] = useState({
     titre: '', description: '', prix: '', prix_original: '',
     magasin: '', ville: '', categorie: 'Food', url_source: '',
+    date_debut: '', date_fin: '',
   });
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
@@ -777,6 +820,10 @@ function PostDealModal({ user, lang, onClose, onSuccess }) {
     if (!form.titre.trim()) { setError('Title is required.'); return; }
     if (!form.prix) { setError('Price is required.'); return; }
     if (!form.magasin.trim()) { setError('Store / place is required.'); return; }
+    if (form.date_debut && form.date_fin && form.date_fin < form.date_debut) {
+      setError(lang === 'he' ? 'תאריך הסיום חייב להיות אחרי תאריך ההתחלה.' : 'End date must be after start date.');
+      return;
+    }
 
     setSubmitting(true);
     setError('');
@@ -956,6 +1003,28 @@ function PostDealModal({ user, lang, onClose, onSuccess }) {
           ))}
         </div>
 
+        {/* Deal dates */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 12 }}>
+          <div>
+            <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--text-sub)', marginBottom: 5 }}>
+              {lang === 'he' ? 'תאריך התחלה' : 'Start date'}
+            </label>
+            <input type="date" value={form.date_debut} max={form.date_fin || undefined}
+              onChange={e => set('date_debut', e.target.value)}
+              style={{ width: '100%', padding: '12px 10px', borderRadius: 8, border: '1px solid var(--border)', background: 'var(--bg-input)', color: 'var(--text)', fontSize: 13, outline: 'none' }}
+            />
+          </div>
+          <div>
+            <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--text-sub)', marginBottom: 5 }}>
+              {lang === 'he' ? 'תאריך סיום' : 'End date'}
+            </label>
+            <input type="date" value={form.date_fin} min={form.date_debut || undefined}
+              onChange={e => set('date_fin', e.target.value)}
+              style={{ width: '100%', padding: '12px 10px', borderRadius: 8, border: '1px solid var(--border)', background: 'var(--bg-input)', color: 'var(--text)', fontSize: 13, outline: 'none' }}
+            />
+          </div>
+        </div>
+
         {/* Category */}
         <div style={{ marginBottom: 12 }}>
           <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--text-sub)', marginBottom: 5 }}>Category</label>
@@ -1015,7 +1084,7 @@ function PostDealModal({ user, lang, onClose, onSuccess }) {
 }
 
 // ─── SearchTab ────────────────────────────────────────────────────────────────
-function SearchTab({ promos, deals, lang, isDark, onPromoClick, userCoords, votedDeals, onDealVote, user }) {
+function SearchTab({ promos, deals, lang, isDark, onPromoClick, userCoords, promoVotes, onPromoVote, votedDeals, onDealVote, user }) {
   const [q, setQ] = useState('');
   const inputRef = useRef(null);
   useEffect(() => { setTimeout(() => inputRef.current?.focus(), 80); }, []);
@@ -1099,7 +1168,7 @@ function SearchTab({ promos, deals, lang, isDark, onPromoClick, userCoords, vote
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 20 }}>
             {mPromos.slice(0, 6).map(p => (
               <PromoCard key={p.barcode} promo={p} lang={lang} isDark={isDark}
-                onClick={() => onPromoClick(p)} votes={{}} onVote={() => {}} />
+                onClick={() => onPromoClick(p)} votes={promoVotes[p.barcode]} onVote={onPromoVote} />
             ))}
           </div>
         </>
@@ -1628,6 +1697,8 @@ export default function Home() {
 
   // Filters
   const [storeFilter, setStoreFilter] = useState('all');
+  const [promoCategory, setPromoCategory] = useState('all');
+  const [promoSort, setPromoSort] = useState('discount');
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [sortDeals, setSortDeals] = useState('hot');
   const [myDealsOnly, setMyDealsOnly] = useState(false);
@@ -1664,8 +1735,6 @@ export default function Home() {
   useEffect(() => {
     setMounted(true);
     try {
-      const pv = localStorage.getItem('dilzPromoVotes');
-      if (pv) setPromoVotes(JSON.parse(pv));
       const dv = localStorage.getItem('dilzDealVotes');
       if (dv) setVotedDeals(JSON.parse(dv));
       const ll = localStorage.getItem('dilzLang');
@@ -1686,11 +1755,6 @@ export default function Home() {
       if (rs) { setSortDeals(rs); sessionStorage.removeItem('dilzReturnSort'); }
     } catch {}
 
-    fetch('/api/promos')
-      .then(r => r.json())
-      .then(d => { setPromos(d.promos || []); setLoadingPromos(false); })
-      .catch(() => setLoadingPromos(false));
-
     fetch('/api/villes')
       .then(r => r.json())
       .then(d => setVilles(d.villes || []))
@@ -1700,6 +1764,18 @@ export default function Home() {
       const u = data.session?.user || null;
       setUser(u);
       if (u && data.session) {
+        fetch('/api/product-votes', { headers: { 'Authorization': `Bearer ${data.session.access_token}` } })
+          .then(r => r.ok ? r.json() : null)
+          .then(d => {
+            if (!d) return;
+            setPromoVotes(prev => {
+              const next = { ...prev };
+              for (const vote of (d.votes || [])) {
+                next[vote.barcode] = { ...(next[vote.barcode] || {}), myVote: vote.type };
+              }
+              return next;
+            });
+          }).catch(() => {});
         fetch('/api/notifications', { headers: { 'Authorization': `Bearer ${data.session.access_token}` } })
           .then(r => r.ok ? r.json() : null)
           .then(d => {
@@ -1711,6 +1787,32 @@ export default function Home() {
       }
     });
   }, []);
+
+  useEffect(() => {
+    setLoadingPromos(true);
+    const params = new URLSearchParams({ sort: promoSort });
+    if (promoCategory !== 'all') params.set('category', promoCategory);
+
+    fetch(`/api/promos?${params}`)
+      .then(r => r.json())
+      .then(d => {
+        const nextPromos = d.promos || [];
+        setPromos(nextPromos);
+        setPromoVotes(prev => {
+          const next = { ...prev };
+          for (const promo of nextPromos) {
+            next[promo.barcode] = {
+              chaud: promo.votesChaud || 0,
+              froid: promo.votesFroid || 0,
+              myVote: prev[promo.barcode]?.myVote || null,
+            };
+          }
+          return next;
+        });
+        setLoadingPromos(false);
+      })
+      .catch(() => setLoadingPromos(false));
+  }, [promoCategory, promoSort]);
 
   // ── Deals fetch ──
   useEffect(() => {
@@ -1820,20 +1922,42 @@ export default function Home() {
     }
   };
 
-  const handlePromoVote = (barcode, type) => {
-    setPromoVotes(prev => {
-      const cur = prev[barcode] || { chaud: 0, froid: 0, myVote: null };
-      let updated;
-      if (cur.myVote === type) {
-        updated = { ...cur, [type]: Math.max(0, cur[type] - 1), myVote: null };
-      } else {
-        const undo = cur.myVote ? { [cur.myVote]: Math.max(0, cur[cur.myVote] - 1) } : {};
-        updated = { ...cur, ...undo, [type]: cur[type] + 1, myVote: type };
-      }
-      const next = { ...prev, [barcode]: updated };
-      try { localStorage.setItem('dilzPromoVotes', JSON.stringify(next)); } catch {}
-      return next;
-    });
+  const handlePromoVote = async (barcode, type) => {
+    if (!user) { router.push('/auth'); return; }
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) { router.push('/auth'); return; }
+
+    const previous = promoVotes[barcode] || { chaud: 0, froid: 0, myVote: null };
+    const nextVote = previous.myVote === type ? null : type;
+    const optimistic = {
+      chaud: Math.max(0, previous.chaud - (previous.myVote === 'chaud' ? 1 : 0) + (nextVote === 'chaud' ? 1 : 0)),
+      froid: Math.max(0, previous.froid - (previous.myVote === 'froid' ? 1 : 0) + (nextVote === 'froid' ? 1 : 0)),
+      myVote: nextVote,
+    };
+    setPromoVotes(prev => ({ ...prev, [barcode]: optimistic }));
+
+    try {
+      const response = await fetch('/api/product-votes', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({ barcode, type }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.erreur || 'Vote failed');
+      setPromoVotes(prev => ({
+        ...prev,
+        [barcode]: {
+          chaud: data.votes_chaud || 0,
+          froid: data.votes_froid || 0,
+          myVote: data.newType || null,
+        },
+      }));
+    } catch {
+      setPromoVotes(prev => ({ ...prev, [barcode]: previous }));
+    }
   };
 
   const handlePostSuccess = (newId) => {
@@ -2043,6 +2167,47 @@ export default function Home() {
           {/* ══ SALES TAB ══ */}
           {tab === 'sales' && (
             <div style={{ padding: '0 14px' }}>
+              {/* Product sort */}
+              <div style={{ display: 'flex', gap: 6, overflowX: 'auto', marginBottom: 10, paddingBottom: 2 }}>
+                {[
+                  { id: 'discount', en: 'Best discount', he: 'הנחה גבוהה' },
+                  { id: 'liked', en: 'Most liked', he: 'הכי אהובים' },
+                  { id: 'recent', en: 'Newest', he: 'החדשים ביותר' },
+                  { id: 'price_asc', en: 'Lowest price', he: 'מחיר נמוך' },
+                ].map(option => {
+                  const active = promoSort === option.id;
+                  return (
+                    <button key={option.id} onClick={() => setPromoSort(option.id)} style={{
+                      flexShrink: 0, padding: '6px 12px', borderRadius: 7, cursor: 'pointer',
+                      border: active ? `1px solid ${ACCENT}` : '1px solid var(--border)',
+                      background: active ? 'rgba(212,98,42,0.09)' : 'transparent',
+                      color: active ? ACCENT : 'var(--text-sub)',
+                      fontSize: 12, fontWeight: active ? 600 : 400, whiteSpace: 'nowrap',
+                    }}>
+                      {lang === 'he' ? option.he : option.en}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Product category */}
+              <div style={{ display: 'flex', gap: 6, overflowX: 'auto', marginBottom: 12, paddingBottom: 2 }}>
+                {['all', ...PRODUCT_CATEGORIES].map(category => {
+                  const active = promoCategory === category;
+                  return (
+                    <button key={category} onClick={() => setPromoCategory(category)} style={{
+                      flexShrink: 0, padding: '6px 12px', borderRadius: 7, cursor: 'pointer',
+                      border: active ? `1px solid ${ACCENT}` : '1px solid var(--border)',
+                      background: active ? 'rgba(212,98,42,0.09)' : 'transparent',
+                      color: active ? ACCENT : 'var(--text-sub)',
+                      fontSize: 12, fontWeight: active ? 600 : 400, whiteSpace: 'nowrap',
+                    }}>
+                      {getProductCategoryLabel(category, lang)}
+                    </button>
+                  );
+                })}
+              </div>
+
               {/* Store filter */}
               <div style={{
                 display: 'flex', gap: 8, overflowX: 'auto', marginBottom: 16, paddingBottom: 2,
@@ -2284,6 +2449,8 @@ export default function Home() {
               promos={promos} deals={deals} lang={lang} isDark={isDark}
               onPromoClick={setSelectedPromo}
               userCoords={userCoords}
+              promoVotes={promoVotes}
+              onPromoVote={handlePromoVote}
               votedDeals={votedDeals}
               onDealVote={handleDealVote}
               user={user}

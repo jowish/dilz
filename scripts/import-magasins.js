@@ -58,6 +58,10 @@ function getCityName(code) {
   return null;
 }
 
+function getShufersalChain(storeName) {
+  return /(^|\s)BE(?:\s|$)/i.test(String(storeName || '')) ? 'be' : 'shufersal';
+}
+
 async function telechargerGZ(url) {
   return new Promise((resolve, reject) => {
     https.get(url, { headers: { 'User-Agent': 'Mozilla/5.0' } }, (res) => {
@@ -132,7 +136,7 @@ async function importerMagasinsShufersal() {
 
   const { error } = await supabase.from('magasins').upsert(
     magasins.map(m => ({
-      enseigne_code: 'shufersal',
+      enseigne_code: getShufersalChain(m.nom),
       store_id: m.store_id,
       nom: m.nom,
       adresse: m.adresse,

@@ -8,6 +8,9 @@ CREATE TABLE IF NOT EXISTS produits (
   nom TEXT NOT NULL,
   nom_en TEXT,
   image TEXT,
+  categorie TEXT,
+  votes_chaud INTEGER NOT NULL DEFAULT 0 CHECK (votes_chaud >= 0),
+  votes_froid INTEGER NOT NULL DEFAULT 0 CHECK (votes_froid >= 0),
   image_source TEXT,
   image_status TEXT NOT NULL DEFAULT 'pending',
   image_checked_at TIMESTAMPTZ,
@@ -87,6 +90,8 @@ CREATE TABLE IF NOT EXISTS commentaires (
 );
 
 CREATE INDEX IF NOT EXISTS idx_prix_barcode ON prix(barcode);
+CREATE INDEX IF NOT EXISTS idx_produits_categorie ON produits(categorie);
+CREATE INDEX IF NOT EXISTS idx_produits_votes ON produits(votes_chaud DESC, votes_froid ASC);
 CREATE INDEX IF NOT EXISTS idx_prix_store ON prix(enseigne_code, store_id);
 CREATE INDEX IF NOT EXISTS idx_promotions_barcode ON promotions(barcode);
 CREATE INDEX IF NOT EXISTS idx_promotions_dates ON promotions(date_debut, date_fin);
