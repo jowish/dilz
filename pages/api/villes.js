@@ -6,6 +6,9 @@ const supabase = createClient(
 );
 
 export default async function handler(req, res) {
+  res.setHeader('Allow', 'GET');
+  if (req.method !== 'GET') return res.status(405).end();
+
   const { data, error } = await supabase
     .from('magasins')
     .select('ville_normalisee')

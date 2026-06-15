@@ -1,20 +1,26 @@
 import { createClient } from '@supabase/supabase-js';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-);
+const { getAdminToken, secretsMatch } = require('../../../lib/adminAuth');
 
 export default async function handler(req, res) {
-  const { id, token } = req.query;
+  res.setHeader('Allow', 'POST');
+  res.setHeader('Cache-Control', 'no-store');
+  if (req.method !== 'POST') return res.status(405).json({ erreur: 'Method not allowed' });
 
-  if (!token || token !== process.env.ADMIN_BOT_TOKEN) {
-    return res.status(403).json({ erreur: 'Token invalide' });
+  const { NEXT_PUBLIC_SUPABASE_URL: url, SUPABASE_SERVICE_KEY: serviceKey, ADMIN_BOT_TOKEN } = process.env;
+  if (!url || !serviceKey || !ADMIN_BOT_TOKEN) {
+    return res.status(500).json({ erreur: 'Admin moderation is not configured.' });
   }
 
-  if (!id) return res.status(400).json({ erreur: 'id requis' });
+  if (!secretsMatch(getAdminToken(req), ADMIN_BOT_TOKEN)) {
+    return res.status(403).json({ erreur: 'Invalid admin token' });
+  }
 
-  const { data, error } = await supabase
+  const id = Number(req.body?.id);
+  if (!Number.isSafeInteger(id) || id <= 0) return res.status(400).json({ erreur: 'Valid id required' });
+
+  const supabaseAdmin = createClient(url, serviceKey);
+  const { data, error } = await supabaseAdmin
     .from('bons_plans')
     .update({ statut: 'actif' })
     .eq('id', id)
@@ -22,6 +28,5 @@ export default async function handler(req, res) {
     .single();
 
   if (error) return res.status(500).json({ erreur: error.message });
-
   return res.status(200).json({ ok: true, deal: data });
 }

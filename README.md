@@ -1,40 +1,81 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/pages/api-reference/create-next-app).
+# Dilz
 
-## Getting Started
+Dilz compares supermarket prices in Israel and provides a community feed for local and online deals.
 
-First, run the development server:
+## Stack
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+- Next.js 16 Pages Router and React 19
+- Supabase PostgreSQL, Auth, and Storage
+- Israeli price-transparency feeds for product, store, price, and promotion imports
+- Web Push for saved-deal alerts
+
+## Local setup
+
+1. Install dependencies with `npm install`.
+2. Copy `.env.example` to `.env.local` and fill in the Supabase values.
+3. Run the SQL files in the Supabase SQL Editor in this order:
+   - `supabase-core-setup.sql`
+   - `supabase-product-images-setup.sql`
+   - `supabase-deal-images-setup.sql`
+   - `supabase-votes-setup.sql`
+   - `supabase-alerts-setup.sql`
+4. Start the application with `npm run dev`.
+
+The service-role key is server-only. Never prefix it with `NEXT_PUBLIC_` or expose it to browser code.
+
+## Commands
+
+- `npm run dev`: start the development server
+- `npm test`: run the unit tests
+- `npm run build`: create a production build
+- `npm run check`: run tests followed by the production build
+
+## Data imports
+
+Imports write with `SUPABASE_SERVICE_KEY`; public clients only receive read access to catalog data.
+
+```powershell
+node scripts/import-magasins.js
+node scripts/import-prix.js
+node scripts/import-promos.js
+node scripts/import-images.js
+node scripts/traduire-produits.js
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+The import order matters because prices and promotions reference products, while city search reads normalized stores.
 
-You can start editing the page by modifying `pages/index.js`. The page auto-updates as you edit the file.
+### Product images
 
-[API routes](https://nextjs.org/docs/pages/building-your-application/routing/api-routes) can be accessed on [http://localhost:3000/api/hello](http://localhost:3000/api/hello). This endpoint can be edited in `pages/api/hello.js`.
+Run `supabase-product-images-setup.sql` once before image enrichment. Images are matched only by exact barcode:
 
-The `pages/api` directory is mapped to `/api/*`. Files in this directory are treated as [API routes](https://nextjs.org/docs/pages/building-your-application/routing/api-routes) instead of React pages.
+```powershell
+npm run images:stats
+npm run images:import -- --source=shufersal --limit=500
+npm run images:import -- --source=open-food-facts --limit=500
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/pages/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Shufersal pages are checked first because they cover many Israeli products. Open Food Facts is used as a secondary source and is intentionally rate-limited. Set `OPENFOODFACTS_CONTACT` to a real contact email before running bulk enrichment. Products with short internal produce codes keep the neutral application placeholder instead of receiving an approximate or misleading photo.
 
-## Learn More
+Open Food Facts images are attributed in the product comparison modal and remain subject to the source's CC BY-SA terms. Review retailer terms before relying on retailer-hosted images in production.
 
-To learn more about Next.js, take a look at the following resources:
+## Community deals
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn-pages-router) - an interactive Next.js tutorial.
+Authenticated users can publish deals with an image, vote, comment, edit their own deals, and create alerts. The API derives the author identity from the Supabase access token rather than trusting request bodies.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Automated deals inserted by `scripts/deal-bot.js` use the `pending` status. Approve or reject one with a server-to-server request:
 
-## Deploy on Vercel
+```powershell
+$headers = @{ Authorization = "Bearer $env:ADMIN_BOT_TOKEN" }
+$body = @{ id = 123 } | ConvertTo-Json
+Invoke-RestMethod -Method Post -Uri http://localhost:3000/api/admin/approve -Headers $headers -ContentType application/json -Body $body
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Use `/api/admin/reject` to reject it. Admin tokens must be sent in a header, never in the URL.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/pages/building-your-application/deploying) for more details.
+## Deployment checklist
+
+- Configure all values from `.env.example` in the hosting environment.
+- Run every Supabase migration before deploying application code.
+- Run `npm run check`.
+- Schedule catalog imports separately from the web process.
+- Configure VAPID values only when push notifications are required.

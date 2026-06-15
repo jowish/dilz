@@ -10,10 +10,10 @@ export default async function handler(req, res) {
     SUPABASE_SERVICE_KEY: serviceKey,
   } = process.env;
 
-  if (!url || !anonKey) return res.status(500).json({ erreur: 'Missing Supabase configuration' });
+  if (!url || !anonKey || !serviceKey) return res.status(500).json({ erreur: 'Missing Supabase configuration' });
 
   const supabase = createClient(url, anonKey);
-  const supabaseAdmin = serviceKey ? createClient(url, serviceKey) : supabase;
+  const supabaseAdmin = createClient(url, serviceKey);
 
   async function verifyUser() {
     const token = (req.headers.authorization || '').replace('Bearer ', '').trim();
@@ -76,14 +76,19 @@ export default async function handler(req, res) {
       }
 
       // Prevent exact duplicate
-      const { data: existing } = await supabaseAdmin
+      let duplicateQuery = supabaseAdmin
         .from('alerts')
         .select('id')
         .eq('user_id', user.id)
-        .eq('city', city ?? '')
-        .eq('online_only', online_only)
-        .eq('keyword', keyword ?? '')
-        .maybeSingle();
+        .eq('online_only', online_only);
+
+      duplicateQuery = city == null ? duplicateQuery.is('city', null) : duplicateQuery.eq('city', city);
+      duplicateQuery = keyword == null ? duplicateQuery.is('keyword', null) : duplicateQuery.eq('keyword', keyword);
+      duplicateQuery = min_discount_percent == null
+        ? duplicateQuery.is('min_discount_percent', null)
+        : duplicateQuery.eq('min_discount_percent', min_discount_percent);
+
+      const { data: existing } = await duplicateQuery.maybeSingle();
 
       if (existing) {
         return res.status(409).json({ erreur: 'An identical alert already exists.' });
@@ -94,6 +99,9 @@ export default async function handler(req, res) {
         .insert([{ user_id: user.id, city, online_only, min_discount_percent, keyword }])
         .select('*');
 
+      if (error?.code === '23505') {
+        return res.status(409).json({ erreur: 'An identical alert already exists.' });
+      }
       if (error) return res.status(500).json({ erreur: error.message });
       return res.status(201).json({ alert: rows[0] });
     }

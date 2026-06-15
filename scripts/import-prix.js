@@ -6,7 +6,7 @@ require('dotenv').config({ path: '.env.local' });
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  process.env.SUPABASE_SERVICE_KEY
 );
 
 function parseXMLPrix(xml) {
@@ -69,7 +69,16 @@ async function sauvegarderEnBase(produits, enseigneCode, storeId) {
   for (let i = 0; i < produits.length; i += batchSize) {
     const batch = produits.slice(i, i + batchSize);
     await supabase.from('produits').upsert(
-      batch.map(p => ({ barcode: p.barcode, nom: p.nom, ...(p.image ? { image: p.image } : {}) })),
+      batch.map(p => ({
+        barcode: p.barcode,
+        nom: p.nom,
+        ...(p.image ? {
+          image: p.image,
+          image_source: enseigneCode,
+          image_status: 'found',
+          image_checked_at: new Date().toISOString(),
+        } : {}),
+      })),
       { onConflict: 'barcode' }
     );
     await supabase.from('prix').upsert(

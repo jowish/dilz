@@ -1,6 +1,8 @@
 import { createClient } from '@supabase/supabase-js';
 
 const ALLOWED_MIME = new Set(['image/jpeg', 'image/jpg', 'image/png', 'image/webp']);
+const MAX_BYTES = 5 * 1024 * 1024;
+const EXTENSIONS = { 'image/jpeg': 'jpg', 'image/jpg': 'jpg', 'image/png': 'png', 'image/webp': 'webp' };
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).end();
@@ -38,14 +40,17 @@ export default async function handler(req, res) {
 
   try {
     const buffer = Buffer.from(image, 'base64');
+    if (!buffer.length || buffer.length > MAX_BYTES) {
+      return res.status(400).json({ erreur: 'Image must be smaller than 5 MB.' });
+    }
     const rand = Math.random().toString(36).slice(2, 9);
     // User-scoped path so storage RLS policies apply correctly
-    const path = `${user.id}/${Date.now()}-${rand}.jpg`;
+    const path = `${user.id}/${Date.now()}-${rand}.${EXTENSIONS[mime]}`;
 
     const { error } = await supabaseAdmin.storage
       .from('deal-images')
       .upload(path, buffer, {
-        contentType: 'image/jpeg',
+        contentType: mime === 'image/jpg' ? 'image/jpeg' : mime,
         cacheControl: '86400',
         upsert: false,
       });
@@ -58,3 +63,9 @@ export default async function handler(req, res) {
     return res.status(500).json({ erreur: err.message });
   }
 }
+
+export const config = {
+  api: {
+    bodyParser: { sizeLimit: '7mb' },
+  },
+};

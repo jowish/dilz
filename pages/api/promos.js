@@ -15,13 +15,24 @@ const NOM_ENSEIGNE = {
 };
 
 export default async function handler(req, res) {
+  res.setHeader('Allow', 'GET');
+  if (req.method !== 'GET') return res.status(405).end();
+
   try {
     // Recuperer tous les prix groupes par barcode
-    const { data, error } = await supabase
+    let { data, error } = await supabase
       .from('produits')
-      .select('barcode, nom, nom_en, image, prix(prix, enseigne_code)')
+      .select('barcode, nom, nom_en, image, image_source, prix(prix, enseigne_code)')
       .not('prix', 'is', null)
       .limit(10000);
+
+    if (error?.code === 'PGRST204' || error?.message?.includes('image_source')) {
+      ({ data, error } = await supabase
+        .from('produits')
+        .select('barcode, nom, nom_en, image, prix(prix, enseigne_code)')
+        .not('prix', 'is', null)
+        .limit(10000));
+    }
 
     if (error) throw error;
 
@@ -55,6 +66,7 @@ export default async function handler(req, res) {
         nom: produit.nom,
         nom_en: produit.nom_en,
         image: produit.image,
+        imageSource: produit.image_source || null,
         prixMin,
         prixMax,
         reduction: Math.round(reduction),

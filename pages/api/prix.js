@@ -6,17 +6,24 @@ const supabase = createClient(
 );
 
 export default async function handler(req, res) {
-  const { q } = req.query;
+  res.setHeader('Allow', 'GET');
+  if (req.method !== 'GET') return res.status(405).end();
+
+  const { q, barcode } = req.query;
   if (!q) return res.status(400).json({ erreur: 'Parametre q requis' });
 
   try {
     const recherche = decodeURIComponent(q);
 
-    const { data, error } = await supabase
+    let query = supabase
       .from('produits')
-      .select('barcode, nom, prix(prix, quantite, unite, enseigne_code)')
-      .ilike('nom', `%${recherche}%`)
-      .limit(30);
+      .select('barcode, nom, nom_en, image, prix(prix, quantite, unite, enseigne_code)');
+
+    query = barcode === '1'
+      ? query.eq('barcode', recherche)
+      : query.ilike('nom', `%${recherche}%`);
+
+    const { data, error } = await query.limit(barcode === '1' ? 1 : 30);
 
     if (error) throw error;
 
@@ -27,6 +34,8 @@ export default async function handler(req, res) {
         indexParBarcode[p.barcode] = {
           barcode: p.barcode,
           nom: p.nom,
+          nom_en: p.nom_en,
+          image: p.image,
           quantite: '',
           unite: '',
           tousLesPrix: [],

@@ -19,6 +19,14 @@ CREATE TABLE IF NOT EXISTS alerts (
 
 CREATE INDEX IF NOT EXISTS idx_alerts_user  ON alerts(user_id);
 CREATE INDEX IF NOT EXISTS idx_alerts_active ON alerts(is_active) WHERE is_active = true;
+CREATE UNIQUE INDEX IF NOT EXISTS idx_alerts_unique_criteria
+  ON alerts (
+    user_id,
+    COALESCE(city, ''),
+    online_only,
+    COALESCE(min_discount_percent, -1),
+    COALESCE(keyword, '')
+  );
 
 ALTER TABLE alerts ENABLE ROW LEVEL SECURITY;
 

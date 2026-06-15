@@ -200,18 +200,17 @@ function HeroPromoCard({ promo, lang, isDark, onClick, votes, onVote }) {
           display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden',
         }}
       >
-        {promo.image ? (
+        <div style={{ opacity: 0.25 }}>
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/>
+          </svg>
+        </div>
+        {promo.image && (
           <img
             src={promo.image} alt={nom}
-            style={{ maxHeight: '100%', maxWidth: '100%', objectFit: 'contain' }}
+            style={{ position: 'absolute', inset: 0, margin: 'auto', maxHeight: '100%', maxWidth: '100%', objectFit: 'contain' }}
             onError={e => { e.target.style.display = 'none'; }}
           />
-        ) : (
-          <div style={{ opacity: 0.25 }}>
-            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/>
-            </svg>
-          </div>
         )}
         {/* Overlay badges */}
         <div style={{ position: 'absolute', top: 12, left: 12 }}>
@@ -295,15 +294,14 @@ function PromoCard({ promo, lang, isDark, onClick, votes, onVote }) {
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           position: 'relative', flexShrink: 0,
         }}>
-          {promo.image ? (
-            <img src={promo.image} alt={nom} style={{ maxHeight: 72, maxWidth: '90%', objectFit: 'contain' }}
+          <div style={{ opacity: 0.2 }}>
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/>
+            </svg>
+          </div>
+          {promo.image && (
+            <img src={promo.image} alt={nom} style={{ position: 'absolute', inset: 0, margin: 'auto', maxHeight: 72, maxWidth: '90%', objectFit: 'contain' }}
               onError={e => { e.target.style.display = 'none'; }} />
-          ) : (
-            <div style={{ opacity: 0.2 }}>
-              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/>
-              </svg>
-            </div>
           )}
           <div style={{ position: 'absolute', top: 6, right: 6 }}>
             <DiscountBadge pct={promo.reduction} />
@@ -421,6 +419,17 @@ function PromoModal({ promo, lang, isDark, onClose }) {
             {lang === 'en' ? 'Price comparison · not an official promotion' : 'השוואת מחירים · לא מבצע רשמי'}
           </p>
         </div>
+
+        {promo.imageSource === 'open_food_facts' && (
+          <a
+            href={`https://world.openfoodfacts.org/product/${promo.barcode}`}
+            target="_blank"
+            rel="noreferrer"
+            style={{ display: 'inline-block', marginTop: 10, fontSize: 11, color: 'var(--text-muted)' }}
+          >
+            Image: Open Food Facts · CC BY-SA
+          </a>
+        )}
 
         <button onClick={onClose} style={{
           width: '100%', marginTop: 12, padding: '13px', borderRadius: 8, border: '1px solid var(--border)',

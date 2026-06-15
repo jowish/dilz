@@ -5,7 +5,11 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start"
+    "start": "next start",
+    "test": "node --test tests/adminAuth.test.js tests/dealValidation.test.js tests/productImages.test.js",
+    "images:stats": "node scripts/import-images.js --stats",
+    "images:import": "node scripts/import-images.js",
+    "check": "npm test && npm run build"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.108.1",

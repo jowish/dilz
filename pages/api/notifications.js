@@ -7,10 +7,10 @@ export default async function handler(req, res) {
     SUPABASE_SERVICE_KEY: serviceKey,
   } = process.env;
 
-  if (!url || !anonKey) return res.status(500).json({ erreur: 'Missing Supabase configuration' });
+  if (!url || !anonKey || !serviceKey) return res.status(500).json({ erreur: 'Missing Supabase configuration' });
 
   const supabase = createClient(url, anonKey);
-  const supabaseAdmin = serviceKey ? createClient(url, serviceKey) : supabase;
+  const supabaseAdmin = createClient(url, serviceKey);
 
   async function verifyUser() {
     const token = (req.headers.authorization || '').replace('Bearer ', '').trim();
@@ -43,6 +43,9 @@ export default async function handler(req, res) {
       if (!user) return res.status(401).json({ erreur: authErr });
 
       const { id, markAllRead } = req.body;
+      if (!markAllRead && !id) {
+        return res.status(400).json({ erreur: 'Provide id or markAllRead=true.' });
+      }
 
       let query = supabaseAdmin
         .from('notifications')

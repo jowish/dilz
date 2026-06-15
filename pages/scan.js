@@ -361,13 +361,24 @@ export default function ScanPage() {
             <div style={{ padding: '16px' }}>
               {/* Product image + name */}
               <div style={{ display: 'flex', gap: 14, marginBottom: 16, alignItems: 'flex-start' }}>
-                {result.image && (
-                  <img
-                    src={result.image}
-                    alt={result.nom_en || result.nom}
-                    style={{ width: 72, height: 72, borderRadius: 12, objectFit: 'contain', background: 'var(--bg-card2)', flexShrink: 0 }}
-                  />
-                )}
+                <div style={{
+                  width: 72, height: 72, borderRadius: 12, background: 'var(--bg-card2)',
+                  flexShrink: 0, position: 'relative', overflow: 'hidden',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  color: 'var(--text-muted)',
+                }}>
+                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                    <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/>
+                  </svg>
+                  {result.image && (
+                    <img
+                      src={result.image}
+                      alt={result.nom_en || result.nom}
+                      onError={e => { e.currentTarget.style.display = 'none'; }}
+                      style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'contain', background: 'var(--bg-card2)' }}
+                    />
+                  )}
+                </div>
                 <div style={{ flex: 1 }}>
                   <p style={{ fontSize: 16, fontWeight: 700, color: 'var(--text)', marginBottom: 4, lineHeight: 1.3 }}>
                     {result.nom_en || result.nom}

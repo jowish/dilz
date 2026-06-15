@@ -9,10 +9,10 @@ export default async function handler(req, res) {
     SUPABASE_SERVICE_KEY: serviceKey,
   } = process.env;
 
-  if (!url || !anonKey) return res.status(500).json({ erreur: 'Missing Supabase configuration' });
+  if (!url || !anonKey || !serviceKey) return res.status(500).json({ erreur: 'Missing Supabase configuration' });
 
   const supabase = createClient(url, anonKey);
-  const supabaseAdmin = serviceKey ? createClient(url, serviceKey) : supabase;
+  const supabaseAdmin = createClient(url, serviceKey);
 
   try {
     const token = (req.headers.authorization || '').replace('Bearer ', '').trim();

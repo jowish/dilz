@@ -1,7 +1,7 @@
 /**
  * Deal Bot — auto-découverte de deals depuis KSP.co.il et autres sources
  * Usage: node scripts/deal-bot.js
- * Insère les deals en statut='pending', admin approuve via /api/admin/approve?id=XXX&token=TOKEN
+ * Inserts deals as pending. Moderation uses authenticated POST API routes.
  */
 const { createClient } = require('@supabase/supabase-js');
 const https = require('https');
@@ -10,7 +10,7 @@ require('dotenv').config({ path: '.env.local' });
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  process.env.SUPABASE_SERVICE_KEY
 );
 
 function fetchJson(url, options = {}) {
@@ -189,6 +189,7 @@ async function insererDeals(deals) {
       ...d,
       votes_chaud: 0,
       votes_froid: 0,
+      statut: 'pending',
     })))
     .select('id, titre');
 
@@ -227,8 +228,9 @@ async function main() {
 
   console.log(`\n✓ Bot terminé en ${((Date.now() - t0) / 1000).toFixed(1)}s`);
   console.log(`  ${inserted} deals en attente d'approbation`);
-  console.log(`  Approuver: GET /api/admin/approve?id=XXX&token=ADMIN_BOT_TOKEN`);
-  console.log(`  Rejeter:   GET /api/admin/reject?id=XXX&token=ADMIN_BOT_TOKEN`);
+  console.log('  Moderate with POST /api/admin/approve or /api/admin/reject');
+  console.log('  Headers: Authorization: Bearer ADMIN_BOT_TOKEN');
+  console.log('  JSON body: { "id": DEAL_ID }');
 
   process.exit(0);
 }

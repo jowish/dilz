@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { supabase } from '../lib/supabase';
+import { deleteDealImage, uploadDealImage, validateImageFile } from '../lib/uploadImage';
 
 const ACCENT = '#D4622A';
 const ACCENT_DARK = '#B84E20';
@@ -32,6 +33,12 @@ function PostDealModal({ onClose, onSubmit, user }) {
   const handleImage = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    const validationError = validateImageFile(file);
+    if (validationError) {
+      setError(validationError);
+      return;
+    }
+    setError('');
     setImageFile(file);
     const reader = new FileReader();
     reader.onload = (ev) => setImagePreview(ev.target.result);
@@ -43,44 +50,37 @@ function PostDealModal({ onClose, onSubmit, user }) {
       setError('Title, price and store are required');
       return;
     }
+    if (!imageFile) {
+      setError('A photo is required to post a deal.');
+      return;
+    }
     setSubmitting(true);
     setError('');
+    let uploadPath = null;
 
     try {
-      let image_url = null;
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error('Session expired. Please sign in again.');
 
-      if (imageFile) {
-        const reader = new FileReader();
-        const base64 = await new Promise((resolve) => {
-          reader.onload = (e) => resolve(e.target.result.split(',')[1]);
-          reader.readAsDataURL(imageFile);
-        });
-        const uploadRes = await fetch('/api/upload', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            image: base64,
-            filename: imageFile.name,
-            mimeType: imageFile.type,
-          }),
-        });
-        const uploadData = await uploadRes.json();
-        if (uploadData.url) image_url = uploadData.url;
-      }
+      const uploaded = await uploadDealImage(imageFile, user.id);
+      uploadPath = uploaded.path;
 
       const res = await fetch('/api/bons-plans', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`,
+        },
         body: JSON.stringify({
           ...form,
           prix: parseFloat(form.prix),
           prix_original: form.prix_original ? parseFloat(form.prix_original) : null,
-          image_url,
-          auteur_id: user?.id || null,
+          image_url: uploaded.url,
         }),
       });
       const data = await res.json();
       if (!res.ok || data.erreur) {
+        if (uploadPath) await deleteDealImage(uploadPath);
         setError(data.erreur || 'Failed to post deal');
         setSubmitting(false);
         return;
@@ -90,7 +90,8 @@ function PostDealModal({ onClose, onSubmit, user }) {
         onClose();
       }
     } catch (err) {
-      setError('Network error — please check your connection.');
+      if (uploadPath) await deleteDealImage(uploadPath);
+      setError(err.message || 'Network error - please check your connection.');
     }
     setSubmitting(false);
   };
@@ -394,12 +395,33 @@ export default function BonsPlans() {
   useEffect(() => { loadDeals(); }, [categoryFilter, sortBy]);
 
   const handleVote = async (id, type) => {
-    setDeals(prev => prev.map(d => d.id !== id ? d : { ...d, [`votes_${type}`]: (d[`votes_${type}`] || 0) + 1 }));
-    await fetch('/api/bons-plans', {
+    if (!user) {
+      router.push('/auth?redirect=/bons-plans');
+      return;
+    }
+
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+      router.push('/auth?redirect=/bons-plans');
+      return;
+    }
+
+    const response = await fetch('/api/bons-plans', {
       method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id, vote: type }),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${session.access_token}`,
+      },
+      body: JSON.stringify({ action: 'vote', id, type }),
     });
+
+    if (!response.ok) return;
+    const result = await response.json();
+    setDeals(prev => prev.map(deal => deal.id !== id ? deal : {
+      ...deal,
+      votes_chaud: result.votes_chaud,
+      votes_froid: result.votes_froid,
+    }));
   };
 
   const handleNewDeal = (deal) => {

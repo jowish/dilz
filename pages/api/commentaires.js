@@ -10,10 +10,7 @@ export default async function handler(req, res) {
   if (!url || !anonKey) return res.status(500).json({ erreur: 'Missing config' });
 
   const supabase = createClient(url, anonKey);
-  const supabaseAdmin = (() => {
-    try { return serviceKey ? createClient(url, serviceKey) : supabase; }
-    catch { return supabase; }
-  })();
+  const supabaseAdmin = serviceKey ? createClient(url, serviceKey) : null;
 
   // ─── GET ────────────────────────────────────────────────────────────────────
   if (req.method === 'GET') {
@@ -32,6 +29,9 @@ export default async function handler(req, res) {
 
   // ─── POST ───────────────────────────────────────────────────────────────────
   if (req.method === 'POST') {
+    if (!supabaseAdmin) {
+      return res.status(500).json({ erreur: 'SUPABASE_SERVICE_KEY is required for comments.' });
+    }
     // Require authentication — get user from JWT
     const token = (req.headers.authorization || '').replace('Bearer ', '').trim();
     if (!token) {
@@ -44,8 +44,12 @@ export default async function handler(req, res) {
     }
 
     const { bon_plan_id, contenu } = req.body;
-    if (!bon_plan_id || !contenu?.trim()) {
+    const normalizedContent = contenu?.trim();
+    if (!bon_plan_id || !normalizedContent) {
       return res.status(400).json({ erreur: 'bon_plan_id and contenu are required.' });
+    }
+    if (normalizedContent.length > 2000) {
+      return res.status(400).json({ erreur: 'Comment must be 2000 characters or fewer.' });
     }
 
     // Author name comes from verified JWT — not from client body
@@ -59,7 +63,7 @@ export default async function handler(req, res) {
     const rowWithId = {
       bon_plan_id,
       auteur_nom,
-      contenu: contenu.trim(),
+      contenu: normalizedContent,
       auteur_id: user.id,
     };
 
@@ -76,7 +80,7 @@ export default async function handler(req, res) {
         error.code === '42703' ||       // undefined_column
         error.code === 'PGRST204'
       ) {
-        const rowWithoutId = { bon_plan_id, auteur_nom, contenu: contenu.trim() };
+        const rowWithoutId = { bon_plan_id, auteur_nom, contenu: normalizedContent };
         const { data: ins2, error: err2 } = await supabaseAdmin
           .from('commentaires')
           .insert([rowWithoutId])
