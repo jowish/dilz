@@ -19,8 +19,8 @@ import { SectionHeader } from '../components/ui/SectionHeader';
 const { PRODUCT_CATEGORIES, getProductCategoryLabel } = require('../lib/productCategories');
 
 // ─── Design tokens ────────────────────────────────────────────────────────────
-const ACCENT = '#0F766E';
-const ACCENT_DARK = '#115E59';
+const ACCENT = '#E2552D';
+const ACCENT_DARK = '#C2410C';
 
 const LANG_OPTIONS = [
   { id: 'en', label: 'EN' },
@@ -38,7 +38,7 @@ const STORE_COLORS = {
   'כרפור':   { color: '#0284C7', bg: '#F0F9FF', dark: '#0C2336', nameEn: 'Carrefour' },
 };
 
-STORE_COLORS.BE = { color: '#0F766E', bg: '#F0FDFA', dark: '#12322F', nameEn: 'BE' };
+STORE_COLORS.BE = { color: '#E2552D', bg: '#F0FDFA', dark: '#12322F', nameEn: 'BE' };
 STORE_COLORS['Super-Pharm'] = { color: '#E11D48', bg: '#FFF1F2', dark: '#3B111B', nameEn: 'Super-Pharm' };
 STORE_COLORS['Good Pharm'] = { color: '#16A34A', bg: '#F0FDF4', dark: '#12351F', nameEn: 'Good Pharm' };
 
@@ -278,7 +278,7 @@ function SaveButton({ saved, onClick, lang, compact = false }) {
         padding: compact ? '5px 8px' : '7px 10px',
         borderRadius: compact ? 6 : 7,
         border: saved ? `1px solid ${ACCENT}` : '1px solid var(--border)',
-        background: saved ? 'rgba(15,118,110,0.10)' : 'transparent',
+        background: saved ? 'rgba(226,85,45,0.10)' : 'transparent',
         color: saved ? ACCENT : 'var(--text-sub)',
         cursor: 'pointer',
         fontSize: compact ? 10 : 11,
@@ -524,7 +524,7 @@ function PromoModal({ promo, lang, isDark, onClose }) {
                 display: 'flex', justifyContent: 'space-between', alignItems: 'center',
                 padding: '12px 14px', borderRadius: 10,
                 background: isBest
-                  ? (isDark ? `rgba(15,118,110,0.10)` : 'rgba(15,118,110,0.05)')
+                  ? (isDark ? `rgba(226,85,45,0.10)` : 'rgba(226,85,45,0.05)')
                   : 'var(--bg-card2)',
                 border: `1px solid ${isBest ? ACCENT + '55' : 'var(--border)'}`,
               }}>
@@ -673,7 +673,7 @@ function DealCard({ deal, lang, onVote, userCoords, votedDeal, user, isDark, isS
               <span style={{ fontSize: 13, color: 'var(--text-muted)', textDecoration: 'line-through' }}>₪{deal.prix_original}</span>
             )}
             {reduction !== null && (
-              <span style={{ fontSize: 11, fontWeight: 700, padding: '2px 7px', borderRadius: 5, background: `rgba(15,118,110,0.10)`, color: ACCENT }}>
+              <span style={{ fontSize: 11, fontWeight: 700, padding: '2px 7px', borderRadius: 5, background: `rgba(226,85,45,0.10)`, color: ACCENT }}>
                 -{reduction}%
               </span>
             )}
@@ -683,7 +683,7 @@ function DealCard({ deal, lang, onVote, userCoords, votedDeal, user, isDark, isS
               </span>
             )}
             {isOwner && (
-              <span style={{ fontSize: 10, fontWeight: 600, padding: '2px 7px', borderRadius: 5, background: `rgba(15,118,110,0.10)`, color: ACCENT, marginLeft: isOnline ? 0 : 'auto' }}>
+              <span style={{ fontSize: 10, fontWeight: 600, padding: '2px 7px', borderRadius: 5, background: `rgba(226,85,45,0.10)`, color: ACCENT, marginLeft: isOnline ? 0 : 'auto' }}>
                 My deal
               </span>
             )}
@@ -853,7 +853,7 @@ function CityModal({ villes, current, lang, onSelect, onClose }) {
             <button onClick={() => { onSelect(null, null); onClose(); }} style={{
               padding: '11px 12px', borderRadius: 8, cursor: 'pointer',
               border: `1px solid ${!current ? ACCENT : 'var(--border)'}`,
-              background: !current ? `rgba(15,118,110,0.08)` : 'var(--bg-card2)',
+              background: !current ? `rgba(226,85,45,0.08)` : 'var(--bg-card2)',
               color: !current ? ACCENT : 'var(--text)',
               fontSize: 13, fontWeight: !current ? 600 : 400,
             }}>
@@ -876,7 +876,7 @@ function CityModal({ villes, current, lang, onSelect, onClose }) {
               <button key={v} onClick={() => { onSelect(v, CITY_COORDS[v] || null); onClose(); }} style={{
                 padding: '11px 12px', borderRadius: 8, cursor: 'pointer',
                 border: `1px solid ${current === v ? ACCENT : 'var(--border)'}`,
-                background: current === v ? `rgba(15,118,110,0.08)` : 'var(--bg-card2)',
+                background: current === v ? `rgba(226,85,45,0.08)` : 'var(--bg-card2)',
                 color: current === v ? ACCENT : 'var(--text)',
                 fontSize: 13, fontWeight: current === v ? 600 : 400,
                 textAlign: lang === 'he' ? 'right' : 'left',
@@ -1008,7 +1008,7 @@ function PostDealModal({ user, lang, onClose, onSuccess }) {
               display: 'block', padding: '15px', borderRadius: 16,
               background: `linear-gradient(135deg, ${ACCENT}, ${ACCENT_DARK})`,
               color: '#fff', textDecoration: 'none', fontSize: 15, fontWeight: 700,
-              boxShadow: `0 4px 18px rgba(15,118,110,0.22)`,
+              boxShadow: `0 4px 18px rgba(226,85,45,0.20)`,
             }}>Sign in to post</Link>
             <button onClick={onClose} style={{
               padding: 14, borderRadius: 16, border: 'none',
@@ -1146,7 +1146,7 @@ function PostDealModal({ user, lang, onClose, onSuccess }) {
               <button key={cat} onClick={() => set('categorie', cat)} style={{
                 padding: '6px 14px', borderRadius: 7, cursor: 'pointer', fontSize: 13,
                 border: form.categorie === cat ? `1px solid ${ACCENT}` : '1px solid var(--border)',
-                background: form.categorie === cat ? `rgba(15,118,110,0.10)` : 'var(--bg-input)',
+                background: form.categorie === cat ? `rgba(226,85,45,0.10)` : 'var(--bg-input)',
                 color: form.categorie === cat ? ACCENT : 'var(--text-sub)',
                 fontWeight: form.categorie === cat ? 700 : 400,
               }}>{CATEGORY_ICONS[cat]} {cat}</button>
@@ -1183,7 +1183,7 @@ function PostDealModal({ user, lang, onClose, onSuccess }) {
           background: submitting ? 'var(--bg-card2)' : `linear-gradient(135deg, ${ACCENT}, ${ACCENT_DARK})`,
           color: submitting ? 'var(--text-muted)' : '#fff',
           fontSize: 16, fontWeight: 700, cursor: submitting ? 'default' : 'pointer',
-          boxShadow: submitting ? 'none' : `0 4px 18px rgba(15,118,110,0.22)`,
+          boxShadow: submitting ? 'none' : `0 4px 18px rgba(226,85,45,0.20)`,
         }}>
           {uploadPhase === 'photo'
             ? (lang !== 'he' ? 'Uploading photo...' : 'מעלה תמונה...')
@@ -1509,7 +1509,7 @@ function ProfileTab({ user, lang, savedItems = [], onToggleSave, onOpenAlerts })
 
 // ─── AlertModal ───────────────────────────────────────────────────────────────
 function AlertModal({ user, lang, onClose }) {
-  const ACCENT = '#0F766E';
+  const ACCENT = '#E2552D';
   const [tab, setTab] = useState('list');
   const [alerts, setAlerts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -1636,7 +1636,7 @@ function AlertModal({ user, lang, onClose }) {
             <button key={id} onClick={() => setTab(id)} style={{
               flex: 1, padding: '8px 0', borderRadius: 7, cursor: 'pointer', fontSize: 12, fontWeight: 600,
               border: tab === id ? `1px solid ${ACCENT}` : '1px solid var(--border)',
-              background: tab === id ? `rgba(15,118,110,0.09)` : 'transparent',
+              background: tab === id ? `rgba(226,85,45,0.09)` : 'transparent',
               color: tab === id ? ACCENT : 'var(--text-sub)',
             }}>{label}</button>
           ))}
@@ -1772,7 +1772,7 @@ function AlertModal({ user, lang, onClose }) {
 
 // ─── NotificationSheet ────────────────────────────────────────────────────────
 function NotificationSheet({ user, lang, notifications, onClose, onMarkAllRead, onOpenAlerts }) {
-  const ACCENT = '#0F766E';
+  const ACCENT = '#E2552D';
   const router = useRouter();
   const unread = notifications.filter(n => !n.is_read).length;
 
@@ -1829,7 +1829,7 @@ function NotificationSheet({ user, lang, notifications, onClose, onMarkAllRead, 
         <div style={{ display: 'flex', gap: 8, marginBottom: 14 }}>
           <button onClick={() => { onClose(); onOpenAlerts(); }} style={{
             flex: 1, padding: '8px 0', borderRadius: 7, cursor: 'pointer', fontSize: 12, fontWeight: 600,
-            border: `1px solid ${ACCENT}`, background: `rgba(15,118,110,0.08)`, color: ACCENT,
+            border: `1px solid ${ACCENT}`, background: `rgba(226,85,45,0.08)`, color: ACCENT,
           }}>Manage alerts</button>
           {unread > 0 && (
             <button onClick={onMarkAllRead} style={{
@@ -1861,7 +1861,7 @@ function NotificationSheet({ user, lang, notifications, onClose, onMarkAllRead, 
                   onClick={() => handleNotifClick(n)}
                   style={{
                     padding: '13px 14px', borderRadius: 16, cursor: 'pointer',
-                    background: n.is_read ? 'var(--bg-card2)' : `rgba(15,118,110,0.07)`,
+                    background: n.is_read ? 'var(--bg-card2)' : `rgba(226,85,45,0.07)`,
                     border: n.is_read ? '1px solid var(--border)' : `1px solid ${ACCENT}44`,
                     display: 'flex', gap: 12, alignItems: 'flex-start',
                   }}
@@ -2333,7 +2333,7 @@ export default function Home() {
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
         <meta property="og:title" content="Dilz — Smart deals in Israel" />
         <meta property="og:description" content="Official supermarket promos + community deals. Find the best prices near you." />
-        <meta name="theme-color" content="#0F766E" />
+        <meta name="theme-color" content="#E2552D" />
       </Head>
 
       <div style={{ minHeight: '100vh', background: 'var(--bg)' }} dir={dir}>
@@ -2418,7 +2418,7 @@ export default function Home() {
                     <button key={option.id} onClick={() => setPromoSort(option.id)} style={{
                       flexShrink: 0, padding: '6px 12px', borderRadius: 7, cursor: 'pointer',
                       border: active ? `1px solid ${ACCENT}` : '1px solid var(--border)',
-                      background: active ? 'rgba(15,118,110,0.09)' : 'transparent',
+                      background: active ? 'rgba(226,85,45,0.09)' : 'transparent',
                       color: active ? ACCENT : 'var(--text-sub)',
                       fontSize: 12, fontWeight: active ? 600 : 400, whiteSpace: 'nowrap',
                     }}>
@@ -2436,7 +2436,7 @@ export default function Home() {
                     <button key={category} onClick={() => setPromoCategory(category)} style={{
                       flexShrink: 0, padding: '6px 12px', borderRadius: 7, cursor: 'pointer',
                       border: active ? `1px solid ${ACCENT}` : '1px solid var(--border)',
-                      background: active ? 'rgba(15,118,110,0.09)' : 'transparent',
+                      background: active ? 'rgba(226,85,45,0.09)' : 'transparent',
                       color: active ? ACCENT : 'var(--text-sub)',
                       fontSize: 12, fontWeight: active ? 600 : 400, whiteSpace: 'nowrap',
                     }}>
@@ -2458,7 +2458,7 @@ export default function Home() {
                       flexShrink: 0, padding: '6px 14px', borderRadius: 7, cursor: 'pointer',
                       border: `1px solid ${active ? (s?.color || ACCENT) : 'var(--border)'}`,
                       background: active
-                        ? (s ? (isDark ? s.dark : s.bg) : `rgba(15,118,110,0.09)`)
+                        ? (s ? (isDark ? s.dark : s.bg) : `rgba(226,85,45,0.09)`)
                         : 'transparent',
                       color: active ? (s?.color || ACCENT) : 'var(--text-sub)',
                       fontSize: 12, fontWeight: active ? 600 : 400, whiteSpace: 'nowrap',
@@ -2544,54 +2544,45 @@ export default function Home() {
                 onAction={() => setShowPostModal(true)}
               />
 
-              {/* Sort row */}
-              <div style={{ display: 'flex', gap: 8, marginBottom: 10, alignItems: 'center' }}>
-                <div style={{ display: 'flex', gap: 6, flex: 1, overflowX: 'auto' }}>
-                  {[
-                    { id: 'hot', label: 'Hot' },
-                    { id: 'latest', label: 'New' },
-                    ...(userCoords ? [{ id: 'nearby', label: 'Near me' }] : []),
-                    { id: 'ending', label: 'Ending soon' },
-                    ...(user ? [{ id: 'mine', label: 'My deals' }] : []),
-                  ].map(s => {
-                    const isMyDeals = s.id === 'mine';
-                    const active = isMyDeals ? myDealsOnly : sortDeals === s.id;
-                    return (
-                      <button key={s.id} onClick={() => {
-                        if (isMyDeals) setMyDealsOnly(v => !v);
-                        else setSortDeals(s.id);
-                      }} style={{
-                        flexShrink: 0, padding: '6px 14px', borderRadius: 7, cursor: 'pointer',
-                        border: active ? `1px solid ${ACCENT}` : '1px solid var(--border)',
-                        background: active ? `rgba(15,118,110,0.09)` : 'transparent',
-                        color: active ? ACCENT : 'var(--text-sub)',
-                        fontSize: 12, fontWeight: active ? 600 : 400, whiteSpace: 'nowrap',
-                      }}>{s.label}</button>
-                    );
-                  })}
-                </div>
-                {/* Map button */}
-                <button onClick={() => router.push('/map')} style={{
-                  flexShrink: 0, padding: '6px 12px', borderRadius: 7, cursor: 'pointer',
-                  border: '1px solid var(--border)', background: 'transparent',
-                  color: 'var(--text-muted)', fontSize: 12, fontWeight: 500,
-                }}>Map</button>
-              </div>
-
-              {/* Category filter */}
-              <div style={{ display: 'flex', gap: 6, overflowX: 'auto', marginBottom: 14, paddingBottom: 2 }}>
-                {CATEGORIES.map(cat => {
-                  const active = categoryFilter === cat;
+              <div className="dilz-view-switcher" aria-label="Dilz views">
+                {[
+                  { id: 'all', label: 'Top Dilz' },
+                  { id: 'latest', label: 'New' },
+                  ...(userCoords ? [{ id: 'nearby', label: 'Near me' }] : []),
+                  { id: 'ending', label: 'Ending soon' },
+                  { id: 'Food', label: 'Food' },
+                  { id: 'Tech', label: 'Tech' },
+                  { id: 'Fashion', label: 'Fashion' },
+                  { id: 'Online', label: 'Online' },
+                  ...(user ? [{ id: 'mine', label: 'My Dilz' }] : []),
+                ].map(view => {
+                  const active =
+                    (view.id === 'all' && sortDeals === 'hot' && categoryFilter === 'all' && !myDealsOnly) ||
+                    (view.id === 'mine' && myDealsOnly) ||
+                    (['latest', 'nearby', 'ending'].includes(view.id) && sortDeals === view.id && categoryFilter === 'all' && !myDealsOnly) ||
+                    (CATEGORIES.includes(view.id) && categoryFilter === view.id && !myDealsOnly);
                   return (
-                    <button key={cat} onClick={() => setCategoryFilter(cat)} style={{
-                      flexShrink: 0, padding: '6px 14px', borderRadius: 7, cursor: 'pointer',
-                      border: active ? `1px solid ${ACCENT}` : '1px solid var(--border)',
-                      background: active ? `rgba(15,118,110,0.09)` : 'transparent',
-                      color: active ? ACCENT : 'var(--text-sub)',
-                      fontSize: 12, fontWeight: active ? 600 : 400, whiteSpace: 'nowrap',
-                    }}>{t.categories[cat] || cat}</button>
+                    <button
+                      key={view.id}
+                      type="button"
+                      className={active ? 'is-active' : ''}
+                      onClick={() => {
+                        setMyDealsOnly(false);
+                        setCategoryFilter('all');
+                        if (view.id === 'all') setSortDeals('hot');
+                        else if (view.id === 'mine') setMyDealsOnly(true);
+                        else if (['latest', 'nearby', 'ending'].includes(view.id)) setSortDeals(view.id);
+                        else {
+                          setSortDeals('hot');
+                          setCategoryFilter(view.id);
+                        }
+                      }}
+                    >
+                      {view.label}
+                    </button>
                   );
                 })}
+                <button type="button" onClick={() => router.push('/map')}>Map</button>
               </div>
 
               {/* City context */}
@@ -2783,6 +2774,7 @@ export default function Home() {
     </>
   );
 }
+
 
 
 

@@ -3,8 +3,8 @@ import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { supabase } from '../lib/supabase';
 
-const ACCENT = '#0F766E';
-const ACCENT_DARK = '#115E59';
+const ACCENT = '#E2552D';
+const ACCENT_DARK = '#C2410C';
 
 function timeAgo(date) {
   const diff = Date.now() - new Date(date).getTime();
@@ -181,7 +181,7 @@ export default function Profil() {
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                       <span style={{ fontSize: 16, fontWeight: 800, color: ACCENT }}>₪{deal.prix}</span>
                       {reduction && (
-                        <span style={{ fontSize: 11, fontWeight: 700, color: ACCENT, background: 'rgba(15,118,110,0.10)', padding: '2px 7px', borderRadius: 20 }}>-{reduction}%</span>
+                        <span style={{ fontSize: 11, fontWeight: 700, color: ACCENT, background: 'rgba(226,85,45,0.10)', padding: '2px 7px', borderRadius: 20 }}>-{reduction}%</span>
                       )}
                       <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>{timeAgo(deal.created_at)}</span>
                     </div>
@@ -198,4 +198,5 @@ export default function Profil() {
     </div>
   );
 }
+
 

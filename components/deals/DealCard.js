@@ -122,17 +122,26 @@ export function DealCard({
             <button
               type="button"
               className={votedDeal === 'chaud' ? 'is-up' : ''}
-              onClick={() => onVote(deal.id, 'chaud')}
+              onClick={(event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                onVote(deal.id, 'chaud');
+              }}
+              aria-label="Mark as hot"
             >
-              <ArrowUpIcon /> <span>{deal.votes_chaud || 0}</span>
+              <span aria-hidden="true">🔥</span> <span>{deal.votes_chaud || 0}</span>
             </button>
             <button
               type="button"
               className={votedDeal === 'froid' ? 'is-down' : ''}
-              onClick={() => onVote(deal.id, 'froid')}
-              aria-label="Downvote"
+              onClick={(event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                onVote(deal.id, 'froid');
+              }}
+              aria-label="Mark as cold"
             >
-              <ArrowDownIcon />
+              <span aria-hidden="true">❄</span> <span>{deal.votes_froid || 0}</span>
             </button>
           </div>
           <div className="dilz-deal-card__right-actions">
@@ -145,14 +154,6 @@ export function DealCard({
       </div>
     </article>
   );
-}
-
-function ArrowUpIcon() {
-  return <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4"><path d="m12 5-7 7h4v7h6v-7h4l-7-7Z" /></svg>;
-}
-
-function ArrowDownIcon() {
-  return <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4"><path d="m12 19 7-7h-4V5H9v7H5l7 7Z" /></svg>;
 }
 
 function ShareIcon() {

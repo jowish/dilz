@@ -13,7 +13,10 @@ const CATEGORIES = ['Food', 'Tech', 'Fashion', 'Activities', 'Online'];
 function canContinue(step, form, imageFile) {
   if (step === 0) return Boolean(imageFile);
   if (step === 1) return Boolean(form.titre.trim() && form.prix);
-  if (step === 2) return Boolean(form.magasin.trim() && (form.onlineMode === 'online' || form.ville));
+  if (step === 2) {
+    if (form.onlineMode === 'online') return Boolean(form.magasin.trim() || form.url_source.trim());
+    return Boolean(form.magasin.trim() && form.ville);
+  }
   return true;
 }
 
@@ -22,6 +25,15 @@ function computeDiscount(form) {
   const original = Number(form.prix_original);
   if (!current || !original || original <= current) return null;
   return Math.round(((original - current) / original) * 100);
+}
+
+function storeFromUrl(url) {
+  try {
+    const host = new URL(url).hostname.replace(/^www\./, '');
+    return host || 'Online';
+  } catch {
+    return 'Online';
+  }
 }
 
 export function PostDealModal({ user, onClose, onSuccess, cityOptions = [] }) {
@@ -72,7 +84,8 @@ export function PostDealModal({ user, onClose, onSuccess, cityOptions = [] }) {
     if (!imageFile) return 'A clear deal image is required.';
     if (!form.titre.trim()) return 'Deal title is required.';
     if (!form.prix) return 'Current price is required.';
-    if (!form.magasin.trim()) return 'Store name is required.';
+    if (form.onlineMode === 'store' && !form.magasin.trim()) return 'Store name is required.';
+    if (form.onlineMode === 'online' && !form.magasin.trim() && !form.url_source.trim()) return 'Add a website/app name or a deal URL.';
     if (form.onlineMode === 'store' && !form.ville) return 'Choose a city or mark this deal as online.';
     if (form.date_debut && form.date_fin && form.date_fin < form.date_debut) return 'End date must be after start date.';
     return '';
@@ -102,7 +115,7 @@ export function PostDealModal({ user, onClose, onSuccess, cityOptions = [] }) {
         description: form.description,
         prix: Number(form.prix),
         prix_original: form.prix_original ? Number(form.prix_original) : null,
-        magasin: form.magasin,
+        magasin: form.magasin.trim() || storeFromUrl(form.url_source),
         ville: form.onlineMode === 'online' ? 'Online' : form.ville,
         categorie: form.onlineMode === 'online' ? 'Online' : form.categorie,
         url_source: form.url_source,
@@ -200,14 +213,14 @@ export function PostDealModal({ user, onClose, onSuccess, cityOptions = [] }) {
         <div className="dilz-form-grid">
           <Input label="Deal title" value={form.titre} onChange={(event) => set('titre', event.target.value)} placeholder="e.g. Apple Watch SE from NIS 999" />
           <Textarea label="Description" value={form.description} onChange={(event) => set('description', event.target.value)} placeholder="What makes this deal useful?" />
-          <div className="dilz-form-grid dilz-form-grid--two">
+          <div className="dilz-form-grid dilz-form-grid--two dilz-price-fields">
             <Input label="Current price" type="number" value={form.prix} onChange={(event) => set('prix', event.target.value)} placeholder="999" />
             <Input label="Old price" type="number" value={form.prix_original} onChange={(event) => set('prix_original', event.target.value)} placeholder="1299" helper={discount ? `${discount}% discount` : 'Optional'} />
           </div>
           <Select label="Category" value={form.categorie} onChange={(event) => set('categorie', event.target.value)}>
             {CATEGORIES.map((category) => <option key={category} value={category}>{category}</option>)}
           </Select>
-          <div className="dilz-form-grid dilz-form-grid--two">
+          <div className="dilz-form-grid dilz-form-grid--two dilz-date-fields">
             <Input label="Start date" type="date" value={form.date_debut} max={form.date_fin || undefined} onChange={(event) => set('date_debut', event.target.value)} />
             <Input label="End date" type="date" value={form.date_fin} min={form.date_debut || undefined} onChange={(event) => set('date_fin', event.target.value)} />
           </div>
@@ -222,14 +235,20 @@ export function PostDealModal({ user, onClose, onSuccess, cityOptions = [] }) {
             onChange={(value) => set('onlineMode', value)}
             options={[{ value: 'store', label: 'In-store' }, { value: 'online', label: 'Online' }]}
           />
-          <Input label="Store name" value={form.magasin} onChange={(event) => set('magasin', event.target.value)} placeholder="Bug, Terminal X, Rami Levy" />
+          <Input
+            label={form.onlineMode === 'online' ? 'Website or app' : 'Store name'}
+            value={form.magasin}
+            onChange={(event) => set('magasin', event.target.value)}
+            placeholder={form.onlineMode === 'online' ? 'Amazon, KSP, Terminal X' : 'Bug, Terminal X, Rami Levy'}
+            helper={form.onlineMode === 'online' ? 'You can also leave this empty if the URL clearly identifies the website.' : undefined}
+          />
           {form.onlineMode === 'store' && (
             <Select label="City" value={form.ville} onChange={(event) => set('ville', event.target.value)}>
               <option value="">Choose city</option>
               {cityOptions.map((city) => <option key={city} value={city}>{traduireVille(city, 'en')}</option>)}
             </Select>
           )}
-          <Input label="Deal URL" type="url" value={form.url_source} onChange={(event) => set('url_source', event.target.value)} placeholder="https://..." helper="Optional, but recommended for trust." />
+          <Input label="Deal URL" type="url" value={form.url_source} onChange={(event) => set('url_source', event.target.value)} placeholder="https://..." helper={form.onlineMode === 'online' ? 'Recommended for online-only Dilz.' : 'Optional, but recommended for trust.'} />
         </div>
       )}
 

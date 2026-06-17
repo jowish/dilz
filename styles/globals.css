@@ -15,16 +15,16 @@
   --text-inverted: #FFFFFF;
 
   --border-default: #E2E8F0;
-  --border-focus: #0F766E;
+  --border-focus: #E2552D;
 
-  --brand: #0F766E;
-  --brand-hover: #115E59;
-  --brand-active: #134E4A;
-  --brand-soft: #E6F6F3;
-  --brand-softer: #F1FBF8;
+  --brand: #E2552D;
+  --brand-hover: #C2410C;
+  --brand-active: #9A3412;
+  --brand-soft: #FFF1EA;
+  --brand-softer: #FFF8F4;
   --accent: var(--brand);
   --accent-dark: var(--brand-hover);
-  --accent-rgb: 15, 118, 110;
+  --accent-rgb: 226, 85, 45;
 
   /* ── Background ── */
   --bg: #F8FAF7;
@@ -71,8 +71,8 @@
   --shadow-card: 0 8px 24px rgba(15, 23, 42, 0.06);
   --shadow-card-hover: 0 16px 40px rgba(15, 23, 42, 0.10);
   --shadow-modal: 0 24px 80px rgba(15, 23, 42, 0.22);
-  --shadow-btn: 0 8px 18px rgba(15, 118, 110, 0.18);
-  --shadow-float: 0 8px 18px rgba(15, 118, 110, 0.22);
+  --shadow-btn: 0 8px 18px rgba(226, 85, 45, 0.18);
+  --shadow-float: 0 8px 18px rgba(226, 85, 45, 0.22);
   --shadow-nav: 0 -1px 0 rgba(0, 0, 0, 0.06);
 
   /* ── Radius ── */
@@ -154,7 +154,7 @@ input, button, select, textarea {
 /* Focus states */
 button:focus-visible,
 a:focus-visible {
-  outline: 3px solid rgba(15, 118, 110, 0.28);
+  outline: 3px solid rgba(226, 85, 45, 0.24);
   outline-offset: 2px;
   border-radius: 4px;
 }
@@ -163,7 +163,7 @@ input:not([type='file']):focus,
 select:focus,
 textarea:focus {
   border-color: var(--brand) !important;
-  box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.15) !important;
+  box-shadow: 0 0 0 3px rgba(226, 85, 45, 0.14) !important;
   outline: none;
 }
 
@@ -342,12 +342,12 @@ textarea:focus {
 .dilz-button--soft {
   background: var(--brand-soft);
   color: var(--brand);
-  border-color: #BFE4DD;
+  border-color: #FFD2C2;
   box-shadow: none;
 }
 
 .dilz-button--soft:hover:not(:disabled) {
-  background: #D8F0EA;
+  background: #FFE4D8;
 }
 
 .dilz-button--danger {
@@ -398,7 +398,7 @@ textarea:focus {
 .dilz-icon-button.is-selected {
   background: var(--brand-soft);
   color: var(--brand);
-  border-color: #9DD6CC;
+  border-color: #FFBEA8;
 }
 
 .dilz-badge {
@@ -700,7 +700,7 @@ textarea:focus {
 .dilz-page-shell {
   max-width: 1180px;
   margin: 0 auto;
-  padding: 24px 32px 96px;
+  padding: 16px 32px 96px;
 }
 
 .dilz-discovery {
@@ -818,12 +818,45 @@ textarea:focus {
   margin-bottom: 24px;
 }
 
+.dilz-view-switcher {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 2px 0 14px;
+  margin-bottom: 4px;
+}
+
+.dilz-view-switcher button {
+  flex: 0 0 auto;
+  min-height: 38px;
+  padding: 0 14px;
+  border-radius: 999px;
+  border: 1px solid var(--border-default);
+  background: var(--surface-main);
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 180ms ease, border-color 180ms ease, color 180ms ease, transform 180ms ease;
+}
+
+.dilz-view-switcher button:hover {
+  border-color: var(--border-strong);
+  color: var(--text-primary);
+}
+
+.dilz-view-switcher button.is-active {
+  background: var(--surface-dark);
+  border-color: var(--surface-dark);
+  color: #fff;
+}
+
 .dilz-section-header {
   display: flex;
   align-items: end;
   justify-content: space-between;
   gap: 16px;
-  margin: 24px 0 14px;
+  margin: 8px 0 12px;
 }
 
 .dilz-section-header h2 {
@@ -1239,6 +1272,16 @@ textarea:focus {
 
 .dilz-form-grid--two {
   grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+}
+
+.dilz-form-grid--two > * {
+  min-width: 0;
+}
+
+.dilz-date-fields .dilz-input,
+.dilz-price-fields .dilz-input {
+  text-align: left;
 }
 
 .dilz-form-error {
@@ -1384,7 +1427,7 @@ textarea:focus {
   border-radius: 50%;
   background: var(--brand);
   color: #fff;
-  box-shadow: 0 8px 18px rgba(15, 118, 110, 0.25);
+  box-shadow: 0 8px 18px rgba(226, 85, 45, 0.24);
 }
 
 @media (min-width: 768px) {
@@ -1411,7 +1454,7 @@ textarea:focus {
 
 @media (max-width: 767px) {
   .dilz-app-header__inner {
-    height: 64px;
+    height: 52px;
     padding: 0 16px;
   }
 
@@ -1425,6 +1468,7 @@ textarea:focus {
 
   .dilz-mobile-search {
     display: block;
+    padding-bottom: 8px;
   }
 
   .dilz-logo {
@@ -1432,7 +1476,7 @@ textarea:focus {
   }
 
   .dilz-page-shell {
-    padding: 16px 16px 96px;
+    padding: 8px 12px 88px;
   }
 
   .dilz-discovery {
@@ -1460,6 +1504,22 @@ textarea:focus {
 
   .dilz-section-header h2 {
     font-size: 19px;
+  }
+
+  .dilz-section-header {
+    margin: 4px 0 10px;
+  }
+
+  .dilz-form-grid--two {
+    grid-template-columns: 1fr;
+  }
+
+  .dilz-post-step strong {
+    display: none;
+  }
+
+  .dilz-post-preview {
+    grid-template-columns: 1fr;
   }
 
   .dilz-bottom-nav {
@@ -1493,4 +1553,5 @@ textarea:focus {
     padding-right: 16px;
   }
 }
+
 

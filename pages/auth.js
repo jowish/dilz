@@ -3,8 +3,8 @@ import { useRouter } from 'next/router';
 import Link from 'next/link';
 import { supabase } from '../lib/supabase';
 
-const ACCENT = '#0F766E';
-const ACCENT_DARK = '#115E59';
+const ACCENT = '#E2552D';
+const ACCENT_DARK = '#C2410C';
 
 function getRedirectPath(value) {
   const raw = Array.isArray(value) ? value[0] : value;
@@ -262,4 +262,5 @@ export default function Auth() {
     </div>
   );
 }
+
 
