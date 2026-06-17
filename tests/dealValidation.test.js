@@ -1,7 +1,13 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 
-const { clampLimit, normalizeDealInput, normalizeHttpUrl } = require('../lib/dealValidation');
+const {
+  clampLimit,
+  dateOnlyInTimeZone,
+  isDateOnly,
+  normalizeDealInput,
+  normalizeHttpUrl,
+} = require('../lib/dealValidation');
 
 test('normalizes a valid deal payload', () => {
   const result = normalizeDealInput({
@@ -61,4 +67,10 @@ test('clamps public API limits', () => {
   assert.equal(clampLimit('25'), 25);
   assert.equal(clampLimit('999'), 200);
   assert.equal(clampLimit('invalid'), 50);
+});
+
+test('handles date-only values without timestamp comparisons', () => {
+  assert.equal(isDateOnly('2026-06-17'), true);
+  assert.equal(isDateOnly('2026-06-17T00:00:00Z'), false);
+  assert.equal(dateOnlyInTimeZone(new Date('2026-06-17T21:30:00.000Z'), 'Asia/Jerusalem'), '2026-06-18');
 });

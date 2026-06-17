@@ -54,6 +54,10 @@ function PostDealModal({ onClose, onSubmit, user }) {
       setError('A photo is required to post a deal.');
       return;
     }
+    if (form.date_debut && form.date_fin && form.date_fin < form.date_debut) {
+      setError('End date must be after start date.');
+      return;
+    }
     setSubmitting(true);
     setError('');
     let uploadPath = null;
@@ -213,6 +217,7 @@ function PostDealModal({ onClose, onSubmit, user }) {
             <input
               type="date"
               value={form.date_debut}
+              max={form.date_fin || undefined}
               onChange={e => setForm({ ...form, date_debut: e.target.value })}
               style={{ width: '100%', padding: '12px 14px', borderRadius: 14, border: '0.5px solid var(--border)', background: 'var(--bg-input)', color: 'var(--text)', fontSize: 14, outline: 'none' }}
             />
@@ -222,6 +227,7 @@ function PostDealModal({ onClose, onSubmit, user }) {
             <input
               type="date"
               value={form.date_fin}
+              min={form.date_debut || undefined}
               onChange={e => setForm({ ...form, date_fin: e.target.value })}
               style={{ width: '100%', padding: '12px 14px', borderRadius: 14, border: '0.5px solid var(--border)', background: 'var(--bg-input)', color: 'var(--text)', fontSize: 14, outline: 'none' }}
             />

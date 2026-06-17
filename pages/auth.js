@@ -6,6 +6,15 @@ import { supabase } from '../lib/supabase';
 const ACCENT = '#D4622A';
 const ACCENT_DARK = '#B84E20';
 
+function getRedirectPath(value) {
+  const raw = Array.isArray(value) ? value[0] : value;
+  return raw && raw.startsWith('/') && !raw.startsWith('//') ? raw : '/';
+}
+
+function confirmationRedirect(origin, redirectPath) {
+  return `${origin}/auth?confirmed=1&redirect=${encodeURIComponent(redirectPath)}`;
+}
+
 export default function Auth() {
   const router = useRouter();
   const [mode, setMode] = useState('signin');
@@ -15,14 +24,17 @@ export default function Auth() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [signupDone, setSignupDone] = useState(false);
+  const [resendLoading, setResendLoading] = useState(false);
+  const [resendMessage, setResendMessage] = useState('');
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    if (!router.isReady) return;
     setMounted(true);
     supabase.auth.getSession().then(({ data }) => {
-      if (data.session) router.replace(router.query.redirect || '/');
+      if (data.session) router.replace(getRedirectPath(router.query.redirect));
     });
-  }, []);
+  }, [router.isReady]);
 
   const handleSubmit = async () => {
     setError('');
@@ -34,19 +46,24 @@ export default function Auth() {
         const { error: err } = await supabase.auth.signInWithPassword({ email, password });
         if (err) { setError(err.message); setLoading(false); return; }
       } else {
-        const { error: err } = await supabase.auth.signUp({
+        const redirectPath = getRedirectPath(router.query.redirect);
+        const { data, error: err } = await supabase.auth.signUp({
           email, password,
           options: {
             data: { display_name: name || email.split('@')[0] },
-            emailRedirectTo: `${window.location.origin}/`,
+            emailRedirectTo: confirmationRedirect(window.location.origin, redirectPath),
           },
         });
         if (err) { setError(err.message); setLoading(false); return; }
+        if (data?.session) {
+          router.replace(redirectPath);
+          return;
+        }
         setLoading(false);
         setSignupDone(true);
         return;
       }
-      router.replace(router.query.redirect || '/');
+      router.replace(getRedirectPath(router.query.redirect));
     } catch (err) {
       setError('Something went wrong. Please try again.');
       setLoading(false);
@@ -54,10 +71,29 @@ export default function Auth() {
   };
 
   const handleGoogle = async () => {
+    const redirectPath = getRedirectPath(router.query.redirect);
     await supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo: `${window.location.origin}/auth?redirect=${router.query.redirect || '/'}` },
+      options: { redirectTo: `${window.location.origin}/auth?redirect=${encodeURIComponent(redirectPath)}` },
     });
+  };
+
+  const handleResendConfirmation = async () => {
+    setError('');
+    setResendMessage('');
+    if (!email) { setError('Enter your email address first.'); return; }
+    setResendLoading(true);
+    const redirectPath = getRedirectPath(router.query.redirect);
+    const { error: err } = await supabase.auth.resend({
+      type: 'signup',
+      email,
+      options: {
+        emailRedirectTo: confirmationRedirect(window.location.origin, redirectPath),
+      },
+    });
+    setResendLoading(false);
+    if (err) { setError(err.message); return; }
+    setResendMessage('Confirmation email sent again. Check inbox and spam.');
   };
 
   if (!mounted) return null;
@@ -76,17 +112,39 @@ export default function Auth() {
         </div>
 
         {/* Card */}
-        <div style={{ background: 'var(--bg-card)', borderRadius: 24, padding: '28px 24px', boxShadow: 'var(--shadow-float)' }}>
+        <div style={{ background: 'var(--bg-card)', borderRadius: 26, padding: '28px 24px', boxShadow: 'var(--shadow-float)', border: '1px solid var(--border)' }}>
           {signupDone ? (
             <div style={{ textAlign: 'center', padding: '16px 0' }}>
               <div style={{ fontSize: 52, marginBottom: 16 }}>📧</div>
               <p style={{ fontSize: 20, fontWeight: 800, color: 'var(--text)', marginBottom: 10 }}>Check your email</p>
               <p style={{ fontSize: 14, color: 'var(--text-sub)', lineHeight: 1.6, marginBottom: 24 }}>
                 We sent a confirmation link to <strong style={{ color: 'var(--text)' }}>{email}</strong>.
-                Click the link to activate your account, then sign in.
+                Open it on this device if possible. If you do not see it, check spam or send it again.
               </p>
+              {resendMessage && (
+                <p style={{ color: '#059669', fontSize: 13, marginBottom: 12, background: 'rgba(5,150,105,0.08)', borderRadius: 12, padding: '9px 12px' }}>
+                  {resendMessage}
+                </p>
+              )}
+              {error && (
+                <p style={{ color: '#DC2626', fontSize: 13, marginBottom: 12, background: 'rgba(220,38,38,0.08)', borderRadius: 12, padding: '9px 12px' }}>
+                  {error}
+                </p>
+              )}
               <button
-                onClick={() => { setMode('signin'); setSignupDone(false); setError(''); }}
+                onClick={handleResendConfirmation}
+                disabled={resendLoading}
+                style={{
+                  width: '100%', padding: 14, borderRadius: 16, marginBottom: 10,
+                  border: '1px solid var(--border)', background: 'var(--bg-card2)',
+                  color: resendLoading ? 'var(--text-muted)' : 'var(--text)',
+                  fontSize: 14, fontWeight: 700, cursor: resendLoading ? 'default' : 'pointer',
+                }}
+              >
+                {resendLoading ? 'Sending...' : 'Resend confirmation email'}
+              </button>
+              <button
+                onClick={() => { setMode('signin'); setSignupDone(false); setError(''); setResendMessage(''); }}
                 style={{
                   width: '100%', padding: 16, borderRadius: 16, border: 'none',
                   background: `linear-gradient(135deg, ${ACCENT}, ${ACCENT_DARK})`,

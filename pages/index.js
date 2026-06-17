@@ -109,6 +109,19 @@ function languageUsesEnglishProductNames(lang) {
   return lang !== 'he';
 }
 
+function parseDateOnly(value) {
+  if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return null;
+  const [year, month, day] = value.split('-').map(Number);
+  return new Date(year, month - 1, day);
+}
+
+function formatDateOnly(value, lang) {
+  const date = parseDateOnly(value);
+  if (!date) return '';
+  const locale = lang === 'he' ? 'he-IL' : lang === 'fr' ? 'fr-FR' : lang === 'es' ? 'es-ES' : 'en-GB';
+  return date.toLocaleDateString(locale, { day: '2-digit', month: 'short' });
+}
+
 function timeAgo(date, lang) {
   const diff = Date.now() - new Date(date).getTime();
   const m = Math.floor(diff / 60000);
@@ -123,8 +136,8 @@ function timeAgo(date, lang) {
 function dealDateStatus(deal, lang) {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-  const start = deal.date_debut ? new Date(`${deal.date_debut}T00:00:00`) : null;
-  const end = deal.date_fin ? new Date(`${deal.date_fin}T23:59:59`) : null;
+  const start = parseDateOnly(deal.date_debut);
+  const end = parseDateOnly(deal.date_fin);
 
   if (start && start > today) {
     return {
@@ -141,9 +154,9 @@ function dealDateStatus(deal, lang) {
     if (end < today) {
       return { label: textFor(lang, { en: 'Expired', he: 'הסתיים', fr: 'Expire', es: 'Expirada' }), tone: '#64748B' };
     }
-    const days = Math.ceil((end.getTime() - today.getTime()) / 86400000);
+    const days = Math.round((end.getTime() - today.getTime()) / 86400000);
     return {
-      label: days <= 1
+      label: days === 0
         ? textFor(lang, { en: 'Ends today', he: 'מסתיים היום', fr: 'Expire aujourd’hui', es: 'Termina hoy' })
         : textFor(lang, { en: `${days} days left`, he: `עוד ${days} ימים`, fr: `${days} jours restants`, es: `Quedan ${days} dias` }),
       tone: days <= 2 ? '#DC2626' : '#059669',

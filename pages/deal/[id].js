@@ -42,6 +42,17 @@ function timeAgo(date) {
   return `${Math.floor(h / 24)}d ago`;
 }
 
+function parseDateOnly(value) {
+  if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return null;
+  const [year, month, day] = value.split('-').map(Number);
+  return new Date(year, month - 1, day);
+}
+
+function formatDateOnly(value) {
+  const date = parseDateOnly(value);
+  return date ? date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '';
+}
+
 export default function DealPage() {
   const router = useRouter();
   const { id } = router.query;
@@ -278,6 +289,10 @@ export default function DealPage() {
       setEditError('Title, price and store are required');
       return;
     }
+    if (editForm.date_debut && editForm.date_fin && editForm.date_fin < editForm.date_debut) {
+      setEditError('End date must be after start date.');
+      return;
+    }
     setEditSubmitting(true);
     setEditError('');
     let newUploadPath = null;
@@ -488,8 +503,8 @@ export default function DealPage() {
               background: 'var(--bg-card)', border: '1px solid var(--border)',
               color: 'var(--text-sub)', fontSize: 12,
             }}>
-              {deal.date_debut && <span>Starts: {new Date(`${deal.date_debut}T00:00:00`).toLocaleDateString('en-GB')}</span>}
-              {deal.date_fin && <span>Ends: {new Date(`${deal.date_fin}T00:00:00`).toLocaleDateString('en-GB')}</span>}
+              {deal.date_debut && <span>Starts: {formatDateOnly(deal.date_debut)}</span>}
+              {deal.date_fin && <span>Ends: {formatDateOnly(deal.date_fin)}</span>}
             </div>
           )}
 

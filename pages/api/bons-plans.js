@@ -1,7 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 import { processNewDeal } from '../../lib/alerts';
 
-const { clampLimit, normalizeDealInput } = require('../../lib/dealValidation');
+const { clampLimit, dateOnlyInTimeZone, normalizeDealInput } = require('../../lib/dealValidation');
 
 export default async function handler(req, res) {
   const {
@@ -39,9 +39,10 @@ export default async function handler(req, res) {
       if (tri === 'oldest') query = query.order('created_at', { ascending: true });
       else if (tri === 'latest') query = query.order('created_at', { ascending: false });
       else if (tri === 'ending') {
+        const today = dateOnlyInTimeZone();
         query = query
           .not('date_fin', 'is', null)
-          .gt('date_fin', new Date().toISOString())
+          .gte('date_fin', today)
           .order('date_fin', { ascending: true });
       }
       else query = query.order('votes_chaud', { ascending: false });
