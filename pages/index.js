@@ -13,6 +13,13 @@ const { PRODUCT_CATEGORIES, getProductCategoryLabel } = require('../lib/productC
 const ACCENT = '#D4622A';
 const ACCENT_DARK = '#B84E20';
 
+const LANG_OPTIONS = [
+  { id: 'en', label: 'EN' },
+  { id: 'he', label: 'עב' },
+  { id: 'fr', label: 'FR' },
+  { id: 'es', label: 'ES' },
+];
+
 const STORE_COLORS = {
   'שופרסל':  { color: '#2563EB', bg: '#EFF6FF', dark: '#1A2744', nameEn: 'Shufersal' },
   'רמי לוי': { color: '#DC2626', bg: '#FEF2F2', dark: '#3D1212', nameEn: 'Rami Levy' },
@@ -23,6 +30,8 @@ const STORE_COLORS = {
 };
 
 STORE_COLORS.BE = { color: '#0F766E', bg: '#F0FDFA', dark: '#12322F', nameEn: 'BE' };
+STORE_COLORS['Super-Pharm'] = { color: '#E11D48', bg: '#FFF1F2', dark: '#3B111B', nameEn: 'Super-Pharm' };
+STORE_COLORS['Good Pharm'] = { color: '#16A34A', bg: '#F0FDF4', dark: '#12351F', nameEn: 'Good Pharm' };
 
 const STORE_FILTERS = [
   { id: 'all' },
@@ -35,6 +44,8 @@ const STORE_FILTERS = [
 ];
 
 STORE_FILTERS.push({ id: 'BE', nameEn: 'BE' });
+STORE_FILTERS.push({ id: 'Super-Pharm', nameEn: 'Super-Pharm' });
+STORE_FILTERS.push({ id: 'Good Pharm', nameEn: 'Good Pharm' });
 
 const CATEGORIES = ['all', 'Food', 'Tech', 'Fashion', 'Activities', 'Online'];
 const CATEGORY_ICONS = { all: '✦', Food: '🍕', Tech: '💻', Fashion: '👗', Activities: '⚽', Online: '🌐' };
@@ -90,15 +101,23 @@ function distanceKm(lat1, lon1, lat2, lon2) {
   return Math.round(R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)));
 }
 
+function textFor(lang, values) {
+  return values[lang] || values.en;
+}
+
+function languageUsesEnglishProductNames(lang) {
+  return lang !== 'he';
+}
+
 function timeAgo(date, lang) {
   const diff = Date.now() - new Date(date).getTime();
   const m = Math.floor(diff / 60000);
   const h = Math.floor(diff / 3600000);
   const d = Math.floor(diff / 86400000);
-  if (m < 2)  return lang === 'he' ? 'זה עתה'       : 'Just now';
-  if (m < 60) return lang === 'he' ? `${m}ד'`       : `${m}m ago`;
-  if (h < 24) return lang === 'he' ? `${h}ש'`       : `${h}h ago`;
-  return       lang === 'he' ? `${d} ימים`           : `${d}d ago`;
+  if (m < 2) return textFor(lang, { en: 'Just now', he: 'זה עתה', fr: 'A l’instant', es: 'Ahora' });
+  if (m < 60) return textFor(lang, { en: `${m}m ago`, he: `${m}ד'`, fr: `Il y a ${m} min`, es: `Hace ${m} min` });
+  if (h < 24) return textFor(lang, { en: `${h}h ago`, he: `${h}ש'`, fr: `Il y a ${h} h`, es: `Hace ${h} h` });
+  return textFor(lang, { en: `${d}d ago`, he: `${d} ימים`, fr: `Il y a ${d} j`, es: `Hace ${d} d` });
 }
 
 function dealDateStatus(deal, lang) {
@@ -108,15 +127,25 @@ function dealDateStatus(deal, lang) {
   const end = deal.date_fin ? new Date(`${deal.date_fin}T23:59:59`) : null;
 
   if (start && start > today) {
-    return { label: lang === 'he' ? `מתחיל ב-${start.toLocaleDateString('he-IL')}` : `Starts ${start.toLocaleDateString('en-GB')}`, tone: '#2563EB' };
+    return {
+      label: textFor(lang, {
+        en: `Starts ${start.toLocaleDateString('en-GB')}`,
+        he: `מתחיל ב-${start.toLocaleDateString('he-IL')}`,
+        fr: `Commence le ${start.toLocaleDateString('fr-FR')}`,
+        es: `Empieza el ${start.toLocaleDateString('es-ES')}`,
+      }),
+      tone: '#2563EB',
+    };
   }
   if (end) {
-    if (end < today) return { label: lang === 'he' ? 'הסתיים' : 'Expired', tone: '#64748B' };
+    if (end < today) {
+      return { label: textFor(lang, { en: 'Expired', he: 'הסתיים', fr: 'Expire', es: 'Expirada' }), tone: '#64748B' };
+    }
     const days = Math.ceil((end.getTime() - today.getTime()) / 86400000);
     return {
       label: days <= 1
-        ? (lang === 'he' ? 'מסתיים היום' : 'Ends today')
-        : (lang === 'he' ? `עוד ${days} ימים` : `${days} days left`),
+        ? textFor(lang, { en: 'Ends today', he: 'מסתיים היום', fr: 'Expire aujourd’hui', es: 'Termina hoy' })
+        : textFor(lang, { en: `${days} days left`, he: `עוד ${days} ימים`, fr: `${days} jours restants`, es: `Quedan ${days} dias` }),
       tone: days <= 2 ? '#DC2626' : '#059669',
     };
   }
@@ -174,11 +203,10 @@ function ThemeToggle() {
     </button>
   );
 }
-
 // ─── StoreBadge ──────────────────────────────────────────────────────────────
 function StoreBadge({ store, lang, isDark, size = 'sm' }) {
   const s = STORE_COLORS[store];
-  const label = lang === 'en' ? (s?.nameEn || store) : store;
+  const label = lang === 'he' ? store : (s?.nameEn || store);
   const pad = size === 'md' ? '3px 9px' : '2px 7px';
   const fs = size === 'md' ? 11 : 10;
   if (!s) return (
@@ -224,7 +252,9 @@ function SaveButton({ saved, onClick, lang, compact = false }) {
         whiteSpace: 'nowrap',
       }}
     >
-      {saved ? (lang === 'he' ? 'שמור' : 'Saved') : (lang === 'he' ? 'שמור' : 'Save')}
+      {saved
+        ? textFor(lang, { en: 'Saved', he: 'שמור', fr: 'Enregistre', es: 'Guardado' })
+        : textFor(lang, { en: 'Save', he: 'שמור', fr: 'Sauver', es: 'Guardar' })}
     </button>
   );
 }
@@ -232,7 +262,7 @@ function SaveButton({ saved, onClick, lang, compact = false }) {
 // ─── HeroPromoCard ───────────────────────────────────────────────────────────
 function HeroPromoCard({ promo, lang, isDark, onClick, votes, onVote, isSaved, onSave }) {
   const s = STORE_COLORS[promo.meilleurEnseigne] || { color: ACCENT, bg: '#FEF0EB', dark: '#2A1210', nameEn: promo.meilleurEnseigne };
-  const nom = (lang === 'en' && promo.nom_en) ? promo.nom_en : promo.nom;
+  const nom = (languageUsesEnglishProductNames(lang) && promo.nom_en) ? promo.nom_en : promo.nom;
   const myVote = votes?.myVote;
 
   return (
@@ -278,7 +308,7 @@ function HeroPromoCard({ promo, lang, isDark, onClick, votes, onVote, isSaved, o
       {/* Info row */}
       <div onClick={onClick} style={{ padding: '14px 18px 10px', cursor: 'pointer' }}>
         <p style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 5, fontWeight: 400 }}>
-          {lang === 'en' ? 'Price comparison' : 'השוואת מחירים'}
+          {lang !== 'he' ? 'Price comparison' : 'השוואת מחירים'}
         </p>
         <p style={{
           fontSize: 14, fontWeight: 600, color: 'var(--text)',
@@ -330,7 +360,7 @@ function HeroPromoCard({ promo, lang, isDark, onClick, votes, onVote, isSaved, o
 // ─── PromoCard (compact grid) ─────────────────────────────────────────────────
 function PromoCard({ promo, lang, isDark, onClick, votes, onVote, isSaved, onSave }) {
   const s = STORE_COLORS[promo.meilleurEnseigne] || { color: ACCENT, bg: '#FEF0EB', dark: '#2A1210', nameEn: promo.meilleurEnseigne };
-  const nom = (lang === 'en' && promo.nom_en) ? promo.nom_en : promo.nom;
+  const nom = (languageUsesEnglishProductNames(lang) && promo.nom_en) ? promo.nom_en : promo.nom;
   const myVote = votes?.myVote;
 
   return (
@@ -406,7 +436,7 @@ function PromoCard({ promo, lang, isDark, onClick, votes, onVote, isSaved, onSav
 
 // ─── PromoModal ───────────────────────────────────────────────────────────────
 function PromoModal({ promo, lang, isDark, onClose }) {
-  const nom = (lang === 'en' && promo.nom_en) ? promo.nom_en : promo.nom;
+  const nom = (languageUsesEnglishProductNames(lang) && promo.nom_en) ? promo.nom_en : promo.nom;
   useEffect(() => {
     const esc = (e) => { if (e.key === 'Escape') onClose(); };
     window.addEventListener('keydown', esc);
@@ -467,12 +497,12 @@ function PromoModal({ promo, lang, isDark, onClose }) {
           background: 'var(--bg-card2)', border: '1px solid var(--border)',
         }}>
           <p style={{ fontSize: 13, color: 'var(--text-sub)', lineHeight: 1.5 }}>
-            {lang === 'en'
+            {lang !== 'he'
               ? `Save ₪${(promo.prixMax - promo.prixMin).toFixed(2)} by choosing the best store (${promo.reduction}% difference)`
               : `חסכו ₪${(promo.prixMax - promo.prixMin).toFixed(2)} בבחירת החנות הזולה ביותר`}
           </p>
           <p style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 4 }}>
-            {lang === 'en' ? 'Price comparison · not an official promotion' : 'השוואת מחירים · לא מבצע רשמי'}
+            {lang !== 'he' ? 'Price comparison · not an official promotion' : 'השוואת מחירים · לא מבצע רשמי'}
           </p>
         </div>
 
@@ -492,7 +522,7 @@ function PromoModal({ promo, lang, isDark, onClose }) {
           background: 'transparent', color: 'var(--text-sub)',
           fontSize: 13, fontWeight: 500, cursor: 'pointer',
         }}>
-          {lang === 'en' ? 'Close' : 'סגור'}
+          {lang !== 'he' ? 'Close' : 'סגור'}
         </button>
       </div>
     </div>
@@ -747,14 +777,14 @@ function CityModal({ villes, current, lang, onSelect, onClose }) {
       }}>
         <div style={{ width: 40, height: 4, borderRadius: 2, background: 'var(--border)', margin: '0 auto 16px' }} />
         <p style={{ fontSize: 16, fontWeight: 700, color: 'var(--text)', textAlign: 'center', marginBottom: 14 }}>
-          {lang === 'en' ? 'Select your city' : 'בחר עיר'}
+          {lang !== 'he' ? 'Select your city' : 'בחר עיר'}
         </p>
 
         {/* Search */}
         <input
           ref={inputRef}
           type="text"
-          placeholder={lang === 'en' ? 'Search city...' : 'חפש עיר...'}
+          placeholder={lang !== 'he' ? 'Search city...' : 'חפש עיר...'}
           value={search}
           onChange={e => setSearch(e.target.value)}
           style={{
@@ -774,7 +804,7 @@ function CityModal({ villes, current, lang, onSelect, onClose }) {
               color: !current ? ACCENT : 'var(--text)',
               fontSize: 13, fontWeight: !current ? 600 : 400,
             }}>
-              {lang === 'en' ? 'All Israel' : 'כל הארץ'}
+              {lang !== 'he' ? 'All Israel' : 'כל הארץ'}
             </button>
 
             {/* GPS */}
@@ -785,7 +815,7 @@ function CityModal({ villes, current, lang, onSelect, onClose }) {
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
             }}>
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
-              {gpsLoading ? '...' : (lang === 'en' ? 'My location' : 'מיקומי')}
+              {gpsLoading ? '...' : (lang !== 'he' ? 'My location' : 'מיקומי')}
             </button>
 
             {/* Cities */}
@@ -844,7 +874,7 @@ function PostDealModal({ user, lang, onClose, onSuccess }) {
   const handleSubmit = async () => {
     if (!user) { setError('Please sign in to post a deal.'); return; }
     if (!imageFile) {
-      setError(lang === 'en' ? 'A photo is required to post a deal.' : 'נדרשת תמונה לפרסום הדיל.');
+      setError(lang !== 'he' ? 'A photo is required to post a deal.' : 'נדרשת תמונה לפרסום הדיל.');
       return;
     }
     if (!form.titre.trim()) { setError('Title is required.'); return; }
@@ -969,7 +999,7 @@ function PostDealModal({ user, lang, onClose, onSuccess }) {
                   <circle cx="12" cy="13" r="4"/>
                 </svg>
                 <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-sub)', marginBottom: 2 }}>
-                  {lang === 'en' ? 'Add a photo' : 'הוסף תמונה'}
+                  {lang !== 'he' ? 'Add a photo' : 'הוסף תמונה'}
                 </div>
                 <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>
                   JPEG · PNG · WebP · up to 5 MB
@@ -982,7 +1012,7 @@ function PostDealModal({ user, lang, onClose, onSuccess }) {
                 background: 'rgba(0,0,0,0.55)', borderRadius: 10, padding: '4px 9px',
                 color: '#fff', fontSize: 11, fontWeight: 600,
               }}>
-                {lang === 'en' ? 'Tap to change' : 'לחץ לשינוי'}
+                {lang !== 'he' ? 'Tap to change' : 'לחץ לשינוי'}
               </div>
             )}
           </div>
@@ -996,8 +1026,8 @@ function PostDealModal({ user, lang, onClose, onSuccess }) {
         </label>
 
         {/* Title + Store */}
-        {[['Title *', 'titre', lang === 'en' ? 'e.g. Pizza 3+1 at Dominos' : 'לדוגמה: פיצה 3+1 בדומינוס'],
-          ['Store / Place *', 'magasin', lang === 'en' ? 'e.g. Rami Levy, KSP, Zara' : 'לדוגמה: רמי לוי, קסטרו']
+        {[['Title *', 'titre', lang !== 'he' ? 'e.g. Pizza 3+1 at Dominos' : 'לדוגמה: פיצה 3+1 בדומינוס'],
+          ['Store / Place *', 'magasin', lang !== 'he' ? 'e.g. Rami Levy, KSP, Zara' : 'לדוגמה: רמי לוי, קסטרו']
         ].map(([label, key, ph]) => (
           <div key={key} style={{ marginBottom: 12 }}>
             <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--text-sub)', marginBottom: 5 }}>{label}</label>
@@ -1014,7 +1044,7 @@ function PostDealModal({ user, lang, onClose, onSuccess }) {
           <select value={form.ville} onChange={e => set('ville', e.target.value)}
             style={{ width: '100%', padding: '12px 14px', borderRadius: 8, border: '1px solid var(--border)', background: 'var(--bg-input)', color: form.ville ? 'var(--text)' : 'var(--text-muted)', fontSize: 14, outline: 'none', appearance: 'none', cursor: 'pointer' }}
           >
-            <option value="">{lang === 'en' ? 'Select a city…' : 'בחר עיר…'}</option>
+            <option value="">{lang !== 'he' ? 'Select a city…' : 'בחר עיר…'}</option>
             {Object.keys(CITY_COORDS).map(v => <option key={v} value={v}>{traduireVille(v, lang)}</option>)}
             <option value="אונליין">🌐 Online deal</option>
           </select>
@@ -1081,7 +1111,7 @@ function PostDealModal({ user, lang, onClose, onSuccess }) {
         </div>
         <div style={{ marginBottom: 16 }}>
           <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--text-sub)', marginBottom: 5 }}>Description (optional)</label>
-          <textarea placeholder={lang === 'en' ? 'More details about the deal...' : 'פרטים נוספים...'} value={form.description}
+          <textarea placeholder={lang !== 'he' ? 'More details about the deal...' : 'פרטים נוספים...'} value={form.description}
             onChange={e => set('description', e.target.value)} rows={2}
             style={{ width: '100%', padding: '12px 14px', borderRadius: 8, border: '1px solid var(--border)', background: 'var(--bg-input)', color: 'var(--text)', fontSize: 14, outline: 'none', resize: 'vertical' }}
           />
@@ -1103,10 +1133,10 @@ function PostDealModal({ user, lang, onClose, onSuccess }) {
           boxShadow: submitting ? 'none' : `0 4px 18px rgba(212,98,42,0.4)`,
         }}>
           {uploadPhase === 'photo'
-            ? (lang === 'en' ? 'Uploading photo...' : 'מעלה תמונה...')
+            ? (lang !== 'he' ? 'Uploading photo...' : 'מעלה תמונה...')
             : uploadPhase === 'saving'
-              ? (lang === 'en' ? 'Saving deal...' : 'שומר דיל...')
-              : (lang === 'en' ? 'Publish deal' : 'פרסם דיל')}
+              ? (lang !== 'he' ? 'Saving deal...' : 'שומר דיל...')
+              : (lang !== 'he' ? 'Publish deal' : 'פרסם דיל')}
         </button>
       </div>
     </div>
@@ -1145,7 +1175,7 @@ function SearchTab({ promos, deals, lang, isDark, onPromoClick, userCoords, prom
           type="text"
           value={q}
           onChange={e => setQ(e.target.value)}
-          placeholder={lang === 'en' ? 'Search deals, stores, products...' : 'חפש דילים, חנויות, מוצרים...'}
+          placeholder={lang !== 'he' ? 'Search deals, stores, products...' : 'חפש דילים, חנויות, מוצרים...'}
           style={{
             flex: 1, padding: '14px 0', background: 'none', border: 'none',
             color: 'var(--text)', fontSize: 16, outline: 'none',
@@ -1160,10 +1190,10 @@ function SearchTab({ promos, deals, lang, isDark, onPromoClick, userCoords, prom
         <div style={{ textAlign: 'center', paddingTop: 40 }}>
           <p style={{ fontSize: 42, marginBottom: 14 }}>🔍</p>
           <p style={{ fontSize: 17, fontWeight: 700, color: 'var(--text)', marginBottom: 8 }}>
-            {lang === 'en' ? 'Search Dilz' : 'חיפוש בדילז'}
+            {textFor(lang, { en: 'Search Dilz', he: 'חיפוש בדילז', fr: 'Rechercher dans Dilz', es: 'Buscar en Dilz' })}
           </p>
           <p style={{ fontSize: 14, color: 'var(--text-sub)', lineHeight: 1.6 }}>
-            {lang === 'en'
+            {lang !== 'he'
               ? 'Try: milk, diapers, pizza\nחלב, חיתולים, פיצה'
               : 'נסה: חלב, חיתולים, פיצה'}
           </p>
@@ -1172,7 +1202,7 @@ function SearchTab({ promos, deals, lang, isDark, onPromoClick, userCoords, prom
 
       {q.length > 0 && q.length < 2 && (
         <p style={{ textAlign: 'center', color: 'var(--text-muted)', fontSize: 14 }}>
-          {lang === 'en' ? 'Keep typing...' : 'המשך להקליד...'}
+          {lang !== 'he' ? 'Keep typing...' : 'המשך להקליד...'}
         </p>
       )}
 
@@ -1180,10 +1210,10 @@ function SearchTab({ promos, deals, lang, isDark, onPromoClick, userCoords, prom
         <div style={{ textAlign: 'center', paddingTop: 40 }}>
           <p style={{ fontSize: 36, marginBottom: 12 }}>🤷</p>
           <p style={{ fontSize: 17, fontWeight: 700, color: 'var(--text)', marginBottom: 6 }}>
-            {lang === 'en' ? 'No results for' : 'לא נמצאו תוצאות עבור'} "{q}"
+            {lang !== 'he' ? 'No results for' : 'לא נמצאו תוצאות עבור'} "{q}"
           </p>
           <p style={{ fontSize: 14, color: 'var(--text-sub)', lineHeight: 1.6 }}>
-            {lang === 'en'
+            {lang !== 'he'
               ? 'Try a different spelling or search in Hebrew'
               : 'נסה איות אחר או חפש באנגלית'}
           </p>
@@ -1230,10 +1260,10 @@ function ProfileTab({ user, lang, savedItems = [], onToggleSave, onOpenAlerts })
     return (
       <div style={{ padding: '40px 20px', textAlign: 'center' }}>
         <p style={{ fontSize: 20, fontWeight: 700, color: 'var(--text)', marginBottom: 8 }}>
-          {lang === 'en' ? 'Join Dilz' : 'הצטרף לדילז'}
+          {textFor(lang, { en: 'Join Dilz', he: 'הצטרף לדילז', fr: 'Rejoindre Dilz', es: 'Unirse a Dilz' })}
         </p>
         <p style={{ fontSize: 14, color: 'var(--text-sub)', lineHeight: 1.7, marginBottom: 24 }}>
-          {lang === 'en'
+          {lang !== 'he'
             ? 'Sign in to post deals, vote, comment, and get alerts.'
             : 'התחבר כדי לשתף דילים, להצביע, להגיב ולקבל התראות.'}
         </p>
@@ -1241,10 +1271,10 @@ function ProfileTab({ user, lang, savedItems = [], onToggleSave, onOpenAlerts })
         {/* Benefits */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 28, textAlign: 'left' }}>
           {[
-            lang === 'en' ? 'Post deals from any store' : 'פרסם דילים מכל חנות',
-            lang === 'en' ? 'Vote and surface the best deals' : 'הצבע על הדילים הטובים ביותר',
-            lang === 'en' ? 'Comment and discuss with the community' : 'הגב ודון עם הקהילה',
-            lang === 'en' ? 'Get alerts for deals that match your needs' : 'קבל התראות על דילים רלוונטיים',
+            lang !== 'he' ? 'Post deals from any store' : 'פרסם דילים מכל חנות',
+            lang !== 'he' ? 'Vote and surface the best deals' : 'הצבע על הדילים הטובים ביותר',
+            lang !== 'he' ? 'Comment and discuss with the community' : 'הגב ודון עם הקהילה',
+            lang !== 'he' ? 'Get alerts for deals that match your needs' : 'קבל התראות על דילים רלוונטיים',
           ].map((text) => (
             <div key={text} style={{
               display: 'flex', alignItems: 'center', gap: 10,
@@ -1262,7 +1292,7 @@ function ProfileTab({ user, lang, savedItems = [], onToggleSave, onOpenAlerts })
           background: ACCENT,
           color: '#fff', fontSize: 14, fontWeight: 600,
         }}>
-          {lang === 'en' ? 'Sign in / Sign up' : 'התחבר / הרשם'}
+          {lang !== 'he' ? 'Sign in / Sign up' : 'התחבר / הרשם'}
         </Link>
       </div>
     );
@@ -1295,9 +1325,9 @@ function ProfileTab({ user, lang, savedItems = [], onToggleSave, onOpenAlerts })
       {/* Quick links */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 2, marginBottom: 12 }}>
         {[
-          { label: lang === 'en' ? 'My deals' : 'הדילים שלי', href: '/profil' },
-          { label: lang === 'en' ? 'Account settings' : 'הגדרות חשבון', href: '/profil' },
-          { label: lang === 'en' ? 'Deals map' : 'מפת דילים', href: '/map' },
+          { label: lang !== 'he' ? 'My deals' : 'הדילים שלי', href: '/profil' },
+          { label: lang !== 'he' ? 'Account settings' : 'הגדרות חשבון', href: '/profil' },
+          { label: lang !== 'he' ? 'Deals map' : 'מפת דילים', href: '/map' },
         ].map(item => (
           <Link key={item.href + item.label} href={item.href} style={{
             display: 'flex', alignItems: 'center',
@@ -1314,7 +1344,7 @@ function ProfileTab({ user, lang, savedItems = [], onToggleSave, onOpenAlerts })
           border: '1px solid var(--border)', cursor: 'pointer', textAlign: 'left', width: '100%',
         }}>
           <span style={{ fontSize: 14, fontWeight: 500, color: 'var(--text)' }}>
-            {lang === 'en' ? 'My deal alerts' : 'התראות שלי'}
+            {lang !== 'he' ? 'My deal alerts' : 'התראות שלי'}
           </span>
           <svg style={{ marginLeft: 'auto', color: 'var(--text-muted)' }} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><polyline points="9 18 15 12 9 6"/></svg>
         </button>
@@ -1328,7 +1358,7 @@ function ProfileTab({ user, lang, savedItems = [], onToggleSave, onOpenAlerts })
       }}>
         <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 10 }}>
           <p style={{ fontSize: 15, fontWeight: 700, color: 'var(--text)' }}>
-            {lang === 'he' ? 'שמורים' : 'Saved items'}
+            {textFor(lang, { en: 'Saved items', he: 'שמורים', fr: 'Favoris', es: 'Guardados' })}
           </p>
           <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>{savedItems.length}</span>
         </div>
@@ -1418,7 +1448,7 @@ function ProfileTab({ user, lang, savedItems = [], onToggleSave, onOpenAlerts })
         background: 'transparent', color: 'var(--text-sub)',
         fontSize: 13, fontWeight: 500, cursor: 'pointer',
       }}>
-        {lang === 'en' ? 'Sign out' : 'התנתק'}
+        {lang !== 'he' ? 'Sign out' : 'התנתק'}
       </button>
     </div>
   );
@@ -1859,7 +1889,7 @@ export default function Home() {
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
 
-  const t = translations[lang];
+  const t = translations[lang] || translations.en;
   const dir = lang === 'he' ? 'rtl' : 'ltr';
   const isDark = resolvedTheme === 'dark';
 
@@ -1870,7 +1900,7 @@ export default function Home() {
       const dv = localStorage.getItem('dilzDealVotes');
       if (dv) setVotedDeals(JSON.parse(dv));
       const ll = localStorage.getItem('dilzLang');
-      if (ll) setLang(ll);
+      if (ll && translations[ll]) setLang(ll);
       const savedPromoFilters = localStorage.getItem('dilzShowPromoFilters');
       if (savedPromoFilters !== null) setShowPromoFilters(savedPromoFilters === 'true');
       // Restore tab from back-nav
@@ -1989,8 +2019,8 @@ export default function Home() {
     else setSortDeals('hot');
   };
 
-  const handleLangToggle = () => {
-    const next = lang === 'en' ? 'he' : 'en';
+  const setLanguage = (next) => {
+    if (!translations[next]) return;
     setLang(next);
     try { localStorage.setItem('dilzLang', next); } catch {}
   };
@@ -2198,7 +2228,7 @@ export default function Home() {
 
   if (!mounted) return null;
 
-  const cityLabel = ville ? traduireVille(ville, lang) : (lang === 'en' ? 'All Israel' : 'כל הארץ');
+  const cityLabel = ville ? traduireVille(ville, lang) : (lang !== 'he' ? 'All Israel' : 'כל הארץ');
 
   // ── Nav items ──
   const NAV = [
@@ -2266,13 +2296,21 @@ export default function Home() {
               {/* Left controls */}
               <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                 <ThemeToggle />
-                <button onClick={handleLangToggle} style={{
-                  height: 32, padding: '0 10px', borderRadius: 8,
-                  background: 'var(--bg-card2)', border: '1px solid var(--border)',
-                  color: 'var(--text-sub)', fontSize: 11, fontWeight: 600, cursor: 'pointer',
-                }}>
-                  {lang === 'en' ? 'עב' : 'EN'}
-                </button>
+                <select
+                  value={lang}
+                  onChange={e => setLanguage(e.target.value)}
+                  aria-label="Language"
+                  style={{
+                    height: 32, padding: '0 8px', borderRadius: 8,
+                    background: 'var(--bg-card2)', border: '1px solid var(--border)',
+                    color: 'var(--text-sub)', fontSize: 11, fontWeight: 700, cursor: 'pointer',
+                    outline: 'none',
+                  }}
+                >
+                  {LANG_OPTIONS.map(option => (
+                    <option key={option.id} value={option.id}>{option.label}</option>
+                  ))}
+                </select>
               </div>
 
               {/* Logo — centered */}
@@ -2353,7 +2391,7 @@ export default function Home() {
               textAlign: 'center', fontSize: 11, color: 'var(--text-muted)',
               marginTop: 3, letterSpacing: '0.1px',
             }}>
-              {lang === 'en'
+              {lang !== 'he'
                 ? `Supermarket prices & community deals · ${cityLabel}`
                 : `מחירי סופר ודילים מהקהילה · ${cityLabel}`}
             </p>
@@ -2383,7 +2421,9 @@ export default function Home() {
                     <path d="M4 6h16M7 12h10M10 18h4" />
                   </svg>
                   <span style={{ fontSize: 13, fontWeight: 600 }}>
-                    {lang === 'he' ? (showPromoFilters ? 'הסתר מסננים' : 'הצג מסננים') : (showPromoFilters ? 'Hide filters' : 'Show filters')}
+                    {showPromoFilters
+                      ? textFor(lang, { en: 'Hide filters', he: 'הסתר מסננים', fr: 'Masquer les filtres', es: 'Ocultar filtros' })
+                      : textFor(lang, { en: 'Show filters', he: 'הצג מסננים', fr: 'Afficher les filtres', es: 'Mostrar filtros' })}
                   </span>
                   {(storeFilter !== 'all' || promoCategory !== 'all' || promoSort !== 'discount') && (
                     <span style={{
@@ -2408,10 +2448,10 @@ export default function Home() {
               {/* Product sort */}
               <div style={{ display: 'flex', gap: 6, overflowX: 'auto', marginBottom: 10, paddingBottom: 2 }}>
                 {[
-                  { id: 'discount', en: 'Best discount', he: 'הנחה גבוהה' },
-                  { id: 'liked', en: 'Most liked', he: 'הכי אהובים' },
-                  { id: 'recent', en: 'Newest', he: 'החדשים ביותר' },
-                  { id: 'price_asc', en: 'Lowest price', he: 'מחיר נמוך' },
+                  { id: 'discount', en: 'Best discount', he: 'הנחה גבוהה', fr: 'Meilleure remise', es: 'Mejor descuento' },
+                  { id: 'liked', en: 'Most liked', he: 'הכי אהובים', fr: 'Les plus likés', es: 'Mas votados' },
+                  { id: 'recent', en: 'Newest', he: 'החדשים ביותר', fr: 'Plus récents', es: 'Mas recientes' },
+                  { id: 'price_asc', en: 'Lowest price', he: 'מחיר נמוך', fr: 'Prix le plus bas', es: 'Precio mas bajo' },
                 ].map(option => {
                   const active = promoSort === option.id;
                   return (
@@ -2422,7 +2462,7 @@ export default function Home() {
                       color: active ? ACCENT : 'var(--text-sub)',
                       fontSize: 12, fontWeight: active ? 600 : 400, whiteSpace: 'nowrap',
                     }}>
-                      {lang === 'he' ? option.he : option.en}
+                      {textFor(lang, option)}
                     </button>
                   );
                 })}
@@ -2463,7 +2503,7 @@ export default function Home() {
                       color: active ? (s?.color || ACCENT) : 'var(--text-sub)',
                       fontSize: 12, fontWeight: active ? 600 : 400, whiteSpace: 'nowrap',
                     }}>
-                      {f.id === 'all' ? (lang === 'en' ? 'All stores' : 'כל הרשתות') : (lang === 'en' ? f.nameEn : f.id)}
+                      {f.id === 'all' ? (lang !== 'he' ? 'All stores' : 'כל הרשתות') : (lang !== 'he' ? f.nameEn : f.id)}
                     </button>
                   );
                 })}
@@ -2482,15 +2522,15 @@ export default function Home() {
                   background: 'var(--bg-card)', borderRadius: 12, border: '1px solid var(--border)',
                 }}>
                   <p style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)', marginBottom: 6 }}>
-                    {lang === 'en' ? 'No promotions found' : 'לא נמצאו מבצעים'}
+                    {textFor(lang, { en: 'No promotions found', he: 'לא נמצאו מבצעים', fr: 'Aucune promotion trouvée', es: 'No se encontraron promociones' })}
                   </p>
                   <p style={{ fontSize: 13, color: 'var(--text-sub)', lineHeight: 1.6, marginBottom: 16 }}>
-                    {lang === 'en' ? 'Try selecting a different store.' : 'נסה לבחור חנות אחרת.'}
+                    {textFor(lang, { en: 'Try selecting a different store.', he: 'נסה לבחור חנות אחרת.', fr: 'Essaie une autre enseigne.', es: 'Prueba otra tienda.' })}
                   </p>
                   <button onClick={() => setStoreFilter('all')} style={{
                     padding: '9px 20px', borderRadius: 7, border: `1px solid ${ACCENT}`,
                     background: 'transparent', color: ACCENT, fontSize: 13, fontWeight: 600, cursor: 'pointer',
-                  }}>Show all stores</button>
+                  }}>{textFor(lang, { en: 'Show all stores', he: 'כל הרשתות', fr: 'Toutes les enseignes', es: 'Todas las tiendas' })}</button>
                 </div>
               ) : (
                 <>
@@ -2508,7 +2548,12 @@ export default function Home() {
                   {gridPromos.length > 0 && (
                     <>
                       <p style={{ fontSize: 12, fontWeight: 500, color: 'var(--text-muted)', marginBottom: 10, letterSpacing: '0.1px' }}>
-                        {lang === 'en' ? `${filteredPromos.length} products compared` : `${filteredPromos.length} מוצרים להשוואה`}
+                        {textFor(lang, {
+                          en: `${filteredPromos.length} products compared`,
+                          he: `${filteredPromos.length} מוצרים להשוואה`,
+                          fr: `${filteredPromos.length} produits compares`,
+                          es: `${filteredPromos.length} productos comparados`,
+                        })}
                       </p>
                       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 20 }}>
                         {gridPromos.map(p => (
@@ -2587,13 +2632,13 @@ export default function Home() {
               {ville && (
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10 }}>
                   <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>
-                    {lang === 'en' ? `Deals in ${traduireVille(ville, 'en')}` : `דילים ב${ville}`}
+                    {lang !== 'he' ? `Deals in ${traduireVille(ville, 'en')}` : `דילים ב${ville}`}
                   </span>
                   <button onClick={() => setShowCityModal(true)} style={{
                     background: 'none', border: 'none', color: ACCENT,
                     fontSize: 12, fontWeight: 600, cursor: 'pointer', padding: 0,
                   }}>
-                    {lang === 'en' ? '· Change' : '· שנה'}
+                    {lang !== 'he' ? '· Change' : '· שנה'}
                   </button>
                 </div>
               )}
@@ -2607,7 +2652,7 @@ export default function Home() {
                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7,
               }}>
                 <span style={{ fontSize: 15, fontWeight: 400, color: ACCENT, lineHeight: 1 }}>+</span>
-                {lang === 'en' ? 'Share a deal' : 'שתף דיל'}
+                {lang !== 'he' ? 'Share a deal' : 'שתף דיל'}
               </button>
 
               {/* Post success banner */}
@@ -2617,7 +2662,7 @@ export default function Home() {
                   background: 'rgba(5,150,105,0.08)', border: '1px solid rgba(5,150,105,0.2)',
                 }}>
                   <span style={{ fontSize: 13, fontWeight: 600, color: '#059669' }}>
-                    {lang === 'en' ? 'Deal published! Refreshing...' : 'הדיל פורסם! מרענן...'}
+                    {lang !== 'he' ? 'Deal published! Refreshing...' : 'הדיל פורסם! מרענן...'}
                   </span>
                 </div>
               )}
@@ -2636,22 +2681,22 @@ export default function Home() {
                 }}>
                   <p style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)', marginBottom: 6 }}>
                     {sortDeals === 'ending'
-                      ? (lang === 'en' ? 'No deals ending soon' : 'אין דילים שמסתיימים בקרוב')
+                      ? (lang !== 'he' ? 'No deals ending soon' : 'אין דילים שמסתיימים בקרוב')
                       : myDealsOnly
-                        ? (lang === 'en' ? "You haven't posted any deals yet" : 'עדיין לא פרסמת דילים')
-                        : (lang === 'en' ? 'No deals in this category yet' : 'אין דילים עדיין בקטגוריה זו')}
+                        ? (lang !== 'he' ? "You haven't posted any deals yet" : 'עדיין לא פרסמת דילים')
+                        : (lang !== 'he' ? 'No deals in this category yet' : 'אין דילים עדיין בקטגוריה זו')}
                   </p>
                   <p style={{ fontSize: 13, color: 'var(--text-sub)', marginBottom: 20, lineHeight: 1.6 }}>
                     {sortDeals === 'ending'
-                      ? (lang === 'en' ? 'Deals with an expiration date will appear here.' : 'דילים עם תאריך סיום יופיעו כאן.')
-                      : (lang === 'en' ? 'Be the first to share a deal with the community.' : 'היה הראשון לשתף דיל!')}
+                      ? (lang !== 'he' ? 'Deals with an expiration date will appear here.' : 'דילים עם תאריך סיום יופיעו כאן.')
+                      : (lang !== 'he' ? 'Be the first to share a deal with the community.' : 'היה הראשון לשתף דיל!')}
                   </p>
                   <button onClick={() => setShowPostModal(true)} style={{
                     padding: '10px 22px', borderRadius: 8, border: 'none',
                     background: ACCENT,
                     color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer',
                   }}>
-                    {lang === 'en' ? 'Share a deal' : 'שתף דיל'}
+                    {lang !== 'he' ? 'Share a deal' : 'שתף דיל'}
                   </button>
                 </div>
               ) : (
@@ -2674,14 +2719,14 @@ export default function Home() {
                   borderTop: '1px solid var(--border)', marginTop: 8,
                 }}>
                   <p style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 10 }}>
-                    {lang === 'en' ? 'Looking for supermarket prices?' : 'מחפש מחירי סופרמרקט?'}
+                    {textFor(lang, { en: 'Looking for supermarket prices?', he: 'מחפש מחירי סופרמרקט?', fr: 'Tu cherches les prix des supermarches ?', es: 'Buscas precios de supermercado?' })}
                   </p>
                   <button onClick={() => setTab('sales')} style={{
                     padding: '9px 20px', borderRadius: 7,
                     background: 'transparent', border: `1px solid ${ACCENT}`,
                     color: ACCENT, fontSize: 13, fontWeight: 500, cursor: 'pointer',
                   }}>
-                    {lang === 'en' ? 'Browse store prices' : 'מחירי חנויות'}
+                    {textFor(lang, { en: 'Browse store prices', he: 'מחירי חנויות', fr: 'Voir les prix magasins', es: 'Ver precios de tiendas' })}
                   </button>
                 </div>
               )}

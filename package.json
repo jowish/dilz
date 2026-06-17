@@ -11,6 +11,7 @@
     "images:import": "node scripts/import-images.js",
     "products:classify": "node scripts/classify-products.js",
     "products:reclassify": "node scripts/classify-products.js --reclassify-other",
+    "import:super-pharm": "node scripts/import-prix.js --super-pharm-only",
     "check": "npm test && npm run build"
   },
   "dependencies": {

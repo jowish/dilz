@@ -17,6 +17,8 @@ const NOM_ENSEIGNE = {
 };
 
 NOM_ENSEIGNE.be = 'BE';
+NOM_ENSEIGNE.super_pharm = 'Super-Pharm';
+NOM_ENSEIGNE.good_pharm = 'Good Pharm';
 
 const SORTS = new Set(['discount', 'liked', 'recent', 'price_asc']);
 

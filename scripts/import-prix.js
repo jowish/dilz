@@ -87,12 +87,12 @@ async function sauvegarderEnBase(produits, enseigneCode, storeId) {
   const batchSize = 100;
   for (let i = 0; i < produits.length; i += batchSize) {
     const batch = produits.slice(i, i + batchSize);
-    await supabase.from('produits').upsert(
-      batch.map(p => ({
+    const productBatch = [...new Map(batch.map(p => [p.barcode, p])).values()];
+    const { error: productError } = await supabase.from('produits').upsert(
+      productBatch.map(p => ({
         barcode: p.barcode,
         nom: p.nom,
         categorie: inferProductCategory(p.nom),
-        updated_at: new Date().toISOString(),
         ...(p.image ? {
           image: p.image,
           image_source: enseigneCode,
@@ -102,11 +102,14 @@ async function sauvegarderEnBase(produits, enseigneCode, storeId) {
       })),
       { onConflict: 'barcode' }
     );
-    await supabase.from('prix').upsert(
-      batch.map(p => ({
+    if (productError) throw productError;
+
+    const priceBatch = [...new Map(batch.map(p => [p.barcode + ':' + (p.storeId || storeId), p])).values()];
+    const { error: priceError } = await supabase.from('prix').upsert(
+      priceBatch.map(p => ({
         barcode: p.barcode,
         enseigne_code: enseigneCode,
-        store_id: storeId,
+        store_id: p.storeId || storeId,
         prix: p.prix,
         quantite: p.quantite || '',
         unite: p.unite || '',
@@ -114,7 +117,80 @@ async function sauvegarderEnBase(produits, enseigneCode, storeId) {
       })),
       { onConflict: 'barcode,enseigne_code,store_id' }
     );
+    if (priceError) throw priceError;
   }
+}
+
+async function ensureEnseignes(rows) {
+  const { error } = await supabase
+    .from('enseignes')
+    .upsert(rows, { onConflict: 'code' });
+  if (error && error.code !== 'PGRST205') throw error;
+}
+
+function getStoreIdFromPriceUrl(url) {
+  return String(url.match(/Price\d+-\d+-(\d+)-/i)?.[1] || '000');
+}
+
+function latestPriceLinksByStore(html, baseUrl) {
+  const links = [...html.matchAll(/href="([^"]*\.gz[^"]*)"/gi)]
+    .map(match => match[1].replace(/&amp;/g, '&'))
+    .filter(path => /\/Download\/Price/i.test(path) && !/Promo/i.test(path))
+    .map(path => path.startsWith('http') ? path : baseUrl + path);
+
+  const byStore = new Map();
+  for (const url of links) {
+    const storeId = getStoreIdFromPriceUrl(url);
+    if (!byStore.has(storeId)) byStore.set(storeId, url);
+  }
+  return [...byStore.entries()].map(([storeId, url]) => ({ storeId, url }));
+}
+
+async function importerSuperPharm() {
+  console.log('\nSuper-Pharm — import des fichiers publics recents...');
+  await ensureEnseignes([
+    { code: 'super_pharm', nom: 'Super-Pharm' },
+    { code: 'good_pharm', nom: 'Good Pharm' },
+    { code: 'be', nom: 'BE' },
+  ]);
+  const baseUrl = 'https://prices.super-pharm.co.il';
+  const html = await fetchHtml(baseUrl);
+  const links = latestPriceLinksByStore(html, baseUrl);
+
+  if (links.length === 0) {
+    console.log('  Aucun fichier Price trouve sur prices.super-pharm.co.il');
+    return;
+  }
+
+  console.log('  ' + links.length + ' magasins avec fichier Price recent');
+  const produits = [];
+  const magasins = [];
+
+  for (const { storeId, url } of links) {
+    try {
+      const xml = await telechargerGZ(url);
+      const storeProducts = parseXMLPrix(xml).map(product => ({ ...product, storeId }));
+      produits.push(...storeProducts);
+      magasins.push({
+        enseigne_code: 'super_pharm',
+        store_id: storeId,
+        nom: 'Super-Pharm ' + storeId,
+        ville: null,
+      });
+      console.log('  Magasin ' + storeId + ': ' + storeProducts.length + ' produits');
+      await new Promise(r => setTimeout(r, 250));
+    } catch (e) {
+      console.log('  Erreur magasin ' + storeId + ': ' + e.message);
+    }
+  }
+
+  if (magasins.length > 0) {
+    await supabase.from('magasins').upsert(magasins, { onConflict: 'enseigne_code,store_id' });
+  }
+  if (produits.length > 0) {
+    await sauvegarderEnBase(produits, 'super_pharm', '000');
+  }
+  console.log('  Super-Pharm OK — ' + produits.length + ' lignes de prix importees');
 }
 
 async function importerShufersal() {
@@ -353,14 +429,22 @@ async function importerCerberus(chainId, enseigneCode, enseigneNom) {
 async function main() {
   console.log('Demarrage import complet...\n');
   try {
+    if (process.argv.includes('--super-pharm-only')) {
+      await importerSuperPharm();
+      console.log('\nImport Super-Pharm termine !');
+      process.exit(0);
+    }
+
     await importerShufersal();
     await importerRamiLevy();
     await importerVictory();
+    await importerSuperPharm();
     await importerCerberus('7290058179503', 'yohananof', 'Yohananof');
     await importerCerberus('7290058140886', 'carrefour', 'Carrefour');
     console.log('\nImport termine !');
   } catch(e) {
     console.error('Erreur:', e.message);
+    process.exit(1);
   }
   process.exit(0);
 }

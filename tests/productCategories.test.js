@@ -22,4 +22,6 @@ test('classifies English names and falls back to other', () => {
 test('provides category labels in supported interface languages', () => {
   assert.equal(getProductCategoryLabel('beverages', 'en'), 'Drinks');
   assert.equal(getProductCategoryLabel('beverages', 'he'), 'משקאות');
+  assert.equal(getProductCategoryLabel('beverages', 'fr'), 'Boissons');
+  assert.equal(getProductCategoryLabel('beverages', 'es'), 'Bebidas');
 });

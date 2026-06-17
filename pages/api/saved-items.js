@@ -8,6 +8,8 @@ const STORE_NAMES = {
   osher_ad: 'Osher Ad',
   carrefour: 'Carrefour',
   be: 'BE',
+  super_pharm: 'Super-Pharm',
+  good_pharm: 'Good Pharm',
 };
 
 function productSnapshot(product) {
