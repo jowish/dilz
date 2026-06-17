@@ -1,7 +1,15 @@
 import { createClient } from '@supabase/supabase-js';
 import { processNewDeal } from '../../lib/alerts';
 
-const { clampLimit, dateOnlyInTimeZone, normalizeDealInput } = require('../../lib/dealValidation');
+const { clampLimit, dateOnlyInTimeZone, dateOnlyPart, normalizeDealInput } = require('../../lib/dealValidation');
+
+function normalizeDealDates(deal) {
+  return {
+    ...deal,
+    date_debut: dateOnlyPart(deal.date_debut),
+    date_fin: dateOnlyPart(deal.date_fin),
+  };
+}
 
 export default async function handler(req, res) {
   const {
@@ -55,7 +63,7 @@ export default async function handler(req, res) {
 
       const { data, error } = await query;
       if (error) return res.status(500).json({ erreur: error.message });
-      return res.status(200).json({ bons_plans: data });
+      return res.status(200).json({ bons_plans: (data || []).map(normalizeDealDates) });
     }
 
     // ─── POST ─────────────────────────────────────────────────────────────────
@@ -107,7 +115,7 @@ export default async function handler(req, res) {
       }
 
       return res.status(201).json({
-        bon_plan: { id: newId, ...insertData, created_at: new Date().toISOString() },
+        bon_plan: normalizeDealDates({ id: newId, ...insertData, created_at: new Date().toISOString() }),
       });
     }
 

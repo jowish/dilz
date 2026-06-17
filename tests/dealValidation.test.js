@@ -3,6 +3,7 @@ const assert = require('node:assert/strict');
 
 const {
   clampLimit,
+  dateOnlyPart,
   dateOnlyInTimeZone,
   isDateOnly,
   normalizeDealInput,
@@ -72,5 +73,7 @@ test('clamps public API limits', () => {
 test('handles date-only values without timestamp comparisons', () => {
   assert.equal(isDateOnly('2026-06-17'), true);
   assert.equal(isDateOnly('2026-06-17T00:00:00Z'), false);
+  assert.equal(dateOnlyPart('2026-06-17T00:00:00+00:00'), '2026-06-17');
+  assert.equal(dateOnlyPart('not-a-date'), null);
   assert.equal(dateOnlyInTimeZone(new Date('2026-06-17T21:30:00.000Z'), 'Asia/Jerusalem'), '2026-06-18');
 });

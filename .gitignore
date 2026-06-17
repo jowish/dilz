@@ -30,3 +30,4 @@ recuperer-prix.js
 # OS
 .DS_Store
 Thumbs.db
+.vercel

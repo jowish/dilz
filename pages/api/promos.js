@@ -74,6 +74,7 @@ export default async function handler(req, res) {
 
       const productCategory = produit.categorie || inferProductCategory(`${produit.nom || ''} ${produit.nom_en || ''}`);
       if (category !== 'all' && productCategory !== category) return;
+      if (!produit.image) return;
 
       promos.push({
         barcode: produit.barcode,

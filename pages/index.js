@@ -110,8 +110,9 @@ function languageUsesEnglishProductNames(lang) {
 }
 
 function parseDateOnly(value) {
-  if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return null;
-  const [year, month, day] = value.split('-').map(Number);
+  const match = String(value || '').match(/^(\d{4}-\d{2}-\d{2})(?:$|[T\s])/);
+  if (!match) return null;
+  const [year, month, day] = match[1].split('-').map(Number);
   return new Date(year, month - 1, day);
 }
 
@@ -120,6 +121,17 @@ function formatDateOnly(value, lang) {
   if (!date) return '';
   const locale = lang === 'he' ? 'he-IL' : lang === 'fr' ? 'fr-FR' : lang === 'es' ? 'es-ES' : 'en-GB';
   return date.toLocaleDateString(locale, { day: '2-digit', month: 'short' });
+}
+
+function productImageSrc(image) {
+  if (!image) return null;
+  try {
+    const url = new URL(image);
+    if (url.hostname === 'rami-levy.co.il' || url.hostname.endsWith('.rami-levy.co.il')) {
+      return `/api/image?url=${encodeURIComponent(url.toString())}`;
+    }
+  } catch {}
+  return image;
 }
 
 function timeAgo(date, lang) {
@@ -277,6 +289,7 @@ function HeroPromoCard({ promo, lang, isDark, onClick, votes, onVote, isSaved, o
   const s = STORE_COLORS[promo.meilleurEnseigne] || { color: ACCENT, bg: '#FEF0EB', dark: '#2A1210', nameEn: promo.meilleurEnseigne };
   const nom = (languageUsesEnglishProductNames(lang) && promo.nom_en) ? promo.nom_en : promo.nom;
   const myVote = votes?.myVote;
+  const imageSrc = productImageSrc(promo.image);
 
   return (
     <div style={{
@@ -302,9 +315,9 @@ function HeroPromoCard({ promo, lang, isDark, onClick, votes, onVote, isSaved, o
             <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/>
           </svg>
         </div>
-        {promo.image && (
+        {imageSrc && (
           <img
-            src={promo.image} alt={nom}
+            src={imageSrc} alt={nom}
             style={{ position: 'absolute', inset: 0, margin: 'auto', maxHeight: '100%', maxWidth: '100%', objectFit: 'contain' }}
             onError={e => { e.target.style.display = 'none'; }}
           />
@@ -375,6 +388,7 @@ function PromoCard({ promo, lang, isDark, onClick, votes, onVote, isSaved, onSav
   const s = STORE_COLORS[promo.meilleurEnseigne] || { color: ACCENT, bg: '#FEF0EB', dark: '#2A1210', nameEn: promo.meilleurEnseigne };
   const nom = (languageUsesEnglishProductNames(lang) && promo.nom_en) ? promo.nom_en : promo.nom;
   const myVote = votes?.myVote;
+  const imageSrc = productImageSrc(promo.image);
 
   return (
     <div style={{
@@ -397,8 +411,8 @@ function PromoCard({ promo, lang, isDark, onClick, votes, onVote, isSaved, onSav
               <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/>
             </svg>
           </div>
-          {promo.image && (
-            <img src={promo.image} alt={nom} style={{ position: 'absolute', inset: 0, margin: 'auto', maxHeight: 72, maxWidth: '90%', objectFit: 'contain' }}
+          {imageSrc && (
+            <img src={imageSrc} alt={nom} style={{ position: 'absolute', inset: 0, margin: 'auto', maxHeight: 72, maxWidth: '90%', objectFit: 'contain' }}
               onError={e => { e.target.style.display = 'none'; }} />
           )}
           <div style={{ position: 'absolute', top: 6, right: 6 }}>
@@ -450,6 +464,7 @@ function PromoCard({ promo, lang, isDark, onClick, votes, onVote, isSaved, onSav
 // ─── PromoModal ───────────────────────────────────────────────────────────────
 function PromoModal({ promo, lang, isDark, onClose }) {
   const nom = (languageUsesEnglishProductNames(lang) && promo.nom_en) ? promo.nom_en : promo.nom;
+  const imageSrc = productImageSrc(promo.image);
   useEffect(() => {
     const esc = (e) => { if (e.key === 'Escape') onClose(); };
     window.addEventListener('keydown', esc);
@@ -467,6 +482,22 @@ function PromoModal({ promo, lang, isDark, onClose }) {
         maxHeight: '80vh', overflowY: 'auto',
       }}>
         <div style={{ width: 40, height: 4, borderRadius: 2, background: 'var(--border)', margin: '0 auto 20px' }} />
+
+        {imageSrc && (
+          <div style={{
+            height: 150, borderRadius: 18, marginBottom: 16,
+            background: isDark ? 'rgba(255,255,255,0.04)' : '#fff',
+            border: '1px solid var(--border)', display: 'flex',
+            alignItems: 'center', justifyContent: 'center', overflow: 'hidden',
+          }}>
+            <img
+              src={imageSrc}
+              alt={nom}
+              style={{ maxWidth: '92%', maxHeight: '92%', objectFit: 'contain' }}
+              onError={e => { e.target.style.display = 'none'; }}
+            />
+          </div>
+        )}
 
         {/* Product name */}
         <p style={{

@@ -1,5 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 
+const { dateOnlyPart } = require('../../../lib/dealValidation');
+
 export default async function handler(req, res) {
   res.setHeader('Allow', 'GET');
   if (req.method !== 'GET') return res.status(405).end();
@@ -18,5 +20,11 @@ export default async function handler(req, res) {
     .single();
 
   if (error) return res.status(404).json({ erreur: error.message });
-  return res.status(200).json({ bon_plan: data });
+  return res.status(200).json({
+    bon_plan: {
+      ...data,
+      date_debut: dateOnlyPart(data.date_debut),
+      date_fin: dateOnlyPart(data.date_fin),
+    },
+  });
 }

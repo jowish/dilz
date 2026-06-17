@@ -43,9 +43,15 @@ function timeAgo(date) {
 }
 
 function parseDateOnly(value) {
-  if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return null;
-  const [year, month, day] = value.split('-').map(Number);
+  const match = String(value || '').match(/^(\d{4}-\d{2}-\d{2})(?:$|[T\s])/);
+  if (!match) return null;
+  const [year, month, day] = match[1].split('-').map(Number);
   return new Date(year, month - 1, day);
+}
+
+function dateInputValue(value) {
+  const match = String(value || '').match(/^(\d{4}-\d{2}-\d{2})(?:$|[T\s])/);
+  return match ? match[1] : '';
 }
 
 function formatDateOnly(value) {
@@ -123,8 +129,8 @@ export default function DealPage() {
         ville: data.bon_plan.ville || '',
         categorie: data.bon_plan.categorie || 'Food',
         url_source: data.bon_plan.url_source || '',
-        date_debut: data.bon_plan.date_debut || '',
-        date_fin: data.bon_plan.date_fin || '',
+        date_debut: dateInputValue(data.bon_plan.date_debut),
+        date_fin: dateInputValue(data.bon_plan.date_fin),
       });
     }
     setLoading(false);
