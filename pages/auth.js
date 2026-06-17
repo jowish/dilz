@@ -3,8 +3,8 @@ import { useRouter } from 'next/router';
 import Link from 'next/link';
 import { supabase } from '../lib/supabase';
 
-const ACCENT = '#D4622A';
-const ACCENT_DARK = '#B84E20';
+const ACCENT = '#1D4ED8';
+const ACCENT_DARK = '#1E40AF';
 
 function getRedirectPath(value) {
   const raw = Array.isArray(value) ? value[0] : value;
@@ -99,20 +99,20 @@ export default function Auth() {
   if (!mounted) return null;
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '20px 16px' }}>
-      <div style={{ width: '100%', maxWidth: 400 }}>
+    <div style={{ minHeight: '100vh', background: 'var(--bg)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '32px 16px' }}>
+      <div style={{ width: '100%', maxWidth: 440 }}>
         {/* Logo */}
         <div style={{ textAlign: 'center', marginBottom: 40 }}>
           <Link href="/" style={{ textDecoration: 'none' }}>
             <span style={{ fontSize: 36, fontWeight: 900, color: 'var(--text)' }}>
-              dil<span style={{ color: ACCENT }}>z</span>
+              d<span style={{ color: ACCENT }}>IL</span>z
             </span>
           </Link>
           <p style={{ fontSize: 14, color: 'var(--text-sub)', marginTop: 6 }}>Deals & promotions in Israel</p>
         </div>
 
         {/* Card */}
-        <div style={{ background: 'var(--bg-card)', borderRadius: 26, padding: '28px 24px', boxShadow: 'var(--shadow-float)', border: '1px solid var(--border)' }}>
+        <div style={{ background: 'var(--bg-card)', borderRadius: 24, padding: '28px 24px', boxShadow: 'var(--shadow-card)', border: '1px solid var(--border)' }}>
           {signupDone ? (
             <div style={{ textAlign: 'center', padding: '16px 0' }}>
               <div style={{ fontSize: 52, marginBottom: 16 }}>📧</div>
@@ -147,7 +147,7 @@ export default function Auth() {
                 onClick={() => { setMode('signin'); setSignupDone(false); setError(''); setResendMessage(''); }}
                 style={{
                   width: '100%', padding: 16, borderRadius: 16, border: 'none',
-                  background: `linear-gradient(135deg, ${ACCENT}, ${ACCENT_DARK})`,
+                  background: ACCENT,
                   color: '#fff', fontSize: 15, fontWeight: 700, cursor: 'pointer',
                 }}
               >
@@ -243,10 +243,10 @@ export default function Auth() {
 
           <button onClick={handleSubmit} disabled={loading} style={{
             width: '100%', padding: 16, borderRadius: 16, border: 'none',
-            background: loading ? 'var(--bg-card2)' : `linear-gradient(135deg, ${ACCENT}, ${ACCENT_DARK})`,
+            background: loading ? 'var(--bg-card2)' : ACCENT,
             color: loading ? 'var(--text-muted)' : '#fff',
             fontSize: 16, fontWeight: 700, cursor: loading ? 'default' : 'pointer',
-            boxShadow: loading ? 'none' : '0 4px 18px rgba(212,98,42,0.4)',
+            boxShadow: loading ? 'none' : 'var(--shadow-btn)',
           }}>
             {loading ? 'Please wait...' : (mode === 'signin' ? 'Sign in' : 'Create account')}
           </button>

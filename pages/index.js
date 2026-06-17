@@ -6,12 +6,22 @@ import { useTheme } from 'next-themes';
 import { translations, traduireVille } from '../lib/translations';
 import { supabase } from '../lib/supabase';
 import { uploadDealImage, validateImageFile, deleteDealImage } from '../lib/uploadImage';
+import { AppHeader } from '../components/layout/AppHeader';
+import { BottomNav } from '../components/layout/BottomNav';
+import { DiscoveryPanel } from '../components/layout/DiscoveryPanel';
+import { DealCard as PremiumDealCard } from '../components/deals/DealCard';
+import { PostDealModal as PremiumPostDealModal } from '../components/deals/PostDealModal';
+import { Button } from '../components/ui/Button';
+import { FilterChip } from '../components/ui/FilterChip';
+import { EmptyState } from '../components/ui/EmptyState';
+import { DealCardSkeleton } from '../components/ui/Skeleton';
+import { SectionHeader } from '../components/ui/SectionHeader';
 
 const { PRODUCT_CATEGORIES, getProductCategoryLabel } = require('../lib/productCategories');
 
 // ─── Design tokens ────────────────────────────────────────────────────────────
-const ACCENT = '#D4622A';
-const ACCENT_DARK = '#B84E20';
+const ACCENT = '#1D4ED8';
+const ACCENT_DARK = '#1E40AF';
 
 const LANG_OPTIONS = [
   { id: 'en', label: 'EN' },
@@ -48,7 +58,7 @@ STORE_FILTERS.push({ id: 'Super-Pharm', nameEn: 'Super-Pharm' });
 STORE_FILTERS.push({ id: 'Good Pharm', nameEn: 'Good Pharm' });
 
 const CATEGORIES = ['all', 'Food', 'Tech', 'Fashion', 'Activities', 'Online'];
-const CATEGORY_ICONS = { all: '✦', Food: '🍕', Tech: '💻', Fashion: '👗', Activities: '⚽', Online: '🌐' };
+const CATEGORY_ICONS = { all: '', Food: '', Tech: '', Fashion: '', Activities: '', Online: '' };
 
 const POPULAR_CITIES = ['תל אביב', 'ירושלים', 'חיפה', 'ראשון לציון', 'נתניה', 'רעננה', 'הרצליה', 'כפר סבא', 'רמת גן', 'פתח תקווה'];
 
@@ -2324,132 +2334,44 @@ export default function Home() {
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
         <meta property="og:title" content="Dilz — Smart deals in Israel" />
         <meta property="og:description" content="Official supermarket promos + community deals. Find the best prices near you." />
-        <meta name="theme-color" content="#D4622A" />
+        <meta name="theme-color" content="#1D4ED8" />
       </Head>
 
-      <div style={{ minHeight: '100vh', background: 'var(--bg)', paddingBottom: 84 }} dir={dir}>
+      <div style={{ minHeight: '100vh', background: 'var(--bg)' }} dir={dir}>
+        <AppHeader
+          lang={lang}
+          languageOptions={LANG_OPTIONS}
+          onLanguageChange={setLanguage}
+          cityLabel={cityLabel}
+          onCityClick={() => setShowCityModal(true)}
+          user={user}
+          unreadCount={unreadCount}
+          onNotificationsClick={() => setShowNotificationSheet(true)}
+          onProfileClick={() => setTab('profile')}
+          onLogoClick={() => setTab('sales')}
+          onPostDeal={() => setShowPostModal(true)}
+          onSearch={() => setTab('search')}
+          onCommunity={() => setTab('deals')}
+          onSupermarkets={() => setTab('sales')}
+          activeTab={tab}
+        />
 
-        {/* ── Sticky Header ── */}
-        <div style={{
-          position: 'sticky', top: 0, zIndex: 100,
-          background: 'var(--nav-bg)',
-          borderBottom: `1px solid var(--border)`,
-          backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)',
-        }}>
-          <div style={{ maxWidth: 600, margin: '0 auto', padding: '10px 14px 10px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-
-              {/* Left controls */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                <ThemeToggle />
-                <select
-                  value={lang}
-                  onChange={e => setLanguage(e.target.value)}
-                  aria-label="Language"
-                  style={{
-                    height: 32, padding: '0 8px', borderRadius: 8,
-                    background: 'var(--bg-card2)', border: '1px solid var(--border)',
-                    color: 'var(--text-sub)', fontSize: 11, fontWeight: 700, cursor: 'pointer',
-                    outline: 'none',
-                  }}
-                >
-                  {LANG_OPTIONS.map(option => (
-                    <option key={option.id} value={option.id}>{option.label}</option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Logo — centered */}
-              <div style={{ flex: 1, textAlign: 'center' }}>
-                <span style={{ fontSize: 24, fontWeight: 700, color: 'var(--text)', letterSpacing: '-0.5px', cursor: 'pointer' }}
-                  onClick={() => setTab('sales')}>
-                  dil<span style={{ color: ACCENT }}>z</span>
-                </span>
-              </div>
-
-              {/* Right controls */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                {/* City selector */}
-                <button onClick={() => setShowCityModal(true)} style={{
-                  display: 'flex', alignItems: 'center', gap: 4,
-                  height: 32, padding: '0 10px', borderRadius: 8,
-                  background: ville ? `rgba(212,98,42,0.08)` : 'var(--bg-card2)',
-                  border: `1px solid ${ville ? ACCENT : 'var(--border)'}`,
-                  color: ville ? ACCENT : 'var(--text-sub)',
-                  fontSize: 12, fontWeight: 500, cursor: 'pointer',
-                  maxWidth: 100, overflow: 'hidden',
-                }}>
-                  <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor" style={{ flexShrink: 0, opacity: 0.7 }}>
-                    <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
-                  </svg>
-                  <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    {cityLabel}
-                  </span>
-                </button>
-
-                {/* Bell / notifications */}
-                {user && (
-                  <button onClick={() => setShowNotificationSheet(true)} aria-label="Notifications" style={{
-                    position: 'relative', width: 32, height: 32, borderRadius: 8,
-                    background: 'var(--bg-card2)', border: '1px solid var(--border)',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    cursor: 'pointer', flexShrink: 0,
-                  }}>
-                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--text-sub)" strokeWidth="2" strokeLinecap="round">
-                      <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>
-                    </svg>
-                    {unreadCount > 0 && (
-                      <span style={{
-                        position: 'absolute', top: -2, right: -2,
-                        minWidth: 16, height: 16, borderRadius: 8,
-                        background: ACCENT, color: '#fff',
-                        fontSize: 9, fontWeight: 800,
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        padding: '0 3px',
-                      }}>{unreadCount > 9 ? '9+' : unreadCount}</span>
-                    )}
-                  </button>
-                )}
-
-                {/* Profile avatar */}
-                <button onClick={() => setTab('profile')} style={{
-                  width: 32, height: 32, borderRadius: 8,
-                  background: user ? ACCENT : 'var(--bg-card2)',
-                  border: `1px solid ${user ? ACCENT : 'var(--border)'}`,
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  cursor: 'pointer', flexShrink: 0,
-                }}>
-                  {user ? (
-                    <span style={{ color: '#fff', fontSize: 12, fontWeight: 800 }}>
-                      {(user.user_metadata?.display_name || user.email || 'U').slice(0, 2).toUpperCase()}
-                    </span>
-                  ) : (
-                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--text-sub)" strokeWidth="2" strokeLinecap="round">
-                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
-                    </svg>
-                  )}
-                </button>
-              </div>
-            </div>
-
-            {/* City context */}
-            <p style={{
-              textAlign: 'center', fontSize: 11, color: 'var(--text-muted)',
-              marginTop: 3, letterSpacing: '0.1px',
-            }}>
-              {lang !== 'he'
-                ? `Supermarket prices & community deals · ${cityLabel}`
-                : `מחירי סופר ודילים מהקהילה · ${cityLabel}`}
-            </p>
-          </div>
-        </div>
-
-        {/* ── Content ── */}
-        <div style={{ maxWidth: 600, margin: '0 auto', padding: '16px 0 0' }}>
+        <main className="dilz-page-shell">
 
           {/* ══ SALES TAB ══ */}
           {tab === 'sales' && (
-            <div style={{ padding: '0 14px' }}>
+            <div>
+              <DiscoveryPanel
+                cityLabel={cityLabel}
+                totalPromos={filteredPromos.length}
+                totalDeals={deals.length}
+                onSearch={() => setTab('search')}
+                onCityClick={() => setShowCityModal(true)}
+                onCommunity={() => setTab('deals')}
+                onSupermarkets={() => setTab('sales')}
+                onEndingSoon={() => { setTab('deals'); setSortDeals('ending'); }}
+                onBigDiscount={() => { setPromoSort('discount'); setShowPromoFilters(true); }}
+              />
               <button
                 type="button"
                 onClick={togglePromoFilters}
@@ -2746,16 +2668,19 @@ export default function Home() {
                   </button>
                 </div>
               ) : (
-                displayedDeals.map(deal => (
-                  <DealCard
+                <div className="dilz-feed-grid">
+                {displayedDeals.map(deal => (
+                  <PremiumDealCard
                     key={deal.id} deal={deal} lang={lang} isDark={isDark}
                     onVote={handleDealVote} userCoords={userCoords}
                     votedDeal={votedDeals[deal.id] || null}
                     user={user}
                     isSaved={Boolean(savedKeys[`deal:${deal.id}`])}
                     onSave={() => handleToggleSave('deal', deal.id)}
+                    translateCity={traduireVille}
                   />
-                ))
+                ))}
+                </div>
               )}
 
               {/* Footer: Sales promo link */}
@@ -2805,64 +2730,15 @@ export default function Home() {
               onOpenAlerts={() => setShowAlertModal(true)}
             />
           )}
-        </div>
+        </main>
 
-        {/* ── Bottom Nav ── */}
-        <nav style={{
-          position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 100,
-          background: 'var(--nav-bg)',
-          borderTop: '1px solid var(--border)',
-          backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)',
-          padding: '8px 0 24px',
-          boxShadow: 'var(--shadow-nav)',
-        }}>
-          <div style={{
-            maxWidth: 600, margin: '0 auto',
-            display: 'flex', justifyContent: 'space-around',
-          }}>
-            {NAV.map(item => {
-              const active = tab === item.id;
-              return (
-                <button key={item.id} onClick={() => setTab(item.id)} style={{
-                  display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3,
-                  background: 'none', border: 'none', cursor: 'pointer',
-                  minWidth: 60, padding: '4px 0', position: 'relative',
-                }}>
-                  {item.icon(active)}
-                  <span style={{
-                    fontSize: 10, fontWeight: active ? 700 : 400,
-                    color: active ? ACCENT : 'var(--text-sub)',
-                  }}>{item.label}</span>
-                  {active && (
-                    <div style={{
-                      position: 'absolute', top: -8, left: '50%', transform: 'translateX(-50%)',
-                      width: 20, height: 3, borderRadius: '0 0 4px 4px',
-                      background: ACCENT,
-                    }} />
-                  )}
-                </button>
-              );
-            })}
-          </div>
-        </nav>
-
-        {/* Floating post button — visible on deals + sales tabs */}
-        {(tab === 'deals' || tab === 'sales') && (
-          <button
-            onClick={() => setShowPostModal(true)}
-            aria-label="Post a deal"
-            style={{
-              position: 'fixed', bottom: 84, right: 20, zIndex: 99,
-              width: 52, height: 52, borderRadius: '50%', border: 'none',
-              background: `linear-gradient(135deg, ${ACCENT}, ${ACCENT_DARK})`,
-              color: '#fff', fontSize: 24, cursor: 'pointer',
-              boxShadow: `0 4px 20px rgba(212,98,42,0.5)`,
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-            }}
-          >
-            +
-          </button>
-        )}
+        <BottomNav
+          activeTab={tab}
+          onTab={setTab}
+          onPost={() => setShowPostModal(true)}
+          onAlerts={() => user ? setShowAlertModal(true) : router.push('/auth?redirect=/')}
+          onProfile={() => setTab('profile')}
+        />
 
         {/* ── Modals ── */}
         {selectedPromo && (
@@ -2876,10 +2752,11 @@ export default function Home() {
           />
         )}
         {showPostModal && (
-          <PostDealModal
-            user={user} lang={lang}
+          <PremiumPostDealModal
+            user={user}
             onClose={() => setShowPostModal(false)}
             onSuccess={handlePostSuccess}
+            cityOptions={Object.keys(CITY_COORDS)}
           />
         )}
         {showAlertModal && user && (
@@ -2908,3 +2785,4 @@ export default function Home() {
     </>
   );
 }
+

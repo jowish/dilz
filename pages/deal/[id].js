@@ -6,8 +6,8 @@ import { supabase } from '../../lib/supabase';
 import { traduireVille } from '../../lib/translations';
 import { uploadDealImage, validateImageFile, deleteDealImage } from '../../lib/uploadImage';
 
-const ACCENT = '#D4622A';
-const ACCENT_DARK = '#B84E20';
+const ACCENT = '#1D4ED8';
+const ACCENT_DARK = '#1E40AF';
 
 const CATEGORIES = ['Food', 'Tech', 'Fashion', 'Activities', 'Online'];
 
