@@ -21,6 +21,28 @@ NOM_ENSEIGNE.super_pharm = 'Super-Pharm';
 NOM_ENSEIGNE.good_pharm = 'Good Pharm';
 
 const SORTS = new Set(['discount', 'liked', 'recent', 'price_asc']);
+const PRICE_PAGE_SIZE = 1000;
+const PRICE_PAGES_PER_STORE = 3;
+
+async function fetchPriceRowsByStore(supabase, enseigneCode) {
+  const rows = [];
+  for (let page = 0; page < PRICE_PAGES_PER_STORE; page += 1) {
+    const from = page * PRICE_PAGE_SIZE;
+    const to = from + PRICE_PAGE_SIZE - 1;
+    const { data, error } = await supabase
+      .from('prix')
+      .select('barcode, prix, enseigne_code, produits!inner(barcode, nom, nom_en, image, image_source, categorie, votes_chaud, votes_froid, created_at)')
+      .eq('enseigne_code', enseigneCode)
+      .gt('prix', 0)
+      .not('produits.image', 'is', null)
+      .range(from, to);
+
+    if (error) throw error;
+    rows.push(...(data || []));
+    if (!data || data.length < PRICE_PAGE_SIZE) break;
+  }
+  return rows;
+}
 
 export default async function handler(req, res) {
   res.setHeader('Allow', 'GET');
@@ -30,27 +52,27 @@ export default async function handler(req, res) {
     const category = PRODUCT_CATEGORIES.includes(req.query.category) ? req.query.category : 'all';
     const sort = SORTS.has(req.query.sort) ? req.query.sort : 'discount';
 
-    // Recuperer tous les prix groupes par barcode
-    let { data, error } = await supabase
-      .from('produits')
-      .select('barcode, nom, nom_en, image, image_source, categorie, votes_chaud, votes_froid, created_at, prix(prix, enseigne_code)')
-      .not('prix', 'is', null)
-      .limit(10000);
+    const priceRows = (
+      await Promise.all(Object.keys(NOM_ENSEIGNE).map(code => fetchPriceRowsByStore(supabase, code)))
+    ).flat();
 
-    if (error?.code === 'PGRST204' || error?.message?.includes('image_source') || error?.message?.includes('categorie')) {
-      ({ data, error } = await supabase
-        .from('produits')
-        .select('barcode, nom, nom_en, image, created_at, prix(prix, enseigne_code)')
-        .not('prix', 'is', null)
-        .limit(10000));
+    const productsByBarcode = new Map();
+    for (const row of priceRows) {
+      const product = row.produits;
+      if (!product?.image) continue;
+      if (!productsByBarcode.has(row.barcode)) {
+        productsByBarcode.set(row.barcode, { ...product, prix: [] });
+      }
+      productsByBarcode.get(row.barcode).prix.push({
+        prix: row.prix,
+        enseigne_code: row.enseigne_code,
+      });
     }
-
-    if (error) throw error;
 
     // Calculer la reduction pour chaque produit
     const promos = [];
 
-    (data || []).forEach(produit => {
+    productsByBarcode.forEach(produit => {
       // Deduplicate: keep lowest price per store
       const byStore = {};
       for (const p of (produit.prix || [])) {

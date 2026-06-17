@@ -2266,7 +2266,9 @@ export default function Home() {
       })
     : deals;
 
-  const filteredPromos = storeFilter === 'all' ? promos : promos.filter(p => p.meilleurEnseigne === storeFilter);
+  const filteredPromos = storeFilter === 'all'
+    ? promos
+    : promos.filter(p => p.tousLesPrix?.some(price => price.enseigne === storeFilter));
   const heroPromo = filteredPromos[0] || null;
   const gridPromos = filteredPromos.slice(1);
 

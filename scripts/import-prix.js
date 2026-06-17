@@ -426,6 +426,82 @@ async function importerCerberus(chainId, enseigneCode, enseigneNom) {
   }
 }
 
+function parseStaticPriceFiles(html, kind) {
+  const path = html.match(/const\s+path\s*=\s*['"]([^'"]+)['"]/)?.[1];
+  const filesJson = html.match(/const\s+files\s*=\s*(\[[\s\S]*?\]);/)?.[1];
+  if (!path || !filesJson) return [];
+
+  let files = [];
+  try {
+    files = JSON.parse(filesJson);
+  } catch {
+    return [];
+  }
+
+  const byStore = new Map();
+  const prefix = kind === 'promo' ? 'PromoFull' : 'PriceFull';
+
+  for (const file of files) {
+    const name = file.name || '';
+    if (!name.startsWith(prefix) || !name.endsWith('.gz')) continue;
+    const parts = name
+      .replace(new RegExp(`^${prefix}\\d+-`), '')
+      .replace(/-\d{8}.*\.gz$/, '')
+      .split('-')
+      .filter(Boolean);
+    const storeId = parts[0] === '001' && parts[1] ? parts[1] : parts[0];
+    if (!storeId) continue;
+
+    const current = byStore.get(storeId);
+    if (!current || name > current.name) {
+      byStore.set(storeId, {
+        storeId,
+        name,
+        url: `https://prices.carrefour.co.il/${path}/${name}`,
+      });
+    }
+  }
+
+  return [...byStore.values()];
+}
+
+async function importerCarrefourOfficial() {
+  console.log('\nCarrefour — import officiel prices.carrefour.co.il...');
+  await ensureEnseignes([{ code: 'carrefour', nom: 'Carrefour' }]);
+  const html = await fetchHtml('https://prices.carrefour.co.il/');
+  const links = parseStaticPriceFiles(html, 'price');
+  console.log('  ' + links.length + ' magasins avec PriceFull recent');
+
+  const produits = [];
+  const magasins = [];
+
+  for (const { storeId, url } of links) {
+    try {
+      const xml = await telechargerGZ(url);
+      const storeProducts = parseXMLPrix(xml).map(product => ({ ...product, storeId }));
+      produits.push(...storeProducts);
+      magasins.push({
+        enseigne_code: 'carrefour',
+        store_id: storeId,
+        nom: 'Carrefour ' + storeId,
+        ville: null,
+      });
+      console.log('  Magasin ' + storeId + ': ' + storeProducts.length + ' produits');
+      await new Promise(r => setTimeout(r, 150));
+    } catch (e) {
+      console.log('  Erreur magasin ' + storeId + ': ' + e.message);
+    }
+  }
+
+  if (magasins.length > 0) {
+    await supabase.from('magasins').upsert(magasins, { onConflict: 'enseigne_code,store_id' });
+  }
+  if (produits.length > 0) {
+    await sauvegarderEnBase(produits, 'carrefour', '000');
+  }
+  console.log('  Carrefour OK — ' + produits.length + ' lignes de prix importees');
+}
+
 async function main() {
   console.log('Demarrage import complet...\n');
   try {
@@ -440,7 +516,7 @@ async function main() {
     await importerVictory();
     await importerSuperPharm();
     await importerCerberus('7290058179503', 'yohananof', 'Yohananof');
-    await importerCerberus('7290058140886', 'carrefour', 'Carrefour');
+    await importerCarrefourOfficial();
     console.log('\nImport termine !');
   } catch(e) {
     console.error('Erreur:', e.message);

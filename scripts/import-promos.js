@@ -134,8 +134,23 @@ function parsePromos(xml, storeId, enseigneCode) {
 async function upsertPromos(promos) {
   const batchSize = 200;
   for (let i = 0; i < promos.length; i += batchSize) {
+    const batch = promos.slice(i, i + batchSize);
+    const barcodes = [...new Set(batch.map(p => p.barcode))];
+    const { data: existingProducts, error: productError } = await supabase
+      .from('produits')
+      .select('barcode')
+      .in('barcode', barcodes);
+    if (productError) {
+      console.log('  Erreur verification produits:', productError.message);
+      continue;
+    }
+
+    const existing = new Set((existingProducts || []).map(product => product.barcode));
+    const validPromos = batch.filter(p => existing.has(p.barcode));
+    if (validPromos.length === 0) continue;
+
     const { error } = await supabase.from('promotions').upsert(
-      promos.slice(i, i + batchSize),
+      validPromos,
       { onConflict: 'barcode,enseigne_code,store_id' }
     );
     if (error) console.log('  Erreur batch:', error.message);
@@ -281,6 +296,71 @@ async function importerCerberusPromos(chainId, enseigneCode, enseigneNom) {
   }
 }
 
+function parseStaticPriceFiles(html, kind) {
+  const path = html.match(/const\s+path\s*=\s*['"]([^'"]+)['"]/)?.[1];
+  const filesJson = html.match(/const\s+files\s*=\s*(\[[\s\S]*?\]);/)?.[1];
+  if (!path || !filesJson) return [];
+
+  let files = [];
+  try {
+    files = JSON.parse(filesJson);
+  } catch {
+    return [];
+  }
+
+  const byStore = new Map();
+  const prefix = kind === 'promo' ? 'PromoFull' : 'PriceFull';
+
+  for (const file of files) {
+    const name = file.name || '';
+    if (!name.startsWith(prefix) || !name.endsWith('.gz')) continue;
+    const parts = name
+      .replace(new RegExp(`^${prefix}\\d+-`), '')
+      .replace(/-\d{8}.*\.gz$/, '')
+      .split('-')
+      .filter(Boolean);
+    const storeId = parts[0] === '001' && parts[1] ? parts[1] : parts[0];
+    if (!storeId) continue;
+
+    const current = byStore.get(storeId);
+    if (!current || name > current.name) {
+      byStore.set(storeId, {
+        storeId,
+        name,
+        url: `https://prices.carrefour.co.il/${path}/${name}`,
+      });
+    }
+  }
+
+  return [...byStore.values()];
+}
+
+async function importerCarrefourPromos() {
+  console.log('\n=== Carrefour — import promotions officiel ===');
+  const html = await fetchHtml('https://prices.carrefour.co.il/');
+  const links = parseStaticPriceFiles(html, 'promo');
+  console.log(`  ${links.length} magasins avec PromoFull recent`);
+
+  let totalPromos = 0;
+  for (const { storeId, url } of links) {
+    try {
+      const xml = await telechargerGZ(url);
+      const promos = parsePromos(xml, storeId, 'carrefour');
+      if (promos.length > 0) {
+        await upsertPromos(promos);
+        totalPromos += promos.length;
+        process.stdout.write(`  Magasin ${storeId}: ${promos.length} promos\n`);
+      }
+      await new Promise(r => setTimeout(r, 150));
+    } catch(e) {
+      process.stdout.write(`  Erreur magasin ${storeId}: ${e.message}\n`);
+    }
+  }
+
+  console.log(`\n  ✓ Carrefour: ${totalPromos} promotions`);
+  return totalPromos;
+}
+
 async function main() {
   console.log('=== Import promotions ===');
   const t0 = Date.now();
@@ -289,7 +369,7 @@ async function main() {
     importerShufersal(),
     importerVictory(),
     importerCerberusPromos('7290058179503', 'yohananof', 'Yohananof'),
-    importerCerberusPromos('7290058140886', 'carrefour', 'Carrefour'),
+    importerCarrefourPromos(),
   ]);
 
   const total = [shuf, vic, yoh, car]
