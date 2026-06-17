@@ -48,16 +48,16 @@ export function AppHeader({
           <Logo onClick={onLogoClick} />
           <nav className="dilz-desktop-tabs" aria-label="Primary">
             <button type="button" className={activeTab === 'sales' ? 'is-active' : ''} onClick={onSupermarkets}>
-              Supermarkets
+              Promotions
             </button>
             <button type="button" className={activeTab === 'deals' ? 'is-active' : ''} onClick={onCommunity}>
-              Community
+              Dilz
             </button>
           </nav>
         </div>
 
         <div className="dilz-app-header__search">
-          <SearchBar onFocus={onSearch} placeholder="Search deals, stores, cities" />
+          <SearchBar onFocus={onSearch} placeholder="Search products, stores, Dilz" />
         </div>
 
         <div className="dilz-app-header__right">
@@ -92,7 +92,7 @@ export function AppHeader({
         </div>
       </div>
       <div className="dilz-mobile-search">
-        <SearchBar onFocus={onSearch} placeholder="Search deals, stores, cities" />
+        <SearchBar onFocus={onSearch} placeholder="Search products, stores, Dilz" />
       </div>
     </header>
   );

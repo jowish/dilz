@@ -4,8 +4,8 @@ import { useRouter } from 'next/router';
 import { supabase } from '../lib/supabase';
 import { deleteDealImage, uploadDealImage, validateImageFile } from '../lib/uploadImage';
 
-const ACCENT = '#D4622A';
-const ACCENT_DARK = '#B84E20';
+const ACCENT = '#0F766E';
+const ACCENT_DARK = '#115E59';
 
 const CATEGORIES = ['all', 'Food', 'Tech', 'Fashion', 'Activities', 'Online'];
 const CATEGORY_LABELS = { all: 'All', Food: 'Food', Tech: 'Tech', Fashion: 'Fashion', Activities: 'Activities', Online: 'Online' };
@@ -176,7 +176,7 @@ function PostDealModal({ onClose, onSubmit, user }) {
                 style={{
                   padding: '6px 14px', borderRadius: 20,
                   border: form.categorie === cat ? `1.5px solid ${ACCENT}` : '0.5px solid var(--border)',
-                  background: form.categorie === cat ? 'rgba(212,98,42,0.1)' : 'var(--bg-input)',
+                  background: form.categorie === cat ? 'rgba(15,118,110,0.10)' : 'var(--bg-input)',
                   color: form.categorie === cat ? ACCENT : 'var(--text-sub)',
                   fontSize: 13, fontWeight: form.categorie === cat ? 700 : 400, cursor: 'pointer',
                 }}
@@ -453,7 +453,7 @@ export default function BonsPlans() {
           </Link>
           <span style={{ fontSize: 20, fontWeight: 900, color: 'var(--text)' }}>
             dil<span style={{ color: ACCENT }}>z</span>{' '}
-            <span style={{ fontSize: 14, fontWeight: 400, color: 'var(--text-sub)' }}>Community</span>
+            <span style={{ fontSize: 14, fontWeight: 400, color: 'var(--text-sub)' }}>Dilz</span>
           </span>
           <div style={{ width: 48 }} />
         </div>
@@ -470,7 +470,7 @@ export default function BonsPlans() {
             <button key={s.id} onClick={() => setSortBy(s.id)} style={{
               padding: '6px 14px', borderRadius: 20,
               border: sortBy === s.id ? `1.5px solid ${ACCENT}` : '0.5px solid var(--border)',
-              background: sortBy === s.id ? 'rgba(212,98,42,0.1)' : 'var(--bg-card)',
+              background: sortBy === s.id ? 'rgba(15,118,110,0.10)' : 'var(--bg-card)',
               color: sortBy === s.id ? ACCENT : 'var(--text-sub)',
               fontSize: 13, fontWeight: sortBy === s.id ? 700 : 400, cursor: 'pointer',
             }}>{s.label}</button>
@@ -489,7 +489,7 @@ export default function BonsPlans() {
                 flexShrink: 0,
                 padding: '7px 16px', borderRadius: 20,
                 border: active ? `1.5px solid ${ACCENT}` : '0.5px solid var(--border)',
-                background: active ? 'rgba(212,98,42,0.1)' : 'var(--bg-card)',
+                background: active ? 'rgba(15,118,110,0.10)' : 'var(--bg-card)',
                 color: active ? ACCENT : 'var(--text-sub)',
                 fontSize: 13, fontWeight: active ? 700 : 400, cursor: 'pointer',
                 whiteSpace: 'nowrap',
@@ -510,7 +510,7 @@ export default function BonsPlans() {
             borderRadius: 18, border: 'none',
             fontWeight: 700, fontSize: 15,
             marginBottom: 16, cursor: 'pointer',
-            boxShadow: '0 4px 18px rgba(212,98,42,0.4)',
+            boxShadow: '0 4px 18px rgba(15,118,110,0.22)',
           }}
         >
           📸 Spotted a deal? Share it now
@@ -540,3 +540,4 @@ export default function BonsPlans() {
     </div>
   );
 }
+

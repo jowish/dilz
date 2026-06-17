@@ -8,7 +8,6 @@ import { supabase } from '../lib/supabase';
 import { uploadDealImage, validateImageFile, deleteDealImage } from '../lib/uploadImage';
 import { AppHeader } from '../components/layout/AppHeader';
 import { BottomNav } from '../components/layout/BottomNav';
-import { DiscoveryPanel } from '../components/layout/DiscoveryPanel';
 import { DealCard as PremiumDealCard } from '../components/deals/DealCard';
 import { PostDealModal as PremiumPostDealModal } from '../components/deals/PostDealModal';
 import { Button } from '../components/ui/Button';
@@ -20,8 +19,8 @@ import { SectionHeader } from '../components/ui/SectionHeader';
 const { PRODUCT_CATEGORIES, getProductCategoryLabel } = require('../lib/productCategories');
 
 // ─── Design tokens ────────────────────────────────────────────────────────────
-const ACCENT = '#1D4ED8';
-const ACCENT_DARK = '#1E40AF';
+const ACCENT = '#0F766E';
+const ACCENT_DARK = '#115E59';
 
 const LANG_OPTIONS = [
   { id: 'en', label: 'EN' },
@@ -279,7 +278,7 @@ function SaveButton({ saved, onClick, lang, compact = false }) {
         padding: compact ? '5px 8px' : '7px 10px',
         borderRadius: compact ? 6 : 7,
         border: saved ? `1px solid ${ACCENT}` : '1px solid var(--border)',
-        background: saved ? 'rgba(212,98,42,0.10)' : 'transparent',
+        background: saved ? 'rgba(15,118,110,0.10)' : 'transparent',
         color: saved ? ACCENT : 'var(--text-sub)',
         cursor: 'pointer',
         fontSize: compact ? 10 : 11,
@@ -525,7 +524,7 @@ function PromoModal({ promo, lang, isDark, onClose }) {
                 display: 'flex', justifyContent: 'space-between', alignItems: 'center',
                 padding: '12px 14px', borderRadius: 10,
                 background: isBest
-                  ? (isDark ? `rgba(212,98,42,0.10)` : 'rgba(212,98,42,0.05)')
+                  ? (isDark ? `rgba(15,118,110,0.10)` : 'rgba(15,118,110,0.05)')
                   : 'var(--bg-card2)',
                 border: `1px solid ${isBest ? ACCENT + '55' : 'var(--border)'}`,
               }}>
@@ -674,7 +673,7 @@ function DealCard({ deal, lang, onVote, userCoords, votedDeal, user, isDark, isS
               <span style={{ fontSize: 13, color: 'var(--text-muted)', textDecoration: 'line-through' }}>₪{deal.prix_original}</span>
             )}
             {reduction !== null && (
-              <span style={{ fontSize: 11, fontWeight: 700, padding: '2px 7px', borderRadius: 5, background: `rgba(212,98,42,0.1)`, color: ACCENT }}>
+              <span style={{ fontSize: 11, fontWeight: 700, padding: '2px 7px', borderRadius: 5, background: `rgba(15,118,110,0.10)`, color: ACCENT }}>
                 -{reduction}%
               </span>
             )}
@@ -684,7 +683,7 @@ function DealCard({ deal, lang, onVote, userCoords, votedDeal, user, isDark, isS
               </span>
             )}
             {isOwner && (
-              <span style={{ fontSize: 10, fontWeight: 600, padding: '2px 7px', borderRadius: 5, background: `rgba(212,98,42,0.1)`, color: ACCENT, marginLeft: isOnline ? 0 : 'auto' }}>
+              <span style={{ fontSize: 10, fontWeight: 600, padding: '2px 7px', borderRadius: 5, background: `rgba(15,118,110,0.10)`, color: ACCENT, marginLeft: isOnline ? 0 : 'auto' }}>
                 My deal
               </span>
             )}
@@ -854,7 +853,7 @@ function CityModal({ villes, current, lang, onSelect, onClose }) {
             <button onClick={() => { onSelect(null, null); onClose(); }} style={{
               padding: '11px 12px', borderRadius: 8, cursor: 'pointer',
               border: `1px solid ${!current ? ACCENT : 'var(--border)'}`,
-              background: !current ? `rgba(212,98,42,0.08)` : 'var(--bg-card2)',
+              background: !current ? `rgba(15,118,110,0.08)` : 'var(--bg-card2)',
               color: !current ? ACCENT : 'var(--text)',
               fontSize: 13, fontWeight: !current ? 600 : 400,
             }}>
@@ -877,7 +876,7 @@ function CityModal({ villes, current, lang, onSelect, onClose }) {
               <button key={v} onClick={() => { onSelect(v, CITY_COORDS[v] || null); onClose(); }} style={{
                 padding: '11px 12px', borderRadius: 8, cursor: 'pointer',
                 border: `1px solid ${current === v ? ACCENT : 'var(--border)'}`,
-                background: current === v ? `rgba(212,98,42,0.08)` : 'var(--bg-card2)',
+                background: current === v ? `rgba(15,118,110,0.08)` : 'var(--bg-card2)',
                 color: current === v ? ACCENT : 'var(--text)',
                 fontSize: 13, fontWeight: current === v ? 600 : 400,
                 textAlign: lang === 'he' ? 'right' : 'left',
@@ -1009,7 +1008,7 @@ function PostDealModal({ user, lang, onClose, onSuccess }) {
               display: 'block', padding: '15px', borderRadius: 16,
               background: `linear-gradient(135deg, ${ACCENT}, ${ACCENT_DARK})`,
               color: '#fff', textDecoration: 'none', fontSize: 15, fontWeight: 700,
-              boxShadow: `0 4px 18px rgba(212,98,42,0.4)`,
+              boxShadow: `0 4px 18px rgba(15,118,110,0.22)`,
             }}>Sign in to post</Link>
             <button onClick={onClose} style={{
               padding: 14, borderRadius: 16, border: 'none',
@@ -1147,7 +1146,7 @@ function PostDealModal({ user, lang, onClose, onSuccess }) {
               <button key={cat} onClick={() => set('categorie', cat)} style={{
                 padding: '6px 14px', borderRadius: 7, cursor: 'pointer', fontSize: 13,
                 border: form.categorie === cat ? `1px solid ${ACCENT}` : '1px solid var(--border)',
-                background: form.categorie === cat ? `rgba(212,98,42,0.1)` : 'var(--bg-input)',
+                background: form.categorie === cat ? `rgba(15,118,110,0.10)` : 'var(--bg-input)',
                 color: form.categorie === cat ? ACCENT : 'var(--text-sub)',
                 fontWeight: form.categorie === cat ? 700 : 400,
               }}>{CATEGORY_ICONS[cat]} {cat}</button>
@@ -1184,7 +1183,7 @@ function PostDealModal({ user, lang, onClose, onSuccess }) {
           background: submitting ? 'var(--bg-card2)' : `linear-gradient(135deg, ${ACCENT}, ${ACCENT_DARK})`,
           color: submitting ? 'var(--text-muted)' : '#fff',
           fontSize: 16, fontWeight: 700, cursor: submitting ? 'default' : 'pointer',
-          boxShadow: submitting ? 'none' : `0 4px 18px rgba(212,98,42,0.4)`,
+          boxShadow: submitting ? 'none' : `0 4px 18px rgba(15,118,110,0.22)`,
         }}>
           {uploadPhase === 'photo'
             ? (lang !== 'he' ? 'Uploading photo...' : 'מעלה תמונה...')
@@ -1293,7 +1292,7 @@ function SearchTab({ promos, deals, lang, isDark, onPromoClick, userCoords, prom
       {mDeals.length > 0 && (
         <>
           <p style={{ fontSize: 12, fontWeight: 500, color: 'var(--text-muted)', marginBottom: 10 }}>
-            Community Deals ({mDeals.length})
+            Dilz ({mDeals.length})
           </p>
           {mDeals.slice(0, 5).map(d => (
             <DealCard key={d.id} deal={d} lang={lang} isDark={isDark}
@@ -1510,7 +1509,7 @@ function ProfileTab({ user, lang, savedItems = [], onToggleSave, onOpenAlerts })
 
 // ─── AlertModal ───────────────────────────────────────────────────────────────
 function AlertModal({ user, lang, onClose }) {
-  const ACCENT = '#D4622A';
+  const ACCENT = '#0F766E';
   const [tab, setTab] = useState('list');
   const [alerts, setAlerts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -1637,7 +1636,7 @@ function AlertModal({ user, lang, onClose }) {
             <button key={id} onClick={() => setTab(id)} style={{
               flex: 1, padding: '8px 0', borderRadius: 7, cursor: 'pointer', fontSize: 12, fontWeight: 600,
               border: tab === id ? `1px solid ${ACCENT}` : '1px solid var(--border)',
-              background: tab === id ? `rgba(212,98,42,0.09)` : 'transparent',
+              background: tab === id ? `rgba(15,118,110,0.09)` : 'transparent',
               color: tab === id ? ACCENT : 'var(--text-sub)',
             }}>{label}</button>
           ))}
@@ -1773,7 +1772,7 @@ function AlertModal({ user, lang, onClose }) {
 
 // ─── NotificationSheet ────────────────────────────────────────────────────────
 function NotificationSheet({ user, lang, notifications, onClose, onMarkAllRead, onOpenAlerts }) {
-  const ACCENT = '#D4622A';
+  const ACCENT = '#0F766E';
   const router = useRouter();
   const unread = notifications.filter(n => !n.is_read).length;
 
@@ -1830,7 +1829,7 @@ function NotificationSheet({ user, lang, notifications, onClose, onMarkAllRead, 
         <div style={{ display: 'flex', gap: 8, marginBottom: 14 }}>
           <button onClick={() => { onClose(); onOpenAlerts(); }} style={{
             flex: 1, padding: '8px 0', borderRadius: 7, cursor: 'pointer', fontSize: 12, fontWeight: 600,
-            border: `1px solid ${ACCENT}`, background: `rgba(212,98,42,0.08)`, color: ACCENT,
+            border: `1px solid ${ACCENT}`, background: `rgba(15,118,110,0.08)`, color: ACCENT,
           }}>Manage alerts</button>
           {unread > 0 && (
             <button onClick={onMarkAllRead} style={{
@@ -1862,7 +1861,7 @@ function NotificationSheet({ user, lang, notifications, onClose, onMarkAllRead, 
                   onClick={() => handleNotifClick(n)}
                   style={{
                     padding: '13px 14px', borderRadius: 16, cursor: 'pointer',
-                    background: n.is_read ? 'var(--bg-card2)' : `rgba(212,98,42,0.07)`,
+                    background: n.is_read ? 'var(--bg-card2)' : `rgba(15,118,110,0.07)`,
                     border: n.is_read ? '1px solid var(--border)' : `1px solid ${ACCENT}44`,
                     display: 'flex', gap: 12, alignItems: 'flex-start',
                   }}
@@ -2334,7 +2333,7 @@ export default function Home() {
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
         <meta property="og:title" content="Dilz — Smart deals in Israel" />
         <meta property="og:description" content="Official supermarket promos + community deals. Find the best prices near you." />
-        <meta name="theme-color" content="#1D4ED8" />
+        <meta name="theme-color" content="#0F766E" />
       </Head>
 
       <div style={{ minHeight: '100vh', background: 'var(--bg)' }} dir={dir}>
@@ -2361,16 +2360,9 @@ export default function Home() {
           {/* ══ SALES TAB ══ */}
           {tab === 'sales' && (
             <div>
-              <DiscoveryPanel
-                cityLabel={cityLabel}
-                totalPromos={filteredPromos.length}
-                totalDeals={deals.length}
-                onSearch={() => setTab('search')}
-                onCityClick={() => setShowCityModal(true)}
-                onCommunity={() => setTab('deals')}
-                onSupermarkets={() => setTab('sales')}
-                onEndingSoon={() => { setTab('deals'); setSortDeals('ending'); }}
-                onBigDiscount={() => { setPromoSort('discount'); setShowPromoFilters(true); }}
+              <SectionHeader
+                title="Promotions"
+                subtitle="Official supermarket promotions and price drops across Israel."
               />
               <button
                 type="button"
@@ -2426,7 +2418,7 @@ export default function Home() {
                     <button key={option.id} onClick={() => setPromoSort(option.id)} style={{
                       flexShrink: 0, padding: '6px 12px', borderRadius: 7, cursor: 'pointer',
                       border: active ? `1px solid ${ACCENT}` : '1px solid var(--border)',
-                      background: active ? 'rgba(212,98,42,0.09)' : 'transparent',
+                      background: active ? 'rgba(15,118,110,0.09)' : 'transparent',
                       color: active ? ACCENT : 'var(--text-sub)',
                       fontSize: 12, fontWeight: active ? 600 : 400, whiteSpace: 'nowrap',
                     }}>
@@ -2444,7 +2436,7 @@ export default function Home() {
                     <button key={category} onClick={() => setPromoCategory(category)} style={{
                       flexShrink: 0, padding: '6px 12px', borderRadius: 7, cursor: 'pointer',
                       border: active ? `1px solid ${ACCENT}` : '1px solid var(--border)',
-                      background: active ? 'rgba(212,98,42,0.09)' : 'transparent',
+                      background: active ? 'rgba(15,118,110,0.09)' : 'transparent',
                       color: active ? ACCENT : 'var(--text-sub)',
                       fontSize: 12, fontWeight: active ? 600 : 400, whiteSpace: 'nowrap',
                     }}>
@@ -2466,7 +2458,7 @@ export default function Home() {
                       flexShrink: 0, padding: '6px 14px', borderRadius: 7, cursor: 'pointer',
                       border: `1px solid ${active ? (s?.color || ACCENT) : 'var(--border)'}`,
                       background: active
-                        ? (s ? (isDark ? s.dark : s.bg) : `rgba(212,98,42,0.09)`)
+                        ? (s ? (isDark ? s.dark : s.bg) : `rgba(15,118,110,0.09)`)
                         : 'transparent',
                       color: active ? (s?.color || ACCENT) : 'var(--text-sub)',
                       fontSize: 12, fontWeight: active ? 600 : 400, whiteSpace: 'nowrap',
@@ -2523,7 +2515,7 @@ export default function Home() {
                           es: `${filteredPromos.length} productos comparados`,
                         })}
                       </p>
-                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 20 }}>
+                      <div className="dilz-promo-grid">
                         {gridPromos.map(p => (
                           <PromoCard
                             key={p.barcode} promo={p} lang={lang} isDark={isDark}
@@ -2544,7 +2536,13 @@ export default function Home() {
 
           {/* ══ DEALS TAB ══ */}
           {tab === 'deals' && (
-            <div style={{ padding: '0 14px' }}>
+            <div>
+              <SectionHeader
+                title="Dilz"
+                subtitle="Community-posted deals from real users."
+                actionLabel="Post deal"
+                onAction={() => setShowPostModal(true)}
+              />
 
               {/* Sort row */}
               <div style={{ display: 'flex', gap: 8, marginBottom: 10, alignItems: 'center' }}>
@@ -2565,7 +2563,7 @@ export default function Home() {
                       }} style={{
                         flexShrink: 0, padding: '6px 14px', borderRadius: 7, cursor: 'pointer',
                         border: active ? `1px solid ${ACCENT}` : '1px solid var(--border)',
-                        background: active ? `rgba(212,98,42,0.09)` : 'transparent',
+                        background: active ? `rgba(15,118,110,0.09)` : 'transparent',
                         color: active ? ACCENT : 'var(--text-sub)',
                         fontSize: 12, fontWeight: active ? 600 : 400, whiteSpace: 'nowrap',
                       }}>{s.label}</button>
@@ -2588,7 +2586,7 @@ export default function Home() {
                     <button key={cat} onClick={() => setCategoryFilter(cat)} style={{
                       flexShrink: 0, padding: '6px 14px', borderRadius: 7, cursor: 'pointer',
                       border: active ? `1px solid ${ACCENT}` : '1px solid var(--border)',
-                      background: active ? `rgba(212,98,42,0.09)` : 'transparent',
+                      background: active ? `rgba(15,118,110,0.09)` : 'transparent',
                       color: active ? ACCENT : 'var(--text-sub)',
                       fontSize: 12, fontWeight: active ? 600 : 400, whiteSpace: 'nowrap',
                     }}>{t.categories[cat] || cat}</button>
@@ -2785,4 +2783,6 @@ export default function Home() {
     </>
   );
 }
+
+
 

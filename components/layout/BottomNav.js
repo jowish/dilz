@@ -1,7 +1,7 @@
 export function BottomNav({ activeTab, onTab, onPost, onAlerts, onProfile }) {
   const items = [
-    { id: 'sales', label: 'Deals', action: () => onTab('sales'), icon: HomeIcon },
-    { id: 'search', label: 'Search', action: () => onTab('search'), icon: SearchIcon },
+    { id: 'sales', label: 'Promos', action: () => onTab('sales'), icon: HomeIcon },
+    { id: 'deals', label: 'Dilz', action: () => onTab('deals'), icon: SearchIcon },
     { id: 'post', label: 'Post', action: onPost, icon: PlusIcon, post: true },
     { id: 'alerts', label: 'Alerts', action: onAlerts, icon: BellIcon },
     { id: 'profile', label: 'Profile', action: onProfile, icon: UserIcon },
@@ -38,7 +38,7 @@ function HomeIcon() {
 }
 
 function SearchIcon() {
-  return <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7" /><path d="m20 20-4-4" /></svg>;
+  return <svg viewBox="0 0 24 24"><path d="M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8Z" /><path d="M7.5 7.5h.01" /></svg>;
 }
 
 function PlusIcon() {

@@ -2,8 +2,8 @@ import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 
-const ACCENT = '#D4622A';
-const ACCENT_DARK = '#B84E20';
+const ACCENT = '#0F766E';
+const ACCENT_DARK = '#115E59';
 
 const STORE_NAMES = {
   shufersal: 'Shufersal',
@@ -267,7 +267,7 @@ export default function ScanPage() {
               color: scanning ? 'var(--text-sub)' : '#fff',
               fontSize: 16, fontWeight: 700, cursor: 'pointer',
               marginBottom: 16,
-              boxShadow: scanning ? 'none' : '0 4px 18px rgba(212,98,42,0.4)',
+              boxShadow: scanning ? 'none' : '0 4px 18px rgba(15,118,110,0.22)',
             }}
           >
             {scanning ? '⏹ Stop camera' : '📷 Scan a barcode'}
@@ -276,7 +276,7 @@ export default function ScanPage() {
 
         {!barcodeDetectorSupported && scanning && (
           <div style={{
-            background: 'rgba(212,98,42,0.1)', borderRadius: 14,
+            background: 'rgba(15,118,110,0.10)', borderRadius: 14,
             padding: '12px 16px', marginBottom: 16,
             border: `1px solid ${ACCENT}`,
           }}>
@@ -399,7 +399,7 @@ export default function ScanPage() {
 
               {/* Best price highlight */}
               <div style={{
-                background: `linear-gradient(135deg, rgba(212,98,42,0.12), rgba(184,78,32,0.08))`,
+                background: `linear-gradient(135deg, rgba(15,118,110,0.12), rgba(17,94,89,0.08))`,
                 border: `1.5px solid ${ACCENT}`,
                 borderRadius: 16, padding: '14px 16px', marginBottom: 14,
                 display: 'flex', justifyContent: 'space-between', alignItems: 'center',
@@ -423,7 +423,7 @@ export default function ScanPage() {
                     <div key={p.enseigne} style={{
                       display: 'flex', justifyContent: 'space-between', alignItems: 'center',
                       padding: '12px 14px', borderRadius: 14,
-                      background: isBest ? 'rgba(212,98,42,0.08)' : 'var(--bg-card2)',
+                      background: isBest ? 'rgba(15,118,110,0.08)' : 'var(--bg-card2)',
                       border: isBest ? `1px solid ${ACCENT}` : '0.5px solid var(--border)',
                     }}>
                       <span style={{ fontSize: 14, color: isBest ? ACCENT : 'var(--text-sub)', fontWeight: isBest ? 700 : 400 }}>
@@ -456,3 +456,4 @@ export default function ScanPage() {
     </div>
   );
 }
+

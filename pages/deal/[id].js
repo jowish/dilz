@@ -6,8 +6,8 @@ import { supabase } from '../../lib/supabase';
 import { traduireVille } from '../../lib/translations';
 import { uploadDealImage, validateImageFile, deleteDealImage } from '../../lib/uploadImage';
 
-const ACCENT = '#1D4ED8';
-const ACCENT_DARK = '#1E40AF';
+const ACCENT = '#0F766E';
+const ACCENT_DARK = '#115E59';
 
 const CATEGORIES = ['Food', 'Tech', 'Fashion', 'Activities', 'Online'];
 
@@ -618,7 +618,7 @@ export default function DealPage() {
                     <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
                       <div style={{
                         width: 34, height: 34, borderRadius: '50%', flexShrink: 0,
-                        background: isReply ? `rgba(212,98,42,0.12)` : 'var(--bg-card2)',
+                        background: isReply ? `rgba(15,118,110,0.12)` : 'var(--bg-card2)',
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
                       }}>
                         <span style={{ fontSize: 12, fontWeight: 700, color: isReply ? ACCENT : 'var(--text-sub)' }}>{initials}</span>
@@ -832,7 +832,7 @@ export default function DealPage() {
                   <button key={cat} onClick={() => setEditForm({ ...editForm, categorie: cat })} style={{
                     padding: '5px 12px', borderRadius: 7, cursor: 'pointer', fontSize: 13,
                     border: editForm.categorie === cat ? `1px solid ${ACCENT}` : '1px solid var(--border)',
-                    background: editForm.categorie === cat ? 'rgba(212,98,42,0.1)' : 'var(--bg-input)',
+                    background: editForm.categorie === cat ? 'rgba(15,118,110,0.10)' : 'var(--bg-input)',
                     color: editForm.categorie === cat ? ACCENT : 'var(--text-sub)',
                     fontWeight: editForm.categorie === cat ? 700 : 400,
                   }}>{cat}</button>
@@ -881,3 +881,5 @@ export default function DealPage() {
     </>
   );
 }
+
+
