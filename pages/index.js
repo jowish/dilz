@@ -78,6 +78,7 @@ const URL_TO_TAB = {
 const PROMO_SORTS = ['discount', 'liked', 'recent', 'price_asc'];
 const DEAL_SORTS = ['hot', 'latest', 'nearby', 'ending'];
 const DEAL_LAYOUTS = ['card', 'list'];
+const URL_ACTIONS = ['post_deal', 'city', 'alerts', 'notifications', 'view_promo'];
 const CATEGORY_ICONS = { all: '', Food: '', Tech: '', Fashion: '', Activities: '', Online: '' };
 
 const POPULAR_CITIES = ['תל אביב', 'ירושלים', 'חיפה', 'ראשון לציון', 'נתניה', 'רעננה', 'הרצליה', 'כפר סבא', 'רמת גן', 'פתח תקווה'];
@@ -193,9 +194,18 @@ function readHomeStateFromUrl(asPath) {
   const dealSort = params.get('sort');
   const dealLayout = params.get('layout');
   const mine = params.get('mine') === '1';
+  const action = params.get('action');
+  const selectedPromoBarcode = params.get('promo') || null;
+  const normalizedAction = URL_ACTIONS.includes(action)
+    ? action
+    : selectedPromoBarcode
+      ? 'view_promo'
+      : null;
 
   return {
     tab,
+    city: params.get('city') || null,
+    searchQuery: params.get('q') || '',
     storeFilter: isValidStoreFilter(promoStore) ? promoStore : 'all',
     promoCategory: isValidProductCategory(promoCategory) ? promoCategory : 'all',
     promoSort: PROMO_SORTS.includes(promoSort) ? promoSort : 'discount',
@@ -204,6 +214,8 @@ function readHomeStateFromUrl(asPath) {
     sortDeals: DEAL_SORTS.includes(dealSort) ? dealSort : 'hot',
     myDealsOnly: mine,
     dealLayout: DEAL_LAYOUTS.includes(dealLayout) ? dealLayout : 'card',
+    action: normalizedAction,
+    selectedPromoBarcode,
   };
 }
 
@@ -217,9 +229,15 @@ function buildHomeUrl({
   sortDeals,
   myDealsOnly,
   dealLayout,
+  city,
+  searchQuery,
+  action,
+  selectedPromoBarcode,
 }) {
   const params = new URLSearchParams();
   if (tab !== 'deals') params.set('tab', TAB_TO_URL[tab] || tab);
+  if (city) params.set('city', city);
+  if (tab === 'search' && searchQuery.trim()) params.set('q', searchQuery.trim());
 
   if (tab === 'sales') {
     if (storeFilter !== 'all') params.set('store', storeFilter);
@@ -237,6 +255,9 @@ function buildHomeUrl({
     if (sortDeals !== 'hot') params.set('sort', sortDeals);
     if (dealLayout !== 'card') params.set('layout', dealLayout);
   }
+
+  if (action) params.set('action', action);
+  if (selectedPromoBarcode) params.set('promo', selectedPromoBarcode);
 
   const qs = params.toString();
   return qs ? `/?${qs}` : '/';
@@ -1296,8 +1317,8 @@ function PostDealModal({ user, lang, onClose, onSuccess }) {
 }
 
 // ─── SearchTab ────────────────────────────────────────────────────────────────
-function SearchTab({ promos, deals, lang, isDark, onPromoClick, userCoords, promoVotes, onPromoVote, savedKeys, onToggleSave, votedDeals, onDealVote, user }) {
-  const [q, setQ] = useState('');
+function SearchTab({ promos, deals, lang, isDark, onPromoClick, userCoords, promoVotes, onPromoVote, savedKeys, onToggleSave, votedDeals, onDealVote, user, searchQuery, onSearchQueryChange }) {
+  const q = searchQuery || '';
   const inputRef = useRef(null);
   useEffect(() => { setTimeout(() => inputRef.current?.focus(), 80); }, []);
 
@@ -1326,7 +1347,7 @@ function SearchTab({ promos, deals, lang, isDark, onPromoClick, userCoords, prom
           ref={inputRef}
           type="text"
           value={q}
-          onChange={e => setQ(e.target.value)}
+          onChange={e => onSearchQueryChange(e.target.value)}
           placeholder={lang !== 'he' ? 'Search deals, stores, products...' : 'חפש דילים, חנויות, מוצרים...'}
           style={{
             flex: 1, padding: '14px 0', background: 'none', border: 'none',
@@ -1334,7 +1355,7 @@ function SearchTab({ promos, deals, lang, isDark, onPromoClick, userCoords, prom
           }}
         />
         {q && (
-          <button onClick={() => setQ('')} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', fontSize: 18, cursor: 'pointer', padding: 0 }}>×</button>
+          <button onClick={() => onSearchQueryChange('')} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', fontSize: 18, cursor: 'pointer', padding: 0 }}>×</button>
         )}
       </div>
 
@@ -2016,6 +2037,7 @@ export default function Home() {
   const [sortDeals, setSortDeals] = useState('hot');
   const [myDealsOnly, setMyDealsOnly] = useState(false);
   const [dealLayout, setDealLayout] = useState('card');
+  const [searchQuery, setSearchQuery] = useState('');
 
   // City
   const [ville, setVille] = useState(null);
@@ -2036,6 +2058,7 @@ export default function Home() {
 
   // Modals
   const [selectedPromo, setSelectedPromo] = useState(null);
+  const [selectedPromoBarcode, setSelectedPromoBarcode] = useState(null);
   const [showPostModal, setShowPostModal] = useState(false);
   const [postSuccess, setPostSuccess] = useState(false);
 
@@ -2132,6 +2155,15 @@ export default function Home() {
     setSortDeals(next.sortDeals);
     setMyDealsOnly(next.myDealsOnly);
     setDealLayout(next.dealLayout);
+    setSearchQuery(next.searchQuery);
+    setVille(next.city);
+    setUserCoords(next.city ? CITY_COORDS[next.city] || null : null);
+    setShowPostModal(next.action === 'post_deal');
+    setShowCityModal(next.action === 'city');
+    setShowAlertModal(next.action === 'alerts');
+    setShowNotificationSheet(next.action === 'notifications');
+    setSelectedPromoBarcode(next.action === 'view_promo' ? next.selectedPromoBarcode : null);
+    if (next.action !== 'view_promo') setSelectedPromo(null);
 
     initialUrlAppliedRef.current = true;
     const id = window.setTimeout(() => {
@@ -2153,6 +2185,20 @@ export default function Home() {
       sortDeals,
       myDealsOnly,
       dealLayout,
+      city: ville,
+      searchQuery,
+      action: selectedPromoBarcode
+        ? 'view_promo'
+        : showPostModal
+          ? 'post_deal'
+          : showCityModal
+            ? 'city'
+            : showAlertModal
+              ? 'alerts'
+              : showNotificationSheet
+                ? 'notifications'
+                : null,
+      selectedPromoBarcode,
     });
     const currentUrl = router.asPath.split('#')[0] || '/';
     if (nextUrl === currentUrl) return;
@@ -2169,6 +2215,13 @@ export default function Home() {
     sortDeals,
     myDealsOnly,
     dealLayout,
+    ville,
+    searchQuery,
+    showPostModal,
+    showCityModal,
+    showAlertModal,
+    showNotificationSheet,
+    selectedPromoBarcode,
   ]);
 
   useEffect(() => {
@@ -2222,12 +2275,28 @@ export default function Home() {
     }
   }, [tab]);
 
+  useEffect(() => {
+    if (!selectedPromoBarcode) return;
+    const promo = promos.find(item => String(item.barcode) === String(selectedPromoBarcode));
+    if (promo) setSelectedPromo(promo);
+  }, [selectedPromoBarcode, promos]);
+
   const handleCitySelect = (villeNom, coords) => {
     setVille(villeNom);
     const c = coords || (villeNom ? CITY_COORDS[villeNom] || null : null);
     setUserCoords(c);
     if (c) setSortDeals('nearby');
     else setSortDeals('hot');
+  };
+
+  const openPromo = (promo) => {
+    setSelectedPromo(promo);
+    setSelectedPromoBarcode(promo?.barcode || null);
+  };
+
+  const closePromo = () => {
+    setSelectedPromo(null);
+    setSelectedPromoBarcode(null);
   };
 
   const setLanguage = (next) => {
@@ -2658,7 +2727,7 @@ export default function Home() {
                   {heroPromo && (
                     <HeroPromoCard
                       promo={heroPromo} lang={lang} isDark={isDark}
-                      onClick={() => setSelectedPromo(heroPromo)}
+                      onClick={() => openPromo(heroPromo)}
                       votes={promoVotes[heroPromo.barcode]}
                       onVote={handlePromoVote}
                       isSaved={Boolean(savedKeys[`product:${heroPromo.barcode}`])}
@@ -2680,7 +2749,7 @@ export default function Home() {
                         {gridPromos.map(p => (
                           <PromoCard
                             key={p.barcode} promo={p} lang={lang} isDark={isDark}
-                            onClick={() => setSelectedPromo(p)}
+                            onClick={() => openPromo(p)}
                             votes={promoVotes[p.barcode]}
                             onVote={handlePromoVote}
                             isSaved={Boolean(savedKeys[`product:${p.barcode}`])}
@@ -2866,7 +2935,7 @@ export default function Home() {
           {tab === 'search' && (
             <SearchTab
               promos={promos} deals={deals} lang={lang} isDark={isDark}
-              onPromoClick={setSelectedPromo}
+              onPromoClick={openPromo}
               userCoords={userCoords}
               promoVotes={promoVotes}
               onPromoVote={handlePromoVote}
@@ -2875,6 +2944,8 @@ export default function Home() {
               votedDeals={votedDeals}
               onDealVote={handleDealVote}
               user={user}
+              searchQuery={searchQuery}
+              onSearchQueryChange={setSearchQuery}
             />
           )}
 
@@ -2900,7 +2971,7 @@ export default function Home() {
 
         {/* ── Modals ── */}
         {selectedPromo && (
-          <PromoModal promo={selectedPromo} lang={lang} isDark={isDark} onClose={() => setSelectedPromo(null)} />
+          <PromoModal promo={selectedPromo} lang={lang} isDark={isDark} onClose={closePromo} />
         )}
         {showCityModal && (
           <CityModal
