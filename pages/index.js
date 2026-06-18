@@ -2336,7 +2336,7 @@ export default function Home() {
         <meta name="theme-color" content="#E2552D" />
       </Head>
 
-      <div style={{ minHeight: '100vh', background: 'var(--bg)' }} dir={dir}>
+      <div className="dilz-app-frame" dir={dir}>
         <AppHeader
           lang={lang}
           languageOptions={LANG_OPTIONS}
