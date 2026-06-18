@@ -1394,7 +1394,8 @@ export default function Home() {
           {/* ══ DEALS TAB ══ */}
           {tab === 'deals' && (
             <div>
-              <div className="dilz-view-switcher" aria-label="Dilz views">
+              <div className="dilz-deal-toolbar">
+                <div className="dilz-view-switcher" aria-label="Dilz views">
                 {[
                   { id: 'all', label: 'Top Dilz' },
                   { id: 'latest', label: 'New' },
@@ -1433,9 +1434,9 @@ export default function Home() {
                     </button>
                   );
                 })}
-              </div>
+                </div>
 
-              <div className="dilz-feed-controls" aria-label="Dilz feed controls">
+                <div className="dilz-feed-controls" aria-label="Dilz feed controls">
                 <span className="dilz-view-switcher__count">
                   {textFor(lang, {
                     en: `${displayedDeals.length} Dilz`,
@@ -1472,6 +1473,7 @@ export default function Home() {
                       <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
                     </svg>
                   </button>
+                </div>
                 </div>
               </div>
 
