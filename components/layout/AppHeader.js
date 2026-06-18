@@ -4,8 +4,11 @@ import { SearchBar } from '../ui/SearchBar';
 
 function Logo({ onClick }) {
   const content = (
-    <span className="dilz-logo" aria-label="Dilz">
-      d<span>IL</span>z
+    <span className="dilz-logo-lockup" aria-label="Dilz Promotion Hunter">
+      <span className="dilz-logo">
+        d<span>IL</span>z
+      </span>
+      <span className="dilz-logo-tagline">Promotion Hunter</span>
     </span>
   );
 

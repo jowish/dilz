@@ -9,7 +9,7 @@ import { AppHeader } from '../components/layout/AppHeader';
 import { BottomNav } from '../components/layout/BottomNav';
 import { DealCard as PremiumDealCard } from '../components/deals/DealCard';
 import { PostDealModal as PremiumPostDealModal } from '../components/deals/PostDealModal';
-import { PromoCard, HeroPromoCard } from '../components/deals/PromoCard';
+import { PromoCard } from '../components/deals/PromoCard';
 import { PromoModal } from '../components/deals/PromoModal';
 import { CityModal } from '../components/ui/CityModal';
 import { AlertModal } from '../components/ui/AlertModal';
@@ -1215,8 +1215,7 @@ export default function Home() {
   const filteredPromos = storeFilter === 'all'
     ? promos
     : promos.filter(p => p.tousLesPrix?.some(price => price.enseigne === storeFilter));
-  const heroPromo = filteredPromos[0] || null;
-  const gridPromos = filteredPromos.slice(1);
+  const gridPromos = filteredPromos;
 
   if (!mounted) return null;
 
@@ -1360,18 +1359,6 @@ export default function Home() {
                 />
               ) : (
                 <>
-                  {heroPromo && (
-                    <HeroPromoCard
-                      promo={heroPromo}
-                      lang={lang}
-                      isDark={isDark}
-                      onClick={() => openPromo(heroPromo)}
-                      votes={promoVotes[heroPromo.barcode]}
-                      onVote={handlePromoVote}
-                      isSaved={Boolean(savedKeys[`product:${heroPromo.barcode}`])}
-                      onSave={() => handleToggleSave('product', heroPromo.barcode)}
-                    />
-                  )}
                   {gridPromos.length > 0 && (
                     <>
                       <p className="dilz-count-label">
@@ -1447,10 +1434,7 @@ export default function Home() {
                   );
                 })}
                 <button type="button" onClick={openMap}>Map</button>
-              </div>
-
-              <div className="dilz-feed-toolbar" aria-label="Dilz display options">
-                <span>
+                <span className="dilz-view-switcher__count">
                   {textFor(lang, {
                     en: `${displayedDeals.length} Dilz`,
                     he: `${displayedDeals.length} דילז`,
@@ -1458,7 +1442,7 @@ export default function Home() {
                     es: `${displayedDeals.length} Dilz`,
                   })}
                 </span>
-                <div className="dilz-layout-toggle">
+                <div className="dilz-layout-toggle" aria-label="Dilz display options">
                   <button
                     type="button"
                     className={dealLayout === 'card' ? 'is-active' : ''}
@@ -1637,7 +1621,3 @@ export default function Home() {
     </>
   );
 }
-
-
-
-

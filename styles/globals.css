@@ -4782,4 +4782,187 @@ textarea:focus {
   background: #1E2330;
 }
 
+/* QA polish overrides */
+.dilz-logo-lockup {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  line-height: 0.95;
+}
+
+.dilz-logo-lockup .dilz-logo,
+.dilz-logo {
+  font-size: 31px;
+  font-weight: 950;
+  letter-spacing: -1.15px;
+}
+
+.dilz-logo-tagline {
+  margin-top: 3px;
+  color: var(--brand);
+  font-size: 10px;
+  font-weight: 850;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.dilz-segmented button.is-active,
+.dilz-segmented button[aria-selected="true"] {
+  background: var(--surface-dark);
+  color: #fff;
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.16);
+}
+
+.dilz-view-switcher {
+  align-items: center;
+}
+
+.dilz-view-switcher__count {
+  flex: 0 0 auto;
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 850;
+  padding: 0 2px;
+}
+
+.dilz-layout-toggle {
+  background: var(--surface-main);
+  border-color: var(--border-default);
+  box-shadow: var(--shadow-soft);
+}
+
+.dilz-layout-toggle button.is-active {
+  background: var(--surface-dark);
+  color: #fff;
+  box-shadow: none;
+}
+
+.dilz-filter-toggle {
+  width: auto;
+  max-width: 100%;
+  min-height: 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 7px 10px;
+  margin: 0 0 10px;
+  border-radius: 999px;
+  border: 1px solid var(--border-default);
+  background: var(--surface-main);
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.dilz-filter-toggle__left {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.dilz-filter-toggle__count {
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 999px;
+  display: inline-grid;
+  place-items: center;
+  background: var(--brand);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 900;
+}
+
+.dilz-filter-toggle__chevron {
+  transition: transform 0.18s ease;
+}
+
+.dilz-filter-toggle__chevron.is-open {
+  transform: rotate(180deg);
+}
+
+.dilz-compact-filter-chip {
+  flex-shrink: 0;
+  min-height: 28px;
+  padding: 5px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--border-default);
+  background: var(--surface-main);
+  color: var(--text-secondary);
+  font-size: 11px;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.dilz-compact-filter-chip.is-active {
+  border-color: var(--brand);
+  background: var(--brand-soft);
+  color: var(--brand);
+}
+
+.dilz-count-label {
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 800;
+  margin: 0 0 10px;
+}
+
+.dilz-promo-grid {
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+
+.dilz-promo-vote-btn,
+.dilz-vote-pill button,
+.dilz-deal-vote-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  line-height: 1;
+}
+
+.dilz-promo-vote-btn svg,
+.dilz-vote-pill button svg,
+.dilz-deal-vote-btn svg {
+  flex: 0 0 auto;
+  display: block;
+}
+
+@media (min-width: 768px) {
+  .dilz-promo-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1024px) {
+  .dilz-promo-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1280px) {
+  .dilz-promo-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 767px) {
+  .dilz-logo-lockup .dilz-logo,
+  .dilz-logo {
+    font-size: 28px;
+  }
+
+  .dilz-logo-tagline {
+    font-size: 8.5px;
+  }
+
+  .dilz-view-switcher__count,
+  .dilz-layout-toggle {
+    order: 20;
+  }
+}
 

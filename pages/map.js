@@ -139,14 +139,9 @@ export default function MapPage() {
       leafletMapRef.current = null;
     }
 
-    const focusCoords = selectedCity && CITY_COORDS[selectedCity]
-      ? [CITY_COORDS[selectedCity].lat, CITY_COORDS[selectedCity].lon]
-      : [31.8, 34.9];
-    const focusZoom = selectedCity ? 12 : 8;
-
     const map = L.map(mapRef.current, {
-      center: focusCoords,
-      zoom: focusZoom,
+      center: [31.8, 34.9],
+      zoom: 8,
       zoomControl: true,
     });
     leafletMapRef.current = map;
@@ -156,10 +151,13 @@ export default function MapPage() {
       maxZoom: 18,
     }).addTo(map);
 
+    const bounds = L.latLngBounds([]);
+
     cityEntries.forEach(([city, cityDeals]) => {
       const coords = CITY_COORDS[city];
       const count = cityDeals.length;
       const active = city === selectedCity;
+      bounds.extend([coords.lat, coords.lon]);
       const icon = L.divIcon({
         className: '',
         html: `<div class="dilz-map-marker ${active ? 'is-active' : ''}"><strong>Dilz</strong><span>${count}</span></div>`,
@@ -173,6 +171,16 @@ export default function MapPage() {
         map.flyTo([coords.lat, coords.lon], 12, { animate: true, duration: 0.5 });
       });
     });
+
+    if (selectedCity && CITY_COORDS[selectedCity]) {
+      const coords = CITY_COORDS[selectedCity];
+      map.setView([coords.lat, coords.lon], 12);
+    } else if (bounds.isValid()) {
+      map.fitBounds(bounds, {
+        padding: [42, 42],
+        maxZoom: 11,
+      });
+    }
 
     return () => {
       map.remove();

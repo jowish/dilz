@@ -50,7 +50,17 @@ export default function Auth() {
     if (!router.isReady) return;
     setMounted(true);
     supabase.auth.getSession().then(({ data }) => {
-      if (data.session) router.replace(getRedirectPath(router.query.redirect));
+      if (data.session) {
+        let redirectPath = getRedirectPath(router.query.redirect);
+        try {
+          const saved = sessionStorage.getItem('dilzAuthRedirect');
+          if (saved && saved.startsWith('/') && !saved.startsWith('//')) {
+            redirectPath = saved;
+            sessionStorage.removeItem('dilzAuthRedirect');
+          }
+        } catch {}
+        router.replace(redirectPath);
+      }
     });
   }, [router.isReady]);
 
@@ -85,11 +95,16 @@ export default function Auth() {
   };
 
   const handleGoogle = async () => {
+    setError('');
     const redirectPath = getRedirectPath(router.query.redirect);
-    await supabase.auth.signInWithOAuth({
+    try {
+      sessionStorage.setItem('dilzAuthRedirect', redirectPath);
+    } catch {}
+    const { error: err } = await supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo: `${window.location.origin}/auth?redirect=${encodeURIComponent(redirectPath)}` },
+      options: { redirectTo: `${window.location.origin}/auth` },
     });
+    if (err) setError(err.message || 'Google sign in failed.');
   };
 
   const handleResendConfirmation = async () => {
