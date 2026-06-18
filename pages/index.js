@@ -57,6 +57,27 @@ STORE_FILTERS.push({ id: 'Super-Pharm', nameEn: 'Super-Pharm' });
 STORE_FILTERS.push({ id: 'Good Pharm', nameEn: 'Good Pharm' });
 
 const CATEGORIES = ['all', 'Food', 'Tech', 'Fashion', 'Activities', 'Online'];
+
+const TAB_TO_URL = {
+  deals: 'dilz',
+  sales: 'promos',
+  search: 'search',
+  profile: 'profile',
+};
+
+const URL_TO_TAB = {
+  dilz: 'deals',
+  deals: 'deals',
+  promos: 'sales',
+  promotions: 'sales',
+  sales: 'sales',
+  search: 'search',
+  profile: 'profile',
+};
+
+const PROMO_SORTS = ['discount', 'liked', 'recent', 'price_asc'];
+const DEAL_SORTS = ['hot', 'latest', 'nearby', 'ending'];
+const DEAL_LAYOUTS = ['card', 'list'];
 const CATEGORY_ICONS = { all: '', Food: '', Tech: '', Fashion: '', Activities: '', Online: '' };
 
 const POPULAR_CITIES = ['תל אביב', 'ירושלים', 'חיפה', 'ראשון לציון', 'נתניה', 'רעננה', 'הרצליה', 'כפר סבא', 'רמת גן', 'פתח תקווה'];
@@ -141,6 +162,84 @@ function productImageSrc(image) {
     }
   } catch {}
   return image;
+}
+
+function queryParamsFromPath(asPath) {
+  const queryString = String(asPath || '').split('?')[1]?.split('#')[0] || '';
+  return new URLSearchParams(queryString);
+}
+
+function isValidStoreFilter(value) {
+  return STORE_FILTERS.some(store => store.id === value);
+}
+
+function isValidProductCategory(value) {
+  return value === 'all' || PRODUCT_CATEGORIES.includes(value);
+}
+
+function isValidDealCategory(value) {
+  return CATEGORIES.includes(value);
+}
+
+function readHomeStateFromUrl(asPath) {
+  const params = queryParamsFromPath(asPath);
+  const tab = URL_TO_TAB[params.get('tab')] || 'deals';
+
+  const promoStore = params.get('store');
+  const promoCategory = params.get('category');
+  const promoSort = params.get('sort');
+
+  const dealCategory = params.get('category');
+  const dealSort = params.get('sort');
+  const dealLayout = params.get('layout');
+  const mine = params.get('mine') === '1';
+
+  return {
+    tab,
+    storeFilter: isValidStoreFilter(promoStore) ? promoStore : 'all',
+    promoCategory: isValidProductCategory(promoCategory) ? promoCategory : 'all',
+    promoSort: PROMO_SORTS.includes(promoSort) ? promoSort : 'discount',
+    showPromoFilters: params.get('filters') === '1',
+    categoryFilter: mine ? 'all' : (isValidDealCategory(dealCategory) ? dealCategory : 'all'),
+    sortDeals: DEAL_SORTS.includes(dealSort) ? dealSort : 'hot',
+    myDealsOnly: mine,
+    dealLayout: DEAL_LAYOUTS.includes(dealLayout) ? dealLayout : 'card',
+  };
+}
+
+function buildHomeUrl({
+  tab,
+  storeFilter,
+  promoCategory,
+  promoSort,
+  showPromoFilters,
+  categoryFilter,
+  sortDeals,
+  myDealsOnly,
+  dealLayout,
+}) {
+  const params = new URLSearchParams();
+  if (tab !== 'deals') params.set('tab', TAB_TO_URL[tab] || tab);
+
+  if (tab === 'sales') {
+    if (storeFilter !== 'all') params.set('store', storeFilter);
+    if (promoCategory !== 'all') params.set('category', promoCategory);
+    if (promoSort !== 'discount') params.set('sort', promoSort);
+    if (showPromoFilters) params.set('filters', '1');
+  }
+
+  if (tab === 'deals') {
+    if (myDealsOnly) {
+      params.set('mine', '1');
+    } else if (categoryFilter !== 'all') {
+      params.set('category', categoryFilter);
+    }
+    if (sortDeals !== 'hot') params.set('sort', sortDeals);
+    if (dealLayout !== 'card') params.set('layout', dealLayout);
+  }
+
+  const qs = params.toString();
+  return qs ? `/?${qs}` : '/';
 }
 
 function timeAgo(date, lang) {
@@ -1894,6 +1993,8 @@ function NotificationSheet({ user, lang, notifications, onClose, onMarkAllRead, 
 export default function Home() {
   const { resolvedTheme } = useTheme();
   const router = useRouter();
+  const syncingUrlRef = useRef(false);
+  const initialUrlAppliedRef = useRef(false);
   const [mounted, setMounted] = useState(false);
   const [lang, setLang] = useState('en');
 
@@ -2016,6 +2117,59 @@ export default function Home() {
       }
     });
   }, []);
+
+  useEffect(() => {
+    if (!router.isReady) return;
+    const next = readHomeStateFromUrl(router.asPath);
+    syncingUrlRef.current = true;
+
+    setTab(next.tab);
+    setStoreFilter(next.storeFilter);
+    setPromoCategory(next.promoCategory);
+    setPromoSort(next.promoSort);
+    setShowPromoFilters(next.showPromoFilters);
+    setCategoryFilter(next.categoryFilter);
+    setSortDeals(next.sortDeals);
+    setMyDealsOnly(next.myDealsOnly);
+    setDealLayout(next.dealLayout);
+
+    initialUrlAppliedRef.current = true;
+    const id = window.setTimeout(() => {
+      syncingUrlRef.current = false;
+    }, 0);
+    return () => window.clearTimeout(id);
+  }, [router.isReady, router.asPath]);
+
+  useEffect(() => {
+    if (!router.isReady || !initialUrlAppliedRef.current || syncingUrlRef.current) return;
+
+    const nextUrl = buildHomeUrl({
+      tab,
+      storeFilter,
+      promoCategory,
+      promoSort,
+      showPromoFilters,
+      categoryFilter,
+      sortDeals,
+      myDealsOnly,
+      dealLayout,
+    });
+    const currentUrl = router.asPath.split('#')[0] || '/';
+    if (nextUrl === currentUrl) return;
+
+    router.push(nextUrl, undefined, { shallow: true, scroll: false });
+  }, [
+    router,
+    tab,
+    storeFilter,
+    promoCategory,
+    promoSort,
+    showPromoFilters,
+    categoryFilter,
+    sortDeals,
+    myDealsOnly,
+    dealLayout,
+  ]);
 
   useEffect(() => {
     setLoadingPromos(true);
