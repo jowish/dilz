@@ -1897,7 +1897,7 @@ export default function Home() {
   const [lang, setLang] = useState('en');
 
   // Tab
-  const [tab, setTab] = useState('sales');
+  const [tab, setTab] = useState('deals');
 
   // Data
   const [promos, setPromos] = useState([]);
@@ -2347,7 +2347,7 @@ export default function Home() {
           unreadCount={unreadCount}
           onNotificationsClick={() => setShowNotificationSheet(true)}
           onProfileClick={() => setTab('profile')}
-          onLogoClick={() => setTab('sales')}
+          onLogoClick={() => setTab('deals')}
           onPostDeal={() => setShowPostModal(true)}
           onSearch={() => setTab('search')}
           onCommunity={() => setTab('deals')}
@@ -2371,8 +2371,8 @@ export default function Home() {
                 aria-controls="supermarket-filters"
                 style={{
                   width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                  gap: 10, padding: '10px 12px', marginBottom: showPromoFilters ? 10 : 14,
-                  borderRadius: 9, border: '1px solid var(--border)',
+                  gap: 8, padding: '7px 10px', marginBottom: showPromoFilters ? 8 : 12,
+                  borderRadius: 10, border: '1px solid var(--border)',
                   background: 'var(--bg-card)', color: 'var(--text-sub)', cursor: 'pointer',
                 }}
               >
@@ -2387,7 +2387,7 @@ export default function Home() {
                   </span>
                   {(storeFilter !== 'all' || promoCategory !== 'all' || promoSort !== 'discount') && (
                     <span style={{
-                      minWidth: 20, height: 20, padding: '0 6px', borderRadius: 10,
+                      minWidth: 18, height: 18, padding: '0 5px', borderRadius: 9,
                       display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
                       background: ACCENT, color: '#fff', fontSize: 10, fontWeight: 800,
                     }}>
@@ -2406,7 +2406,7 @@ export default function Home() {
 
               <div id="supermarket-filters" hidden={!showPromoFilters}>
               {/* Product sort */}
-              <div style={{ display: 'flex', gap: 6, overflowX: 'auto', marginBottom: 10, paddingBottom: 2 }}>
+              <div className="dilz-compact-filter-row">
                 {[
                   { id: 'discount', en: 'Best discount', he: 'הנחה גבוהה', fr: 'Meilleure remise', es: 'Mejor descuento' },
                   { id: 'liked', en: 'Most liked', he: 'הכי אהובים', fr: 'Les plus likés', es: 'Mas votados' },
@@ -2429,7 +2429,7 @@ export default function Home() {
               </div>
 
               {/* Product category */}
-              <div style={{ display: 'flex', gap: 6, overflowX: 'auto', marginBottom: 12, paddingBottom: 2 }}>
+              <div className="dilz-compact-filter-row">
                 {['all', ...PRODUCT_CATEGORIES].map(category => {
                   const active = promoCategory === category;
                   return (
@@ -2447,9 +2447,7 @@ export default function Home() {
               </div>
 
               {/* Store filter */}
-              <div style={{
-                display: 'flex', gap: 8, overflowX: 'auto', marginBottom: 16, paddingBottom: 2,
-              }}>
+              <div className="dilz-compact-filter-row" style={{ marginBottom: 12 }}>
                 {STORE_FILTERS.map(f => {
                   const active = storeFilter === f.id;
                   const s = f.id !== 'all' ? STORE_COLORS[f.id] : null;
@@ -2560,7 +2558,7 @@ export default function Home() {
                     (view.id === 'all' && sortDeals === 'hot' && categoryFilter === 'all' && !myDealsOnly) ||
                     (view.id === 'mine' && myDealsOnly) ||
                     (['latest', 'nearby', 'ending'].includes(view.id) && sortDeals === view.id && categoryFilter === 'all' && !myDealsOnly) ||
-                    (CATEGORIES.includes(view.id) && categoryFilter === view.id && !myDealsOnly);
+                    (view.id !== 'all' && CATEGORIES.includes(view.id) && categoryFilter === view.id && !myDealsOnly);
                   return (
                     <button
                       key={view.id}

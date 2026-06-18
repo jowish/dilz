@@ -439,13 +439,13 @@ textarea:focus {
 }
 
 .dilz-filter-chip {
-  height: 36px;
-  padding: 0 14px;
+  height: 30px;
+  padding: 0 10px;
   border-radius: 999px;
   border: 1px solid var(--border-default);
   background: var(--surface-main);
   color: var(--text-secondary);
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 600;
   cursor: pointer;
   white-space: nowrap;
@@ -838,6 +838,23 @@ textarea:focus {
   font-weight: 700;
   cursor: pointer;
   transition: background-color 180ms ease, border-color 180ms ease, color 180ms ease, transform 180ms ease;
+}
+
+.dilz-compact-filter-row {
+  display: flex;
+  gap: 5px;
+  overflow-x: auto;
+  margin-bottom: 8px;
+  padding-bottom: 2px;
+}
+
+.dilz-compact-filter-row button {
+  flex-shrink: 0;
+  min-height: 28px;
+  padding: 4px 10px !important;
+  border-radius: 8px !important;
+  font-size: 11px !important;
+  line-height: 1 !important;
 }
 
 .dilz-view-switcher button:hover {

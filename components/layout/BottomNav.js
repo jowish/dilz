@@ -1,7 +1,7 @@
 export function BottomNav({ activeTab, onTab, onPost, onAlerts, onProfile }) {
   const items = [
-    { id: 'sales', label: 'Promos', action: () => onTab('sales'), icon: HomeIcon },
-    { id: 'deals', label: 'Dilz', action: () => onTab('deals'), icon: SearchIcon },
+    { id: 'deals', label: 'Dilz', action: () => onTab('deals'), icon: HomeIcon },
+    { id: 'sales', label: 'Promos', action: () => onTab('sales'), icon: SearchIcon },
     { id: 'post', label: 'Post', action: onPost, icon: PlusIcon, post: true },
     { id: 'alerts', label: 'Alerts', action: onAlerts, icon: BellIcon },
     { id: 'profile', label: 'Profile', action: onProfile, icon: UserIcon },

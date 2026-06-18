@@ -47,11 +47,11 @@ export function AppHeader({
         <div className="dilz-app-header__left">
           <Logo onClick={onLogoClick} />
           <nav className="dilz-desktop-tabs" aria-label="Primary">
-            <button type="button" className={activeTab === 'sales' ? 'is-active' : ''} onClick={onSupermarkets}>
-              Promotions
-            </button>
             <button type="button" className={activeTab === 'deals' ? 'is-active' : ''} onClick={onCommunity}>
               Dilz
+            </button>
+            <button type="button" className={activeTab === 'sales' ? 'is-active' : ''} onClick={onSupermarkets}>
+              Promotions
             </button>
           </nav>
         </div>
