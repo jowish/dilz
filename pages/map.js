@@ -81,7 +81,7 @@ export default function MapPage() {
     () => Object.entries(dealsByCity).sort((a, b) => b[1].length - a[1].length),
     [dealsByCity]
   );
-  const selectedDeals = selectedCity ? dealsByCity[selectedCity] || [] : [];
+  const selectedDeals = selectedCity ? dealsByCity[selectedCity] || [] : deals.filter(d => d.ville && CITY_COORDS[d.ville]);
 
   useEffect(() => {
     fetch('/api/bons-plans?limit=200&tri=hot')
@@ -139,9 +139,14 @@ export default function MapPage() {
       leafletMapRef.current = null;
     }
 
+    const focusCoords = selectedCity && CITY_COORDS[selectedCity]
+      ? [CITY_COORDS[selectedCity].lat, CITY_COORDS[selectedCity].lon]
+      : [31.8, 34.9];
+    const focusZoom = selectedCity ? 12 : 8;
+
     const map = L.map(mapRef.current, {
-      center: [31.8, 34.9],
-      zoom: 8,
+      center: focusCoords,
+      zoom: focusZoom,
       zoomControl: true,
     });
     leafletMapRef.current = map;
@@ -163,7 +168,10 @@ export default function MapPage() {
       });
 
       const marker = L.marker([coords.lat, coords.lon], { icon }).addTo(map);
-      marker.on('click', () => selectCity(city));
+      marker.on('click', () => {
+        selectCity(city);
+        map.flyTo([coords.lat, coords.lon], 12, { animate: true, duration: 0.5 });
+      });
     });
 
     return () => {
@@ -201,8 +209,8 @@ export default function MapPage() {
           <aside className="dilz-map-results">
             <div className="dilz-map-results__header">
               <p>{selectedCity || 'All Israel'}</p>
-              <strong>{selectedCity ? `${selectedDeals.length} Dilz` : `${cityEntries.length} cities`}</strong>
-              <span>{selectedCity ? '' : 'Tap a city marker to see local deals.'}</span>
+              <strong>{selectedDeals.length} Dilz</strong>
+              {!selectedCity && <span>Tap a city to filter</span>}
             </div>
 
             <div className="dilz-map-city-strip" aria-label="Dilz map points">

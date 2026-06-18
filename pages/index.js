@@ -1250,6 +1250,7 @@ export default function Home() {
           onSearch={() => setTab('search')}
           onCommunity={() => setTab('deals')}
           onSupermarkets={() => setTab('sales')}
+          onAlerts={() => user ? setShowAlertModal(true) : router.push('/auth?redirect=/')}
           activeTab={tab}
         />
 

@@ -35,6 +35,7 @@ export function AppHeader({
   onSearch,
   onCommunity,
   onSupermarkets,
+  onAlerts,
   activeTab,
 }) {
   const initials = user
@@ -78,6 +79,13 @@ export function AppHeader({
               {unreadCount > 0 && <span className="dilz-notification-dot">{unreadCount > 9 ? '9+' : unreadCount}</span>}
             </IconButton>
           )}
+          <button type="button" className="dilz-header-alerts-btn" onClick={onAlerts} aria-label="Create a price alert">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
+              <path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+              <line x1="12" y1="3" x2="12" y2="1"/><line x1="15" y1="2" x2="12" y2="5"/><line x1="9" y1="2" x2="12" y2="5"/>
+            </svg>
+            Alerts
+          </button>
           <Button className="dilz-header-post" onClick={onPostDeal}>Post deal</Button>
           <IconButton aria-label={user ? 'Profile' : 'Sign in'} onClick={onProfileClick} selected={Boolean(user)}>
             {user ? (
