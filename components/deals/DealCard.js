@@ -43,6 +43,8 @@ export function DealCard({
   translateCity,
   lang = 'en',
   layout = 'card',
+  isAdmin = false,
+  onAdminDelete,
 }) {
   const router = useRouter();
   const discount = getDiscount(deal);
@@ -101,9 +103,39 @@ export function DealCard({
         <div className="dilz-deal-card__trust">
           <Badge tone={trust === 'Store promo' ? 'brand' : 'neutral'}>{trust}</Badge>
         </div>
+        {isAdmin && (
+          <div className="dilz-deal-card__admin-badge">
+            <Badge tone="brand">Admin</Badge>
+          </div>
+        )}
       </div>
 
       <div className="dilz-deal-card__body">
+        {isAdmin && (
+          <div className="dilz-admin-controls" onClick={(event) => event.stopPropagation()}>
+            <span>Admin tools</span>
+            <button
+              type="button"
+              onClick={(event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                onAdminDelete?.(deal.id);
+              }}
+            >
+              Delete
+            </button>
+            <button
+              type="button"
+              onClick={(event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                window.open('/admin', '_blank', 'noopener,noreferrer');
+              }}
+            >
+              Edit
+            </button>
+          </div>
+        )}
         <div className="dilz-deal-card__store-row">
           <strong>{deal.magasin}</strong>
           <span>{city}</span>

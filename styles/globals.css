@@ -1033,6 +1033,49 @@ textarea:focus {
   bottom: 10px;
 }
 
+.dilz-deal-card__admin-badge {
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
+  filter: hue-rotate(245deg) saturate(1.35);
+}
+
+.dilz-admin-controls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px;
+  margin-bottom: 8px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, rgba(124, 58, 237, 0.10), rgba(226, 85, 45, 0.08));
+  border: 1px solid rgba(124, 58, 237, 0.24);
+}
+
+.dilz-admin-controls span {
+  color: #6D28D9;
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-right: auto;
+}
+
+.dilz-admin-controls button {
+  border: 0;
+  border-radius: 9px;
+  background: #6D28D9;
+  color: #fff;
+  min-height: 28px;
+  padding: 0 9px;
+  font-size: 11px;
+  font-weight: 850;
+  cursor: pointer;
+}
+
+.dilz-admin-controls button:first-of-type {
+  background: #DC2626;
+}
+
 .dilz-deal-card__body {
   padding: 12px 2px 0;
 }
@@ -1880,7 +1923,7 @@ textarea:focus {
     radial-gradient(circle at top left, rgba(226, 85, 45, 0.10), transparent 34rem),
     var(--bg);
   color: var(--text-primary);
-  padding: 28px;
+  padding: 18px;
 }
 
 .admin-hero,
@@ -1894,9 +1937,9 @@ textarea:focus {
 
 .admin-hero {
   max-width: 1360px;
-  margin: 0 auto 18px;
-  border-radius: 24px;
-  padding: 24px;
+  margin: 0 auto 12px;
+  border-radius: 20px;
+  padding: 16px;
   display: flex;
   justify-content: space-between;
   gap: 24px;
@@ -1914,7 +1957,7 @@ textarea:focus {
 .admin-hero h1,
 .admin-login h1 {
   margin: 6px 0 8px;
-  font-size: clamp(30px, 4vw, 48px);
+  font-size: clamp(26px, 3.2vw, 40px);
   line-height: 1;
   letter-spacing: -1.4px;
 }
@@ -1960,13 +2003,13 @@ textarea:focus {
 .admin-metrics,
 .admin-grid {
   max-width: 1360px;
-  margin: 0 auto 18px;
+  margin: 0 auto 12px;
 }
 
 .admin-metrics {
   display: grid;
   grid-template-columns: repeat(6, minmax(0, 1fr));
-  gap: 12px;
+  gap: 10px;
 }
 
 .admin-mini-grid {
@@ -1991,7 +2034,7 @@ textarea:focus {
 
 .admin-metric {
   border-radius: 18px;
-  padding: 16px;
+  padding: 12px;
 }
 
 .admin-metric span {
@@ -2005,7 +2048,7 @@ textarea:focus {
 .admin-metric strong {
   color: var(--text-primary);
   display: block;
-  font-size: 28px;
+  font-size: 23px;
   line-height: 1;
   font-weight: 950;
   letter-spacing: -0.8px;
@@ -2033,8 +2076,8 @@ textarea:focus {
 }
 
 .admin-panel {
-  border-radius: 22px;
-  padding: 18px;
+  border-radius: 18px;
+  padding: 14px;
   overflow: hidden;
 }
 
@@ -2047,9 +2090,136 @@ textarea:focus {
 }
 
 .admin-panel h2 {
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 900;
   letter-spacing: -0.3px;
+}
+
+.admin-flash {
+  max-width: 1360px;
+  margin: 0 auto 12px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: #EEF2FF;
+  border: 1px solid #C7D2FE;
+  color: #4338CA;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.admin-pill {
+  display: inline-flex;
+  min-height: 24px;
+  align-items: center;
+  border-radius: 999px;
+  padding: 0 8px;
+  font-size: 11px;
+  font-weight: 850;
+  background: var(--surface-soft);
+  color: var(--text-secondary);
+}
+
+.admin-pill--good {
+  background: #DCFCE7;
+  color: #166534;
+}
+
+.admin-pill--warn {
+  background: #FEF3C7;
+  color: #92400E;
+}
+
+.admin-pill--danger {
+  background: #FEE2E2;
+  color: #B91C1C;
+}
+
+.admin-row-actions {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.admin-action {
+  min-height: 28px;
+  border: 0;
+  border-radius: 9px;
+  background: var(--surface-soft);
+  color: var(--text-secondary);
+  padding: 0 9px;
+  font-size: 11px;
+  font-weight: 850;
+  cursor: pointer;
+}
+
+.admin-action--admin {
+  background: #6D28D9;
+  color: #fff;
+}
+
+.admin-action--danger {
+  background: #DC2626;
+  color: #fff;
+}
+
+.admin-donut-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.admin-donut-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  padding: 10px;
+  border-radius: 16px;
+  background: var(--surface-soft);
+}
+
+.admin-donut {
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  background: conic-gradient(var(--brand) var(--percent), #E2E8F0 0);
+}
+
+.admin-donut--good {
+  background: conic-gradient(#16A34A var(--percent), #E2E8F0 0);
+}
+
+.admin-donut--warn {
+  background: conic-gradient(#F59E0B var(--percent), #E2E8F0 0);
+}
+
+.admin-donut span {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: #fff;
+  display: grid;
+  place-items: center;
+  color: var(--text-primary);
+  font-size: 12px;
+  font-weight: 950;
+}
+
+.admin-donut-card strong {
+  display: block;
+  color: var(--text-primary);
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.admin-donut-card p {
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 750;
+  margin-top: 2px;
 }
 
 .admin-panel__header p {
@@ -2184,6 +2354,90 @@ textarea:focus {
   margin-top: 12px;
   font-size: 13px;
   font-weight: 750;
+}
+
+.admin-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 700;
+  display: grid;
+  place-items: center;
+  padding: 18px;
+  background: rgba(15, 23, 42, 0.58);
+}
+
+.admin-modal__panel {
+  width: min(840px, 100%);
+  max-height: 92vh;
+  overflow: auto;
+  border: 1px solid var(--border-default);
+  border-radius: 22px;
+  background: #fff;
+  box-shadow: var(--shadow-modal);
+}
+
+.admin-modal__header,
+.admin-modal__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px;
+  border-bottom: 1px solid var(--border-default);
+}
+
+.admin-modal__footer {
+  border-top: 1px solid var(--border-default);
+  border-bottom: 0;
+}
+
+.admin-modal__header h2 {
+  color: var(--text-primary);
+  font-size: 20px;
+  font-weight: 950;
+}
+
+.admin-modal__header > button {
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--border-default);
+  border-radius: 12px;
+  background: var(--surface-main);
+  color: var(--text-secondary);
+  font-size: 20px;
+  cursor: pointer;
+}
+
+.admin-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  padding: 16px;
+}
+
+.admin-form-grid label {
+  display: grid;
+  gap: 5px;
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 850;
+}
+
+.admin-form-grid label.is-wide {
+  grid-column: 1 / -1;
+}
+
+.admin-form-grid input,
+.admin-form-grid select,
+.admin-form-grid textarea {
+  width: 100%;
+  border: 1px solid var(--border-default);
+  border-radius: 12px;
+  background: var(--surface-main);
+  color: var(--text-primary);
+  padding: 10px 12px;
+  font-size: 14px;
+  outline: 0;
 }
 
 @media (max-width: 1100px) {

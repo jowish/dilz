@@ -16,6 +16,34 @@ function formatDate(value) {
   });
 }
 
+function formatPrice(value) {
+  if (value == null || value === '') return '';
+  return `${Number(value).toLocaleString('en-US')} ₪`;
+}
+
+function StatusPill({ children, tone = 'default' }) {
+  return <span className={`admin-pill admin-pill--${tone}`}>{children}</span>;
+}
+
+function AdminButton({ children, tone = 'default', ...props }) {
+  return <button className={`admin-action admin-action--${tone}`} type="button" {...props}>{children}</button>;
+}
+
+function DonutChart({ label, value, total, tone = 'brand' }) {
+  const percent = total ? Math.round((Number(value || 0) / Number(total || 1)) * 100) : 0;
+  return (
+    <div className="admin-donut-card">
+      <div className={`admin-donut admin-donut--${tone}`} style={{ '--percent': `${percent}%` }}>
+        <span>{percent}%</span>
+      </div>
+      <div>
+        <strong>{label}</strong>
+        <p>{formatNumber(value)} / {formatNumber(total)}</p>
+      </div>
+    </div>
+  );
+}
+
 function MetricCard({ label, value, detail, tone = 'default' }) {
   return (
     <article className={`admin-metric admin-metric--${tone}`}>
@@ -113,11 +141,86 @@ function TokenGate({ token, setToken, onSubmit, loading, error }) {
   );
 }
 
+function EditDealModal({ deal, onClose, onSave, loading }) {
+  const [form, setForm] = useState(() => ({
+    titre: deal.titre || '',
+    description: deal.description || '',
+    magasin: deal.magasin || '',
+    ville: deal.ville || '',
+    categorie: deal.categorie || 'Food',
+    statut: deal.statut || 'actif',
+    prix: deal.prix ?? '',
+    prix_original: deal.prix_original ?? '',
+    url_source: deal.url_source || '',
+    image_url: deal.image_url || '',
+    date_debut: deal.date_debut || '',
+    date_fin: deal.date_fin || '',
+  }));
+
+  const set = (key, value) => setForm(current => ({ ...current, [key]: value }));
+
+  return (
+    <div className="admin-modal" onClick={onClose}>
+      <form
+        className="admin-modal__panel"
+        onClick={(event) => event.stopPropagation()}
+        onSubmit={(event) => {
+          event.preventDefault();
+          onSave(deal.id, form);
+        }}
+      >
+        <div className="admin-modal__header">
+          <div>
+            <span className="admin-kicker">Admin edit</span>
+            <h2>Modifier le Dilz #{deal.id}</h2>
+          </div>
+          <button type="button" onClick={onClose}>×</button>
+        </div>
+
+        <div className="admin-form-grid">
+          <label>Title<input value={form.titre} onChange={e => set('titre', e.target.value)} /></label>
+          <label>Store<input value={form.magasin} onChange={e => set('magasin', e.target.value)} /></label>
+          <label>City<input value={form.ville || ''} onChange={e => set('ville', e.target.value)} /></label>
+          <label>
+            Category
+            <select value={form.categorie || ''} onChange={e => set('categorie', e.target.value)}>
+              {['Food', 'Tech', 'Fashion', 'Activities', 'Online'].map(value => <option key={value} value={value}>{value}</option>)}
+            </select>
+          </label>
+          <label>
+            Status
+            <select value={form.statut} onChange={e => set('statut', e.target.value)}>
+              <option value="actif">actif</option>
+              <option value="pending">pending</option>
+              <option value="rejete">rejete</option>
+            </select>
+          </label>
+          <label>Price<input type="number" value={form.prix} onChange={e => set('prix', e.target.value)} /></label>
+          <label>Old price<input type="number" value={form.prix_original || ''} onChange={e => set('prix_original', e.target.value)} /></label>
+          <label>Start date<input type="date" value={form.date_debut || ''} onChange={e => set('date_debut', e.target.value)} /></label>
+          <label>End date<input type="date" value={form.date_fin || ''} onChange={e => set('date_fin', e.target.value)} /></label>
+          <label className="is-wide">Image URL<input value={form.image_url || ''} onChange={e => set('image_url', e.target.value)} /></label>
+          <label className="is-wide">Source URL<input value={form.url_source || ''} onChange={e => set('url_source', e.target.value)} /></label>
+          <label className="is-wide">Description<textarea rows={4} value={form.description || ''} onChange={e => set('description', e.target.value)} /></label>
+        </div>
+
+        <div className="admin-modal__footer">
+          <AdminButton onClick={onClose}>Cancel</AdminButton>
+          <AdminButton type="submit" tone="admin" disabled={loading}>{loading ? 'Saving...' : 'Save changes'}</AdminButton>
+        </div>
+      </form>
+    </div>
+  );
+}
+
 export default function AdminDashboard() {
   const [token, setToken] = useState('');
   const [data, setData] = useState(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [actionLoading, setActionLoading] = useState(false);
+  const [actionMessage, setActionMessage] = useState('');
+  const [editingDeal, setEditingDeal] = useState(null);
 
   const loadDashboard = async (nextToken = token) => {
     if (!nextToken) return;
@@ -137,6 +240,35 @@ export default function AdminDashboard() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const runAdminAction = async (payload, successMessage) => {
+    setActionLoading(true);
+    setActionMessage('');
+    try {
+      const res = await fetch('/api/admin/actions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(payload),
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.erreur || 'Admin action failed.');
+      setActionMessage(successMessage || 'Action done.');
+      setEditingDeal(null);
+      await loadDashboard(token);
+    } catch (err) {
+      setActionMessage(err.message);
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const confirmAndRun = (message, payload, successMessage) => {
+    if (!window.confirm(message)) return;
+    runAdminAction(payload, successMessage);
   };
 
   useEffect(() => {
@@ -195,6 +327,8 @@ export default function AdminDashboard() {
           </div>
         </header>
 
+        {actionMessage && <div className="admin-flash">{actionMessage}</div>}
+
         <section className="admin-metrics">
           <MetricCard label="Users" value={data.overview.users} detail={`${data.users.new7d} new in 7d`} />
           <MetricCard label="Dilz" value={data.overview.deals} detail={`${data.deals.new7d} new in 7d`} />
@@ -202,6 +336,27 @@ export default function AdminDashboard() {
           <MetricCard label="Products" value={data.overview.products} detail={`${data.products.imageCoveragePct}% with image`} />
           <MetricCard label="Price rows" value={data.overview.priceRows} detail={`${data.supermarkets.priceRowsUpdated24h} updated 24h`} />
           <MetricCard label="Health" value={data.health.warnings.length} detail={data.health.warnings.length ? 'Warnings' : 'All clear'} tone={healthTone} />
+        </section>
+
+        <section className="admin-grid admin-grid--three">
+          <Panel title="Coverage images">
+            <div className="admin-donut-grid">
+              <DonutChart label="Deals images" value={data.deals.withImage} total={data.deals.total} tone="brand" />
+              <DonutChart label="Products images" value={data.products.withImage} total={data.products.total} tone="good" />
+            </div>
+          </Panel>
+          <Panel title="Moderation">
+            <div className="admin-donut-grid">
+              <DonutChart label="Active deals" value={data.deals.active} total={data.deals.total} tone="good" />
+              <DonutChart label="Pending deals" value={data.deals.pending} total={data.deals.total} tone="warn" />
+            </div>
+          </Panel>
+          <Panel title="Users">
+            <div className="admin-donut-grid">
+              <DonutChart label="Confirmed" value={data.users.confirmed} total={data.users.total} tone="good" />
+              <DonutChart label="New 7d" value={data.users.new7d} total={data.users.total} tone="brand" />
+            </div>
+          </Panel>
         </section>
 
         <section className="admin-grid admin-grid--two">
@@ -253,9 +408,20 @@ export default function AdminDashboard() {
               columns={[
                 { key: 'titre', label: 'Deal' },
                 { key: 'magasin', label: 'Store' },
+                { key: 'prix', label: 'Price', render: row => formatPrice(row.prix) },
                 { key: 'votes_chaud', label: 'Hot' },
                 { key: 'votes_froid', label: 'Cold' },
-                { key: 'statut', label: 'Status' },
+                { key: 'statut', label: 'Status', render: row => <StatusPill tone={row.statut === 'actif' ? 'good' : row.statut === 'pending' ? 'warn' : 'danger'}>{row.statut}</StatusPill> },
+                {
+                  key: 'actions',
+                  label: 'Actions',
+                  render: row => (
+                    <div className="admin-row-actions">
+                      <AdminButton tone="admin" onClick={() => setEditingDeal(row)}>Edit</AdminButton>
+                      <AdminButton tone="danger" onClick={() => confirmAndRun(`Delete deal #${row.id}?`, { action: 'delete_deal', id: row.id }, 'Deal deleted.')}>Delete</AdminButton>
+                    </div>
+                  ),
+                },
               ]}
             />
           </Panel>
@@ -268,7 +434,17 @@ export default function AdminDashboard() {
                 { key: 'magasin', label: 'Store' },
                 { key: 'auteur_nom', label: 'Author', render: row => row.auteur_nom || 'Unknown' },
                 { key: 'created_at', label: 'Date', render: row => formatDate(row.created_at) },
-                { key: 'statut', label: 'Status' },
+                { key: 'statut', label: 'Status', render: row => <StatusPill tone={row.statut === 'actif' ? 'good' : row.statut === 'pending' ? 'warn' : 'danger'}>{row.statut}</StatusPill> },
+                {
+                  key: 'actions',
+                  label: 'Actions',
+                  render: row => (
+                    <div className="admin-row-actions">
+                      <AdminButton tone="admin" onClick={() => setEditingDeal(row)}>Edit</AdminButton>
+                      <AdminButton tone="danger" onClick={() => confirmAndRun(`Delete deal #${row.id}?`, { action: 'delete_deal', id: row.id }, 'Deal deleted.')}>Delete</AdminButton>
+                    </div>
+                  ),
+                },
               ]}
             />
           </Panel>
@@ -282,7 +458,21 @@ export default function AdminDashboard() {
                 { key: 'email', label: 'Email' },
                 { key: 'name', label: 'Name', render: row => row.name || '-' },
                 { key: 'confirmed', label: 'Confirmed', render: row => row.confirmed ? 'yes' : 'no' },
+                { key: 'banned_until', label: 'Ban', render: row => row.banned_until ? <StatusPill tone="danger">banned</StatusPill> : <StatusPill tone="good">ok</StatusPill> },
                 { key: 'created_at', label: 'Created', render: row => formatDate(row.created_at) },
+                {
+                  key: 'actions',
+                  label: 'Actions',
+                  render: row => (
+                    <div className="admin-row-actions">
+                      {row.banned_until ? (
+                        <AdminButton tone="admin" onClick={() => confirmAndRun(`Unban ${row.email}?`, { action: 'unban_user', user_id: row.id }, 'User unbanned.')}>Unban</AdminButton>
+                      ) : (
+                        <AdminButton tone="danger" onClick={() => confirmAndRun(`Ban ${row.email}?`, { action: 'ban_user', user_id: row.id }, 'User banned.')}>Ban</AdminButton>
+                      )}
+                    </div>
+                  ),
+                },
               ]}
             />
           </Panel>
@@ -295,10 +485,26 @@ export default function AdminDashboard() {
                 { key: 'auteur_nom', label: 'Author' },
                 { key: 'contenu', label: 'Comment', render: row => String(row.contenu || '').slice(0, 80) },
                 { key: 'created_at', label: 'Date', render: row => formatDate(row.created_at) },
+                {
+                  key: 'actions',
+                  label: 'Actions',
+                  render: row => (
+                    <AdminButton tone="danger" onClick={() => confirmAndRun(`Delete comment #${row.id}?`, { action: 'delete_comment', id: row.id }, 'Comment deleted.')}>Delete</AdminButton>
+                  ),
+                },
               ]}
             />
           </Panel>
         </section>
+
+        {editingDeal && (
+          <EditDealModal
+            deal={editingDeal}
+            loading={actionLoading}
+            onClose={() => setEditingDeal(null)}
+            onSave={(id, updates) => runAdminAction({ action: 'update_deal', id, updates }, 'Deal updated.')}
+          />
+        )}
       </main>
     </>
   );

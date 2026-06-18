@@ -1317,7 +1317,7 @@ function PostDealModal({ user, lang, onClose, onSuccess }) {
 }
 
 // ─── SearchTab ────────────────────────────────────────────────────────────────
-function SearchTab({ promos, deals, lang, isDark, onPromoClick, userCoords, promoVotes, onPromoVote, savedKeys, onToggleSave, votedDeals, onDealVote, user, searchQuery, onSearchQueryChange }) {
+function SearchTab({ promos, deals, lang, isDark, onPromoClick, userCoords, promoVotes, onPromoVote, savedKeys, onToggleSave, votedDeals, onDealVote, user, searchQuery, onSearchQueryChange, isAdmin, onAdminDeleteDeal }) {
   const q = searchQuery || '';
   const inputRef = useRef(null);
   useEffect(() => { setTimeout(() => inputRef.current?.focus(), 80); }, []);
@@ -1419,6 +1419,8 @@ function SearchTab({ promos, deals, lang, isDark, onPromoClick, userCoords, prom
               userCoords={userCoords} votedDeal={votedDeals[d.id] || null}
               onVote={onDealVote} user={user}
               layout="list"
+              isAdmin={isAdmin}
+              onAdminDelete={onAdminDeleteDeal}
               isSaved={Boolean(savedKeys[`deal:${d.id}`])}
               onSave={() => onToggleSave('deal', d.id)} />
           ))}
@@ -2067,6 +2069,7 @@ export default function Home() {
   const [showNotificationSheet, setShowNotificationSheet] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [adminToken, setAdminToken] = useState('');
 
   const t = translations[lang] || translations.en;
   const dir = lang === 'he' ? 'rtl' : 'ltr';
@@ -2084,6 +2087,7 @@ export default function Home() {
       if (savedPromoFilters !== null) setShowPromoFilters(savedPromoFilters === 'true');
       const savedDealLayout = localStorage.getItem('dilzDealLayout');
       if (savedDealLayout === 'list' || savedDealLayout === 'card') setDealLayout(savedDealLayout);
+      setAdminToken(localStorage.getItem('dilzAdminToken') || '');
       // Restore tab from back-nav
       const rt = sessionStorage.getItem('dilzReturnTab');
       if (rt) {
@@ -2316,6 +2320,25 @@ export default function Home() {
   const changeDealLayout = (next) => {
     setDealLayout(next);
     try { localStorage.setItem('dilzDealLayout', next); } catch {}
+  };
+
+  const handleAdminDeleteDeal = async (id) => {
+    if (!adminToken) return;
+    if (!window.confirm(`Admin: delete deal #${id}?`)) return;
+    const res = await fetch('/api/admin/actions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${adminToken}`,
+      },
+      body: JSON.stringify({ action: 'delete_deal', id }),
+    });
+    if (!res.ok) {
+      const json = await res.json().catch(() => ({}));
+      alert(json.erreur || 'Admin delete failed.');
+      return;
+    }
+    setDeals(prev => prev.filter(deal => deal.id !== id));
   };
 
   const handleDealVote = async (id, type) => {
@@ -2902,6 +2925,8 @@ export default function Home() {
                     onVote={handleDealVote} userCoords={userCoords}
                     votedDeal={votedDeals[deal.id] || null}
                     user={user}
+                    isAdmin={Boolean(adminToken)}
+                    onAdminDelete={handleAdminDeleteDeal}
                     isSaved={Boolean(savedKeys[`deal:${deal.id}`])}
                     onSave={() => handleToggleSave('deal', deal.id)}
                     translateCity={traduireVille}
@@ -2946,6 +2971,8 @@ export default function Home() {
               user={user}
               searchQuery={searchQuery}
               onSearchQueryChange={setSearchQuery}
+              isAdmin={Boolean(adminToken)}
+              onAdminDeleteDeal={handleAdminDeleteDeal}
             />
           )}
 

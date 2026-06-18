@@ -78,6 +78,7 @@ async function getUsers(supabase) {
         created_at: user.created_at,
         confirmed: Boolean(user.email_confirmed_at || user.confirmed_at),
         last_sign_in_at: user.last_sign_in_at || null,
+        banned_until: user.banned_until || null,
       })),
   };
 }
@@ -148,8 +149,8 @@ export default async function handler(req, res) {
       countRows(supabase, 'bons_plans', q => q.not('image_url', 'is', null)),
       countRows(supabase, 'bons_plans', q => q.not('url_source', 'is', null)),
       selectRows(supabase, 'bons_plans', 'id,titre,magasin,ville,categorie,statut,prix,prix_original,votes_chaud,votes_froid,image_url,url_source,auteur_nom,created_at,date_fin', q => q.order('created_at', { ascending: false }).limit(500)),
-      selectRows(supabase, 'bons_plans', 'id,titre,magasin,ville,categorie,statut,prix,votes_chaud,votes_froid,created_at', q => q.order('votes_chaud', { ascending: false }).limit(10)),
-      selectRows(supabase, 'bons_plans', 'id,titre,magasin,ville,categorie,statut,prix,auteur_nom,created_at', q => q.order('created_at', { ascending: false }).limit(12)),
+      selectRows(supabase, 'bons_plans', 'id,titre,description,magasin,ville,categorie,statut,prix,prix_original,url_source,image_url,date_debut,date_fin,auteur_id,auteur_nom,votes_chaud,votes_froid,created_at', q => q.order('votes_chaud', { ascending: false }).limit(10)),
+      selectRows(supabase, 'bons_plans', 'id,titre,description,magasin,ville,categorie,statut,prix,prix_original,url_source,image_url,date_debut,date_fin,auteur_id,auteur_nom,created_at', q => q.order('created_at', { ascending: false }).limit(20)),
       countRows(supabase, 'produits'),
       countRows(supabase, 'produits', q => q.not('image', 'is', null)),
       countRows(supabase, 'produits', q => q.eq('image_status', 'pending')),
@@ -160,7 +161,7 @@ export default async function handler(req, res) {
       countRows(supabase, 'magasins'),
       countRows(supabase, 'promotions'),
       countRows(supabase, 'commentaires'),
-      selectRows(supabase, 'commentaires', 'id,bon_plan_id,auteur_nom,contenu,created_at', q => q.order('created_at', { ascending: false }).limit(10)),
+      selectRows(supabase, 'commentaires', 'id,bon_plan_id,auteur_id,auteur_nom,contenu,created_at', q => q.order('created_at', { ascending: false }).limit(20)),
       countRows(supabase, 'bons_plans_votes'),
       countRows(supabase, 'product_votes'),
       countRows(supabase, 'saved_items'),
