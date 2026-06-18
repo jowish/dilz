@@ -3,6 +3,10 @@ import Head from 'next/head';
 import { useRouter } from 'next/router';
 
 const ACCENT = '#0284C7';
+const ISRAEL_BOUNDS = [
+  [29.35, 34.15],
+  [33.35, 35.95],
+];
 
 const CITY_COORDS = {
   'תל אביב': { lat: 32.0853, lon: 34.7818 },
@@ -74,7 +78,6 @@ export default function MapPage() {
   const [loading, setLoading] = useState(true);
   const [selectedCity, setSelectedCity] = useState(null);
   const [leafletReady, setLeafletReady] = useState(false);
-  const [urlCityChecked, setUrlCityChecked] = useState(false);
 
   const dealsByCity = useMemo(() => groupDealsByCity(deals), [deals]);
   const cityEntries = useMemo(
@@ -94,7 +97,6 @@ export default function MapPage() {
   useEffect(() => {
     if (!router.isReady) return;
     const city = typeof router.query.city === 'string' ? router.query.city : null;
-    setUrlCityChecked(true);
     if (city && CITY_COORDS[city]) setSelectedCity(city);
   }, [router.isReady, router.query.city]);
 
@@ -139,10 +141,13 @@ export default function MapPage() {
       leafletMapRef.current = null;
     }
 
+    const israelBounds = L.latLngBounds(ISRAEL_BOUNDS);
     const map = L.map(mapRef.current, {
       center: [31.8, 34.9],
       zoom: 8,
       zoomControl: true,
+      maxBounds: israelBounds.pad(0.35),
+      maxBoundsViscosity: 0.75,
     });
     leafletMapRef.current = map;
 
@@ -151,13 +156,10 @@ export default function MapPage() {
       maxZoom: 18,
     }).addTo(map);
 
-    const bounds = L.latLngBounds([]);
-
     cityEntries.forEach(([city, cityDeals]) => {
       const coords = CITY_COORDS[city];
       const count = cityDeals.length;
       const active = city === selectedCity;
-      bounds.extend([coords.lat, coords.lon]);
       const icon = L.divIcon({
         className: '',
         html: `<div class="dilz-map-marker ${active ? 'is-active' : ''}"><strong>Dilz</strong><span>${count}</span></div>`,
@@ -177,15 +179,16 @@ export default function MapPage() {
       if (selectedCity && CITY_COORDS[selectedCity]) {
         const coords = CITY_COORDS[selectedCity];
         map.flyTo([coords.lat, coords.lon], 12, { animate: false });
-      } else if (bounds.isValid()) {
-        map.fitBounds(bounds, {
-          padding: [54, 54],
-          maxZoom: 10,
-        });
+      } else {
+        map.fitBounds(israelBounds, { padding: [18, 18], animate: false });
       }
     };
 
-    map.whenReady(() => window.setTimeout(focusMap, 80));
+    map.whenReady(() => {
+      focusMap();
+      window.setTimeout(focusMap, 120);
+      window.setTimeout(focusMap, 360);
+    });
 
     return () => {
       map.remove();

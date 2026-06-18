@@ -5109,3 +5109,102 @@ textarea:focus {
     padding-top: 8px;
   }
 }
+
+/* Final mobile QA fixes */
+.dilz-map-node {
+  touch-action: pan-x pan-y;
+}
+
+@media (max-width: 767px) {
+  .dilz-map-page {
+    height: 100dvh;
+    min-height: 100dvh;
+    overflow: hidden;
+  }
+
+  .dilz-map-body {
+    flex: 1 1 auto;
+    min-height: 0;
+  }
+
+  .dilz-map-canvas {
+    flex: 1 1 auto;
+    min-height: 0;
+    height: auto;
+  }
+
+  .dilz-map-node {
+    min-height: 0;
+    height: 100%;
+  }
+
+  .dilz-map-results {
+    flex: 0 0 min(42dvh, 314px);
+    max-height: min(42dvh, 314px);
+    overflow-y: auto;
+    margin-top: 0;
+    border-radius: 18px 18px 0 0;
+    box-shadow: 0 -14px 36px rgba(15, 23, 42, 0.12);
+  }
+
+  .dilz-map-city-strip {
+    padding: 9px 0;
+  }
+
+  .dilz-map-results__header {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    gap: 4px 10px;
+  }
+
+  .dilz-map-results__header strong {
+    margin: 0;
+    font-size: 20px;
+  }
+
+  .dilz-map-results__header span {
+    grid-column: 1 / -1;
+  }
+
+  .dilz-feed-grid.is-list .dilz-deal-card.is-list .dilz-deal-card__overlay,
+  .dilz-feed-grid.is-list .dilz-deal-card.is-list .dilz-deal-card__trust {
+    display: none;
+  }
+
+  .dilz-feed-grid.is-list .dilz-deal-card.is-list .dilz-deal-card__save {
+    top: 6px;
+    right: 6px;
+  }
+
+  .dilz-feed-grid.is-list .dilz-deal-card.is-list .dilz-deal-card__save .dilz-icon-button {
+    width: 30px;
+    height: 30px;
+  }
+
+  .dilz-feed-grid.is-list .dilz-deal-card.is-list .dilz-deal-card__store-row {
+    gap: 5px;
+    font-size: 11px;
+  }
+
+  .dilz-feed-grid.is-list .dilz-deal-card.is-list .dilz-deal-card__price-row strong {
+    font-size: 16px;
+  }
+
+  .dilz-feed-grid.is-list .dilz-deal-card.is-list .dilz-deal-card__price-row span {
+    font-size: 11px;
+  }
+
+  .dilz-feed-grid.is-list .dilz-deal-card.is-list .dilz-deal-card__meta span:nth-child(2),
+  .dilz-feed-grid.is-list .dilz-deal-card.is-list .dilz-deal-card__meta span:nth-child(3) {
+    display: none;
+  }
+
+  .dilz-feed-grid.is-list .dilz-deal-card.is-list .dilz-vote-pill {
+    gap: 6px;
+  }
+
+  .dilz-feed-grid.is-list .dilz-deal-card.is-list .dilz-deal-card__right-actions {
+    gap: 6px;
+  }
+}
