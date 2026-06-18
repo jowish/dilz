@@ -5642,3 +5642,45 @@ textarea::placeholder {
     margin: 0;
   }
 }
+
+/* Search results QA */
+.dilz-search-bar input:focus {
+  border-color: transparent !important;
+  box-shadow: none !important;
+  outline: none !important;
+}
+
+.dilz-search-deal-results {
+  display: grid;
+  gap: 12px;
+}
+
+@media (max-width: 767px) {
+  .dilz-search-deal-results .dilz-deal-card.is-list {
+    align-items: start;
+  }
+
+  .dilz-search-deal-results .dilz-deal-card__overlay,
+  .dilz-search-deal-results .dilz-deal-card__trust,
+  .dilz-search-deal-results .dilz-deal-card__admin-badge {
+    display: none;
+  }
+
+  .dilz-search-deal-results .dilz-deal-card__save {
+    top: 6px;
+    right: 6px;
+  }
+
+  .dilz-search-deal-results .dilz-deal-card__save .dilz-icon-button {
+    width: 30px;
+    height: 30px;
+  }
+
+  .dilz-search-deal-results .dilz-deal-card__body {
+    min-width: 0;
+  }
+
+  .dilz-search-deal-results .dilz-deal-card__actions {
+    gap: 6px;
+  }
+}

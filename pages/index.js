@@ -429,6 +429,7 @@ function SearchTab({ promos, deals, lang, isDark, onPromoClick, userCoords, prom
           <p style={{ fontSize: 12, fontWeight: 500, color: 'var(--text-muted)', marginBottom: 10 }}>
             Dilz ({mDeals.length})
           </p>
+          <div className="dilz-search-deal-results">
           {mDeals.slice(0, 5).map(d => (
             <PremiumDealCard key={d.id} deal={d} lang={lang} isDark={isDark}
               userCoords={userCoords} votedDeal={votedDeals[d.id] || null}
@@ -439,6 +440,7 @@ function SearchTab({ promos, deals, lang, isDark, onPromoClick, userCoords, prom
               isSaved={Boolean(savedKeys[`deal:${d.id}`])}
               onSave={() => onToggleSave('deal', d.id)} />
           ))}
+          </div>
         </>
       )}
     </div>
