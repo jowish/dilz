@@ -62,7 +62,7 @@
   --danger-soft: #FEF2F2;
   --warning: #F59E0B;
   --warning-soft: #FFFBEB;
-  --vote-up: #15803D;
+  --vote-up: #E2552D;
   --vote-down: #64748B;
   --vote-active-bg: #EAF8EF;
   --vote-neutral-bg: #F1F5F9;
@@ -128,6 +128,11 @@ body {
   overscroll-behavior: none;
   font-size: 14px;
   line-height: 1.5;
+}
+
+#__next {
+  min-height: 100vh;
+  background: var(--bg);
 }
 
 a {
@@ -822,7 +827,7 @@ textarea:focus {
   display: flex;
   gap: 8px;
   overflow-x: auto;
-  padding: 2px 0 14px;
+  padding: 0 0 12px;
   margin-bottom: 4px;
 }
 
@@ -1036,19 +1041,16 @@ textarea:focus {
   height: 36px;
   display: inline-flex;
   align-items: center;
-  border-radius: 999px;
-  background: var(--vote-neutral-bg);
-  padding: 3px;
-  gap: 3px;
+  gap: 6px;
 }
 
 .dilz-vote-pill button {
-  height: 30px;
-  min-width: 34px;
-  border: 0;
-  border-radius: 999px;
-  background: transparent;
-  color: var(--vote-down);
+  height: 34px;
+  min-width: 54px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--bg-card);
+  color: var(--text-sub);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -1059,13 +1061,15 @@ textarea:focus {
 }
 
 .dilz-vote-pill button.is-up {
-  background: var(--vote-active-bg);
-  color: var(--vote-up);
+  background: var(--brand);
+  border-color: var(--brand);
+  color: #fff;
 }
 
 .dilz-vote-pill button.is-down {
-  background: #E2E8F0;
-  color: var(--vote-down);
+  background: var(--vote-down);
+  border-color: var(--vote-down);
+  color: #fff;
 }
 
 .dilz-deal-card__right-actions {

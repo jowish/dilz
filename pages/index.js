@@ -2535,13 +2535,6 @@ export default function Home() {
           {/* ══ DEALS TAB ══ */}
           {tab === 'deals' && (
             <div>
-              <SectionHeader
-                title="Dilz"
-                subtitle="Community-posted deals from real users."
-                actionLabel="Post deal"
-                onAction={() => setShowPostModal(true)}
-              />
-
               <div className="dilz-view-switcher" aria-label="Dilz views">
                 {[
                   { id: 'all', label: 'Top Dilz' },
@@ -2597,18 +2590,6 @@ export default function Home() {
                   </button>
                 </div>
               )}
-
-              {/* Post CTA */}
-              <button onClick={() => setShowPostModal(true)} style={{
-                width: '100%', padding: '12px 20px', borderRadius: 8, cursor: 'pointer',
-                border: '1px solid var(--border)',
-                background: 'var(--bg-card)',
-                color: 'var(--text-sub)', fontSize: 13, fontWeight: 500, marginBottom: 12,
-                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7,
-              }}>
-                <span style={{ fontSize: 15, fontWeight: 400, color: ACCENT, lineHeight: 1 }}>+</span>
-                {lang !== 'he' ? 'Share a deal' : 'שתף דיל'}
-              </button>
 
               {/* Post success banner */}
               {postSuccess && (
