@@ -1874,4 +1874,354 @@ textarea:focus {
   }
 }
 
+.admin-dashboard {
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at top left, rgba(226, 85, 45, 0.10), transparent 34rem),
+    var(--bg);
+  color: var(--text-primary);
+  padding: 28px;
+}
+
+.admin-hero,
+.admin-panel,
+.admin-login__card,
+.admin-metric {
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid var(--border-default);
+  box-shadow: var(--shadow-card);
+}
+
+.admin-hero {
+  max-width: 1360px;
+  margin: 0 auto 18px;
+  border-radius: 24px;
+  padding: 24px;
+  display: flex;
+  justify-content: space-between;
+  gap: 24px;
+  align-items: flex-start;
+}
+
+.admin-kicker {
+  color: var(--brand);
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.admin-hero h1,
+.admin-login h1 {
+  margin: 6px 0 8px;
+  font-size: clamp(30px, 4vw, 48px);
+  line-height: 1;
+  letter-spacing: -1.4px;
+}
+
+.admin-hero p,
+.admin-login p,
+.admin-panel__header p,
+.admin-metric p {
+  color: var(--text-secondary);
+}
+
+.admin-hero__actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.admin-hero__actions span {
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.admin-hero__actions button,
+.admin-login button {
+  min-height: 40px;
+  border: 0;
+  border-radius: 12px;
+  background: var(--brand);
+  color: #fff;
+  padding: 0 14px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.admin-hero__actions button.is-ghost {
+  background: var(--surface-soft);
+  color: var(--text-secondary);
+}
+
+.admin-metrics,
+.admin-grid {
+  max-width: 1360px;
+  margin: 0 auto 18px;
+}
+
+.admin-metrics {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.admin-mini-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.admin-grid {
+  display: grid;
+  gap: 18px;
+}
+
+.admin-grid--two {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.admin-grid--three {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.admin-metric {
+  border-radius: 18px;
+  padding: 16px;
+}
+
+.admin-metric span {
+  display: block;
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 800;
+  margin-bottom: 8px;
+}
+
+.admin-metric strong {
+  color: var(--text-primary);
+  display: block;
+  font-size: 28px;
+  line-height: 1;
+  font-weight: 950;
+  letter-spacing: -0.8px;
+}
+
+.admin-metric p {
+  margin-top: 8px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.admin-metric--good {
+  border-color: rgba(21, 128, 61, 0.25);
+  background: #F0FDF4;
+}
+
+.admin-metric--warn {
+  border-color: rgba(245, 158, 11, 0.28);
+  background: #FFFBEB;
+}
+
+.admin-metric--danger {
+  border-color: rgba(220, 38, 38, 0.28);
+  background: #FEF2F2;
+}
+
+.admin-panel {
+  border-radius: 22px;
+  padding: 18px;
+  overflow: hidden;
+}
+
+.admin-panel__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 14px;
+}
+
+.admin-panel h2 {
+  font-size: 18px;
+  font-weight: 900;
+  letter-spacing: -0.3px;
+}
+
+.admin-panel__header p {
+  font-size: 13px;
+  margin-top: 3px;
+}
+
+.admin-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.admin-bar__top {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.admin-bar__track {
+  height: 8px;
+  border-radius: 999px;
+  background: var(--surface-soft);
+  overflow: hidden;
+  margin-top: 5px;
+}
+
+.admin-bar__track span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--brand), #F59E0B);
+}
+
+.admin-table-wrap {
+  overflow-x: auto;
+}
+
+.admin-table {
+  width: 100%;
+  min-width: 620px;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.admin-table th {
+  color: var(--text-muted);
+  text-align: left;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 9px 8px;
+  border-bottom: 1px solid var(--border-default);
+}
+
+.admin-table td {
+  color: var(--text-secondary);
+  padding: 10px 8px;
+  border-bottom: 1px solid var(--border-default);
+  vertical-align: top;
+}
+
+.admin-table td:first-child {
+  color: var(--text-primary);
+  font-weight: 800;
+}
+
+.admin-empty {
+  color: var(--text-muted);
+  font-size: 13px;
+  padding: 14px;
+  border-radius: 14px;
+  background: var(--surface-soft);
+}
+
+.admin-warning-list {
+  display: grid;
+  gap: 8px;
+  list-style: none;
+}
+
+.admin-warning-list li {
+  color: #92400E;
+  background: #FFFBEB;
+  border: 1px solid #FDE68A;
+  border-radius: 14px;
+  padding: 10px 12px;
+  font-size: 13px;
+  font-weight: 750;
+}
+
+.admin-login {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background:
+    radial-gradient(circle at top left, rgba(226, 85, 45, 0.12), transparent 30rem),
+    var(--bg);
+}
+
+.admin-login__card {
+  width: min(520px, 100%);
+  border-radius: 28px;
+  padding: 28px;
+}
+
+.admin-login form {
+  display: grid;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.admin-login input {
+  height: 48px;
+  border: 1px solid var(--border-default);
+  border-radius: 14px;
+  padding: 0 14px;
+  font-size: 15px;
+  color: var(--text-primary);
+  background: var(--surface-main);
+}
+
+.admin-error {
+  color: var(--danger) !important;
+  background: var(--danger-soft);
+  border-radius: 12px;
+  padding: 10px 12px;
+  margin-top: 12px;
+  font-size: 13px;
+  font-weight: 750;
+}
+
+@media (max-width: 1100px) {
+  .admin-metrics,
+  .admin-grid--three {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .admin-grid--two {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 720px) {
+  .admin-dashboard {
+    padding: 12px;
+  }
+
+  .admin-hero {
+    display: block;
+    padding: 18px;
+  }
+
+  .admin-hero__actions {
+    justify-content: flex-start;
+    margin-top: 16px;
+  }
+
+  .admin-metrics,
+  .admin-grid--three,
+  .admin-mini-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-panel,
+  .admin-metric {
+    border-radius: 16px;
+  }
+}
+
 
