@@ -6,9 +6,6 @@ import { supabase } from '../../lib/supabase';
 import { traduireVille } from '../../lib/translations';
 import { uploadDealImage, validateImageFile, deleteDealImage } from '../../lib/uploadImage';
 
-const ACCENT = '#E2552D';
-const ACCENT_DARK = '#C2410C';
-
 const CATEGORIES = ['Food', 'Tech', 'Fashion', 'Activities', 'Online'];
 
 const CITY_COORDS = {
@@ -22,18 +19,6 @@ const CITY_COORDS = {
   'קריית אונו': {},
 };
 
-function computeVoteDeltas(current, next) {
-  if (current === next) {
-    return { chaud_delta: next === 'chaud' ? -1 : 0, froid_delta: next === 'froid' ? -1 : 0, newVote: null };
-  }
-  const d = { chaud_delta: 0, froid_delta: 0 };
-  if (current === 'chaud') d.chaud_delta -= 1;
-  if (current === 'froid') d.froid_delta -= 1;
-  if (next === 'chaud') d.chaud_delta += 1;
-  if (next === 'froid') d.froid_delta += 1;
-  return { ...d, newVote: next };
-}
-
 function timeAgo(date) {
   const diff = Date.now() - new Date(date).getTime();
   const h = Math.floor(diff / 3600000);
@@ -42,21 +27,56 @@ function timeAgo(date) {
   return `${Math.floor(h / 24)}d ago`;
 }
 
-function parseDateOnly(value) {
-  const match = String(value || '').match(/^(\d{4}-\d{2}-\d{2})(?:$|[T\s])/);
-  if (!match) return null;
-  const [year, month, day] = match[1].split('-').map(Number);
-  return new Date(year, month - 1, day);
-}
-
 function dateInputValue(value) {
   const match = String(value || '').match(/^(\d{4}-\d{2}-\d{2})(?:$|[T\s])/);
   return match ? match[1] : '';
 }
 
 function formatDateOnly(value) {
-  const date = parseDateOnly(value);
-  return date ? date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '';
+  const match = String(value || '').match(/^(\d{4}-\d{2}-\d{2})(?:$|[T\s])/);
+  if (!match) return '';
+  const [year, month, day] = match[1].split('-').map(Number);
+  return new Date(year, month - 1, day).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+}
+
+function HotIcon() {
+  return <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2c0 0-4.5 5.5-4.5 10a4.5 4.5 0 0 0 9 0C16.5 7.5 12 2 12 2zm0 13a2.5 2.5 0 0 1-2.5-2.5C9.5 10 12 6.5 12 6.5S14.5 10 14.5 12.5A2.5 2.5 0 0 1 12 15z"/></svg>;
+}
+
+function ColdIcon() {
+  return <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20 11h-2.34l1.17-2.03-1.73-1-1.46 2.53L14 9.27V7h-2v2l-1.64 1.23-1.46-2.53-1.73 1L8.34 11H6v2h2.34l-1.17 2.03 1.73 1 1.46-2.53L12 14.73V17h2v-2.27l1.64-1.23 1.46 2.53 1.73-1L17.66 13H20v-2z"/></svg>;
+}
+
+function BackArrow() {
+  return <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true"><path d="M19 12H5m7-7-7 7 7 7"/></svg>;
+}
+
+function ShareIcon() {
+  return <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>;
+}
+
+function EditIcon() {
+  return <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>;
+}
+
+function CameraIcon() {
+  return <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" aria-hidden="true"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>;
+}
+
+function ReplyIcon() {
+  return <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true"><polyline points="9 17 4 12 9 7"/><path d="M20 18v-2a4 4 0 0 0-4-4H4"/></svg>;
+}
+
+function WhatsAppIcon() {
+  return <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>;
+}
+
+function TelegramIcon() {
+  return <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg>;
+}
+
+function BagIcon() {
+  return <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" aria-hidden="true"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>;
 }
 
 export default function DealPage() {
@@ -72,16 +92,10 @@ export default function DealPage() {
   const [commentError, setCommentError] = useState('');
   const [myVote, setMyVote] = useState(null);
   const [mounted, setMounted] = useState(false);
-
-  // Comment votes (client-side only)
   const [commentVotes, setCommentVotes] = useState({});
-
-  // Reply state
-  const [replyTo, setReplyTo] = useState(null); // { id, auteur_nom }
+  const [replyTo, setReplyTo] = useState(null);
   const [replyText, setReplyText] = useState('');
   const [replySubmitting, setReplySubmitting] = useState(false);
-
-  // Edit deal state
   const [isEditing, setIsEditing] = useState(false);
   const [editForm, setEditForm] = useState({});
   const [editSubmitting, setEditSubmitting] = useState(false);
@@ -89,8 +103,6 @@ export default function DealPage() {
   const [editImageFile, setEditImageFile] = useState(null);
   const [editImagePreview, setEditImagePreview] = useState(null);
   const [editImageError, setEditImageError] = useState('');
-
-  // Share feedback
   const [copySuccess, setCopySuccess] = useState(false);
 
   useEffect(() => {
@@ -144,17 +156,14 @@ export default function DealPage() {
 
   const handleVote = async (type) => {
     if (!user) { router.push(`/auth?redirect=/deal/${id}`); return; }
-
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) { router.push(`/auth?redirect=/deal/${id}`); return; }
 
-    // Compute optimistic toggle
     const optimisticNewVote = myVote === type ? null : type;
     const chaud_delta = (myVote === 'chaud' ? -1 : 0) + (optimisticNewVote === 'chaud' ? 1 : 0);
     const froid_delta = (myVote === 'froid' ? -1 : 0) + (optimisticNewVote === 'froid' ? 1 : 0);
     const prevVote = myVote;
 
-    // Optimistic update
     setMyVote(optimisticNewVote);
     try {
       const dv = JSON.parse(localStorage.getItem('dilzDealVotes') || '{}');
@@ -169,19 +178,12 @@ export default function DealPage() {
 
     const apiRes = await fetch('/api/bons-plans', {
       method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${session.access_token}`,
-      },
-      body: JSON.stringify({
-        action: 'vote', id, type,
-        chaud_delta, froid_delta, // fallback deltas
-      }),
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
+      body: JSON.stringify({ action: 'vote', id, type, chaud_delta, froid_delta }),
     });
 
     if (apiRes.ok) {
       const data = await apiRes.json();
-      // Reconcile with server-authoritative state
       const serverVote = data.newType ?? null;
       setMyVote(serverVote);
       try {
@@ -190,14 +192,9 @@ export default function DealPage() {
         localStorage.setItem('dilzDealVotes', JSON.stringify(dv));
       } catch {}
       if (data.votes_chaud !== undefined) {
-        setDeal(prev => ({
-          ...prev,
-          votes_chaud: data.votes_chaud,
-          votes_froid: data.votes_froid,
-        }));
+        setDeal(prev => ({ ...prev, votes_chaud: data.votes_chaud, votes_froid: data.votes_froid }));
       }
     } else {
-      // Rollback
       setMyVote(prevVote);
       try {
         const dv = JSON.parse(localStorage.getItem('dilzDealVotes') || '{}');
@@ -215,8 +212,7 @@ export default function DealPage() {
   const handleCommentVote = (commentId, type) => {
     if (!user) { router.push(`/auth?redirect=/deal/${id}`); return; }
     setCommentVotes(prev => {
-      const current = prev[commentId];
-      const next = { ...prev, [commentId]: current === type ? null : type };
+      const next = { ...prev, [commentId]: prev[commentId] === type ? null : type };
       try { localStorage.setItem('dilzCommentVotes', JSON.stringify(next)); } catch {}
       return next;
     });
@@ -232,14 +228,8 @@ export default function DealPage() {
       if (!session) { router.push(`/auth?redirect=/deal/${id}`); setSubmitting(false); return; }
       const r = await fetch('/api/commentaires', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session.access_token}`,
-        },
-        body: JSON.stringify({
-          bon_plan_id: id,
-          contenu: newComment.trim(),
-        }),
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
+        body: JSON.stringify({ bon_plan_id: id, contenu: newComment.trim() }),
       });
       const d = await r.json();
       if (!r.ok || d.erreur) { setCommentError(d.erreur || 'Failed to post comment'); setSubmitting(false); return; }
@@ -259,21 +249,11 @@ export default function DealPage() {
       if (!session) { setReplySubmitting(false); return; }
       const r = await fetch('/api/commentaires', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session.access_token}`,
-        },
-        body: JSON.stringify({
-          bon_plan_id: id,
-          contenu: `↩ @${replyTo.auteur_nom}: ${replyText.trim()}`,
-        }),
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
+        body: JSON.stringify({ bon_plan_id: id, contenu: `↩ @${replyTo.auteur_nom}: ${replyText.trim()}` }),
       });
       const d = await r.json();
-      if (r.ok && !d.erreur) {
-        setReplyTo(null);
-        setReplyText('');
-        await fetchComments();
-      }
+      if (r.ok && !d.erreur) { setReplyTo(null); setReplyText(''); await fetchComments(); }
     } catch {}
     setReplySubmitting(false);
   };
@@ -291,42 +271,25 @@ export default function DealPage() {
   };
 
   const handleEditSubmit = async () => {
-    if (!editForm.titre || !editForm.prix || !editForm.magasin) {
-      setEditError('Title, price and store are required');
-      return;
-    }
-    if (editForm.date_debut && editForm.date_fin && editForm.date_fin < editForm.date_debut) {
-      setEditError('End date must be after start date.');
-      return;
-    }
+    if (!editForm.titre || !editForm.prix || !editForm.magasin) { setEditError('Title, price and store are required'); return; }
+    if (editForm.date_debut && editForm.date_fin && editForm.date_fin < editForm.date_debut) { setEditError('End date must be after start date.'); return; }
     setEditSubmitting(true);
     setEditError('');
     let newUploadPath = null;
     try {
       let image_url = deal.image_url;
-
       if (editImageFile) {
         const { url, path } = await uploadDealImage(editImageFile, user.id);
         image_url = url;
         newUploadPath = path;
       }
-
       const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        setEditError('Session expired. Please sign in again.');
-        setEditSubmitting(false);
-        return;
-      }
-
+      if (!session) { setEditError('Session expired. Please sign in again.'); setEditSubmitting(false); return; }
       const res = await fetch('/api/bons-plans', {
         method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session.access_token}`,
-        },
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
         body: JSON.stringify({
-          action: 'edit', id,
-          ...editForm,
+          action: 'edit', id, ...editForm,
           prix: parseFloat(editForm.prix),
           prix_original: editForm.prix_original ? parseFloat(editForm.prix_original) : null,
           image_url,
@@ -354,7 +317,7 @@ export default function DealPage() {
   const handleShare = async () => {
     if (!deal) return;
     const url = window.location.href;
-    const text = `${deal.titre} — ₪${deal.prix} at ${deal.magasin}${deal.ville ? `, ${deal.ville}` : ''} 🔥`;
+    const text = `${deal.titre} — ₪${deal.prix} at ${deal.magasin}${deal.ville ? `, ${deal.ville}` : ''}`;
     if (navigator.share) {
       try { await navigator.share({ title: deal.titre, text, url }); } catch {}
     } else {
@@ -379,17 +342,17 @@ export default function DealPage() {
 
   if (loading) {
     return (
-      <div style={{ minHeight: '100vh', background: 'var(--bg)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <div style={{ color: 'var(--text-muted)', fontSize: 14 }}>Loading deal...</div>
+      <div className="dilz-deal-loading">
+        <div className="dilz-spinner" />
       </div>
     );
   }
 
   if (!deal) {
     return (
-      <div style={{ minHeight: '100vh', background: 'var(--bg)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16 }}>
-        <p style={{ fontSize: 16, color: 'var(--text-sub)' }}>Deal not found</p>
-        <Link href="/" style={{ color: ACCENT, textDecoration: 'none', fontWeight: 600 }}>← Back to deals</Link>
+      <div className="dilz-deal-notfound">
+        <p>Deal not found</p>
+        <Link href="/" className="dilz-button dilz-button--primary dilz-button--md">Back to deals</Link>
       </div>
     );
   }
@@ -397,7 +360,6 @@ export default function DealPage() {
   const reduction = deal.prix_original
     ? Math.round((deal.prix_original - deal.prix) / deal.prix_original * 100)
     : null;
-
   const isOwner = user && user.id === deal.auteur_id;
   const pageTitle = `${deal.titre} — ₪${deal.prix} at ${deal.magasin} | Dilz`;
   const pageDesc = deal.description
@@ -406,481 +368,419 @@ export default function DealPage() {
 
   return (
     <>
-    <Head>
-      <title>{pageTitle}</title>
-      <meta name="description" content={pageDesc} />
-      <meta property="og:title" content={pageTitle} />
-      <meta property="og:description" content={pageDesc} />
-      {deal.image_url && <meta property="og:image" content={deal.image_url} />}
-      <meta property="og:type" content="article" />
-      <meta name="twitter:card" content={deal.image_url ? 'summary_large_image' : 'summary'} />
-    </Head>
-    <div style={{ minHeight: '100vh', background: 'var(--bg)', paddingBottom: 80 }}>
-      {/* Header */}
-      <div style={{
-        background: 'var(--nav-bg)', borderBottom: '1px solid var(--border)',
-        padding: '14px 16px', position: 'sticky', top: 0, zIndex: 50,
-        backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)',
-      }}>
-        <div style={{ maxWidth: 600, margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <button onClick={() => {
-            try { sessionStorage.setItem('dilzReturnTab', 'deals'); } catch {}
-            router.back();
-          }} style={{ background: 'none', border: 'none', color: 'var(--text-sub)', fontSize: 14, fontWeight: 500, cursor: 'pointer' }}>
-            ← Back
-          </button>
-          <span style={{ fontSize: 18, fontWeight: 700, color: 'var(--text)' }}>
-            dil<span style={{ color: ACCENT }}>z</span>
-          </span>
-          <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-            <button onClick={handleShare} style={{
-              background: copySuccess ? 'rgba(5,150,105,0.08)' : 'transparent',
-              border: copySuccess ? '1px solid #059669' : '1px solid var(--border)',
-              borderRadius: 8, padding: '5px 12px',
-              color: copySuccess ? '#059669' : 'var(--text-sub)',
-              fontSize: 12, fontWeight: 600, cursor: 'pointer',
-            }}>
-              {copySuccess ? 'Copied' : 'Share'}
+      <Head>
+        <title>{pageTitle}</title>
+        <meta name="description" content={pageDesc} />
+        <meta property="og:title" content={pageTitle} />
+        <meta property="og:description" content={pageDesc} />
+        {deal.image_url && <meta property="og:image" content={deal.image_url} />}
+        <meta property="og:type" content="article" />
+        <meta name="twitter:card" content={deal.image_url ? 'summary_large_image' : 'summary'} />
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+      </Head>
+
+      <div className="dilz-deal-page">
+        <header className="dilz-app-header">
+          <div className="dilz-app-header__inner">
+            <button
+              type="button"
+              className="dilz-deal-back"
+              onClick={() => {
+                try { sessionStorage.setItem('dilzReturnTab', 'deals'); } catch {}
+                router.back();
+              }}
+            >
+              <BackArrow /> Back
             </button>
-            {isOwner && (
-              <button onClick={() => setIsEditing(true)} style={{
-                background: 'transparent', border: `1px solid ${ACCENT}`,
-                borderRadius: 8, padding: '5px 12px',
-                color: ACCENT, fontSize: 12, fontWeight: 600, cursor: 'pointer',
-              }}>
-                Edit
+            <Link href="/" className="dilz-logo-button" aria-label="Dilz home">
+              <span className="dilz-logo">d<span>IL</span>z</span>
+            </Link>
+            <div className="dilz-deal-header-actions">
+              <button
+                type="button"
+                className={['dilz-button dilz-button--sm', copySuccess ? 'dilz-button--success' : 'dilz-button--ghost'].join(' ')}
+                onClick={handleShare}
+              >
+                <ShareIcon /> {copySuccess ? 'Copied' : 'Share'}
               </button>
-            )}
+              {isOwner && (
+                <button
+                  type="button"
+                  className="dilz-button dilz-button--outline dilz-button--sm"
+                  onClick={() => setIsEditing(true)}
+                >
+                  <EditIcon /> Edit
+                </button>
+              )}
+            </div>
           </div>
-        </div>
-      </div>
+        </header>
 
-      <div style={{ maxWidth: 600, margin: '0 auto' }}>
-        {/* Image */}
-        {deal.image_url ? (
-          <div style={{ position: 'relative', height: 280 }}>
-            <img
-              src={deal.image_url}
-              alt={deal.titre}
-              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-              onError={e => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }}
-            />
-            <div style={{ display: 'none', height: 280, background: 'var(--bg-card2)', alignItems: 'center', justifyContent: 'center' }}>
-              <div style={{ opacity: 0.2 }}>
-                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
+        <div className="dilz-deal-content">
+          {deal.image_url ? (
+            <div className="dilz-deal-hero">
+              <img
+                src={deal.image_url}
+                alt={deal.titre}
+                className="dilz-deal-hero__img"
+                onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }}
+              />
+              <div className="dilz-deal-hero__fallback" style={{ display: 'none' }}>
+                <BagIcon />
               </div>
-            </div>
-            {deal.categorie && (
-              <span style={{ position: 'absolute', top: 16, left: 16, background: 'rgba(0,0,0,0.65)', color: '#fff', fontSize: 12, fontWeight: 600, padding: '4px 10px', borderRadius: 4 }}>{deal.categorie}</span>
-            )}
-            {reduction !== null && (
-              <span style={{ position: 'absolute', top: 16, right: 16, background: ACCENT, color: '#fff', fontSize: 12, fontWeight: 700, padding: '4px 10px', borderRadius: 4 }}>-{reduction}%</span>
-            )}
-          </div>
-        ) : (
-          <div style={{ height: 140, background: 'var(--bg-card2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <div style={{ opacity: 0.15 }}>
-              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
-            </div>
-          </div>
-        )}
-
-        {/* Content */}
-        <div style={{ padding: '20px 16px 0' }}>
-          <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, marginBottom: 12 }}>
-            <span style={{ fontSize: 28, fontWeight: 700, color: ACCENT }}>₪{deal.prix}</span>
-            {deal.prix_original && (
-              <span style={{ fontSize: 18, color: 'var(--text-muted)', textDecoration: 'line-through' }}>₪{deal.prix_original}</span>
-            )}
-          </div>
-
-          <h1 style={{ fontSize: 20, fontWeight: 700, color: 'var(--text)', marginBottom: 10, lineHeight: 1.3 }}>{deal.titre}</h1>
-
-          <p style={{ fontSize: 13, color: 'var(--text-sub)', marginBottom: 16 }}>
-            {[deal.magasin, deal.ville ? traduireVille(deal.ville, 'en') : null].filter(Boolean).join(' · ')}
-            {' · '}{timeAgo(deal.created_at)}
-            {deal.auteur_nom ? ` · by ${deal.auteur_nom}` : ''}
-          </p>
-
-          {(deal.date_debut || deal.date_fin) && (
-            <div style={{
-              display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 16,
-              padding: '10px 12px', borderRadius: 8,
-              background: 'var(--bg-card)', border: '1px solid var(--border)',
-              color: 'var(--text-sub)', fontSize: 12,
-            }}>
-              {deal.date_debut && <span>Starts: {formatDateOnly(deal.date_debut)}</span>}
-              {deal.date_fin && <span>Ends: {formatDateOnly(deal.date_fin)}</span>}
-            </div>
-          )}
-
-          {deal.description && (
-            <div style={{ background: 'var(--bg-card)', borderRadius: 10, padding: '14px 16px', marginBottom: 16, border: '1px solid var(--border)' }}>
-              <p style={{ fontSize: 14, color: 'var(--text)', lineHeight: 1.6 }}>{deal.description}</p>
-            </div>
-          )}
-
-          {deal.url_source && (
-            <a href={deal.url_source} target="_blank" rel="noopener noreferrer" style={{
-              display: 'flex', alignItems: 'center', gap: 8,
-              background: 'var(--bg-card)', borderRadius: 8, padding: '12px 16px',
-              marginBottom: 16, textDecoration: 'none', color: ACCENT, fontWeight: 600, fontSize: 14,
-              border: '1px solid var(--border)',
-            }}>
-              View online deal ↗
-            </a>
-          )}
-
-          {/* Votes */}
-          <div style={{ display: 'flex', gap: 8, padding: '14px 0 12px', borderTop: '1px solid var(--border)' }}>
-            <button onClick={() => handleVote('chaud')} style={{
-              flex: 1, padding: '12px 20px', borderRadius: 9,
-              border: myVote === 'chaud' ? `1px solid ${ACCENT}` : '1px solid var(--border)',
-              background: myVote === 'chaud' ? ACCENT : 'transparent',
-              color: myVote === 'chaud' ? '#fff' : 'var(--text-sub)',
-              fontSize: 14, fontWeight: 600, cursor: 'pointer',
-            }}>
-              🔥 {deal.votes_chaud || 0}
-            </button>
-            <button onClick={() => handleVote('froid')} style={{
-              flex: 1, padding: '12px 20px', borderRadius: 9,
-              border: myVote === 'froid' ? '1px solid #64748B' : '1px solid var(--border)',
-              background: myVote === 'froid' ? '#64748B' : 'transparent',
-              color: myVote === 'froid' ? '#fff' : 'var(--text-sub)',
-              fontSize: 14, fontWeight: 600, cursor: 'pointer',
-            }}>
-              ❄️ {deal.votes_froid || 0}
-            </button>
-          </div>
-
-          {/* Share row */}
-          <div style={{ display: 'flex', gap: 6, marginBottom: 24, paddingBottom: 16, borderBottom: '1px solid var(--border)' }}>
-            <a
-              href={`https://wa.me/?text=${encodeURIComponent(`${deal.titre} — ₪${deal.prix} at ${deal.magasin}${deal.ville ? `, ${deal.ville}` : ''} ${typeof window !== 'undefined' ? window.location.href : ''}`)}`}
-              target="_blank" rel="noopener noreferrer"
-              style={{
-                flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5,
-                padding: '9px 0', borderRadius: 8,
-                background: 'transparent', border: '1px solid rgba(37,211,102,0.35)',
-                color: '#25D366', textDecoration: 'none', fontSize: 12, fontWeight: 600,
-              }}
-            >
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
-              WhatsApp
-            </a>
-            <a
-              href={`https://t.me/share/url?url=${encodeURIComponent(typeof window !== 'undefined' ? window.location.href : '')}&text=${encodeURIComponent(`${deal.titre} — ₪${deal.prix} at ${deal.magasin}${deal.ville ? `, ${deal.ville}` : ''}`)}`}
-              target="_blank" rel="noopener noreferrer"
-              style={{
-                flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5,
-                padding: '9px 0', borderRadius: 8,
-                background: 'transparent', border: '1px solid rgba(42,171,238,0.35)',
-                color: '#2AABEE', textDecoration: 'none', fontSize: 12, fontWeight: 600,
-              }}
-            >
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg>
-              Telegram
-            </a>
-            <button onClick={handleShare} style={{
-              flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center',
-              padding: '9px 0', borderRadius: 8, border: '1px solid var(--border)',
-              background: copySuccess ? 'rgba(5,150,105,0.08)' : 'transparent',
-              color: copySuccess ? '#059669' : 'var(--text-sub)',
-              fontSize: 12, fontWeight: 600, cursor: 'pointer',
-            }}>
-              {copySuccess ? 'Copied' : 'Copy link'}
-            </button>
-          </div>
-
-          {/* Comments */}
-          <p style={{ fontSize: 16, fontWeight: 700, color: 'var(--text)', marginBottom: 14 }}>
-            Comments ({comments.length})
-          </p>
-
-          {comments.length === 0 ? (
-            <div style={{ background: 'var(--bg-card)', borderRadius: 10, padding: '24px', textAlign: 'center', marginBottom: 16, border: '1px solid var(--border)' }}>
-              <p style={{ fontSize: 14, color: 'var(--text-muted)' }}>No comments yet — be the first!</p>
+              {deal.categorie && <span className="dilz-deal-category-badge">{deal.categorie}</span>}
+              {reduction !== null && <span className="dilz-deal-discount-badge">-{reduction}%</span>}
             </div>
           ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 16 }}>
-              {comments.map(c => {
-                const initials = (c.auteur_nom || 'A').slice(0, 2).toUpperCase();
-                const isReply = c.contenu.startsWith('↩ @');
-                const myCommentVote = commentVotes[c.id] || null;
-                return (
-                  <div key={c.id} style={{
-                    background: 'var(--bg-card)', borderRadius: 10,
-                    padding: '14px 16px', border: '1px solid var(--border)',
-                    marginLeft: isReply ? 24 : 0,
-                    borderLeft: isReply ? `3px solid ${ACCENT}` : 'none',
-                    boxShadow: 'var(--shadow-card)',
-                  }}>
-                    <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
-                      <div style={{
-                        width: 34, height: 34, borderRadius: '50%', flexShrink: 0,
-                        background: isReply ? `rgba(226,85,45,0.12)` : 'var(--bg-card2)',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      }}>
-                        <span style={{ fontSize: 12, fontWeight: 700, color: isReply ? ACCENT : 'var(--text-sub)' }}>{initials}</span>
-                      </div>
-                      <div style={{ flex: 1 }}>
-                        <div style={{ display: 'flex', gap: 8, alignItems: 'baseline', marginBottom: 4 }}>
-                          <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)' }}>{c.auteur_nom || 'Anonymous'}</span>
-                          <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>{timeAgo(c.created_at)}</span>
-                        </div>
-                        <p style={{ fontSize: 14, color: 'var(--text)', lineHeight: 1.5 }}>{c.contenu}</p>
+            <div className="dilz-deal-hero dilz-deal-hero--empty">
+              <BagIcon />
+            </div>
+          )}
 
-                        {/* Comment actions */}
-                        <div style={{ display: 'flex', gap: 8, marginTop: 8, alignItems: 'center' }}>
-                          <button onClick={() => handleCommentVote(c.id, 'chaud')} style={{
-                            background: 'transparent',
-                            border: myCommentVote === 'chaud' ? `1px solid ${ACCENT}` : '1px solid var(--border)',
-                            borderRadius: 6, padding: '2px 8px',
-                            color: myCommentVote === 'chaud' ? ACCENT : 'var(--text-muted)',
-                            fontSize: 11, fontWeight: 500, cursor: 'pointer',
-                          }}>+1</button>
-                          <button onClick={() => handleCommentVote(c.id, 'froid')} style={{
-                            background: 'transparent',
-                            border: myCommentVote === 'froid' ? '1px solid #64748B' : '1px solid var(--border)',
-                            borderRadius: 6, padding: '2px 8px',
-                            color: myCommentVote === 'froid' ? '#64748B' : 'var(--text-muted)',
-                            fontSize: 11, fontWeight: 500, cursor: 'pointer',
-                          }}>-1</button>
+          <div className="dilz-deal-body">
+            <div className="dilz-deal-price-row">
+              <span className="dilz-deal-price">&#8362;{deal.prix}</span>
+              {deal.prix_original && (
+                <span className="dilz-deal-price-original">&#8362;{deal.prix_original}</span>
+              )}
+              {reduction !== null && (
+                <span className="dilz-badge dilz-badge--saving">-{reduction}%</span>
+              )}
+            </div>
+
+            <h1 className="dilz-deal-title">{deal.titre}</h1>
+
+            <p className="dilz-deal-meta">
+              {[deal.magasin, deal.ville ? traduireVille(deal.ville, 'en') : null].filter(Boolean).join(' · ')}
+              {' · '}{timeAgo(deal.created_at)}
+              {deal.auteur_nom ? ` · by ${deal.auteur_nom}` : ''}
+            </p>
+
+            {(deal.date_debut || deal.date_fin) && (
+              <div className="dilz-deal-dates">
+                {deal.date_debut && <span>Starts: {formatDateOnly(deal.date_debut)}</span>}
+                {deal.date_fin && <span>Ends: {formatDateOnly(deal.date_fin)}</span>}
+              </div>
+            )}
+
+            {deal.description && (
+              <div className="dilz-deal-description">
+                <p>{deal.description}</p>
+              </div>
+            )}
+
+            {deal.url_source && (
+              <a href={deal.url_source} target="_blank" rel="noopener noreferrer" className="dilz-deal-source-link">
+                View online deal ↗
+              </a>
+            )}
+
+            {/* Vote buttons */}
+            <div className="dilz-deal-votes">
+              <button
+                type="button"
+                className={['dilz-deal-vote-btn', myVote === 'chaud' ? 'is-hot' : ''].filter(Boolean).join(' ')}
+                onClick={() => handleVote('chaud')}
+              >
+                <HotIcon /> {deal.votes_chaud || 0}
+              </button>
+              <button
+                type="button"
+                className={['dilz-deal-vote-btn', myVote === 'froid' ? 'is-cold' : ''].filter(Boolean).join(' ')}
+                onClick={() => handleVote('froid')}
+              >
+                <ColdIcon /> {deal.votes_froid || 0}
+              </button>
+            </div>
+
+            {/* Share row */}
+            <div className="dilz-deal-share-row">
+              <a
+                href={`https://wa.me/?text=${encodeURIComponent(`${deal.titre} — ₪${deal.prix} at ${deal.magasin}${deal.ville ? `, ${deal.ville}` : ''} ${typeof window !== 'undefined' ? window.location.href : ''}`)}`}
+                target="_blank" rel="noopener noreferrer"
+                className="dilz-deal-share-btn dilz-deal-share-btn--whatsapp"
+              >
+                <WhatsAppIcon /> WhatsApp
+              </a>
+              <a
+                href={`https://t.me/share/url?url=${encodeURIComponent(typeof window !== 'undefined' ? window.location.href : '')}&text=${encodeURIComponent(`${deal.titre} — ₪${deal.prix} at ${deal.magasin}${deal.ville ? `, ${deal.ville}` : ''}`)}`}
+                target="_blank" rel="noopener noreferrer"
+                className="dilz-deal-share-btn dilz-deal-share-btn--telegram"
+              >
+                <TelegramIcon /> Telegram
+              </a>
+              <button
+                type="button"
+                className={['dilz-deal-share-btn', copySuccess ? 'dilz-deal-share-btn--copied' : 'dilz-deal-share-btn--copy'].join(' ')}
+                onClick={handleShare}
+              >
+                {copySuccess ? 'Copied' : 'Copy link'}
+              </button>
+            </div>
+
+            {/* Comments */}
+            <h2 className="dilz-deal-section-title">Comments ({comments.length})</h2>
+
+            {comments.length === 0 ? (
+              <div className="dilz-deal-comments-empty">
+                <p>No comments yet — be the first!</p>
+              </div>
+            ) : (
+              <div className="dilz-deal-comments">
+                {comments.map((c) => {
+                  const initials = (c.auteur_nom || 'A').slice(0, 2).toUpperCase();
+                  const isReply = c.contenu.startsWith('↩ @');
+                  const myCommentVote = commentVotes[c.id] || null;
+                  return (
+                    <div key={c.id} className={['dilz-comment', isReply ? 'is-reply' : ''].filter(Boolean).join(' ')}>
+                      <div className={['dilz-comment__avatar', isReply ? 'is-reply' : ''].filter(Boolean).join(' ')}>
+                        <span>{initials}</span>
+                      </div>
+                      <div className="dilz-comment__body">
+                        <div className="dilz-comment__header">
+                          <span className="dilz-comment__author">{c.auteur_nom || 'Anonymous'}</span>
+                          <span className="dilz-comment__time">{timeAgo(c.created_at)}</span>
+                        </div>
+                        <p className="dilz-comment__text">{c.contenu}</p>
+                        <div className="dilz-comment__actions">
+                          <button
+                            type="button"
+                            className={['dilz-comment-vote', myCommentVote === 'chaud' ? 'is-up' : ''].filter(Boolean).join(' ')}
+                            onClick={() => handleCommentVote(c.id, 'chaud')}
+                          >+1</button>
+                          <button
+                            type="button"
+                            className={['dilz-comment-vote', myCommentVote === 'froid' ? 'is-down' : ''].filter(Boolean).join(' ')}
+                            onClick={() => handleCommentVote(c.id, 'froid')}
+                          >-1</button>
                           {user && !isReply && (
-                            <button onClick={() => {
-                              setReplyTo({ id: c.id, auteur_nom: c.auteur_nom });
-                              setReplyText('');
-                            }} style={{
-                              background: 'none', border: 'none', padding: '2px 0',
-                              color: 'var(--text-sub)', fontSize: 12, cursor: 'pointer', fontWeight: 500,
-                            }}>
-                              ↩ Reply
+                            <button
+                              type="button"
+                              className="dilz-comment-reply-btn"
+                              onClick={() => { setReplyTo({ id: c.id, auteur_nom: c.auteur_nom }); setReplyText(''); }}
+                            >
+                              <ReplyIcon /> Reply
                             </button>
                           )}
                         </div>
-
-                        {/* Inline reply input */}
                         {replyTo?.id === c.id && (
-                          <div style={{ marginTop: 10, display: 'flex', gap: 8 }}>
+                          <div className="dilz-comment-reply-input">
                             <input
                               autoFocus
                               type="text"
+                              className="dilz-input"
                               placeholder={`Reply to ${c.auteur_nom}...`}
                               value={replyText}
-                              onChange={e => setReplyText(e.target.value)}
-                              onKeyDown={e => e.key === 'Enter' && handleReply()}
-                              style={{
-                                flex: 1, padding: '8px 12px', borderRadius: 12,
-                                border: `1px solid ${ACCENT}`, background: 'var(--bg-input)',
-                                color: 'var(--text)', fontSize: 13, outline: 'none',
-                              }}
+                              onChange={(e) => setReplyText(e.target.value)}
+                              onKeyDown={(e) => e.key === 'Enter' && handleReply()}
                             />
-                            <button onClick={handleReply} disabled={replySubmitting || !replyText.trim()} style={{
-                              padding: '8px 14px', borderRadius: 12, border: 'none',
-                              background: replyText.trim() ? ACCENT : 'var(--bg-card2)',
-                              color: replyText.trim() ? '#fff' : 'var(--text-muted)',
-                              fontSize: 13, fontWeight: 600, cursor: 'pointer',
-                            }}>
-                              {replySubmitting ? '...' : '↩'}
+                            <button
+                              type="button"
+                              className="dilz-button dilz-button--primary dilz-button--sm"
+                              onClick={handleReply}
+                              disabled={replySubmitting || !replyText.trim()}
+                            >
+                              {replySubmitting ? '...' : <ReplyIcon />}
                             </button>
-                            <button onClick={() => setReplyTo(null)} style={{
-                              padding: '8px 10px', borderRadius: 12, border: 'none',
-                              background: 'var(--bg-card2)', color: 'var(--text-muted)',
-                              fontSize: 13, cursor: 'pointer',
-                            }}>✕</button>
+                            <button
+                              type="button"
+                              className="dilz-button dilz-button--ghost dilz-button--sm"
+                              onClick={() => setReplyTo(null)}
+                            >
+                              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6 6 18M6 6l12 12"/></svg>
+                            </button>
                           </div>
                         )}
                       </div>
                     </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-
-          {/* Comment input */}
-          {commentError && <p style={{ color: '#DC2626', fontSize: 13, marginBottom: 8 }}>{commentError}</p>}
-          {user ? (
-            <div style={{ display: 'flex', gap: 10 }}>
-              <input
-                type="text"
-                placeholder="Add a comment..."
-                value={newComment}
-                onChange={e => setNewComment(e.target.value)}
-                onKeyDown={e => e.key === 'Enter' && handleComment()}
-                style={{ flex: 1, padding: '12px 16px', borderRadius: 8, border: '1px solid var(--border)', background: 'var(--bg-input)', color: 'var(--text)', fontSize: 14, outline: 'none' }}
-              />
-              <button onClick={handleComment} disabled={submitting || !newComment.trim()} style={{
-                padding: '12px 20px', borderRadius: 8, border: 'none',
-                background: newComment.trim() ? ACCENT : 'var(--bg-card2)',
-                color: newComment.trim() ? '#fff' : 'var(--text-muted)',
-                fontSize: 14, fontWeight: 700, cursor: newComment.trim() ? 'pointer' : 'default',
-              }}>
-                {submitting ? '...' : 'Send'}
-              </button>
-            </div>
-          ) : (
-            <Link href={`/auth?redirect=/deal/${id}`} style={{
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              padding: '14px 20px', borderRadius: 8,
-              background: 'var(--bg-card)', border: '1px solid var(--border)',
-              color: ACCENT, textDecoration: 'none', fontSize: 14, fontWeight: 600,
-            }}>
-              Sign in to comment
-            </Link>
-          )}
-        </div>
-      </div>
-
-      {/* Edit modal */}
-      {isEditing && (
-        <div
-          onClick={() => setIsEditing(false)}
-          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 300, display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}
-        >
-          <div
-            onClick={e => e.stopPropagation()}
-            style={{
-              width: '100%', maxWidth: 600,
-              background: 'var(--bg-card)', borderRadius: '24px 24px 0 0',
-              padding: '20px 16px 44px',
-              maxHeight: '90vh', overflowY: 'auto',
-            }}
-          >
-            <div style={{ width: 36, height: 4, borderRadius: 2, background: 'var(--border)', margin: '0 auto 16px' }} />
-            <p style={{ fontSize: 17, fontWeight: 700, color: 'var(--text)', marginBottom: 16 }}>Edit deal</p>
-
-            {/* Image */}
-            <label style={{ cursor: 'pointer', display: 'block', marginBottom: 14 }}>
-              <div style={{
-                height: editImagePreview || deal.image_url ? 160 : 80,
-                borderRadius: 8, border: `1px dashed ${ACCENT}`,
-                overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                background: 'var(--bg-card2)',
-              }}>
-                {(editImagePreview || deal.image_url) ? (
-                  <img src={editImagePreview || deal.image_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                ) : (
-                  <div style={{ textAlign: 'center', color: 'var(--text-muted)' }}>
-                    <div style={{ fontSize: 22, marginBottom: 4 }}>📸</div>
-                    <div style={{ fontSize: 12 }}>Change photo</div>
-                  </div>
-                )}
+                  );
+                })}
               </div>
-              <input type="file" accept="image/jpeg,image/png,image/webp" onChange={handleEditImage} style={{ display: 'none' }} />
-            </label>
+            )}
 
-            {/* Fields */}
-            {[['Title *', 'titre'], ['Store *', 'magasin']].map(([label, key]) => (
-              <div key={key} style={{ marginBottom: 12 }}>
-                <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--text-sub)', marginBottom: 5 }}>{label}</label>
-                <input type="text" value={editForm[key]} onChange={e => setEditForm({ ...editForm, [key]: e.target.value })}
-                  style={{ width: '100%', padding: '11px 14px', borderRadius: 8, border: '1px solid var(--border)', background: 'var(--bg-input)', color: 'var(--text)', fontSize: 14, outline: 'none' }}
+            {/* Comment input */}
+            {commentError && <p className="dilz-form-error">{commentError}</p>}
+            {user ? (
+              <div className="dilz-deal-comment-input">
+                <input
+                  type="text"
+                  className="dilz-input"
+                  placeholder="Add a comment..."
+                  value={newComment}
+                  onChange={(e) => setNewComment(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleComment()}
                 />
+                <button
+                  type="button"
+                  className="dilz-button dilz-button--primary dilz-button--md"
+                  onClick={handleComment}
+                  disabled={submitting || !newComment.trim()}
+                >
+                  {submitting ? '...' : 'Send'}
+                </button>
               </div>
-            ))}
-
-            {/* City */}
-            <div style={{ marginBottom: 12 }}>
-              <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--text-sub)', marginBottom: 5 }}>City</label>
-              <select value={editForm.ville} onChange={e => setEditForm({ ...editForm, ville: e.target.value })}
-                style={{ width: '100%', padding: '11px 14px', borderRadius: 8, border: '1px solid var(--border)', background: 'var(--bg-input)', color: 'var(--text)', fontSize: 14, outline: 'none', appearance: 'none', cursor: 'pointer' }}
-              >
-                <option value="">Select city…</option>
-                {Object.keys(CITY_COORDS).map(v => (
-                  <option key={v} value={v}>{traduireVille(v, 'en')}</option>
-                ))}
-                <option value="אונליין">🌐 Online deal</option>
-              </select>
-            </div>
-
-            {/* Prices */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 12 }}>
-              {[['Deal price *', 'prix'], ['Original price', 'prix_original']].map(([label, key]) => (
-                <div key={key}>
-                  <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--text-sub)', marginBottom: 5 }}>{label}</label>
-                  <input type="number" value={editForm[key]} onChange={e => setEditForm({ ...editForm, [key]: e.target.value })}
-                    style={{ width: '100%', padding: '11px 14px', borderRadius: 8, border: '1px solid var(--border)', background: 'var(--bg-input)', color: 'var(--text)', fontSize: 14, outline: 'none' }}
-                  />
-                </div>
-              ))}
-            </div>
-
-            {/* Dates */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 12 }}>
-              <div>
-                <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--text-sub)', marginBottom: 5 }}>Start date</label>
-                <input type="date" value={editForm.date_debut || ''} max={editForm.date_fin || undefined}
-                  onChange={e => setEditForm({ ...editForm, date_debut: e.target.value })}
-                  style={{ width: '100%', padding: '11px 10px', borderRadius: 8, border: '1px solid var(--border)', background: 'var(--bg-input)', color: 'var(--text)', fontSize: 13, outline: 'none' }}
-                />
-              </div>
-              <div>
-                <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--text-sub)', marginBottom: 5 }}>End date</label>
-                <input type="date" value={editForm.date_fin || ''} min={editForm.date_debut || undefined}
-                  onChange={e => setEditForm({ ...editForm, date_fin: e.target.value })}
-                  style={{ width: '100%', padding: '11px 10px', borderRadius: 8, border: '1px solid var(--border)', background: 'var(--bg-input)', color: 'var(--text)', fontSize: 13, outline: 'none' }}
-                />
-              </div>
-            </div>
-
-            {/* Category */}
-            <div style={{ marginBottom: 12 }}>
-              <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--text-sub)', marginBottom: 5 }}>Category</label>
-              <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-                {CATEGORIES.map(cat => (
-                  <button key={cat} onClick={() => setEditForm({ ...editForm, categorie: cat })} style={{
-                    padding: '5px 12px', borderRadius: 7, cursor: 'pointer', fontSize: 13,
-                    border: editForm.categorie === cat ? `1px solid ${ACCENT}` : '1px solid var(--border)',
-                    background: editForm.categorie === cat ? 'rgba(226,85,45,0.10)' : 'var(--bg-input)',
-                    color: editForm.categorie === cat ? ACCENT : 'var(--text-sub)',
-                    fontWeight: editForm.categorie === cat ? 700 : 400,
-                  }}>{cat}</button>
-                ))}
-              </div>
-            </div>
-
-            {/* Link */}
-            <div style={{ marginBottom: 12 }}>
-              <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--text-sub)', marginBottom: 5 }}>Link (optional)</label>
-              <input type="url" value={editForm.url_source} onChange={e => setEditForm({ ...editForm, url_source: e.target.value })}
-                placeholder="https://..."
-                style={{ width: '100%', padding: '11px 14px', borderRadius: 8, border: '1px solid var(--border)', background: 'var(--bg-input)', color: 'var(--text)', fontSize: 14, outline: 'none' }}
-              />
-            </div>
-
-            {/* Description */}
-            <div style={{ marginBottom: 16 }}>
-              <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--text-sub)', marginBottom: 5 }}>Description</label>
-              <textarea value={editForm.description} onChange={e => setEditForm({ ...editForm, description: e.target.value })} rows={3}
-                style={{ width: '100%', padding: '11px 14px', borderRadius: 8, border: '1px solid var(--border)', background: 'var(--bg-input)', color: 'var(--text)', fontSize: 14, outline: 'none', resize: 'vertical' }}
-              />
-            </div>
-
-            {editImageError && <p style={{ color: '#DC2626', fontSize: 13, marginBottom: 8 }}>{editImageError}</p>}
-            {editError && <p style={{ color: '#DC2626', fontSize: 13, marginBottom: 12 }}>{editError}</p>}
-
-            <div style={{ display: 'flex', gap: 10 }}>
-              <button onClick={() => setIsEditing(false)} style={{
-                flex: 1, padding: 14, borderRadius: 8, border: '1px solid var(--border)',
-                background: 'var(--bg-card2)', color: 'var(--text-sub)', fontSize: 15, cursor: 'pointer',
-              }}>Cancel</button>
-              <button onClick={handleEditSubmit} disabled={editSubmitting} style={{
-                flex: 2, padding: 14, borderRadius: 9, border: 'none',
-                background: editSubmitting ? 'var(--bg-card2)' : ACCENT,
-                color: editSubmitting ? 'var(--text-muted)' : '#fff',
-                fontSize: 14, fontWeight: 600, cursor: editSubmitting ? 'default' : 'pointer',
-              }}>
-                {editSubmitting ? 'Saving...' : 'Save changes'}
-              </button>
-            </div>
+            ) : (
+              <Link href={`/auth?redirect=/deal/${id}`} className="dilz-deal-signin-prompt">
+                Sign in to comment
+              </Link>
+            )}
           </div>
         </div>
-      )}
-    </div>
+
+        {/* Edit modal */}
+        {isEditing && (
+          <div className="dilz-sheet-overlay" onClick={() => setIsEditing(false)} role="dialog" aria-modal="true" aria-label="Edit deal">
+            <div className="dilz-sheet" onClick={(e) => e.stopPropagation()}>
+              <div className="dilz-sheet__handle" aria-hidden="true" />
+              <div className="dilz-sheet__header">
+                <h2 className="dilz-sheet__title">Edit deal</h2>
+                <button type="button" className="dilz-sheet__close" onClick={() => setIsEditing(false)} aria-label="Close">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6 6 18M6 6l12 12"/></svg>
+                </button>
+              </div>
+
+              <div className="dilz-edit-form">
+                {/* Image upload */}
+                <label className="dilz-image-upload">
+                  <div className={['dilz-image-upload__area', (editImagePreview || deal.image_url) ? 'has-image' : ''].filter(Boolean).join(' ')}>
+                    {(editImagePreview || deal.image_url) ? (
+                      <img src={editImagePreview || deal.image_url} alt="" />
+                    ) : (
+                      <div className="dilz-image-upload__placeholder">
+                        <CameraIcon />
+                        <span>Change photo</span>
+                      </div>
+                    )}
+                  </div>
+                  <input type="file" accept="image/jpeg,image/png,image/webp" onChange={handleEditImage} className="dilz-sr-only" />
+                </label>
+
+                {[['Title *', 'titre', 'text'], ['Store *', 'magasin', 'text']].map(([label, key, type]) => (
+                  <div key={key} className="dilz-form-field">
+                    <label className="dilz-form-label">{label}</label>
+                    <input
+                      type={type}
+                      className="dilz-input"
+                      value={editForm[key]}
+                      onChange={(e) => setEditForm({ ...editForm, [key]: e.target.value })}
+                    />
+                  </div>
+                ))}
+
+                <div className="dilz-form-field">
+                  <label className="dilz-form-label">City</label>
+                  <select
+                    className="dilz-input dilz-select"
+                    value={editForm.ville}
+                    onChange={(e) => setEditForm({ ...editForm, ville: e.target.value })}
+                  >
+                    <option value="">Select city…</option>
+                    {Object.keys(CITY_COORDS).map((v) => (
+                      <option key={v} value={v}>{traduireVille(v, 'en')}</option>
+                    ))}
+                    <option value="אונליין">Online deal</option>
+                  </select>
+                </div>
+
+                <div className="dilz-form-grid-2">
+                  {[['Deal price *', 'prix'], ['Original price', 'prix_original']].map(([label, key]) => (
+                    <div key={key} className="dilz-form-field">
+                      <label className="dilz-form-label">{label}</label>
+                      <input
+                        type="number"
+                        className="dilz-input"
+                        value={editForm[key]}
+                        onChange={(e) => setEditForm({ ...editForm, [key]: e.target.value })}
+                      />
+                    </div>
+                  ))}
+                </div>
+
+                <div className="dilz-form-grid-2">
+                  <div className="dilz-form-field">
+                    <label className="dilz-form-label">Start date</label>
+                    <input
+                      type="date"
+                      className="dilz-input"
+                      value={editForm.date_debut || ''}
+                      max={editForm.date_fin || undefined}
+                      onChange={(e) => setEditForm({ ...editForm, date_debut: e.target.value })}
+                    />
+                  </div>
+                  <div className="dilz-form-field">
+                    <label className="dilz-form-label">End date</label>
+                    <input
+                      type="date"
+                      className="dilz-input"
+                      value={editForm.date_fin || ''}
+                      min={editForm.date_debut || undefined}
+                      onChange={(e) => setEditForm({ ...editForm, date_fin: e.target.value })}
+                    />
+                  </div>
+                </div>
+
+                <div className="dilz-form-field">
+                  <label className="dilz-form-label">Category</label>
+                  <div className="dilz-cat-chips">
+                    {CATEGORIES.map((cat) => (
+                      <button
+                        key={cat}
+                        type="button"
+                        className={['dilz-cat-chip', editForm.categorie === cat ? 'is-active' : ''].filter(Boolean).join(' ')}
+                        onClick={() => setEditForm({ ...editForm, categorie: cat })}
+                      >
+                        {cat}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="dilz-form-field">
+                  <label className="dilz-form-label">Link (optional)</label>
+                  <input
+                    type="url"
+                    className="dilz-input"
+                    value={editForm.url_source}
+                    onChange={(e) => setEditForm({ ...editForm, url_source: e.target.value })}
+                    placeholder="https://..."
+                  />
+                </div>
+
+                <div className="dilz-form-field">
+                  <label className="dilz-form-label">Description</label>
+                  <textarea
+                    className="dilz-input dilz-textarea"
+                    value={editForm.description}
+                    onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
+                    rows={3}
+                  />
+                </div>
+
+                {editImageError && <p className="dilz-form-error">{editImageError}</p>}
+                {editError && <p className="dilz-form-error">{editError}</p>}
+
+                <div className="dilz-edit-form__actions">
+                  <button
+                    type="button"
+                    className="dilz-button dilz-button--secondary dilz-button--lg"
+                    onClick={() => setIsEditing(false)}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    className="dilz-button dilz-button--primary dilz-button--lg"
+                    onClick={handleEditSubmit}
+                    disabled={editSubmitting}
+                  >
+                    {editSubmitting ? 'Saving...' : 'Save changes'}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
     </>
   );
 }
-
-
-

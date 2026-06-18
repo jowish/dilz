@@ -74,6 +74,7 @@ export default function MapPage() {
   const [loading, setLoading] = useState(true);
   const [selectedCity, setSelectedCity] = useState(null);
   const [leafletReady, setLeafletReady] = useState(false);
+  const [urlCityChecked, setUrlCityChecked] = useState(false);
 
   const dealsByCity = useMemo(() => groupDealsByCity(deals), [deals]);
   const cityEntries = useMemo(
@@ -91,18 +92,24 @@ export default function MapPage() {
   }, []);
 
   useEffect(() => {
-    if (!selectedCity && cityEntries.length > 0) setSelectedCity(cityEntries[0][0]);
-  }, [cityEntries, selectedCity]);
-
-  useEffect(() => {
     if (!router.isReady) return;
     const city = typeof router.query.city === 'string' ? router.query.city : null;
+    setUrlCityChecked(true);
     if (city && CITY_COORDS[city]) setSelectedCity(city);
   }, [router.isReady, router.query.city]);
 
   const selectCity = (city) => {
     setSelectedCity(city);
-    router.push(`/map?city=${encodeURIComponent(city)}`, undefined, { shallow: true, scroll: false });
+    router.replace(`/map?city=${encodeURIComponent(city)}`, undefined, { shallow: true, scroll: false });
+  };
+
+  const goBackToFeed = () => {
+    let returnUrl = '/?tab=dilz';
+    try {
+      const saved = sessionStorage.getItem('dilzMapReturnUrl');
+      if (saved && saved.startsWith('/')) returnUrl = saved;
+    } catch {}
+    router.push(returnUrl);
   };
 
   useEffect(() => {
@@ -174,7 +181,7 @@ export default function MapPage() {
       </Head>
       <div className="dilz-map-page">
         <header className="dilz-map-header">
-          <button type="button" onClick={() => router.back()}>Back</button>
+          <button type="button" onClick={goBackToFeed}>Back</button>
           <div>
             <strong>dilz Map</strong>
             <span>{cityEntries.length} active points</span>
@@ -193,9 +200,9 @@ export default function MapPage() {
 
           <aside className="dilz-map-results">
             <div className="dilz-map-results__header">
-              <p>{selectedCity || 'Israel'}</p>
-              <strong>{selectedDeals.length} Dilz</strong>
-              <span>Select any map point to see the Dilz available there.</span>
+              <p>{selectedCity || 'All Israel'}</p>
+              <strong>{selectedCity ? `${selectedDeals.length} Dilz` : `${cityEntries.length} cities`}</strong>
+              <span>{selectedCity ? '' : 'Tap a city marker to see local deals.'}</span>
             </div>
 
             <div className="dilz-map-city-strip" aria-label="Dilz map points">

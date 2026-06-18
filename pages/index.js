@@ -5,22 +5,23 @@ import { useRouter } from 'next/router';
 import { useTheme } from 'next-themes';
 import { translations, traduireVille } from '../lib/translations';
 import { supabase } from '../lib/supabase';
-import { uploadDealImage, validateImageFile, deleteDealImage } from '../lib/uploadImage';
 import { AppHeader } from '../components/layout/AppHeader';
 import { BottomNav } from '../components/layout/BottomNav';
 import { DealCard as PremiumDealCard } from '../components/deals/DealCard';
 import { PostDealModal as PremiumPostDealModal } from '../components/deals/PostDealModal';
+import { PromoCard, HeroPromoCard } from '../components/deals/PromoCard';
+import { PromoModal } from '../components/deals/PromoModal';
+import { CityModal } from '../components/ui/CityModal';
+import { AlertModal } from '../components/ui/AlertModal';
+import { NotificationSheet } from '../components/ui/NotificationSheet';
 import { Button } from '../components/ui/Button';
-import { FilterChip } from '../components/ui/FilterChip';
 import { EmptyState } from '../components/ui/EmptyState';
-import { DealCardSkeleton } from '../components/ui/Skeleton';
 import { SectionHeader } from '../components/ui/SectionHeader';
 
 const { PRODUCT_CATEGORIES, getProductCategoryLabel } = require('../lib/productCategories');
 
 // ─── Design tokens ────────────────────────────────────────────────────────────
 const ACCENT = '#E2552D';
-const ACCENT_DARK = '#C2410C';
 
 const LANG_OPTIONS = [
   { id: 'en', label: 'EN' },
@@ -357,965 +358,6 @@ function ThemeToggle() {
     </button>
   );
 }
-// ─── StoreBadge ──────────────────────────────────────────────────────────────
-function StoreBadge({ store, lang, isDark, size = 'sm' }) {
-  const s = STORE_COLORS[store];
-  const label = lang === 'he' ? store : (s?.nameEn || store);
-  const pad = size === 'md' ? '3px 9px' : '2px 7px';
-  const fs = size === 'md' ? 11 : 10;
-  if (!s) return (
-    <span style={{ fontSize: fs, fontWeight: 500, padding: pad, borderRadius: 4, background: 'var(--bg-card2)', color: 'var(--text-sub)' }}>{label}</span>
-  );
-  return (
-    <span style={{ fontSize: fs, fontWeight: 600, padding: pad, borderRadius: 4, background: isDark ? s.dark : s.bg, color: s.color }}>
-      {label}
-    </span>
-  );
-}
-
-// ─── DiscountBadge ───────────────────────────────────────────────────────────
-function DiscountBadge({ pct, size = 'sm' }) {
-  if (!pct || pct < 3) return null;
-  const fs = size === 'lg' ? 13 : 10;
-  const pad = size === 'lg' ? '4px 10px' : '2px 7px';
-  return (
-    <span style={{ fontSize: fs, fontWeight: 700, padding: pad, borderRadius: 4, background: ACCENT, color: '#fff', letterSpacing: '0.1px' }}>
-      -{pct}%
-    </span>
-  );
-}
-
-function SaveButton({ saved, onClick, lang, compact = false }) {
-  return (
-    <button
-      type="button"
-      onClick={(event) => {
-        event.stopPropagation();
-        onClick();
-      }}
-      aria-pressed={saved}
-      style={{
-        padding: compact ? '5px 8px' : '7px 10px',
-        borderRadius: compact ? 6 : 7,
-        border: saved ? `1px solid ${ACCENT}` : '1px solid var(--border)',
-        background: saved ? 'rgba(226,85,45,0.10)' : 'transparent',
-        color: saved ? ACCENT : 'var(--text-sub)',
-        cursor: 'pointer',
-        fontSize: compact ? 10 : 11,
-        fontWeight: 700,
-        whiteSpace: 'nowrap',
-      }}
-    >
-      {saved
-        ? textFor(lang, { en: 'Saved', he: 'שמור', fr: 'Enregistre', es: 'Guardado' })
-        : textFor(lang, { en: 'Save', he: 'שמור', fr: 'Sauver', es: 'Guardar' })}
-    </button>
-  );
-}
-
-// ─── HeroPromoCard ───────────────────────────────────────────────────────────
-function HeroPromoCard({ promo, lang, isDark, onClick, votes, onVote, isSaved, onSave }) {
-  const s = STORE_COLORS[promo.meilleurEnseigne] || { color: ACCENT, bg: '#FEF0EB', dark: '#2A1210', nameEn: promo.meilleurEnseigne };
-  const nom = (languageUsesEnglishProductNames(lang) && promo.nom_en) ? promo.nom_en : promo.nom;
-  const myVote = votes?.myVote;
-  const imageSrc = productImageSrc(promo.image);
-
-  return (
-    <div style={{
-      borderRadius: 16, overflow: 'hidden', marginBottom: 14,
-      background: isDark
-        ? `linear-gradient(145deg, ${s.dark} 0%, #0E0E12 100%)`
-        : `linear-gradient(145deg, ${s.bg} 0%, #FFFFFF 100%)`,
-      border: '1px solid var(--border)',
-    }}>
-      {/* Image or gradient banner */}
-      <div
-        onClick={onClick}
-        style={{
-          height: 160, cursor: 'pointer', position: 'relative',
-          background: isDark
-            ? `linear-gradient(145deg, ${s.dark}, #17171D)`
-            : `linear-gradient(145deg, ${s.bg}, #fff)`,
-          display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden',
-        }}
-      >
-        <div style={{ opacity: 0.25 }}>
-          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/>
-          </svg>
-        </div>
-        {imageSrc && (
-          <img
-            src={imageSrc} alt={nom}
-            style={{ position: 'absolute', inset: 0, margin: 'auto', maxHeight: '100%', maxWidth: '100%', objectFit: 'contain' }}
-            onError={e => { e.target.style.display = 'none'; }}
-          />
-        )}
-        {/* Overlay badges */}
-        <div style={{ position: 'absolute', top: 12, left: 12 }}>
-          <StoreBadge store={promo.meilleurEnseigne} lang={lang} isDark={isDark} size="md" />
-        </div>
-        <div style={{ position: 'absolute', top: 12, right: 12 }}>
-          <DiscountBadge pct={promo.reduction} size="sm" />
-        </div>
-      </div>
-
-      {/* Info row */}
-      <div onClick={onClick} style={{ padding: '14px 18px 10px', cursor: 'pointer' }}>
-        <p style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 5, fontWeight: 400 }}>
-          {lang !== 'he' ? 'Price comparison' : 'השוואת מחירים'}
-        </p>
-        <p style={{
-          fontSize: 14, fontWeight: 600, color: 'var(--text)',
-          marginBottom: 10, lineHeight: 1.4, textAlign: lang === 'he' ? 'right' : 'left',
-        }}>{nom}</p>
-        <div style={{ display: 'flex', alignItems: 'baseline', gap: 10 }}>
-          <span style={{ fontSize: 28, fontWeight: 700, color: ACCENT, letterSpacing: '-0.5px' }}>
-            ₪{promo.prixMin.toFixed(2)}
-          </span>
-          <span style={{ fontSize: 15, color: 'var(--text-muted)', textDecoration: 'line-through' }}>
-            ₪{promo.prixMax.toFixed(2)}
-          </span>
-          <span style={{ fontSize: 11, fontWeight: 600, color: '#059669', marginLeft: 'auto', background: 'rgba(5,150,105,0.1)', padding: '2px 7px', borderRadius: 4 }}>
-            Save ₪{(promo.prixMax - promo.prixMin).toFixed(2)}
-          </span>
-        </div>
-      </div>
-
-      {/* Vote row */}
-      <div style={{
-        display: 'flex', gap: 6, padding: '10px 18px 16px',
-        borderTop: '1px solid var(--border)',
-      }}>
-        <button onClick={() => onVote(promo.barcode, 'chaud')} style={{
-          flex: 1, padding: '9px 0', borderRadius: 8,
-          border: myVote === 'chaud' ? `1px solid ${ACCENT}` : '1px solid var(--border)',
-          background: myVote === 'chaud' ? ACCENT : 'transparent',
-          color: myVote === 'chaud' ? '#fff' : 'var(--text-sub)',
-          fontSize: 12, fontWeight: 600, cursor: 'pointer',
-        }}>🔥 {votes?.chaud || 0}</button>
-        <button onClick={() => onVote(promo.barcode, 'froid')} style={{
-          flex: 1, padding: '9px 0', borderRadius: 8,
-          border: myVote === 'froid' ? '1px solid #64748B' : '1px solid var(--border)',
-          background: myVote === 'froid' ? '#64748B' : 'transparent',
-          color: myVote === 'froid' ? '#fff' : 'var(--text-sub)',
-          fontSize: 12, fontWeight: 600, cursor: 'pointer',
-        }}>❄️ {votes?.froid || 0}</button>
-        <button onClick={onClick} style={{
-          padding: '9px 14px', borderRadius: 8, border: '1px solid var(--border)',
-          background: 'transparent', color: 'var(--text-muted)',
-          fontSize: 12, fontWeight: 500, cursor: 'pointer',
-        }}>View</button>
-        {onSave && <SaveButton saved={isSaved} onClick={onSave} lang={lang} />}
-      </div>
-    </div>
-  );
-}
-
-// ─── PromoCard (compact grid) ─────────────────────────────────────────────────
-function PromoCard({ promo, lang, isDark, onClick, votes, onVote, isSaved, onSave }) {
-  const s = STORE_COLORS[promo.meilleurEnseigne] || { color: ACCENT, bg: '#FEF0EB', dark: '#2A1210', nameEn: promo.meilleurEnseigne };
-  const nom = (languageUsesEnglishProductNames(lang) && promo.nom_en) ? promo.nom_en : promo.nom;
-  const myVote = votes?.myVote;
-  const imageSrc = productImageSrc(promo.image);
-
-  return (
-    <div style={{
-      background: 'var(--bg-card)', borderRadius: 12, overflow: 'hidden',
-      border: '1px solid var(--border)',
-      display: 'flex', flexDirection: 'column',
-    }}>
-      <div onClick={onClick} style={{ cursor: 'pointer', flex: 1, display: 'flex', flexDirection: 'column' }}>
-        {/* Colored top */}
-        <div style={{
-          height: 80,
-          background: isDark
-            ? `linear-gradient(135deg, ${s.dark}, #17171D)`
-            : `linear-gradient(135deg, ${s.bg}, #fff)`,
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          position: 'relative', flexShrink: 0,
-        }}>
-          <div style={{ opacity: 0.2 }}>
-            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/>
-            </svg>
-          </div>
-          {imageSrc && (
-            <img src={imageSrc} alt={nom} style={{ position: 'absolute', inset: 0, margin: 'auto', maxHeight: 72, maxWidth: '90%', objectFit: 'contain' }}
-              onError={e => { e.target.style.display = 'none'; }} />
-          )}
-          <div style={{ position: 'absolute', top: 6, right: 6 }}>
-            <DiscountBadge pct={promo.reduction} />
-          </div>
-        </div>
-
-        {/* Info */}
-        <div style={{ padding: '10px 11px 8px', flex: 1, display: 'flex', flexDirection: 'column' }}>
-          <p style={{
-            fontSize: 12, fontWeight: 500, color: 'var(--text)', lineHeight: 1.4,
-            marginBottom: 8, overflow: 'hidden',
-            display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical',
-            textAlign: lang === 'he' ? 'right' : 'left',
-            minHeight: '2.8em',
-          }}>{nom}</p>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 6 }}>
-            <span style={{ fontSize: 18, fontWeight: 700, color: ACCENT }}>₪{promo.prixMin.toFixed(2)}</span>
-            <span style={{ fontSize: 11, color: 'var(--text-muted)', textDecoration: 'line-through' }}>₪{promo.prixMax.toFixed(2)}</span>
-          </div>
-          <div style={{ marginTop: 'auto' }}>
-            <StoreBadge store={promo.meilleurEnseigne} lang={lang} isDark={isDark} />
-          </div>
-        </div>
-      </div>
-
-      {/* Compact vote row */}
-      <div style={{ display: 'flex', gap: 4, padding: '6px 8px 10px', borderTop: '1px solid var(--border)' }}>
-        <button onClick={() => onVote(promo.barcode, 'chaud')} style={{
-          flex: 1, padding: '5px 0', borderRadius: 6,
-          border: myVote === 'chaud' ? `1px solid ${ACCENT}` : '1px solid var(--border)',
-          background: myVote === 'chaud' ? ACCENT : 'transparent',
-          color: myVote === 'chaud' ? '#fff' : 'var(--text-sub)',
-          fontSize: 10, fontWeight: 600, cursor: 'pointer',
-        }}>🔥 {votes?.chaud || 0}</button>
-        <button onClick={() => onVote(promo.barcode, 'froid')} style={{
-          flex: 1, padding: '5px 0', borderRadius: 6,
-          border: myVote === 'froid' ? '1px solid #64748B' : '1px solid var(--border)',
-          background: myVote === 'froid' ? '#64748B' : 'transparent',
-          color: myVote === 'froid' ? '#fff' : 'var(--text-sub)',
-          fontSize: 10, fontWeight: 600, cursor: 'pointer',
-        }}>❄️ {votes?.froid || 0}</button>
-        {onSave && <SaveButton saved={isSaved} onClick={onSave} lang={lang} compact />}
-      </div>
-    </div>
-  );
-}
-
-// ─── PromoModal ───────────────────────────────────────────────────────────────
-function PromoModal({ promo, lang, isDark, onClose }) {
-  const nom = (languageUsesEnglishProductNames(lang) && promo.nom_en) ? promo.nom_en : promo.nom;
-  const imageSrc = productImageSrc(promo.image);
-  useEffect(() => {
-    const esc = (e) => { if (e.key === 'Escape') onClose(); };
-    window.addEventListener('keydown', esc);
-    return () => window.removeEventListener('keydown', esc);
-  }, [onClose]);
-
-  return (
-    <div onClick={onClose} style={{
-      position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.65)',
-      zIndex: 200, display: 'flex', alignItems: 'flex-end', justifyContent: 'center',
-    }}>
-      <div onClick={e => e.stopPropagation()} style={{
-        background: 'var(--bg-card)', borderRadius: '26px 26px 0 0',
-        padding: '20px 20px 48px', width: '100%', maxWidth: 600,
-        maxHeight: '80vh', overflowY: 'auto',
-      }}>
-        <div style={{ width: 40, height: 4, borderRadius: 2, background: 'var(--border)', margin: '0 auto 20px' }} />
-
-        {imageSrc && (
-          <div style={{
-            height: 150, borderRadius: 18, marginBottom: 16,
-            background: isDark ? 'rgba(255,255,255,0.04)' : '#fff',
-            border: '1px solid var(--border)', display: 'flex',
-            alignItems: 'center', justifyContent: 'center', overflow: 'hidden',
-          }}>
-            <img
-              src={imageSrc}
-              alt={nom}
-              style={{ maxWidth: '92%', maxHeight: '92%', objectFit: 'contain' }}
-              onError={e => { e.target.style.display = 'none'; }}
-            />
-          </div>
-        )}
-
-        {/* Product name */}
-        <p style={{
-          fontSize: 16, fontWeight: 700, color: 'var(--text)',
-          textAlign: lang === 'he' ? 'right' : 'left',
-          marginBottom: 16, lineHeight: 1.4,
-        }}>{nom}</p>
-
-        {/* Price comparison */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-          {promo.tousLesPrix.map(p => {
-            const isBest = p.prix === promo.prixMin;
-            return (
-              <div key={p.enseigne} style={{
-                display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                padding: '12px 14px', borderRadius: 10,
-                background: isBest
-                  ? (isDark ? `rgba(226,85,45,0.10)` : 'rgba(226,85,45,0.05)')
-                  : 'var(--bg-card2)',
-                border: `1px solid ${isBest ? ACCENT + '55' : 'var(--border)'}`,
-              }}>
-                <StoreBadge store={p.enseigne} lang={lang} isDark={isDark} size="md" />
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  {isBest && (
-                    <span style={{ fontSize: 10, fontWeight: 600, color: '#059669', background: 'rgba(5,150,105,0.1)', padding: '2px 7px', borderRadius: 4 }}>
-                      Best price
-                    </span>
-                  )}
-                  <span style={{ fontSize: 20, fontWeight: 700, color: isBest ? ACCENT : 'var(--text)' }}>
-                    ₪{p.prix.toFixed(2)}
-                  </span>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-
-        {/* Savings summary */}
-        <div style={{
-          marginTop: 12, padding: '12px 16px', borderRadius: 8,
-          background: 'var(--bg-card2)', border: '1px solid var(--border)',
-        }}>
-          <p style={{ fontSize: 13, color: 'var(--text-sub)', lineHeight: 1.5 }}>
-            {lang !== 'he'
-              ? `Save ₪${(promo.prixMax - promo.prixMin).toFixed(2)} by choosing the best store (${promo.reduction}% difference)`
-              : `חסכו ₪${(promo.prixMax - promo.prixMin).toFixed(2)} בבחירת החנות הזולה ביותר`}
-          </p>
-          <p style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 4 }}>
-            {lang !== 'he' ? 'Price comparison · not an official promotion' : 'השוואת מחירים · לא מבצע רשמי'}
-          </p>
-        </div>
-
-        {promo.imageSource === 'open_food_facts' && (
-          <a
-            href={`https://world.openfoodfacts.org/product/${promo.barcode}`}
-            target="_blank"
-            rel="noreferrer"
-            style={{ display: 'inline-block', marginTop: 10, fontSize: 11, color: 'var(--text-muted)' }}
-          >
-            Image: Open Food Facts · CC BY-SA
-          </a>
-        )}
-
-        <button onClick={onClose} style={{
-          width: '100%', marginTop: 12, padding: '13px', borderRadius: 8, border: '1px solid var(--border)',
-          background: 'transparent', color: 'var(--text-sub)',
-          fontSize: 13, fontWeight: 500, cursor: 'pointer',
-        }}>
-          {lang !== 'he' ? 'Close' : 'סגור'}
-        </button>
-      </div>
-    </div>
-  );
-}
-
-// ─── DealCard ─────────────────────────────────────────────────────────────────
-function DealCard({ deal, lang, onVote, userCoords, votedDeal, user, isDark, isSaved, onSave }) {
-  const router = useRouter();
-  const reduction = deal.prix_original && deal.prix_original > deal.prix
-    ? Math.round((deal.prix_original - deal.prix) / deal.prix_original * 100)
-    : null;
-
-  const dealCoords = deal.ville ? CITY_COORDS[deal.ville] : null;
-  const dist = (userCoords && dealCoords)
-    ? distanceKm(userCoords.lat, userCoords.lon, dealCoords.lat, dealCoords.lon)
-    : null;
-
-  const isOwner = user && user.id === deal.auteur_id;
-  const commentCount = deal.commentaires?.[0]?.count || 0;
-  const dateStatus = dealDateStatus(deal, lang);
-  const isOnline = deal.ville === 'אונליין' || deal.categorie === 'Online';
-
-  const go = () => {
-    try {
-      sessionStorage.setItem('dilzReturnTab', 'deals');
-      sessionStorage.setItem('dilzScrollY', String(window.scrollY));
-    } catch {}
-    router.push(`/deal/${deal.id}`);
-  };
-
-  return (
-    <div style={{
-      background: 'var(--bg-card)',
-      borderRadius: 16,
-      overflow: 'hidden',
-      border: '1px solid var(--border)',
-      marginBottom: 10,
-    }}>
-      {/* Image */}
-      {deal.image_url && (
-        <div onClick={go} style={{ position: 'relative', cursor: 'pointer', height: 196, overflow: 'hidden', background: 'var(--bg-card2)' }}>
-          <img
-            src={deal.image_url} alt={deal.titre}
-            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-            onError={e => { e.target.style.display = 'none'; }}
-          />
-          {/* Gradient for legibility */}
-          <div style={{
-            position: 'absolute', inset: 0,
-            background: 'linear-gradient(to top, rgba(0,0,0,0.52) 0%, transparent 48%)',
-            pointerEvents: 'none',
-          }} />
-          {/* Top badges */}
-          <div style={{ position: 'absolute', top: 10, left: 10, display: 'flex', gap: 5, flexWrap: 'wrap' }}>
-            {reduction !== null && (
-              <span style={{ fontSize: 11, fontWeight: 700, padding: '3px 8px', borderRadius: 5, background: ACCENT, color: '#fff', letterSpacing: '0.1px' }}>
-                -{reduction}%
-              </span>
-            )}
-            {isOnline && (
-              <span style={{ fontSize: 11, fontWeight: 600, padding: '3px 8px', borderRadius: 5, background: 'rgba(0,0,0,0.52)', color: '#fff' }}>
-                Online
-              </span>
-            )}
-            {deal.categorie && deal.categorie !== 'Online' && (
-              <span style={{ fontSize: 11, fontWeight: 500, padding: '3px 8px', borderRadius: 5, background: 'rgba(0,0,0,0.42)', color: '#fff' }}>
-                {deal.categorie}
-              </span>
-            )}
-          </div>
-          {/* Bottom price */}
-          <div style={{ position: 'absolute', bottom: 10, left: 12, display: 'flex', alignItems: 'baseline', gap: 7 }}>
-            <span style={{ fontSize: 20, fontWeight: 800, color: '#fff', letterSpacing: '-0.2px' }}>₪{deal.prix}</span>
-            {deal.prix_original && (
-              <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.55)', textDecoration: 'line-through' }}>₪{deal.prix_original}</span>
-            )}
-          </div>
-          {isOwner && (
-            <div style={{ position: 'absolute', top: 10, right: 10 }}>
-              <span style={{ fontSize: 10, fontWeight: 700, padding: '3px 8px', borderRadius: 5, background: `${ACCENT}DD`, color: '#fff' }}>
-                My deal
-              </span>
-            </div>
-          )}
-        </div>
-      )}
-
-      <div style={{ padding: '13px 15px' }}>
-        {/* Price row — no image */}
-        {!deal.image_url && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-            <span style={{ fontSize: 21, fontWeight: 800, color: ACCENT, letterSpacing: '-0.2px' }}>₪{deal.prix}</span>
-            {deal.prix_original && (
-              <span style={{ fontSize: 13, color: 'var(--text-muted)', textDecoration: 'line-through' }}>₪{deal.prix_original}</span>
-            )}
-            {reduction !== null && (
-              <span style={{ fontSize: 11, fontWeight: 700, padding: '2px 7px', borderRadius: 5, background: `rgba(226,85,45,0.10)`, color: ACCENT }}>
-                -{reduction}%
-              </span>
-            )}
-            {isOnline && (
-              <span style={{ fontSize: 10, fontWeight: 600, padding: '2px 7px', borderRadius: 5, background: 'rgba(59,130,246,0.09)', color: '#3B82F6', marginLeft: 'auto' }}>
-                Online
-              </span>
-            )}
-            {isOwner && (
-              <span style={{ fontSize: 10, fontWeight: 600, padding: '2px 7px', borderRadius: 5, background: `rgba(226,85,45,0.10)`, color: ACCENT, marginLeft: isOnline ? 0 : 'auto' }}>
-                My deal
-              </span>
-            )}
-          </div>
-        )}
-
-        {/* Title */}
-        <p onClick={go} style={{
-          fontSize: 14, fontWeight: 600, color: 'var(--text)', cursor: 'pointer',
-          marginBottom: 6, lineHeight: 1.45,
-        }}>{deal.titre}</p>
-
-        {/* Meta */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginBottom: 12, flexWrap: 'wrap' }}>
-          <span style={{ fontSize: 12, color: 'var(--text-sub)', fontWeight: 500 }}>{deal.magasin}</span>
-          {deal.ville && deal.ville !== 'אונליין' && (
-            <>
-              <span style={{ color: 'var(--border)', fontSize: 11 }}>·</span>
-              <span style={{ fontSize: 12, color: 'var(--text-sub)' }}>
-                {lang === 'he' ? deal.ville : traduireVille(deal.ville, 'en')}
-              </span>
-              {dist !== null && (
-                <span style={{
-                  fontSize: 10, fontWeight: 600, padding: '1px 5px', borderRadius: 4,
-                  background: dist <= 10 ? 'rgba(5,150,105,0.1)' : 'var(--bg-card2)',
-                  color: dist <= 10 ? '#059669' : 'var(--text-muted)',
-                }}>{dist}km</span>
-              )}
-            </>
-          )}
-          {deal.auteur_nom && (
-            <>
-              <span style={{ color: 'var(--border)', fontSize: 11 }}>·</span>
-              <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>{deal.auteur_nom}</span>
-            </>
-          )}
-          <span style={{ fontSize: 11, color: 'var(--text-muted)', marginLeft: 'auto' }}>
-            {timeAgo(deal.created_at, lang)}
-          </span>
-        </div>
-
-        {dateStatus && (
-          <div style={{ marginBottom: 10 }}>
-            <span style={{
-              display: 'inline-block', fontSize: 11, fontWeight: 700,
-              padding: '4px 8px', borderRadius: 6,
-              color: dateStatus.tone, background: `${dateStatus.tone}12`,
-              border: `1px solid ${dateStatus.tone}33`,
-            }}>
-              {dateStatus.label}
-            </span>
-          </div>
-        )}
-
-        {/* Actions */}
-        <div style={{ display: 'flex', gap: 5, paddingTop: 10, borderTop: '1px solid var(--border)' }}>
-          <button onClick={() => onVote(deal.id, 'chaud')} style={{
-            display: 'flex', alignItems: 'center', gap: 4,
-            padding: '6px 12px', borderRadius: 7,
-            background: votedDeal === 'chaud' ? ACCENT : 'transparent',
-            border: votedDeal === 'chaud' ? `1px solid ${ACCENT}` : '1px solid var(--border)',
-            color: votedDeal === 'chaud' ? '#fff' : 'var(--text-sub)',
-            cursor: 'pointer', fontSize: 12, fontWeight: 600,
-          }}>🔥 {deal.votes_chaud || 0}</button>
-
-          <button onClick={() => onVote(deal.id, 'froid')} style={{
-            display: 'flex', alignItems: 'center', gap: 4,
-            padding: '6px 12px', borderRadius: 7,
-            background: votedDeal === 'froid' ? '#64748B' : 'transparent',
-            border: votedDeal === 'froid' ? '1px solid #64748B' : '1px solid var(--border)',
-            color: votedDeal === 'froid' ? '#fff' : 'var(--text-sub)',
-            cursor: 'pointer', fontSize: 12, fontWeight: 600,
-          }}>❄️ {deal.votes_froid || 0}</button>
-
-          {onSave && <SaveButton saved={isSaved} onClick={onSave} lang={lang} />}
-
-          <button onClick={go} style={{
-            display: 'flex', alignItems: 'center', gap: 3,
-            padding: '6px 10px', borderRadius: 7,
-            background: 'transparent', border: '1px solid var(--border)',
-            color: 'var(--text-muted)', fontSize: 11, fontWeight: 500, cursor: 'pointer',
-            marginLeft: 'auto',
-          }}>
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-            {commentCount > 0 ? commentCount : ''}
-          </button>
-
-          {isOwner && (
-            <button onClick={go} style={{
-              padding: '6px 10px', borderRadius: 7,
-              background: 'transparent', border: `1px solid ${ACCENT}33`,
-              color: ACCENT, fontSize: 11, fontWeight: 500, cursor: 'pointer',
-            }}>Edit</button>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ─── CityModal ────────────────────────────────────────────────────────────────
-function CityModal({ villes, current, lang, onSelect, onClose }) {
-  const [search, setSearch] = useState('');
-  const [gpsLoading, setGpsLoading] = useState(false);
-  const inputRef = useRef(null);
-  useEffect(() => { setTimeout(() => inputRef.current?.focus(), 80); }, []);
-
-  const allCities = [...new Set([...POPULAR_CITIES, ...villes])];
-  const filtered = allCities.filter(v =>
-    v.toLowerCase().includes(search.toLowerCase()) ||
-    (traduireVille(v, 'en') || '').toLowerCase().includes(search.toLowerCase())
-  );
-
-  const handleGps = () => {
-    setGpsLoading(true);
-    if (!navigator.geolocation) { setGpsLoading(false); return; }
-    navigator.geolocation.getCurrentPosition(
-      async ({ coords: { latitude, longitude } }) => {
-        try {
-          const r = await fetch(
-            `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json&accept-language=he`
-          );
-          const d = await r.json();
-          const v = d.address?.city || d.address?.town || d.address?.village || null;
-          onSelect(v, { lat: latitude, lon: longitude });
-          onClose();
-        } catch {}
-        setGpsLoading(false);
-      },
-      () => setGpsLoading(false),
-      { timeout: 6000 }
-    );
-  };
-
-  return (
-    <div onClick={onClose} style={{
-      position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)',
-      zIndex: 300, display: 'flex', alignItems: 'flex-end', justifyContent: 'center',
-    }}>
-      <div onClick={e => e.stopPropagation()} style={{
-        background: 'var(--bg-card)', borderRadius: '26px 26px 0 0',
-        padding: '20px 16px 40px', width: '100%', maxWidth: 600,
-        maxHeight: '82vh', display: 'flex', flexDirection: 'column',
-      }}>
-        <div style={{ width: 40, height: 4, borderRadius: 2, background: 'var(--border)', margin: '0 auto 16px' }} />
-        <p style={{ fontSize: 16, fontWeight: 700, color: 'var(--text)', textAlign: 'center', marginBottom: 14 }}>
-          {lang !== 'he' ? 'Select your city' : 'בחר עיר'}
-        </p>
-
-        {/* Search */}
-        <input
-          ref={inputRef}
-          type="text"
-          placeholder={lang !== 'he' ? 'Search city...' : 'חפש עיר...'}
-          value={search}
-          onChange={e => setSearch(e.target.value)}
-          style={{
-            width: '100%', padding: '11px 14px', borderRadius: 8,
-            border: '1px solid var(--border)', background: 'var(--bg-input)',
-            color: 'var(--text)', fontSize: 14, outline: 'none', marginBottom: 10,
-          }}
-        />
-
-        <div style={{ overflowY: 'auto', flex: 1 }}>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
-            {/* All Israel */}
-            <button onClick={() => { onSelect(null, null); onClose(); }} style={{
-              padding: '11px 12px', borderRadius: 8, cursor: 'pointer',
-              border: `1px solid ${!current ? ACCENT : 'var(--border)'}`,
-              background: !current ? `rgba(226,85,45,0.08)` : 'var(--bg-card2)',
-              color: !current ? ACCENT : 'var(--text)',
-              fontSize: 13, fontWeight: !current ? 600 : 400,
-            }}>
-              {lang !== 'he' ? 'All Israel' : 'כל הארץ'}
-            </button>
-
-            {/* GPS */}
-            <button onClick={handleGps} disabled={gpsLoading} style={{
-              padding: '11px 12px', borderRadius: 8, cursor: 'pointer',
-              border: '1px solid var(--border)', background: 'var(--bg-card2)',
-              color: ACCENT, fontSize: 13, fontWeight: 500,
-              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-            }}>
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
-              {gpsLoading ? '...' : (lang !== 'he' ? 'My location' : 'מיקומי')}
-            </button>
-
-            {/* Cities */}
-            {filtered.map(v => (
-              <button key={v} onClick={() => { onSelect(v, CITY_COORDS[v] || null); onClose(); }} style={{
-                padding: '11px 12px', borderRadius: 8, cursor: 'pointer',
-                border: `1px solid ${current === v ? ACCENT : 'var(--border)'}`,
-                background: current === v ? `rgba(226,85,45,0.08)` : 'var(--bg-card2)',
-                color: current === v ? ACCENT : 'var(--text)',
-                fontSize: 13, fontWeight: current === v ? 600 : 400,
-                textAlign: lang === 'he' ? 'right' : 'left',
-              }}>
-                {traduireVille(v, lang)}
-              </button>
-            ))}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ─── PostDealModal ────────────────────────────────────────────────────────────
-function PostDealModal({ user, lang, onClose, onSuccess }) {
-  const CATS = ['Food', 'Tech', 'Fashion', 'Activities', 'Online'];
-  const router = useRouter();
-  const [form, setForm] = useState({
-    titre: '', description: '', prix: '', prix_original: '',
-    magasin: '', ville: '', categorie: 'Food', url_source: '',
-    date_debut: '', date_fin: '',
-  });
-  const [imageFile, setImageFile] = useState(null);
-  const [imagePreview, setImagePreview] = useState(null);
-  const [submitting, setSubmitting] = useState(false);
-  const [uploadPhase, setUploadPhase] = useState(null); // null | 'photo' | 'saving'
-  const [error, setError] = useState('');
-
-  const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
-
-  const handleImage = (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const err = validateImageFile(file);
-    if (err) {
-      setError(err);
-      e.target.value = '';
-      return;
-    }
-    setError('');
-    setImageFile(file);
-    const reader = new FileReader();
-    reader.onload = ev => setImagePreview(ev.target.result);
-    reader.readAsDataURL(file);
-  };
-
-  const handleSubmit = async () => {
-    if (!user) { setError('Please sign in to post a deal.'); return; }
-    if (!imageFile) {
-      setError(lang !== 'he' ? 'A photo is required to post a deal.' : 'נדרשת תמונה לפרסום הדיל.');
-      return;
-    }
-    if (!form.titre.trim()) { setError('Title is required.'); return; }
-    if (!form.prix) { setError('Price is required.'); return; }
-    if (!form.magasin.trim()) { setError('Store / place is required.'); return; }
-    if (form.date_debut && form.date_fin && form.date_fin < form.date_debut) {
-      setError(lang === 'he' ? 'תאריך הסיום חייב להיות אחרי תאריך ההתחלה.' : 'End date must be after start date.');
-      return;
-    }
-
-    setSubmitting(true);
-    setError('');
-    let uploadPath = null;
-    try {
-      setUploadPhase('photo');
-      const { url, path } = await uploadDealImage(imageFile, user.id);
-      uploadPath = path;
-
-      setUploadPhase('saving');
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        setError('Session expired. Please sign in again.');
-        if (uploadPath) await deleteDealImage(uploadPath);
-        setSubmitting(false);
-        setUploadPhase(null);
-        return;
-      }
-      const res = await fetch('/api/bons-plans', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session.access_token}`,
-        },
-        body: JSON.stringify({
-          ...form,
-          prix: parseFloat(form.prix),
-          prix_original: form.prix_original ? parseFloat(form.prix_original) : null,
-          image_url: url,
-        }),
-      });
-      const data = await res.json();
-      if (!res.ok || data.erreur) {
-        if (uploadPath) await deleteDealImage(uploadPath);
-        setError(data.erreur || 'Failed to post deal');
-        setSubmitting(false);
-        setUploadPhase(null);
-        return;
-      }
-      onSuccess(data.bon_plan?.id || null);
-    } catch (e) {
-      if (uploadPath) await deleteDealImage(uploadPath);
-      setError(e.message || 'Network error. Please try again.');
-      setSubmitting(false);
-      setUploadPhase(null);
-    }
-  };
-
-  useEffect(() => {
-    const esc = (e) => { if (e.key === 'Escape') onClose(); };
-    window.addEventListener('keydown', esc);
-    return () => window.removeEventListener('keydown', esc);
-  }, [onClose]);
-
-  if (!user) {
-    return (
-      <div onClick={onClose} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.65)', zIndex: 400, display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}>
-        <div onClick={e => e.stopPropagation()} style={{
-          background: 'var(--bg-card)', borderRadius: '26px 26px 0 0',
-          padding: '28px 20px 48px', width: '100%', maxWidth: 600, textAlign: 'center',
-        }}>
-          <div style={{ width: 40, height: 4, borderRadius: 2, background: 'var(--border)', margin: '0 auto 20px' }} />
-          <p style={{ fontSize: 18, fontWeight: 700, color: 'var(--text)', marginBottom: 8 }}>Share a deal</p>
-          <p style={{ fontSize: 14, color: 'var(--text-sub)', lineHeight: 1.6, marginBottom: 24, padding: '0 20px' }}>
-            Sign in to post deals, vote, and comment with the community.
-          </p>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-            <Link href="/auth" style={{
-              display: 'block', padding: '15px', borderRadius: 16,
-              background: `linear-gradient(135deg, ${ACCENT}, ${ACCENT_DARK})`,
-              color: '#fff', textDecoration: 'none', fontSize: 15, fontWeight: 700,
-              boxShadow: `0 4px 18px rgba(226,85,45,0.20)`,
-            }}>Sign in to post</Link>
-            <button onClick={onClose} style={{
-              padding: 14, borderRadius: 16, border: 'none',
-              background: 'var(--bg-card2)', color: 'var(--text-sub)',
-              fontSize: 15, cursor: 'pointer',
-            }}>Cancel</button>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div onClick={onClose} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.65)', zIndex: 400, display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}>
-      <div onClick={e => e.stopPropagation()} style={{
-        background: 'var(--bg-card)', borderRadius: '26px 26px 0 0',
-        padding: '20px 16px 44px', width: '100%', maxWidth: 600,
-        maxHeight: '92vh', overflowY: 'auto',
-      }}>
-        <div style={{ width: 40, height: 4, borderRadius: 2, background: 'var(--border)', margin: '0 auto 16px' }} />
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
-          <p style={{ fontSize: 17, fontWeight: 700, color: 'var(--text)' }}>Share a deal</p>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', fontSize: 22, cursor: 'pointer', padding: '0 4px' }}>×</button>
-        </div>
-
-        {/* Photo upload — required */}
-        <label style={{ cursor: submitting ? 'default' : 'pointer', display: 'block', marginBottom: 14 }}>
-          <div style={{
-            height: imagePreview ? 200 : 100, borderRadius: 18,
-            border: `2px dashed ${imagePreview ? ACCENT : error && !imageFile ? '#DC2626' : 'var(--border)'}`,
-            background: imagePreview ? '#000' : 'var(--bg-card2)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden',
-            position: 'relative',
-          }}>
-            {imagePreview ? (
-              <img src={imagePreview} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.95 }} />
-            ) : (
-              <div style={{ textAlign: 'center', color: 'var(--text-muted)' }}>
-                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginBottom: 8, opacity: 0.5 }}>
-                  <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
-                  <circle cx="12" cy="13" r="4"/>
-                </svg>
-                <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-sub)', marginBottom: 2 }}>
-                  {lang !== 'he' ? 'Add a photo' : 'הוסף תמונה'}
-                </div>
-                <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>
-                  JPEG · PNG · WebP · up to 5 MB
-                </div>
-              </div>
-            )}
-            {imagePreview && (
-              <div style={{
-                position: 'absolute', bottom: 8, right: 8,
-                background: 'rgba(0,0,0,0.55)', borderRadius: 10, padding: '4px 9px',
-                color: '#fff', fontSize: 11, fontWeight: 600,
-              }}>
-                {lang !== 'he' ? 'Tap to change' : 'לחץ לשינוי'}
-              </div>
-            )}
-          </div>
-          <input
-            type="file"
-            accept="image/jpeg,image/png,image/webp"
-            onChange={handleImage}
-            disabled={submitting}
-            style={{ display: 'none' }}
-          />
-        </label>
-
-        {/* Title + Store */}
-        {[['Title *', 'titre', lang !== 'he' ? 'e.g. Pizza 3+1 at Dominos' : 'לדוגמה: פיצה 3+1 בדומינוס'],
-          ['Store / Place *', 'magasin', lang !== 'he' ? 'e.g. Rami Levy, KSP, Zara' : 'לדוגמה: רמי לוי, קסטרו']
-        ].map(([label, key, ph]) => (
-          <div key={key} style={{ marginBottom: 12 }}>
-            <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--text-sub)', marginBottom: 5 }}>{label}</label>
-            <input type="text" placeholder={ph} value={form[key]}
-              onChange={e => set(key, e.target.value)}
-              style={{ width: '100%', padding: '12px 14px', borderRadius: 8, border: '1px solid var(--border)', background: 'var(--bg-input)', color: 'var(--text)', fontSize: 14, outline: 'none' }}
-            />
-          </div>
-        ))}
-
-        {/* City */}
-        <div style={{ marginBottom: 12 }}>
-          <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--text-sub)', marginBottom: 5 }}>City</label>
-          <select value={form.ville} onChange={e => set('ville', e.target.value)}
-            style={{ width: '100%', padding: '12px 14px', borderRadius: 8, border: '1px solid var(--border)', background: 'var(--bg-input)', color: form.ville ? 'var(--text)' : 'var(--text-muted)', fontSize: 14, outline: 'none', appearance: 'none', cursor: 'pointer' }}
-          >
-            <option value="">{lang !== 'he' ? 'Select a city…' : 'בחר עיר…'}</option>
-            {Object.keys(CITY_COORDS).map(v => <option key={v} value={v}>{traduireVille(v, lang)}</option>)}
-            <option value="אונליין">🌐 Online deal</option>
-          </select>
-        </div>
-
-        {/* Prices */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 12 }}>
-          {[['Deal price *', 'prix', '₪39'], ['Original price', 'prix_original', '₪79']].map(([label, key, ph]) => (
-            <div key={key}>
-              <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--text-sub)', marginBottom: 5 }}>{label}</label>
-              <input type="number" placeholder={ph} value={form[key]}
-                onChange={e => set(key, e.target.value)}
-                style={{ width: '100%', padding: '12px 14px', borderRadius: 8, border: '1px solid var(--border)', background: 'var(--bg-input)', color: 'var(--text)', fontSize: 14, outline: 'none' }}
-              />
-            </div>
-          ))}
-        </div>
-
-        {/* Deal dates */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 12 }}>
-          <div>
-            <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--text-sub)', marginBottom: 5 }}>
-              {lang === 'he' ? 'תאריך התחלה' : 'Start date'}
-            </label>
-            <input type="date" value={form.date_debut} max={form.date_fin || undefined}
-              onChange={e => set('date_debut', e.target.value)}
-              style={{ width: '100%', padding: '12px 10px', borderRadius: 8, border: '1px solid var(--border)', background: 'var(--bg-input)', color: 'var(--text)', fontSize: 13, outline: 'none' }}
-            />
-          </div>
-          <div>
-            <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--text-sub)', marginBottom: 5 }}>
-              {lang === 'he' ? 'תאריך סיום' : 'End date'}
-            </label>
-            <input type="date" value={form.date_fin} min={form.date_debut || undefined}
-              onChange={e => set('date_fin', e.target.value)}
-              style={{ width: '100%', padding: '12px 10px', borderRadius: 8, border: '1px solid var(--border)', background: 'var(--bg-input)', color: 'var(--text)', fontSize: 13, outline: 'none' }}
-            />
-          </div>
-        </div>
-
-        {/* Category */}
-        <div style={{ marginBottom: 12 }}>
-          <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--text-sub)', marginBottom: 5 }}>Category</label>
-          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-            {CATS.map(cat => (
-              <button key={cat} onClick={() => set('categorie', cat)} style={{
-                padding: '6px 14px', borderRadius: 7, cursor: 'pointer', fontSize: 13,
-                border: form.categorie === cat ? `1px solid ${ACCENT}` : '1px solid var(--border)',
-                background: form.categorie === cat ? `rgba(226,85,45,0.10)` : 'var(--bg-input)',
-                color: form.categorie === cat ? ACCENT : 'var(--text-sub)',
-                fontWeight: form.categorie === cat ? 700 : 400,
-              }}>{CATEGORY_ICONS[cat]} {cat}</button>
-            ))}
-          </div>
-        </div>
-
-        {/* Link + Description */}
-        <div style={{ marginBottom: 12 }}>
-          <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--text-sub)', marginBottom: 5 }}>Link (optional)</label>
-          <input type="url" placeholder="https://..." value={form.url_source}
-            onChange={e => set('url_source', e.target.value)}
-            style={{ width: '100%', padding: '12px 14px', borderRadius: 8, border: '1px solid var(--border)', background: 'var(--bg-input)', color: 'var(--text)', fontSize: 14, outline: 'none' }}
-          />
-        </div>
-        <div style={{ marginBottom: 16 }}>
-          <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--text-sub)', marginBottom: 5 }}>Description (optional)</label>
-          <textarea placeholder={lang !== 'he' ? 'More details about the deal...' : 'פרטים נוספים...'} value={form.description}
-            onChange={e => set('description', e.target.value)} rows={2}
-            style={{ width: '100%', padding: '12px 14px', borderRadius: 8, border: '1px solid var(--border)', background: 'var(--bg-input)', color: 'var(--text)', fontSize: 14, outline: 'none', resize: 'vertical' }}
-          />
-        </div>
-
-        {error && (
-          <p style={{
-            color: '#DC2626', fontSize: 13, marginBottom: 10,
-            background: 'rgba(220,38,38,0.08)', borderRadius: 10,
-            padding: '8px 12px', lineHeight: 1.5,
-          }}>{error}</p>
-        )}
-
-        <button onClick={handleSubmit} disabled={submitting} style={{
-          width: '100%', padding: 16, borderRadius: 16, border: 'none',
-          background: submitting ? 'var(--bg-card2)' : `linear-gradient(135deg, ${ACCENT}, ${ACCENT_DARK})`,
-          color: submitting ? 'var(--text-muted)' : '#fff',
-          fontSize: 16, fontWeight: 700, cursor: submitting ? 'default' : 'pointer',
-          boxShadow: submitting ? 'none' : `0 4px 18px rgba(226,85,45,0.20)`,
-        }}>
-          {uploadPhase === 'photo'
-            ? (lang !== 'he' ? 'Uploading photo...' : 'מעלה תמונה...')
-            : uploadPhase === 'saving'
-              ? (lang !== 'he' ? 'Saving deal...' : 'שומר דיל...')
-              : (lang !== 'he' ? 'Publish deal' : 'פרסם דיל')}
-        </button>
-      </div>
-    </div>
-  );
-}
-
 // ─── SearchTab ────────────────────────────────────────────────────────────────
 function SearchTab({ promos, deals, lang, isDark, onPromoClick, userCoords, promoVotes, onPromoVote, savedKeys, onToggleSave, votedDeals, onDealVote, user, searchQuery, onSearchQueryChange, isAdmin, onAdminDeleteDeal }) {
   const q = searchQuery || '';
@@ -1505,7 +547,16 @@ function ProfileTab({ user, lang, savedItems = [], onToggleSave, onOpenAlerts })
           { label: lang !== 'he' ? 'Account settings' : 'הגדרות חשבון', href: '/profil' },
           { label: lang !== 'he' ? 'Deals map' : 'מפת דילים', href: '/map' },
         ].map(item => (
-          <Link key={item.href + item.label} href={item.href} style={{
+          <Link
+            key={item.href + item.label}
+            href={item.href}
+            onClick={() => {
+              if (item.href !== '/map') return;
+              try {
+                sessionStorage.setItem('dilzMapReturnUrl', `${window.location.pathname}${window.location.search}` || '/?tab=dilz');
+              } catch {}
+            }}
+            style={{
             display: 'flex', alignItems: 'center',
             background: 'var(--bg-card)', borderRadius: 10, padding: '14px 16px',
             textDecoration: 'none', border: '1px solid var(--border)',
@@ -1626,388 +677,6 @@ function ProfileTab({ user, lang, savedItems = [], onToggleSave, onOpenAlerts })
       }}>
         {lang !== 'he' ? 'Sign out' : 'התנתק'}
       </button>
-    </div>
-  );
-}
-
-// ─── AlertModal ───────────────────────────────────────────────────────────────
-function AlertModal({ user, lang, onClose }) {
-  const ACCENT = '#E2552D';
-  const [tab, setTab] = useState('list');
-  const [alerts, setAlerts] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [form, setForm] = useState({ city: '', online_only: false, min_discount_percent: '', keyword: '' });
-  const [saving, setSaving] = useState(false);
-  const [error, setError] = useState('');
-
-  useEffect(() => {
-    const esc = (e) => { if (e.key === 'Escape') onClose(); };
-    window.addEventListener('keydown', esc);
-    return () => window.removeEventListener('keydown', esc);
-  }, [onClose]);
-
-  useEffect(() => {
-    if (!user) { setLoading(false); return; }
-    supabase.auth.getSession().then(({ data }) => {
-      if (!data.session) { setLoading(false); return; }
-      fetch('/api/alerts', { headers: { 'Authorization': `Bearer ${data.session.access_token}` } })
-        .then(r => r.json())
-        .then(d => { setAlerts(d.alerts || []); setLoading(false); })
-        .catch(() => setLoading(false));
-    });
-  }, [user]);
-
-  const handleCreate = async () => {
-    setSaving(true); setError('');
-    const { data } = await supabase.auth.getSession();
-    if (!data.session) { setError('Session expired.'); setSaving(false); return; }
-
-    const body = {
-      city: form.city || null,
-      online_only: form.online_only,
-      min_discount_percent: form.min_discount_percent !== '' ? Number(form.min_discount_percent) : null,
-      keyword: form.keyword.trim() || null,
-    };
-
-    // Ask for push permission when creating first alert
-    if ('Notification' in window && Notification.permission === 'default') {
-      const perm = await Notification.requestPermission().catch(() => 'denied');
-      if (perm === 'granted' && 'serviceWorker' in navigator) {
-        try {
-          const reg = await navigator.serviceWorker.ready;
-          const vapidKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
-          if (vapidKey) {
-            const sub = await reg.pushManager.subscribe({
-              userVisibleOnly: true,
-              applicationServerKey: vapidKey,
-            });
-            const k = sub.getKey('p256dh');
-            const a = sub.getKey('auth');
-            await fetch('/api/push-subscription', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${data.session.access_token}` },
-              body: JSON.stringify({
-                endpoint: sub.endpoint,
-                p256dh: k ? btoa(String.fromCharCode(...new Uint8Array(k))) : '',
-                auth: a ? btoa(String.fromCharCode(...new Uint8Array(a))) : '',
-              }),
-            }).catch(() => {});
-          }
-        } catch {}
-      }
-    }
-
-    const res = await fetch('/api/alerts', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${data.session.access_token}` },
-      body: JSON.stringify(body),
-    });
-    const result = await res.json();
-    if (!res.ok) { setError(result.erreur || 'Could not create alert.'); setSaving(false); return; }
-    setAlerts(prev => [result.alert, ...prev]);
-    setForm({ city: '', online_only: false, min_discount_percent: '', keyword: '' });
-    setTab('list');
-    setSaving(false);
-  };
-
-  const handleToggle = async (alert) => {
-    const { data } = await supabase.auth.getSession();
-    if (!data.session) return;
-    await fetch('/api/alerts', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${data.session.access_token}` },
-      body: JSON.stringify({ id: alert.id, is_active: !alert.is_active }),
-    });
-    setAlerts(prev => prev.map(a => a.id === alert.id ? { ...a, is_active: !a.is_active } : a));
-  };
-
-  const handleDelete = async (id) => {
-    const { data } = await supabase.auth.getSession();
-    if (!data.session) return;
-    await fetch(`/api/alerts?id=${id}`, {
-      method: 'DELETE',
-      headers: { 'Authorization': `Bearer ${data.session.access_token}` },
-    });
-    setAlerts(prev => prev.filter(a => a.id !== id));
-  };
-
-  function alertSummary(a) {
-    const parts = [];
-    if (a.city) parts.push(a.city);
-    if (a.online_only) parts.push('Online');
-    if (a.min_discount_percent != null) parts.push(`-${a.min_discount_percent}%+`);
-    if (a.keyword) parts.push(`"${a.keyword}"`);
-    return parts.join(' · ') || 'All new deals';
-  }
-
-  return (
-    <div onClick={onClose} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.65)', zIndex: 500, display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}>
-      <div onClick={e => e.stopPropagation()} style={{
-        background: 'var(--bg-card)', borderRadius: '26px 26px 0 0',
-        padding: '20px 16px 44px', width: '100%', maxWidth: 600,
-        maxHeight: '88vh', display: 'flex', flexDirection: 'column',
-      }}>
-        <div style={{ width: 40, height: 4, borderRadius: 2, background: 'var(--border)', margin: '0 auto 16px' }} />
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-          <p style={{ fontSize: 17, fontWeight: 700, color: 'var(--text)' }}>My Alerts</p>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', fontSize: 22, cursor: 'pointer', padding: '0 4px' }}>×</button>
-        </div>
-
-        {/* Tabs */}
-        <div style={{ display: 'flex', gap: 6, marginBottom: 16 }}>
-          {[['list', 'My alerts'], ['new', '+ New alert']].map(([id, label]) => (
-            <button key={id} onClick={() => setTab(id)} style={{
-              flex: 1, padding: '8px 0', borderRadius: 7, cursor: 'pointer', fontSize: 12, fontWeight: 600,
-              border: tab === id ? `1px solid ${ACCENT}` : '1px solid var(--border)',
-              background: tab === id ? `rgba(226,85,45,0.09)` : 'transparent',
-              color: tab === id ? ACCENT : 'var(--text-sub)',
-            }}>{label}</button>
-          ))}
-        </div>
-
-        <div style={{ overflowY: 'auto', flex: 1 }}>
-          {/* ── List tab ── */}
-          {tab === 'list' && (
-            loading ? (
-              <div style={{ textAlign: 'center', paddingTop: 40 }}>
-                <div className="dilz-spinner" style={{ margin: '0 auto 12px' }} />
-                <p style={{ color: 'var(--text-muted)', fontSize: 13 }}>Loading...</p>
-              </div>
-            ) : alerts.length === 0 ? (
-              <div style={{ textAlign: 'center', paddingTop: 40 }}>
-                <p style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)', marginBottom: 8 }}>No alerts yet</p>
-                <p style={{ fontSize: 13, color: 'var(--text-sub)', marginBottom: 20, lineHeight: 1.6 }}>
-                  Create an alert to get notified when new deals match your criteria.
-                </p>
-                <button onClick={() => setTab('new')} style={{
-                  padding: '10px 22px', borderRadius: 8, border: 'none',
-                  background: ACCENT,
-                  color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer',
-                }}>Create your first alert</button>
-              </div>
-            ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                {alerts.map(a => (
-                  <div key={a.id} style={{
-                    padding: '13px 14px', borderRadius: 10,
-                    background: 'var(--bg-card2)',
-                    border: `1px solid ${a.is_active ? ACCENT + '44' : 'var(--border)'}`,
-                    opacity: a.is_active ? 1 : 0.55,
-                  }}>
-                    <p style={{ fontSize: 13, fontWeight: 500, color: 'var(--text)', marginBottom: 10, lineHeight: 1.4 }}>
-                      {alertSummary(a)}
-                    </p>
-                    <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                      <button onClick={() => handleToggle(a)} style={{
-                        flex: 1, padding: '6px 0', borderRadius: 7, cursor: 'pointer', fontSize: 11, fontWeight: 600,
-                        border: a.is_active ? `1px solid ${ACCENT}` : '1px solid var(--border)',
-                        background: 'transparent',
-                        color: a.is_active ? ACCENT : 'var(--text-muted)',
-                      }}>{a.is_active ? 'Active' : 'Paused'}</button>
-                      <button onClick={() => handleDelete(a.id)} style={{
-                        padding: '6px 12px', borderRadius: 7, cursor: 'pointer', fontSize: 11,
-                        border: '1px solid var(--border)', background: 'transparent',
-                        color: '#DC2626', fontWeight: 500,
-                      }}>Delete</button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )
-          )}
-
-          {/* ── New alert tab ── */}
-          {tab === 'new' && (
-            <div>
-              <div style={{ marginBottom: 14 }}>
-                <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--text-sub)', marginBottom: 6 }}>City (optional)</label>
-                <select value={form.city} onChange={e => setForm(f => ({ ...f, city: e.target.value }))} style={{
-                  width: '100%', padding: '12px 14px', borderRadius: 8,
-                  border: '1px solid var(--border)', background: 'var(--bg-input)',
-                  color: form.city ? 'var(--text)' : 'var(--text-muted)',
-                  fontSize: 14, outline: 'none', cursor: 'pointer',
-                }}>
-                  <option value="">All of Israel</option>
-                  {POPULAR_CITIES.map(v => <option key={v} value={v}>{v}</option>)}
-                  <option value="אונליין">Online only</option>
-                </select>
-              </div>
-
-              <div style={{ marginBottom: 14 }}>
-                <label style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }}>
-                  <div
-                    onClick={() => setForm(f => ({ ...f, online_only: !f.online_only }))}
-                    style={{
-                      width: 42, height: 24, borderRadius: 12, position: 'relative', cursor: 'pointer',
-                      background: form.online_only ? ACCENT : 'var(--bg-card2)',
-                      border: '1px solid var(--border)', transition: 'background 0.2s',
-                    }}
-                  >
-                    <div style={{
-                      position: 'absolute', top: 2, left: form.online_only ? 20 : 2,
-                      width: 18, height: 18, borderRadius: '50%', background: '#fff',
-                      transition: 'left 0.2s', boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
-                    }} />
-                  </div>
-                  <span style={{ fontSize: 13, color: 'var(--text)', fontWeight: 500 }}>Online deals only</span>
-                </label>
-              </div>
-
-              <div style={{ marginBottom: 14 }}>
-                <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--text-sub)', marginBottom: 6 }}>Minimum discount % (optional)</label>
-                <input
-                  type="number" min="0" max="100" placeholder="e.g. 30"
-                  value={form.min_discount_percent}
-                  onChange={e => setForm(f => ({ ...f, min_discount_percent: e.target.value }))}
-                  style={{ width: '100%', padding: '12px 14px', borderRadius: 8, border: '1px solid var(--border)', background: 'var(--bg-input)', color: 'var(--text)', fontSize: 14, outline: 'none' }}
-                />
-              </div>
-
-              <div style={{ marginBottom: 20 }}>
-                <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--text-sub)', marginBottom: 6 }}>Keyword (optional)</label>
-                <input
-                  type="text" placeholder='e.g. Nike, iPhone, pizza…'
-                  value={form.keyword}
-                  onChange={e => setForm(f => ({ ...f, keyword: e.target.value }))}
-                  style={{ width: '100%', padding: '12px 14px', borderRadius: 8, border: '1px solid var(--border)', background: 'var(--bg-input)', color: 'var(--text)', fontSize: 14, outline: 'none' }}
-                />
-              </div>
-
-              {error && (
-                <p style={{ color: '#DC2626', fontSize: 13, marginBottom: 12, background: 'rgba(220,38,38,0.08)', borderRadius: 10, padding: '8px 12px' }}>{error}</p>
-              )}
-
-              <button onClick={handleCreate} disabled={saving} style={{
-                width: '100%', padding: 14, borderRadius: 8, border: 'none',
-                background: saving ? 'var(--bg-card2)' : ACCENT,
-                color: saving ? 'var(--text-muted)' : '#fff',
-                fontSize: 14, fontWeight: 600, cursor: saving ? 'default' : 'pointer',
-              }}>
-                {saving ? 'Creating...' : 'Create alert'}
-              </button>
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ─── NotificationSheet ────────────────────────────────────────────────────────
-function NotificationSheet({ user, lang, notifications, onClose, onMarkAllRead, onOpenAlerts }) {
-  const ACCENT = '#E2552D';
-  const router = useRouter();
-  const unread = notifications.filter(n => !n.is_read).length;
-
-  useEffect(() => {
-    const esc = (e) => { if (e.key === 'Escape') onClose(); };
-    window.addEventListener('keydown', esc);
-    return () => window.removeEventListener('keydown', esc);
-  }, [onClose]);
-
-  const handleNotifClick = async (notif) => {
-    if (!notif.is_read) {
-      const { data } = await supabase.auth.getSession();
-      if (data.session) {
-        await fetch('/api/notifications', {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${data.session.access_token}` },
-          body: JSON.stringify({ id: notif.id }),
-        }).catch(() => {});
-      }
-    }
-    onClose();
-    router.push(`/deal/${notif.deal_id}`);
-  };
-
-  function timeAgoShort(date) {
-    const d = Date.now() - new Date(date).getTime();
-    const m = Math.floor(d / 60000);
-    const h = Math.floor(d / 3600000);
-    const days = Math.floor(d / 86400000);
-    if (m < 2)  return 'now';
-    if (m < 60) return `${m}m`;
-    if (h < 24) return `${h}h`;
-    return `${days}d`;
-  }
-
-  return (
-    <div onClick={onClose} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.65)', zIndex: 500, display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}>
-      <div onClick={e => e.stopPropagation()} style={{
-        background: 'var(--bg-card)', borderRadius: '26px 26px 0 0',
-        padding: '20px 16px 44px', width: '100%', maxWidth: 600,
-        maxHeight: '80vh', display: 'flex', flexDirection: 'column',
-      }}>
-        <div style={{ width: 40, height: 4, borderRadius: 2, background: 'var(--border)', margin: '0 auto 16px' }} />
-
-        {/* Header row */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
-          <p style={{ fontSize: 17, fontWeight: 700, color: 'var(--text)' }}>
-            Notifications {unread > 0 && <span style={{ fontSize: 12, fontWeight: 600, color: ACCENT, marginLeft: 6 }}>{unread} new</span>}
-          </p>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', fontSize: 22, cursor: 'pointer', padding: '0 4px' }}>×</button>
-        </div>
-
-        {/* Actions row */}
-        <div style={{ display: 'flex', gap: 8, marginBottom: 14 }}>
-          <button onClick={() => { onClose(); onOpenAlerts(); }} style={{
-            flex: 1, padding: '8px 0', borderRadius: 7, cursor: 'pointer', fontSize: 12, fontWeight: 600,
-            border: `1px solid ${ACCENT}`, background: `rgba(226,85,45,0.08)`, color: ACCENT,
-          }}>Manage alerts</button>
-          {unread > 0 && (
-            <button onClick={onMarkAllRead} style={{
-              flex: 1, padding: '8px 0', borderRadius: 7, cursor: 'pointer', fontSize: 12, fontWeight: 600,
-              border: '1px solid var(--border)', background: 'transparent', color: 'var(--text-sub)',
-            }}>Mark all read</button>
-          )}
-        </div>
-
-        {/* List */}
-        <div style={{ overflowY: 'auto', flex: 1 }}>
-          {notifications.length === 0 ? (
-            <div style={{ textAlign: 'center', paddingTop: 40 }}>
-              <p style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)', marginBottom: 8 }}>No notifications yet</p>
-              <p style={{ fontSize: 13, color: 'var(--text-sub)', lineHeight: 1.6, marginBottom: 20 }}>
-                Set up alerts to get notified when new deals match your criteria.
-              </p>
-              <button onClick={() => { onClose(); onOpenAlerts(); }} style={{
-                padding: '10px 22px', borderRadius: 8, border: 'none',
-                background: ACCENT,
-                color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer',
-              }}>Set up alerts</button>
-            </div>
-          ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              {notifications.map(n => (
-                <div
-                  key={n.id}
-                  onClick={() => handleNotifClick(n)}
-                  style={{
-                    padding: '13px 14px', borderRadius: 16, cursor: 'pointer',
-                    background: n.is_read ? 'var(--bg-card2)' : `rgba(226,85,45,0.07)`,
-                    border: n.is_read ? '1px solid var(--border)' : `1px solid ${ACCENT}44`,
-                    display: 'flex', gap: 12, alignItems: 'flex-start',
-                  }}
-                >
-                  <div style={{
-                    width: 8, height: 8, borderRadius: '50%', flexShrink: 0, marginTop: 5,
-                    background: n.is_read ? 'var(--border)' : ACCENT,
-                  }} />
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <p style={{ fontSize: 14, fontWeight: 700, color: 'var(--text)', marginBottom: 3, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                      {n.title}
-                    </p>
-                    <p style={{ fontSize: 12, color: 'var(--text-sub)' }}>{n.message}</p>
-                  </div>
-                  <span style={{ fontSize: 11, color: 'var(--text-muted)', flexShrink: 0, paddingTop: 2 }}>
-                    {timeAgoShort(n.created_at)}
-                  </span>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
     </div>
   );
 }
@@ -2322,6 +991,13 @@ export default function Home() {
     try { localStorage.setItem('dilzDealLayout', next); } catch {}
   };
 
+  const openMap = () => {
+    try {
+      sessionStorage.setItem('dilzMapReturnUrl', router.asPath || '/?tab=dilz');
+    } catch {}
+    router.push(ville ? `/map?city=${encodeURIComponent(ville)}` : '/map');
+  };
+
   const handleAdminDeleteDeal = async (id) => {
     if (!adminToken) return;
     if (!window.confirm(`Admin: delete deal #${id}?`)) return;
@@ -2546,45 +1222,6 @@ export default function Home() {
 
   const cityLabel = ville ? traduireVille(ville, lang) : (lang !== 'he' ? 'All Israel' : 'כל הארץ');
 
-  // ── Nav items ──
-  const NAV = [
-    {
-      id: 'sales',
-      label: t.nav.sales,
-      icon: (active) => (
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={active ? ACCENT : 'var(--text-sub)'} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z" /><line x1="7" y1="7" x2="7.01" y2="7" />
-        </svg>
-      ),
-    },
-    {
-      id: 'deals',
-      label: t.nav.deals,
-      icon: (active) => (
-        <svg width="22" height="22" viewBox="0 0 24 24" fill={active ? ACCENT : 'none'} stroke={active ? ACCENT : 'var(--text-sub)'} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-        </svg>
-      ),
-    },
-    {
-      id: 'search',
-      label: t.nav.search,
-      icon: (active) => (
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={active ? ACCENT : 'var(--text-sub)'} strokeWidth="1.8" strokeLinecap="round">
-          <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-        </svg>
-      ),
-    },
-    {
-      id: 'profile',
-      label: t.nav.profile,
-      icon: (active) => (
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={active ? ACCENT : 'var(--text-sub)'} strokeWidth="1.8" strokeLinecap="round">
-          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
-        </svg>
-      ),
-    },
-  ];
 
   return (
     <>
@@ -2627,31 +1264,22 @@ export default function Home() {
               />
               <button
                 type="button"
+                className="dilz-filter-toggle"
                 onClick={togglePromoFilters}
                 aria-expanded={showPromoFilters}
                 aria-controls="supermarket-filters"
-                style={{
-                  width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                  gap: 8, padding: '7px 10px', marginBottom: showPromoFilters ? 8 : 12,
-                  borderRadius: 10, border: '1px solid var(--border)',
-                  background: 'var(--bg-card)', color: 'var(--text-sub)', cursor: 'pointer',
-                }}
               >
-                <span style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <span className="dilz-filter-toggle__left">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                     <path d="M4 6h16M7 12h10M10 18h4" />
                   </svg>
-                  <span style={{ fontSize: 13, fontWeight: 600 }}>
+                  <span>
                     {showPromoFilters
                       ? textFor(lang, { en: 'Hide filters', he: 'הסתר מסננים', fr: 'Masquer les filtres', es: 'Ocultar filtros' })
                       : textFor(lang, { en: 'Show filters', he: 'הצג מסננים', fr: 'Afficher les filtres', es: 'Mostrar filtros' })}
                   </span>
                   {(storeFilter !== 'all' || promoCategory !== 'all' || promoSort !== 'discount') && (
-                    <span style={{
-                      minWidth: 18, height: 18, padding: '0 5px', borderRadius: 9,
-                      display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-                      background: ACCENT, color: '#fff', fontSize: 10, fontWeight: 800,
-                    }}>
+                    <span className="dilz-filter-toggle__count">
                       {[storeFilter !== 'all', promoCategory !== 'all', promoSort !== 'discount'].filter(Boolean).length}
                     </span>
                   )}
@@ -2659,103 +1287,83 @@ export default function Home() {
                 <svg
                   width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                   strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
-                  style={{ transform: showPromoFilters ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}
+                  className={showPromoFilters ? 'dilz-filter-toggle__chevron is-open' : 'dilz-filter-toggle__chevron'}
+                  aria-hidden="true"
                 >
                   <path d="M6 9l6 6 6-6" />
                 </svg>
               </button>
 
               <div id="supermarket-filters" hidden={!showPromoFilters}>
-              {/* Product sort */}
-              <div className="dilz-compact-filter-row">
-                {[
-                  { id: 'discount', en: 'Best discount', he: 'הנחה גבוהה', fr: 'Meilleure remise', es: 'Mejor descuento' },
-                  { id: 'liked', en: 'Most liked', he: 'הכי אהובים', fr: 'Les plus likés', es: 'Mas votados' },
-                  { id: 'recent', en: 'Newest', he: 'החדשים ביותר', fr: 'Plus récents', es: 'Mas recientes' },
-                  { id: 'price_asc', en: 'Lowest price', he: 'מחיר נמוך', fr: 'Prix le plus bas', es: 'Precio mas bajo' },
-                ].map(option => {
-                  const active = promoSort === option.id;
-                  return (
-                    <button key={option.id} onClick={() => setPromoSort(option.id)} style={{
-                      flexShrink: 0, padding: '6px 12px', borderRadius: 7, cursor: 'pointer',
-                      border: active ? `1px solid ${ACCENT}` : '1px solid var(--border)',
-                      background: active ? 'rgba(226,85,45,0.09)' : 'transparent',
-                      color: active ? ACCENT : 'var(--text-sub)',
-                      fontSize: 12, fontWeight: active ? 600 : 400, whiteSpace: 'nowrap',
-                    }}>
+                <div className="dilz-compact-filter-row" role="group" aria-label="Sort">
+                  {[
+                    { id: 'discount', en: 'Best discount', he: 'הנחה גבוהה', fr: 'Meilleure remise', es: 'Mejor descuento' },
+                    { id: 'liked', en: 'Most liked', he: 'הכי אהובים', fr: 'Les plus likés', es: 'Mas votados' },
+                    { id: 'recent', en: 'Newest', he: 'החדשים ביותר', fr: 'Plus récents', es: 'Mas recientes' },
+                    { id: 'price_asc', en: 'Lowest price', he: 'מחיר נמוך', fr: 'Prix le plus bas', es: 'Precio mas bajo' },
+                  ].map((option) => (
+                    <button
+                      key={option.id}
+                      type="button"
+                      className={['dilz-compact-filter-chip', promoSort === option.id && 'is-active'].filter(Boolean).join(' ')}
+                      onClick={() => setPromoSort(option.id)}
+                    >
                       {textFor(lang, option)}
                     </button>
-                  );
-                })}
-              </div>
+                  ))}
+                </div>
 
-              {/* Product category */}
-              <div className="dilz-compact-filter-row">
-                {['all', ...PRODUCT_CATEGORIES].map(category => {
-                  const active = promoCategory === category;
-                  return (
-                    <button key={category} onClick={() => setPromoCategory(category)} style={{
-                      flexShrink: 0, padding: '6px 12px', borderRadius: 7, cursor: 'pointer',
-                      border: active ? `1px solid ${ACCENT}` : '1px solid var(--border)',
-                      background: active ? 'rgba(226,85,45,0.09)' : 'transparent',
-                      color: active ? ACCENT : 'var(--text-sub)',
-                      fontSize: 12, fontWeight: active ? 600 : 400, whiteSpace: 'nowrap',
-                    }}>
+                <div className="dilz-compact-filter-row" role="group" aria-label="Category">
+                  {['all', ...PRODUCT_CATEGORIES].map((category) => (
+                    <button
+                      key={category}
+                      type="button"
+                      className={['dilz-compact-filter-chip', promoCategory === category && 'is-active'].filter(Boolean).join(' ')}
+                      onClick={() => setPromoCategory(category)}
+                    >
                       {getProductCategoryLabel(category, lang)}
                     </button>
-                  );
-                })}
+                  ))}
+                </div>
+
+                <div className="dilz-compact-filter-row" role="group" aria-label="Store">
+                  {STORE_FILTERS.map((f) => {
+                    const active = storeFilter === f.id;
+                    const s = f.id !== 'all' ? STORE_COLORS[f.id] : null;
+                    return (
+                      <button
+                        key={f.id}
+                        type="button"
+                        className={['dilz-compact-filter-chip', active && 'is-active'].filter(Boolean).join(' ')}
+                        onClick={() => setStoreFilter(f.id)}
+                        style={active && s ? { borderColor: s.color, background: isDark ? s.dark : s.bg, color: s.color } : undefined}
+                      >
+                        {f.id === 'all' ? (lang !== 'he' ? 'All stores' : 'כל הרשתות') : (lang !== 'he' ? f.nameEn : f.id)}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
 
-              {/* Store filter */}
-              <div className="dilz-compact-filter-row" style={{ marginBottom: 12 }}>
-                {STORE_FILTERS.map(f => {
-                  const active = storeFilter === f.id;
-                  const s = f.id !== 'all' ? STORE_COLORS[f.id] : null;
-                  return (
-                    <button key={f.id} onClick={() => setStoreFilter(f.id)} style={{
-                      flexShrink: 0, padding: '6px 14px', borderRadius: 7, cursor: 'pointer',
-                      border: `1px solid ${active ? (s?.color || ACCENT) : 'var(--border)'}`,
-                      background: active
-                        ? (s ? (isDark ? s.dark : s.bg) : `rgba(226,85,45,0.09)`)
-                        : 'transparent',
-                      color: active ? (s?.color || ACCENT) : 'var(--text-sub)',
-                      fontSize: 12, fontWeight: active ? 600 : 400, whiteSpace: 'nowrap',
-                    }}>
-                      {f.id === 'all' ? (lang !== 'he' ? 'All stores' : 'כל הרשתות') : (lang !== 'he' ? f.nameEn : f.id)}
-                    </button>
-                  );
-                })}
-              </div>
-              </div>
-
-              {/* Content */}
               {loadingPromos ? (
-                <div style={{ textAlign: 'center', padding: '60px 0' }}>
-                  <div className="dilz-spinner" style={{ margin: '0 auto 14px' }} />
-                  <p style={{ color: 'var(--text-muted)', fontSize: 13 }}>{t.loadingDeals}</p>
+                <div className="dilz-loading-state">
+                  <div className="dilz-spinner" />
+                  <p>{t.loadingDeals}</p>
                 </div>
               ) : filteredPromos.length === 0 ? (
-                <div style={{
-                  textAlign: 'center', padding: '44px 20px',
-                  background: 'var(--bg-card)', borderRadius: 12, border: '1px solid var(--border)',
-                }}>
-                  <p style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)', marginBottom: 6 }}>
-                    {textFor(lang, { en: 'No promotions found', he: 'לא נמצאו מבצעים', fr: 'Aucune promotion trouvée', es: 'No se encontraron promociones' })}
-                  </p>
-                  <p style={{ fontSize: 13, color: 'var(--text-sub)', lineHeight: 1.6, marginBottom: 16 }}>
-                    {textFor(lang, { en: 'Try selecting a different store.', he: 'נסה לבחור חנות אחרת.', fr: 'Essaie une autre enseigne.', es: 'Prueba otra tienda.' })}
-                  </p>
-                  <button onClick={() => setStoreFilter('all')} style={{
-                    padding: '9px 20px', borderRadius: 7, border: `1px solid ${ACCENT}`,
-                    background: 'transparent', color: ACCENT, fontSize: 13, fontWeight: 600, cursor: 'pointer',
-                  }}>{textFor(lang, { en: 'Show all stores', he: 'כל הרשתות', fr: 'Toutes les enseignes', es: 'Todas las tiendas' })}</button>
-                </div>
+                <EmptyState
+                  title={textFor(lang, { en: 'No promotions found', he: 'לא נמצאו מבצעים', fr: 'Aucune promotion trouvée', es: 'No se encontraron promociones' })}
+                  text={textFor(lang, { en: 'Try selecting a different store.', he: 'נסה לבחור חנות אחרת.', fr: 'Essaie une autre enseigne.', es: 'Prueba otra tienda.' })}
+                  actionLabel={textFor(lang, { en: 'Show all stores', he: 'כל הרשתות', fr: 'Toutes les enseignes', es: 'Todas las tiendas' })}
+                  onAction={() => setStoreFilter('all')}
+                />
               ) : (
                 <>
                   {heroPromo && (
                     <HeroPromoCard
-                      promo={heroPromo} lang={lang} isDark={isDark}
+                      promo={heroPromo}
+                      lang={lang}
+                      isDark={isDark}
                       onClick={() => openPromo(heroPromo)}
                       votes={promoVotes[heroPromo.barcode]}
                       onVote={handlePromoVote}
@@ -2763,21 +1371,23 @@ export default function Home() {
                       onSave={() => handleToggleSave('product', heroPromo.barcode)}
                     />
                   )}
-
                   {gridPromos.length > 0 && (
                     <>
-                      <p style={{ fontSize: 12, fontWeight: 500, color: 'var(--text-muted)', marginBottom: 10, letterSpacing: '0.1px' }}>
+                      <p className="dilz-count-label">
                         {textFor(lang, {
                           en: `${filteredPromos.length} products compared`,
                           he: `${filteredPromos.length} מוצרים להשוואה`,
-                          fr: `${filteredPromos.length} produits compares`,
+                          fr: `${filteredPromos.length} produits comparés`,
                           es: `${filteredPromos.length} productos comparados`,
                         })}
                       </p>
                       <div className="dilz-promo-grid">
-                        {gridPromos.map(p => (
+                        {gridPromos.map((p) => (
                           <PromoCard
-                            key={p.barcode} promo={p} lang={lang} isDark={isDark}
+                            key={p.barcode}
+                            promo={p}
+                            lang={lang}
+                            isDark={isDark}
                             onClick={() => openPromo(p)}
                             votes={promoVotes[p.barcode]}
                             onVote={handlePromoVote}
@@ -2835,7 +1445,7 @@ export default function Home() {
                     </button>
                   );
                 })}
-                <button type="button" onClick={() => router.push('/map')}>Map</button>
+                <button type="button" onClick={openMap}>Map</button>
               </div>
 
               <div className="dilz-feed-toolbar" aria-label="Dilz display options">
@@ -2848,81 +1458,67 @@ export default function Home() {
                   })}
                 </span>
                 <div className="dilz-layout-toggle">
-                  {[
-                    { id: 'card', label: textFor(lang, { en: 'Cards', he: 'כרטיסים', fr: 'Cards', es: 'Cards' }) },
-                    { id: 'list', label: textFor(lang, { en: 'Rows', he: 'שורות', fr: 'Lignes', es: 'Lineas' }) },
-                  ].map(option => (
-                    <button
-                      key={option.id}
-                      type="button"
-                      className={dealLayout === option.id ? 'is-active' : ''}
-                      onClick={() => changeDealLayout(option.id)}
-                    >
-                      {option.label}
-                    </button>
-                  ))}
+                  <button
+                    type="button"
+                    className={dealLayout === 'card' ? 'is-active' : ''}
+                    onClick={() => changeDealLayout('card')}
+                    aria-label="Card view"
+                  >
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
+                      <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
+                      <rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
+                    </svg>
+                  </button>
+                  <button
+                    type="button"
+                    className={dealLayout === 'list' ? 'is-active' : ''}
+                    onClick={() => changeDealLayout('list')}
+                    aria-label="List view"
+                  >
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
+                      <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
+                    </svg>
+                  </button>
                 </div>
               </div>
 
-              {/* City context */}
               {ville && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10 }}>
-                  <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>
-                    {lang !== 'he' ? `Deals in ${traduireVille(ville, 'en')}` : `דילים ב${ville}`}
-                  </span>
-                  <button onClick={() => setShowCityModal(true)} style={{
-                    background: 'none', border: 'none', color: ACCENT,
-                    fontSize: 12, fontWeight: 600, cursor: 'pointer', padding: 0,
-                  }}>
+                <div className="dilz-city-context">
+                  <span>{lang !== 'he' ? `Deals in ${traduireVille(ville, 'en')}` : `דילים ב${ville}`}</span>
+                  <button type="button" className="dilz-city-context__change" onClick={() => setShowCityModal(true)}>
                     {lang !== 'he' ? '· Change' : '· שנה'}
                   </button>
                 </div>
               )}
 
-              {/* Post success banner */}
               {postSuccess && (
-                <div style={{
-                  padding: '12px 16px', borderRadius: 10, marginBottom: 14,
-                  background: 'rgba(5,150,105,0.08)', border: '1px solid rgba(5,150,105,0.2)',
-                }}>
-                  <span style={{ fontSize: 13, fontWeight: 600, color: '#059669' }}>
-                    {lang !== 'he' ? 'Deal published! Refreshing...' : 'הדיל פורסם! מרענן...'}
-                  </span>
+                <div className="dilz-success-banner">
+                  {lang !== 'he' ? 'Deal published! Refreshing...' : 'הדיל פורסם! מרענן...'}
                 </div>
               )}
 
-              {/* Deals list */}
               {loadingDeals ? (
-                <div style={{ textAlign: 'center', padding: '60px 0' }}>
-                  <div className="dilz-spinner" style={{ margin: '0 auto 14px' }} />
-                  <p style={{ color: 'var(--text-muted)', fontSize: 13 }}>{t.loading}</p>
+                <div className="dilz-loading-state">
+                  <div className="dilz-spinner" />
+                  <p>{t.loading}</p>
                 </div>
               ) : displayedDeals.length === 0 ? (
-                <div style={{
-                  textAlign: 'center', padding: '44px 20px',
-                  background: 'var(--bg-card)', borderRadius: 12,
-                  border: '1px solid var(--border)',
-                }}>
-                  <p style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)', marginBottom: 6 }}>
-                    {sortDeals === 'ending'
+                <EmptyState
+                  title={
+                    sortDeals === 'ending'
                       ? (lang !== 'he' ? 'No deals ending soon' : 'אין דילים שמסתיימים בקרוב')
                       : myDealsOnly
                         ? (lang !== 'he' ? "You haven't posted any deals yet" : 'עדיין לא פרסמת דילים')
-                        : (lang !== 'he' ? 'No deals in this category yet' : 'אין דילים עדיין בקטגוריה זו')}
-                  </p>
-                  <p style={{ fontSize: 13, color: 'var(--text-sub)', marginBottom: 20, lineHeight: 1.6 }}>
-                    {sortDeals === 'ending'
+                        : (lang !== 'he' ? 'No deals in this category yet' : 'אין דילים עדיין בקטגוריה זו')
+                  }
+                  text={
+                    sortDeals === 'ending'
                       ? (lang !== 'he' ? 'Deals with an expiration date will appear here.' : 'דילים עם תאריך סיום יופיעו כאן.')
-                      : (lang !== 'he' ? 'Be the first to share a deal with the community.' : 'היה הראשון לשתף דיל!')}
-                  </p>
-                  <button onClick={() => setShowPostModal(true)} style={{
-                    padding: '10px 22px', borderRadius: 8, border: 'none',
-                    background: ACCENT,
-                    color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer',
-                  }}>
-                    {lang !== 'he' ? 'Share a deal' : 'שתף דיל'}
-                  </button>
-                </div>
+                      : (lang !== 'he' ? 'Be the first to share a deal with the community.' : 'היה הראשון לשתף דיל!')
+                  }
+                  actionLabel={lang !== 'he' ? 'Share a deal' : 'שתף דיל'}
+                  onAction={() => setShowPostModal(true)}
+                />
               ) : (
                 <div className={['dilz-feed-grid', dealLayout === 'list' && 'is-list'].filter(Boolean).join(' ')}>
                 {displayedDeals.map(deal => (
@@ -2942,20 +1538,10 @@ export default function Home() {
                 </div>
               )}
 
-              {/* Footer: Sales promo link */}
               {!loadingDeals && displayedDeals.length > 0 && (
-                <div style={{
-                  textAlign: 'center', padding: '24px 0 8px',
-                  borderTop: '1px solid var(--border)', marginTop: 8,
-                }}>
-                  <p style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 10 }}>
-                    {textFor(lang, { en: 'Looking for supermarket prices?', he: 'מחפש מחירי סופרמרקט?', fr: 'Tu cherches les prix des supermarches ?', es: 'Buscas precios de supermercado?' })}
-                  </p>
-                  <button onClick={() => setTab('sales')} style={{
-                    padding: '9px 20px', borderRadius: 7,
-                    background: 'transparent', border: `1px solid ${ACCENT}`,
-                    color: ACCENT, fontSize: 13, fontWeight: 500, cursor: 'pointer',
-                  }}>
+                <div className="dilz-tab-footer">
+                  <p>{textFor(lang, { en: 'Looking for supermarket prices?', he: 'מחפש מחירי סופרמרקט?', fr: 'Tu cherches les prix des supermarchés ?', es: '¿Buscas precios de supermercado?' })}</p>
+                  <button type="button" className="dilz-button dilz-button--secondary dilz-button--sm" onClick={() => setTab('sales')}>
                     {textFor(lang, { en: 'Browse store prices', he: 'מחירי חנויות', fr: 'Voir les prix magasins', es: 'Ver precios de tiendas' })}
                   </button>
                 </div>
@@ -3003,13 +1589,14 @@ export default function Home() {
           onProfile={() => setTab('profile')}
         />
 
-        {/* ── Modals ── */}
         {selectedPromo && (
           <PromoModal promo={selectedPromo} lang={lang} isDark={isDark} onClose={closePromo} />
         )}
         {showCityModal && (
           <CityModal
-            villes={villes} current={ville} lang={lang}
+            villes={villes}
+            current={ville}
+            lang={lang}
             onSelect={handleCitySelect}
             onClose={() => setShowCityModal(false)}
           />
@@ -3027,7 +1614,8 @@ export default function Home() {
         )}
         {showNotificationSheet && user && (
           <NotificationSheet
-            user={user} lang={lang}
+            user={user}
+            lang={lang}
             notifications={notifications}
             onClose={() => setShowNotificationSheet(false)}
             onMarkAllRead={async () => {
@@ -3035,10 +1623,10 @@ export default function Home() {
               if (!data.session) return;
               await fetch('/api/notifications', {
                 method: 'PATCH',
-                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${data.session.access_token}` },
+                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${data.session.access_token}` },
                 body: JSON.stringify({ markAllRead: true }),
               }).catch(() => {});
-              setNotifications(prev => prev.map(n => ({ ...n, is_read: true })));
+              setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })));
               setUnreadCount(0);
             }}
             onOpenAlerts={() => setShowAlertModal(true)}

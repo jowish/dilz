@@ -378,6 +378,36 @@ textarea:focus {
   box-shadow: none;
 }
 
+.dilz-button--outline {
+  background: transparent;
+  color: var(--brand);
+  border-color: var(--brand);
+  box-shadow: none;
+}
+
+.dilz-button--outline:hover:not(:disabled) {
+  background: var(--brand-soft);
+}
+
+.dilz-button--success {
+  background: rgba(5, 150, 105, 0.08);
+  color: #059669;
+  border-color: rgba(5, 150, 105, 0.4);
+  box-shadow: none;
+}
+
+.dilz-button--md {
+  height: 44px;
+  padding: 0 20px;
+  font-size: 14px;
+}
+
+.dilz-button--lg {
+  height: 50px;
+  padding: 0 24px;
+  font-size: 15px;
+}
+
 .dilz-button:disabled {
   background: var(--border-strong);
   border-color: var(--border-strong);
@@ -918,15 +948,18 @@ textarea:focus {
 }
 
 .dilz-layout-toggle button {
-  min-height: 28px;
+  width: 30px;
+  height: 30px;
   border: 0;
   border-radius: 999px;
   background: transparent;
   color: var(--text-secondary);
-  padding: 0 10px;
-  font-size: 12px;
-  font-weight: 750;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
+  flex-shrink: 0;
 }
 
 .dilz-layout-toggle button.is-active {
@@ -1115,6 +1148,7 @@ textarea:focus {
   min-height: 42px;
   display: -webkit-box;
   -webkit-line-clamp: 2;
+  line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
@@ -1142,12 +1176,14 @@ textarea:focus {
   margin-top: 8px;
   display: -webkit-box;
   -webkit-line-clamp: 2;
+  line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
 
 .dilz-deal-card.is-list .dilz-deal-card__description {
   -webkit-line-clamp: 3;
+  line-clamp: 3;
 }
 
 .dilz-deal-card__price-row {
@@ -2064,7 +2100,11 @@ textarea:focus {
   }
 
   .dilz-deal-card.is-list {
-    display: block;
+    display: grid;
+    grid-template-columns: 80px minmax(0, 1fr);
+    gap: 12px;
+    padding: 10px;
+    align-items: center;
   }
 
   .dilz-deal-card__media {
@@ -2073,11 +2113,25 @@ textarea:focus {
 
   .dilz-deal-card.is-list .dilz-deal-card__media {
     min-height: 0;
-    aspect-ratio: 4 / 3;
+    height: 80px;
+    aspect-ratio: 1;
+    border-radius: 10px;
   }
 
   .dilz-deal-card.is-list .dilz-deal-card__body {
-    padding: 12px 2px 0;
+    padding: 0;
+  }
+
+  .dilz-deal-card.is-list .dilz-deal-card__description {
+    display: none;
+  }
+
+  .dilz-deal-card.is-list .dilz-deal-card__author {
+    display: none;
+  }
+
+  .dilz-deal-card.is-list .dilz-deal-card__meta {
+    gap: 4px;
   }
 
   .dilz-deal-card h3 {
@@ -2086,12 +2140,16 @@ textarea:focus {
   }
 
   .dilz-deal-card.is-list h3 {
-    font-size: 15px;
+    font-size: 14px;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    min-height: auto;
   }
 
   .dilz-deal-card__description {
     font-size: 12px;
     -webkit-line-clamp: 2;
+    line-clamp: 2;
   }
 
   .dilz-feed-toolbar {
@@ -2154,12 +2212,16 @@ textarea:focus {
   }
 
   .dilz-deal-card__actions {
-    gap: 8px;
+    gap: 6px;
+  }
+
+  .dilz-deal-card.is-list .dilz-deal-card__actions {
+    margin-top: 8px;
   }
 
   .dilz-vote-pill button {
-    min-width: 50px;
-    height: 32px;
+    min-width: 46px;
+    height: 30px;
     font-size: 12px;
   }
 
@@ -2810,6 +2872,1871 @@ textarea:focus {
   .admin-metric {
     border-radius: 16px;
   }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   BOTTOM SHEET PATTERN
+   ═══════════════════════════════════════════════════════════════ */
+.dilz-sheet-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 400;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  animation: fade-in 0.15s ease;
+}
+
+.dilz-sheet {
+  background: var(--bg-card);
+  border-radius: 24px 24px 0 0;
+  padding: 20px 16px 44px;
+  width: 100%;
+  max-width: 600px;
+  max-height: 88vh;
+  display: flex;
+  flex-direction: column;
+  animation: sheet-up 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes sheet-up {
+  from { transform: translateY(40px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.dilz-sheet__handle {
+  width: 40px;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--border);
+  margin: 0 auto 20px;
+  flex-shrink: 0;
+}
+
+.dilz-sheet__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  flex-shrink: 0;
+}
+
+.dilz-sheet__title {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.dilz-sheet__close {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  border: none;
+  background: var(--bg-card2);
+  color: var(--text-muted);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.dilz-sheet__close:hover {
+  background: var(--border);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   PROMO CARD
+   ═══════════════════════════════════════════════════════════════ */
+.dilz-promo-card {
+  background: var(--bg-card);
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.dilz-promo-card__media {
+  position: relative;
+  height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  cursor: pointer;
+  width: 100%;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.dilz-promo-card__media img {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  max-height: 72px;
+  max-width: 90%;
+  object-fit: contain;
+}
+
+.dilz-promo-card__media-icon {
+  opacity: 0.15;
+  color: var(--text-muted);
+  pointer-events: none;
+}
+
+.dilz-promo-card__discount {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 4px;
+  background: var(--brand);
+  color: #fff;
+  letter-spacing: 0.1px;
+}
+
+.dilz-promo-card__body {
+  padding: 10px 11px 8px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.dilz-promo-card__name {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text);
+  line-height: 1.4;
+  margin-bottom: 8px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  min-height: 2.8em;
+}
+
+.dilz-promo-card__prices {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 6px;
+}
+
+.dilz-promo-card__prices strong {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--brand);
+}
+
+.dilz-promo-card__prices del {
+  font-size: 11px;
+  color: var(--text-muted);
+  text-decoration: line-through;
+}
+
+.dilz-promo-card__store {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: 4px;
+  background: var(--bg-card2);
+  color: var(--text-sub);
+  margin-top: auto;
+}
+
+.dilz-promo-card__actions {
+  display: flex;
+  gap: 4px;
+  padding: 6px 8px 10px;
+  border-top: 1px solid var(--border);
+}
+
+.dilz-promo-vote-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 5px 0;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-sub);
+  font-size: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.dilz-promo-vote-btn.is-hot {
+  background: var(--brand);
+  border-color: var(--brand);
+  color: #fff;
+}
+
+.dilz-promo-vote-btn.is-cold {
+  background: #64748B;
+  border-color: #64748B;
+  color: #fff;
+}
+
+.dilz-promo-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   HERO PROMO CARD
+   ═══════════════════════════════════════════════════════════════ */
+.dilz-hero-promo-card {
+  border-radius: 16px;
+  overflow: hidden;
+  margin-bottom: 14px;
+  border: 1px solid var(--border);
+}
+
+.dilz-hero-promo-card__media {
+  position: relative;
+  height: 160px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  cursor: pointer;
+  width: 100%;
+  overflow: hidden;
+}
+
+.dilz-hero-promo-card__media img {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  max-height: 100%;
+  max-width: 100%;
+  object-fit: contain;
+}
+
+.dilz-hero-promo-card__media-icon {
+  opacity: 0.2;
+  color: var(--text-muted);
+}
+
+.dilz-hero-promo-card__badges {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.dilz-hero-promo-card__store {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 9px;
+  border-radius: 4px;
+}
+
+.dilz-hero-promo-card__body {
+  padding: 14px 18px 10px;
+}
+
+.dilz-hero-promo-card__label {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-bottom: 5px;
+}
+
+.dilz-hero-promo-card__name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 10px;
+  line-height: 1.4;
+}
+
+.dilz-hero-promo-card__prices {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.dilz-hero-promo-card__prices strong {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--brand);
+  letter-spacing: -0.5px;
+}
+
+.dilz-hero-promo-card__prices del {
+  font-size: 15px;
+  color: var(--text-muted);
+  text-decoration: line-through;
+}
+
+.dilz-hero-promo-card__saving {
+  font-size: 11px;
+  font-weight: 600;
+  color: #059669;
+  background: rgba(5, 150, 105, 0.1);
+  padding: 2px 7px;
+  border-radius: 4px;
+  margin-left: auto;
+}
+
+.dilz-hero-promo-card__actions {
+  padding: 10px 18px 16px;
+  border-top: 1px solid var(--border);
+}
+
+.dilz-hero-promo-card__actions .dilz-promo-vote-btn {
+  padding: 9px 0;
+  border-radius: 8px;
+  font-size: 12px;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   PROMO MODAL
+   ═══════════════════════════════════════════════════════════════ */
+.dilz-promo-modal__image {
+  height: 150px;
+  border-radius: 14px;
+  margin-bottom: 16px;
+  background: var(--bg-card2);
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.dilz-promo-modal__image img {
+  max-width: 92%;
+  max-height: 92%;
+  object-fit: contain;
+}
+
+.dilz-promo-modal__name {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 16px;
+  line-height: 1.4;
+}
+
+.dilz-promo-modal__prices {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.dilz-promo-modal__price-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: var(--bg-card2);
+  border: 1px solid var(--border);
+  transition: border-color 0.15s;
+}
+
+.dilz-promo-modal__price-row.is-best {
+  background: rgba(226, 85, 45, 0.05);
+  border-color: rgba(226, 85, 45, 0.3);
+}
+
+.dilz-promo-modal__store-badge {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 9px;
+  border-radius: 4px;
+  background: var(--bg-card2);
+  color: var(--text-sub);
+}
+
+.dilz-promo-modal__price-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.dilz-promo-modal__price-right strong {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.dilz-promo-modal__price-row.is-best .dilz-promo-modal__price-right strong {
+  color: var(--brand);
+}
+
+.dilz-promo-modal__best-badge {
+  font-size: 10px;
+  font-weight: 600;
+  color: #059669;
+  background: rgba(5, 150, 105, 0.1);
+  padding: 2px 7px;
+  border-radius: 4px;
+}
+
+.dilz-promo-modal__saving-summary {
+  margin-top: 12px;
+  padding: 12px 16px;
+  border-radius: 8px;
+  background: var(--bg-card2);
+  border: 1px solid var(--border);
+}
+
+.dilz-promo-modal__saving-summary p {
+  font-size: 13px;
+  color: var(--text-sub);
+  line-height: 1.5;
+}
+
+.dilz-promo-modal__saving-summary small {
+  display: block;
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+.dilz-promo-modal__attribution {
+  display: inline-block;
+  margin-top: 10px;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   CITY MODAL
+   ═══════════════════════════════════════════════════════════════ */
+.dilz-city-modal {
+  overflow: hidden;
+}
+
+.dilz-city-modal__search {
+  margin-bottom: 12px;
+  flex-shrink: 0;
+}
+
+.dilz-city-modal__grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.dilz-city-btn {
+  padding: 11px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg-card2);
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 400;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.15s;
+}
+
+.dilz-city-btn:hover {
+  border-color: var(--brand);
+  color: var(--brand);
+}
+
+.dilz-city-btn.is-active {
+  border-color: var(--brand);
+  background: rgba(226, 85, 45, 0.08);
+  color: var(--brand);
+  font-weight: 600;
+}
+
+.dilz-city-btn--gps {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  color: var(--brand);
+  font-weight: 500;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   ALERT MODAL
+   ═══════════════════════════════════════════════════════════════ */
+.dilz-alert-modal .dilz-segmented {
+  margin-bottom: 16px;
+  flex-shrink: 0;
+}
+
+.dilz-alert-modal__body {
+  overflow-y: auto;
+  flex: 1;
+}
+
+.dilz-alert-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.dilz-alert-item {
+  padding: 13px 14px;
+  border-radius: 10px;
+  background: var(--bg-card2);
+  border: 1px solid rgba(226, 85, 45, 0.3);
+  transition: opacity 0.2s;
+}
+
+.dilz-alert-item.is-paused {
+  border-color: var(--border);
+  opacity: 0.6;
+}
+
+.dilz-alert-item__summary {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text);
+  margin-bottom: 10px;
+  line-height: 1.4;
+}
+
+.dilz-alert-item__actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+/* Toggle switch */
+.dilz-toggle-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--text);
+  font-weight: 500;
+}
+
+.dilz-toggle {
+  width: 42px;
+  height: 24px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--bg-card2);
+  cursor: pointer;
+  position: relative;
+  flex-shrink: 0;
+  transition: background 0.2s;
+}
+
+.dilz-toggle::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  transition: left 0.2s;
+}
+
+.dilz-toggle.is-on {
+  background: var(--brand);
+  border-color: var(--brand);
+}
+
+.dilz-toggle.is-on::after {
+  left: 20px;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   NOTIFICATION SHEET
+   ═══════════════════════════════════════════════════════════════ */
+.dilz-notif-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 5px;
+  border-radius: 10px;
+  background: var(--brand);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.dilz-notif-sheet__actions {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 14px;
+  flex-shrink: 0;
+}
+
+.dilz-notif-sheet__list {
+  overflow-y: auto;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.dilz-notif-item {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 13px 14px;
+  border-radius: 12px;
+  background: var(--bg-card2);
+  border: 1px solid var(--border);
+  cursor: pointer;
+  text-align: left;
+  width: 100%;
+  transition: background 0.15s;
+}
+
+.dilz-notif-item.is-unread {
+  background: rgba(226, 85, 45, 0.06);
+  border-color: rgba(226, 85, 45, 0.25);
+}
+
+.dilz-notif-item:hover {
+  background: var(--surface-soft);
+}
+
+.dilz-notif-item__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--border);
+  flex-shrink: 0;
+  margin-top: 5px;
+}
+
+.dilz-notif-item.is-unread .dilz-notif-item__dot {
+  background: var(--brand);
+}
+
+.dilz-notif-item__body {
+  flex: 1;
+  min-width: 0;
+}
+
+.dilz-notif-item__title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 3px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dilz-notif-item__message {
+  font-size: 12px;
+  color: var(--text-sub);
+}
+
+.dilz-notif-item__time {
+  font-size: 11px;
+  color: var(--text-muted);
+  flex-shrink: 0;
+  padding-top: 2px;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   MISC UTILITY CLASSES
+   ═══════════════════════════════════════════════════════════════ */
+.dilz-filter-toggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 7px 10px;
+  margin-bottom: 8px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  color: var(--text-sub);
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.dilz-filter-toggle__left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  font-weight: 600;
+}
+
+.dilz-filter-toggle__count {
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 9px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--brand);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.dilz-filter-toggle__chevron {
+  flex-shrink: 0;
+  transition: transform 0.2s;
+}
+
+.dilz-filter-toggle__chevron.is-open {
+  transform: rotate(180deg);
+}
+
+.dilz-loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 60px 0;
+  gap: 14px;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+.dilz-city-context {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 10px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.dilz-city-context__change {
+  background: none;
+  border: none;
+  color: var(--brand);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+}
+
+.dilz-success-banner {
+  padding: 12px 16px;
+  border-radius: 10px;
+  margin-bottom: 14px;
+  background: rgba(5, 150, 105, 0.08);
+  border: 1px solid rgba(5, 150, 105, 0.2);
+  font-size: 13px;
+  font-weight: 600;
+  color: #059669;
+}
+
+.dilz-tab-footer {
+  text-align: center;
+  padding: 24px 0 8px;
+  border-top: 1px solid var(--border);
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.dilz-tab-footer p {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.dilz-count-label {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-muted);
+  margin-bottom: 10px;
+  letter-spacing: 0.1px;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   COMPACT FILTER ROW (promotions tab)
+   ═══════════════════════════════════════════════════════════════ */
+.dilz-compact-filter-row {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  margin-bottom: 8px;
+  scrollbar-width: none;
+}
+
+.dilz-compact-filter-row::-webkit-scrollbar {
+  display: none;
+}
+
+.dilz-compact-filter-chip {
+  flex-shrink: 0;
+  padding: 6px 12px;
+  border-radius: 7px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-sub);
+  font-size: 12px;
+  font-weight: 400;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s;
+}
+
+.dilz-compact-filter-chip.is-active {
+  border-color: var(--brand);
+  background: rgba(226, 85, 45, 0.09);
+  color: var(--brand);
+  font-weight: 600;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   VIEW SWITCHER & TOOLBAR (deals tab)
+   ═══════════════════════════════════════════════════════════════ */
+.dilz-view-switcher {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  margin-bottom: 12px;
+  scrollbar-width: none;
+}
+
+.dilz-view-switcher::-webkit-scrollbar {
+  display: none;
+}
+
+.dilz-view-switcher button {
+  flex-shrink: 0;
+  padding: 6px 14px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-sub);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s;
+}
+
+.dilz-view-switcher button.is-active {
+  border-color: var(--brand);
+  background: rgba(226, 85, 45, 0.09);
+  color: var(--brand);
+  font-weight: 600;
+}
+
+.dilz-feed-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.dilz-layout-toggle {
+  display: flex;
+  gap: 4px;
+}
+
+.dilz-layout-toggle button {
+  padding: 4px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.dilz-layout-toggle button.is-active {
+  border-color: var(--brand);
+  color: var(--brand);
+  background: rgba(226, 85, 45, 0.08);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   AUTH PAGE
+   ═══════════════════════════════════════════════════════════════ */
+.dilz-auth-page {
+  min-height: 100vh;
+  background: var(--bg);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 16px;
+}
+
+.dilz-auth-container {
+  width: 100%;
+  max-width: 440px;
+}
+
+.dilz-auth-logo {
+  text-align: center;
+  margin-bottom: 36px;
+}
+
+.dilz-auth-tagline {
+  font-size: 14px;
+  color: var(--text-sub);
+  margin-top: 6px;
+}
+
+.dilz-auth-card {
+  background: var(--bg-card);
+  border-radius: 20px;
+  padding: 28px 24px;
+  box-shadow: var(--shadow-card);
+  border: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.dilz-auth-confirm {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  text-align: center;
+  padding: 8px 0;
+}
+
+.dilz-auth-confirm__icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--brand-soft);
+  color: var(--brand);
+}
+
+.dilz-auth-confirm h1 {
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--text);
+}
+
+.dilz-auth-confirm p {
+  font-size: 14px;
+  color: var(--text-sub);
+  line-height: 1.6;
+}
+
+.dilz-auth-google {
+  width: 100%;
+  padding: 13px 20px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--bg-card2);
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  transition: background 0.15s;
+}
+
+.dilz-auth-google:hover {
+  background: var(--surface-soft);
+}
+
+.dilz-auth-divider {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.dilz-auth-divider::before,
+.dilz-auth-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+.dilz-auth-back {
+  text-align: center;
+  margin-top: 20px;
+  font-size: 13px;
+}
+
+.dilz-auth-back__link {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--brand);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   DARK MODE OVERRIDES FOR NEW COMPONENTS
+   ═══════════════════════════════════════════════════════════════ */
+.dark .dilz-sheet {
+  background: #181C26;
+}
+
+.dark .dilz-promo-card,
+.dark .dilz-hero-promo-card {
+  background: #181C26;
+}
+
+.dark .dilz-city-btn {
+  background: #1E2330;
+  color: var(--text);
+}
+
+.dark .dilz-notif-item {
+  background: #1E2330;
+}
+
+.dark .dilz-notif-item.is-unread {
+  background: rgba(226, 85, 45, 0.08);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   PROFIL PAGE
+   ═══════════════════════════════════════════════════════════════ */
+.dilz-profil-page {
+  min-height: 100dvh;
+  background: var(--bg-app);
+  padding-bottom: 40px;
+}
+
+.dilz-profil-loading {
+  min-height: 100dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dilz-profil-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--brand);
+  text-decoration: none;
+}
+
+.dilz-profil-heading {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-primary);
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.dilz-profil-main {
+  max-width: 560px;
+  margin: 0 auto;
+  padding: 20px 16px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.dilz-profil-card {
+  background: var(--surface-main);
+  border-radius: 18px;
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  border: 1px solid var(--border-default);
+}
+
+.dilz-profil-card__name {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 2px;
+}
+
+.dilz-profil-card__email {
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.dilz-profil-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.dilz-stat-card {
+  background: var(--surface-main);
+  border-radius: 16px;
+  padding: 18px;
+  border: 1px solid var(--border-default);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.dilz-stat-card strong {
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--brand);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  line-height: 1;
+}
+
+.dilz-stat-card span {
+  font-size: 12px;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.dilz-profil-section-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: -8px;
+}
+
+.dilz-profil-deals {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  background: var(--surface-main);
+  border-radius: 18px;
+  border: 1px solid var(--border-default);
+  overflow: hidden;
+}
+
+.dilz-profil-deal-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  text-decoration: none;
+  color: inherit;
+  border-bottom: 1px solid var(--border-default);
+  transition: background 0.15s;
+}
+
+.dilz-profil-deal-row:last-child {
+  border-bottom: none;
+}
+
+.dilz-profil-deal-row:hover {
+  background: var(--surface-soft);
+}
+
+.dilz-profil-deal-row__thumb {
+  width: 52px;
+  height: 52px;
+  border-radius: 10px;
+  background: var(--surface-soft);
+  flex-shrink: 0;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-secondary);
+}
+
+.dilz-profil-deal-row__thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.dilz-profil-deal-row__body {
+  flex: 1;
+  min-width: 0;
+}
+
+.dilz-profil-deal-row__title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 4px;
+}
+
+.dilz-profil-deal-row__meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.dilz-profil-deal-row__meta strong {
+  color: var(--brand);
+  font-weight: 700;
+}
+
+.dilz-profil-deal-row__votes {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--brand);
+  flex-shrink: 0;
+}
+
+.dilz-avatar {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--brand);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  font-weight: 800;
+  flex-shrink: 0;
+  letter-spacing: -0.5px;
+}
+
+/* Dark mode */
+.dark .dilz-profil-card,
+.dark .dilz-stat-card,
+.dark .dilz-profil-deals {
+  background: #181C26;
+}
+
+.dark .dilz-profil-deal-row:hover {
+  background: #1E2330;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   DEAL DETAIL PAGE
+   ═══════════════════════════════════════════════════════════════ */
+.dilz-deal-page {
+  min-height: 100dvh;
+  background: var(--bg-app);
+  padding-bottom: 60px;
+}
+
+.dilz-deal-loading,
+.dilz-deal-notfound {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+.dilz-deal-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+
+.dilz-deal-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.dilz-deal-content {
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+/* Hero image */
+.dilz-deal-hero {
+  position: relative;
+  height: 280px;
+  overflow: hidden;
+  background: var(--surface-soft);
+}
+
+.dilz-deal-hero--empty {
+  height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-secondary);
+  opacity: 0.3;
+}
+
+.dilz-deal-hero__img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.dilz-deal-hero__fallback {
+  width: 100%;
+  height: 100%;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.25;
+}
+
+.dilz-deal-category-badge {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  background: rgba(0, 0, 0, 0.65);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  padding: 4px 10px;
+  border-radius: 4px;
+}
+
+.dilz-deal-discount-badge {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: var(--brand);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 800;
+  padding: 4px 10px;
+  border-radius: 4px;
+}
+
+/* Body */
+.dilz-deal-body {
+  padding: 20px 16px 0;
+}
+
+.dilz-deal-price-row {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.dilz-deal-price {
+  font-size: 30px;
+  font-weight: 800;
+  color: var(--brand);
+  line-height: 1;
+}
+
+.dilz-deal-price-original {
+  font-size: 18px;
+  color: var(--text-secondary);
+  text-decoration: line-through;
+}
+
+.dilz-deal-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 10px;
+  line-height: 1.3;
+}
+
+.dilz-deal-meta {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-bottom: 16px;
+}
+
+.dilz-deal-dates {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  font-size: 12px;
+  color: var(--text-secondary);
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: var(--surface-main);
+  border: 1px solid var(--border-default);
+  margin-bottom: 16px;
+}
+
+.dilz-deal-description {
+  background: var(--surface-main);
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin-bottom: 16px;
+  border: 1px solid var(--border-default);
+}
+
+.dilz-deal-description p {
+  font-size: 14px;
+  color: var(--text-primary);
+  line-height: 1.6;
+}
+
+.dilz-deal-source-link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--surface-main);
+  border-radius: 10px;
+  padding: 12px 16px;
+  margin-bottom: 16px;
+  text-decoration: none;
+  color: var(--brand);
+  font-weight: 600;
+  font-size: 14px;
+  border: 1px solid var(--border-default);
+  transition: background 0.15s;
+}
+
+.dilz-deal-source-link:hover {
+  background: var(--surface-soft);
+}
+
+/* Vote buttons */
+.dilz-deal-votes {
+  display: flex;
+  gap: 10px;
+  padding: 16px 0 14px;
+  border-top: 1px solid var(--border-default);
+}
+
+.dilz-deal-vote-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 13px 20px;
+  border-radius: 10px;
+  border: 1px solid var(--border-default);
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.dilz-deal-vote-btn:hover {
+  border-color: var(--brand);
+  color: var(--brand);
+}
+
+.dilz-deal-vote-btn.is-hot {
+  background: var(--brand);
+  border-color: var(--brand);
+  color: #fff;
+}
+
+.dilz-deal-vote-btn.is-cold {
+  background: #64748B;
+  border-color: #64748B;
+  color: #fff;
+}
+
+/* Share row */
+.dilz-deal-share-row {
+  display: flex;
+  gap: 8px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--border-default);
+  margin-bottom: 24px;
+}
+
+.dilz-deal-share-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 10px 0;
+  border-radius: 9px;
+  font-size: 12px;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  border: none;
+  transition: opacity 0.15s;
+}
+
+.dilz-deal-share-btn--whatsapp {
+  border: 1px solid rgba(37, 211, 102, 0.35);
+  color: #25D366;
+  background: transparent;
+}
+
+.dilz-deal-share-btn--telegram {
+  border: 1px solid rgba(42, 171, 238, 0.35);
+  color: #2AABEE;
+  background: transparent;
+}
+
+.dilz-deal-share-btn--copy {
+  border: 1px solid var(--border-default);
+  color: var(--text-secondary);
+  background: transparent;
+}
+
+.dilz-deal-share-btn--copied {
+  border: 1px solid rgba(5, 150, 105, 0.4);
+  color: #059669;
+  background: rgba(5, 150, 105, 0.06);
+}
+
+.dilz-deal-share-btn:hover {
+  opacity: 0.8;
+}
+
+/* Section title */
+.dilz-deal-section-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 14px;
+}
+
+/* Comments empty */
+.dilz-deal-comments-empty {
+  background: var(--surface-main);
+  border-radius: 12px;
+  padding: 24px;
+  text-align: center;
+  margin-bottom: 16px;
+  border: 1px solid var(--border-default);
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+/* Comments list */
+.dilz-deal-comments {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.dilz-comment {
+  background: var(--surface-main);
+  border-radius: 12px;
+  padding: 14px 16px;
+  border: 1px solid var(--border-default);
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.dilz-comment.is-reply {
+  margin-left: 24px;
+  border-left: 3px solid var(--brand);
+}
+
+.dilz-comment__avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background: var(--surface-soft);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dilz-comment__avatar.is-reply {
+  background: rgba(226, 85, 45, 0.1);
+}
+
+.dilz-comment__avatar span {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-secondary);
+}
+
+.dilz-comment__avatar.is-reply span {
+  color: var(--brand);
+}
+
+.dilz-comment__body {
+  flex: 1;
+}
+
+.dilz-comment__header {
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+  margin-bottom: 4px;
+}
+
+.dilz-comment__author {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.dilz-comment__time {
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+.dilz-comment__text {
+  font-size: 14px;
+  color: var(--text-primary);
+  line-height: 1.5;
+}
+
+.dilz-comment__actions {
+  display: flex;
+  gap: 6px;
+  margin-top: 8px;
+  align-items: center;
+}
+
+.dilz-comment-vote {
+  background: transparent;
+  border: 1px solid var(--border-default);
+  border-radius: 6px;
+  padding: 2px 9px;
+  color: var(--text-secondary);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.dilz-comment-vote.is-up {
+  border-color: var(--brand);
+  color: var(--brand);
+}
+
+.dilz-comment-vote.is-down {
+  border-color: #64748B;
+  color: #64748B;
+}
+
+.dilz-comment-reply-btn {
+  background: none;
+  border: none;
+  padding: 2px 0;
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.dilz-comment-reply-input {
+  margin-top: 10px;
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.dilz-deal-comment-input {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.dilz-deal-signin-prompt {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 14px;
+  border-radius: 10px;
+  background: var(--surface-main);
+  border: 1px solid var(--border-default);
+  color: var(--brand);
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 20px;
+}
+
+/* Edit form */
+.dilz-edit-form {
+  padding: 0 16px 48px;
+  overflow-y: auto;
+  max-height: calc(90dvh - 80px);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.dilz-image-upload {
+  cursor: pointer;
+  display: block;
+}
+
+.dilz-image-upload__area {
+  height: 80px;
+  border-radius: 10px;
+  border: 1.5px dashed var(--brand);
+  background: var(--surface-soft);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: height 0.2s;
+}
+
+.dilz-image-upload__area.has-image {
+  height: 160px;
+}
+
+.dilz-image-upload__area img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.dilz-image-upload__placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.dilz-form-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.dilz-form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.dilz-form-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.dilz-select {
+  appearance: none;
+  cursor: pointer;
+}
+
+.dilz-textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+.dilz-cat-chips {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.dilz-cat-chip {
+  padding: 5px 13px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  border: 1px solid var(--border-default);
+  background: var(--surface-main);
+  color: var(--text-secondary);
+  transition: all 0.15s;
+}
+
+.dilz-cat-chip.is-active {
+  border-color: var(--brand);
+  background: var(--brand-soft);
+  color: var(--brand);
+  font-weight: 700;
+}
+
+.dilz-edit-form__actions {
+  display: flex;
+  gap: 10px;
+  padding-top: 4px;
+}
+
+.dilz-edit-form__actions .dilz-button--secondary {
+  flex: 1;
+}
+
+.dilz-edit-form__actions .dilz-button--primary {
+  flex: 2;
+}
+
+.dilz-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* Dark overrides */
+.dark .dilz-deal-description,
+.dark .dilz-deal-dates,
+.dark .dilz-deal-source-link,
+.dark .dilz-comment,
+.dark .dilz-deal-comments-empty,
+.dark .dilz-deal-signin-prompt {
+  background: #181C26;
+}
+
+.dark .dilz-image-upload__area,
+.dark .dilz-cat-chip {
+  background: #1E2330;
 }
 
 
