@@ -173,7 +173,7 @@ export function DealCard({
               }}
               aria-label="Mark as hot"
             >
-              <HotIcon /> <span>{deal.votes_chaud || 0}</span>
+              <HotIcon /> <span>Hot</span> <strong>{deal.votes_chaud || 0}</strong>
             </button>
             <button
               type="button"
@@ -185,7 +185,7 @@ export function DealCard({
               }}
               aria-label="Mark as cold"
             >
-              <ColdIcon /> <span>{deal.votes_froid || 0}</span>
+              <ColdIcon /> <span>Cold</span> <strong>{deal.votes_froid || 0}</strong>
             </button>
           </div>
           <div className="dilz-deal-card__right-actions">

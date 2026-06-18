@@ -3898,43 +3898,6 @@ textarea:focus {
   line-height: 1.6;
 }
 
-.dilz-auth-google {
-  width: 100%;
-  padding: 13px 20px;
-  border-radius: 12px;
-  border: 1px solid var(--border);
-  background: var(--bg-card2);
-  color: var(--text);
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  transition: background 0.15s;
-}
-
-.dilz-auth-google:hover {
-  background: var(--surface-soft);
-}
-
-.dilz-auth-divider {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  color: var(--text-muted);
-  font-size: 12px;
-}
-
-.dilz-auth-divider::before,
-.dilz-auth-divider::after {
-  content: '';
-  flex: 1;
-  height: 1px;
-  background: var(--border);
-}
-
 .dilz-auth-back {
   text-align: center;
   margin-top: 20px;
@@ -4822,13 +4785,32 @@ textarea:focus {
   color: var(--text-muted);
   font-size: 12px;
   font-weight: 850;
-  padding: 0 2px;
+  min-height: 34px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 8px;
+  border-radius: 999px;
+  background: var(--surface-soft);
+  border: 1px solid var(--border-default);
 }
 
 .dilz-layout-toggle {
+  flex: 0 0 auto;
   background: var(--surface-main);
   border-color: var(--border-default);
   box-shadow: var(--shadow-soft);
+  gap: 4px;
+  padding: 4px;
+}
+
+.dilz-layout-toggle button {
+  width: auto;
+  min-width: 78px;
+  height: 32px;
+  padding: 0 11px;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 850;
 }
 
 .dilz-layout-toggle button.is-active {
@@ -4925,6 +4907,46 @@ textarea:focus {
   line-height: 1;
 }
 
+.dilz-vote-pill {
+  height: auto;
+  gap: 8px;
+}
+
+.dilz-vote-pill button {
+  min-width: 88px;
+  height: 42px;
+  padding: 0 13px;
+  border-radius: 14px;
+  background: var(--surface-main);
+  border: 1px solid var(--border-default);
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 850;
+}
+
+.dilz-vote-pill button strong {
+  color: var(--text-primary);
+  font-size: 14px;
+  font-weight: 950;
+}
+
+.dilz-vote-pill button.is-up strong,
+.dilz-vote-pill button.is-down strong {
+  color: inherit;
+}
+
+.dilz-vote-pill button.is-up {
+  background: var(--brand);
+  border-color: var(--brand);
+  color: #fff;
+}
+
+.dilz-vote-pill button.is-down {
+  background: var(--vote-down);
+  border-color: var(--vote-down);
+  color: #fff;
+}
+
 .dilz-promo-vote-btn svg,
 .dilz-vote-pill button svg,
 .dilz-deal-vote-btn svg {
@@ -4964,5 +4986,21 @@ textarea:focus {
   .dilz-layout-toggle {
     order: 20;
   }
-}
 
+  .dilz-view-switcher__count {
+    min-height: 32px;
+    padding: 0 10px;
+  }
+
+  .dilz-layout-toggle button {
+    min-width: 70px;
+    height: 30px;
+  }
+
+  .dilz-vote-pill button {
+    min-width: 74px;
+    height: 38px;
+    padding: 0 10px;
+    font-size: 12px;
+  }
+}
