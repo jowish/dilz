@@ -173,7 +173,8 @@ export function DealCard({
               }}
               aria-label="Mark as hot"
             >
-              <HotIcon /> <span>Hot</span> <strong>{deal.votes_chaud || 0}</strong>
+              <span className="dilz-vote-emoji" aria-hidden="true">{'\u{1F525}'}</span>
+              <strong>{deal.votes_chaud || 0}</strong>
             </button>
             <button
               type="button"
@@ -185,7 +186,8 @@ export function DealCard({
               }}
               aria-label="Mark as cold"
             >
-              <ColdIcon /> <span>Cold</span> <strong>{deal.votes_froid || 0}</strong>
+              <span className="dilz-vote-emoji" aria-hidden="true">{'\u2744\uFE0F'}</span>
+              <strong>{deal.votes_froid || 0}</strong>
             </button>
           </div>
           <div className="dilz-deal-card__right-actions">
@@ -208,14 +210,6 @@ export function DealCard({
       </div>
     </article>
   );
-}
-
-function HotIcon() {
-  return <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2c0 0-4.5 5.5-4.5 10a4.5 4.5 0 0 0 9 0C16.5 7.5 12 2 12 2zm0 13a2.5 2.5 0 0 1-2.5-2.5C9.5 10 12 6.5 12 6.5S14.5 10 14.5 12.5A2.5 2.5 0 0 1 12 15z"/></svg>;
-}
-
-function ColdIcon() {
-  return <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><line x1="12" y1="2" x2="12" y2="22"/><path d="m20 10-8-8-8 8"/><path d="m20 14-8 8-8-8"/><line x1="2" y1="12" x2="22" y2="12"/><path d="m18 6-6 6-6-6"/><path d="m18 18-6-6-6 6"/></svg>;
 }
 
 function CommentIcon() {

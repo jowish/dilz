@@ -172,15 +172,20 @@ export default function MapPage() {
       });
     });
 
-    if (selectedCity && CITY_COORDS[selectedCity]) {
-      const coords = CITY_COORDS[selectedCity];
-      map.setView([coords.lat, coords.lon], 12);
-    } else if (bounds.isValid()) {
-      map.fitBounds(bounds, {
-        padding: [42, 42],
-        maxZoom: 11,
-      });
-    }
+    const focusMap = () => {
+      map.invalidateSize();
+      if (selectedCity && CITY_COORDS[selectedCity]) {
+        const coords = CITY_COORDS[selectedCity];
+        map.flyTo([coords.lat, coords.lon], 12, { animate: false });
+      } else if (bounds.isValid()) {
+        map.fitBounds(bounds, {
+          padding: [54, 54],
+          maxZoom: 10,
+        });
+      }
+    };
+
+    map.whenReady(() => window.setTimeout(focusMap, 80));
 
     return () => {
       map.remove();

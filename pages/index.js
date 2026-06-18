@@ -1433,7 +1433,9 @@ export default function Home() {
                     </button>
                   );
                 })}
-                <button type="button" onClick={openMap}>Map</button>
+              </div>
+
+              <div className="dilz-feed-controls" aria-label="Dilz feed controls">
                 <span className="dilz-view-switcher__count">
                   {textFor(lang, {
                     en: `${displayedDeals.length} Dilz`,
@@ -1442,6 +1444,12 @@ export default function Home() {
                     es: `${displayedDeals.length} Dilz`,
                   })}
                 </span>
+                <button type="button" className="dilz-map-quick-btn" onClick={openMap} aria-label="Open Dilz map">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                    <path d="M9 18 3 21V6l6-3 6 3 6-3v15l-6 3-6-3Z" />
+                    <path d="M9 3v15M15 6v15" />
+                  </svg>
+                </button>
                 <div className="dilz-layout-toggle" aria-label="Dilz display options">
                   <button
                     type="button"
@@ -1453,7 +1461,6 @@ export default function Home() {
                       <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
                       <rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
                     </svg>
-                    <span>Cards</span>
                   </button>
                   <button
                     type="button"
@@ -1464,7 +1471,6 @@ export default function Home() {
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
                       <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
                     </svg>
-                    <span>Rows</span>
                   </button>
                 </div>
               </div>
