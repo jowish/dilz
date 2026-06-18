@@ -1295,9 +1295,10 @@ function SearchTab({ promos, deals, lang, isDark, onPromoClick, userCoords, prom
             Dilz ({mDeals.length})
           </p>
           {mDeals.slice(0, 5).map(d => (
-            <DealCard key={d.id} deal={d} lang={lang} isDark={isDark}
+            <PremiumDealCard key={d.id} deal={d} lang={lang} isDark={isDark}
               userCoords={userCoords} votedDeal={votedDeals[d.id] || null}
               onVote={onDealVote} user={user}
+              layout="list"
               isSaved={Boolean(savedKeys[`deal:${d.id}`])}
               onSave={() => onToggleSave('deal', d.id)} />
           ))}
@@ -1913,6 +1914,7 @@ export default function Home() {
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [sortDeals, setSortDeals] = useState('hot');
   const [myDealsOnly, setMyDealsOnly] = useState(false);
+  const [dealLayout, setDealLayout] = useState('card');
 
   // City
   const [ville, setVille] = useState(null);
@@ -1956,6 +1958,8 @@ export default function Home() {
       if (ll && translations[ll]) setLang(ll);
       const savedPromoFilters = localStorage.getItem('dilzShowPromoFilters');
       if (savedPromoFilters !== null) setShowPromoFilters(savedPromoFilters === 'true');
+      const savedDealLayout = localStorage.getItem('dilzDealLayout');
+      if (savedDealLayout === 'list' || savedDealLayout === 'card') setDealLayout(savedDealLayout);
       // Restore tab from back-nav
       const rt = sessionStorage.getItem('dilzReturnTab');
       if (rt) {
@@ -2084,6 +2088,11 @@ export default function Home() {
       try { localStorage.setItem('dilzShowPromoFilters', String(next)); } catch {}
       return next;
     });
+  };
+
+  const changeDealLayout = (next) => {
+    setDealLayout(next);
+    try { localStorage.setItem('dilzDealLayout', next); } catch {}
   };
 
   const handleDealVote = async (id, type) => {
@@ -2576,6 +2585,32 @@ export default function Home() {
                 <button type="button" onClick={() => router.push('/map')}>Map</button>
               </div>
 
+              <div className="dilz-feed-toolbar" aria-label="Dilz display options">
+                <span>
+                  {textFor(lang, {
+                    en: `${displayedDeals.length} Dilz`,
+                    he: `${displayedDeals.length} דילז`,
+                    fr: `${displayedDeals.length} Dilz`,
+                    es: `${displayedDeals.length} Dilz`,
+                  })}
+                </span>
+                <div className="dilz-layout-toggle">
+                  {[
+                    { id: 'card', label: textFor(lang, { en: 'Cards', he: 'כרטיסים', fr: 'Cards', es: 'Cards' }) },
+                    { id: 'list', label: textFor(lang, { en: 'Rows', he: 'שורות', fr: 'Lignes', es: 'Lineas' }) },
+                  ].map(option => (
+                    <button
+                      key={option.id}
+                      type="button"
+                      className={dealLayout === option.id ? 'is-active' : ''}
+                      onClick={() => changeDealLayout(option.id)}
+                    >
+                      {option.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
               {/* City context */}
               {ville && (
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10 }}>
@@ -2636,10 +2671,11 @@ export default function Home() {
                   </button>
                 </div>
               ) : (
-                <div className="dilz-feed-grid">
+                <div className={['dilz-feed-grid', dealLayout === 'list' && 'is-list'].filter(Boolean).join(' ')}>
                 {displayedDeals.map(deal => (
                   <PremiumDealCard
                     key={deal.id} deal={deal} lang={lang} isDark={isDark}
+                    layout={dealLayout}
                     onVote={handleDealVote} userCoords={userCoords}
                     votedDeal={votedDeals[deal.id] || null}
                     user={user}

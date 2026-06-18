@@ -832,6 +832,11 @@ textarea:focus {
   gap: 16px;
 }
 
+.dilz-feed-grid.is-list {
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+
 .dilz-promo-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -889,6 +894,47 @@ textarea:focus {
   color: #fff;
 }
 
+.dilz-feed-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0 0 10px;
+}
+
+.dilz-feed-toolbar > span {
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.dilz-layout-toggle {
+  display: inline-flex;
+  gap: 4px;
+  padding: 3px;
+  border-radius: 999px;
+  background: var(--surface-soft);
+  border: 1px solid var(--border-default);
+}
+
+.dilz-layout-toggle button {
+  min-height: 28px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text-secondary);
+  padding: 0 10px;
+  font-size: 12px;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.dilz-layout-toggle button.is-active {
+  background: var(--surface-main);
+  color: var(--brand);
+  box-shadow: 0 3px 10px rgba(15, 23, 42, 0.08);
+}
+
 .dilz-section-header {
   display: flex;
   align-items: end;
@@ -925,12 +971,24 @@ textarea:focus {
   transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
 }
 
+.dilz-deal-card.is-list {
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr);
+  gap: 16px;
+  align-items: stretch;
+}
+
 .dilz-deal-card__media {
   position: relative;
   aspect-ratio: 4 / 3;
   border-radius: 14px;
   background: var(--surface-soft);
   overflow: hidden;
+}
+
+.dilz-deal-card.is-list .dilz-deal-card__media {
+  aspect-ratio: auto;
+  min-height: 164px;
 }
 
 .dilz-deal-card__media img,
@@ -979,6 +1037,13 @@ textarea:focus {
   padding: 12px 2px 0;
 }
 
+.dilz-deal-card.is-list .dilz-deal-card__body {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  padding: 4px 4px 2px 0;
+}
+
 .dilz-deal-card__store-row {
   display: flex;
   align-items: center;
@@ -1011,6 +1076,37 @@ textarea:focus {
   overflow: hidden;
 }
 
+.dilz-deal-card.is-list h3 {
+  min-height: 0;
+  font-size: 18px;
+}
+
+.dilz-deal-card__author {
+  color: var(--text-muted);
+  font-size: 12px;
+  margin-top: 6px;
+}
+
+.dilz-deal-card__author strong {
+  color: var(--text-secondary);
+  font-weight: 800;
+}
+
+.dilz-deal-card__description {
+  color: var(--text-secondary);
+  font-size: 13px;
+  line-height: 1.45;
+  margin-top: 8px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.dilz-deal-card.is-list .dilz-deal-card__description {
+  -webkit-line-clamp: 3;
+}
+
 .dilz-deal-card__price-row {
   display: flex;
   align-items: baseline;
@@ -1019,15 +1115,16 @@ textarea:focus {
 }
 
 .dilz-deal-card__price-row strong {
-  color: var(--text-primary);
-  font-size: 18px;
-  font-weight: 850;
+  color: var(--brand);
+  font-size: 19px;
+  font-weight: 900;
 }
 
 .dilz-deal-card__price-row span {
   color: var(--text-disabled);
   font-size: 13px;
   text-decoration: line-through;
+  font-weight: 700;
 }
 
 .dilz-deal-card__meta {
@@ -1051,6 +1148,11 @@ textarea:focus {
   justify-content: space-between;
   gap: 10px;
   margin-top: 12px;
+}
+
+.dilz-deal-card.is-list .dilz-deal-card__actions {
+  margin-top: auto;
+  padding-top: 12px;
 }
 
 .dilz-vote-pill {
@@ -1378,15 +1480,16 @@ textarea:focus {
 }
 
 .dilz-post-preview strong {
-  color: var(--text-primary);
+  color: var(--brand);
   font-size: 20px;
-  font-weight: 850;
+  font-weight: 900;
   margin-right: 8px;
 }
 
 .dilz-post-preview del {
   color: var(--text-disabled);
   font-size: 13px;
+  font-weight: 700;
 }
 
 .dilz-bottom-nav {
@@ -1638,13 +1741,39 @@ textarea:focus {
     padding: 10px;
   }
 
+  .dilz-deal-card.is-list {
+    display: block;
+  }
+
   .dilz-deal-card__media {
     border-radius: 12px;
+  }
+
+  .dilz-deal-card.is-list .dilz-deal-card__media {
+    min-height: 0;
+    aspect-ratio: 4 / 3;
+  }
+
+  .dilz-deal-card.is-list .dilz-deal-card__body {
+    padding: 12px 2px 0;
   }
 
   .dilz-deal-card h3 {
     font-size: 15px;
     min-height: auto;
+  }
+
+  .dilz-deal-card.is-list h3 {
+    font-size: 15px;
+  }
+
+  .dilz-deal-card__description {
+    font-size: 12px;
+    -webkit-line-clamp: 2;
+  }
+
+  .dilz-feed-toolbar {
+    margin-bottom: 8px;
   }
 
   .dilz-deal-card__actions {

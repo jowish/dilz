@@ -42,6 +42,7 @@ export function DealCard({
   onSave,
   translateCity,
   lang = 'en',
+  layout = 'card',
 }) {
   const router = useRouter();
   const discount = getDiscount(deal);
@@ -49,6 +50,7 @@ export function DealCard({
   const isOwner = user && user.id === deal.auteur_id;
   const isOnline = deal.ville === 'Online' || deal.categorie === 'Online' || /online/i.test(String(deal.ville || ''));
   const trust = deal.auteur_nom === 'DilzCurator' || deal.auteur_nom === 'DilzBot' ? 'Store promo' : 'Community find';
+  const authorName = deal.auteur_nom || (isOwner ? 'You' : 'Dilz member');
   const city = deal.ville && !isOnline
     ? (translateCity ? translateCity(deal.ville, lang === 'he' ? 'he' : 'en') : deal.ville)
     : 'Online';
@@ -62,7 +64,7 @@ export function DealCard({
   };
 
   return (
-    <article className="dilz-card dilz-deal-card" onClick={go}>
+    <article className={['dilz-card', 'dilz-deal-card', layout === 'list' && 'is-list'].filter(Boolean).join(' ')} onClick={go}>
       <div className="dilz-deal-card__media">
         {deal.image_url ? (
           <img src={deal.image_url} alt={deal.titre} onError={(event) => { event.currentTarget.style.display = 'none'; }} />
@@ -108,9 +110,15 @@ export function DealCard({
           {isOwner && <span>My deal</span>}
         </div>
         <h3>{deal.titre}</h3>
+        <p className="dilz-deal-card__author">
+          {lang === 'he' ? 'שותף על ידי' : 'Shared by'} <strong>{authorName}</strong>
+        </p>
+        {deal.description && (
+          <p className="dilz-deal-card__description">{deal.description}</p>
+        )}
         <div className="dilz-deal-card__price-row">
-          <strong>NIS {formatPrice(deal.prix)}</strong>
-          {deal.prix_original && <span>NIS {formatPrice(deal.prix_original)}</span>}
+          <strong>{formatPrice(deal.prix)} ₪</strong>
+          {deal.prix_original && <span>{formatPrice(deal.prix_original)} ₪</span>}
         </div>
         <div className="dilz-deal-card__meta">
           <span>{deal.categorie || 'Deal'}</span>

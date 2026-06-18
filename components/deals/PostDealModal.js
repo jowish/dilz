@@ -211,7 +211,7 @@ export function PostDealModal({ user, onClose, onSuccess, cityOptions = [] }) {
 
       {step === 1 && (
         <div className="dilz-form-grid">
-          <Input label="Deal title" value={form.titre} onChange={(event) => set('titre', event.target.value)} placeholder="e.g. Apple Watch SE from NIS 999" />
+          <Input label="Deal title" value={form.titre} onChange={(event) => set('titre', event.target.value)} placeholder="e.g. Apple Watch SE from 999 ₪" />
           <Textarea label="Description" value={form.description} onChange={(event) => set('description', event.target.value)} placeholder="What makes this deal useful?" />
           <div className="dilz-form-grid dilz-form-grid--two dilz-price-fields">
             <Input label="Current price" type="number" value={form.prix} onChange={(event) => set('prix', event.target.value)} placeholder="999" />
@@ -259,8 +259,8 @@ export function PostDealModal({ user, onClose, onSuccess, cityOptions = [] }) {
             <span>{form.magasin || 'Store'} · {form.onlineMode === 'online' ? 'Online' : form.ville ? traduireVille(form.ville, 'en') : 'City'}</span>
             <h3>{form.titre || 'Deal title'}</h3>
             <p>{form.description || 'A short helpful description will appear here.'}</p>
-            <strong>NIS {form.prix || '0'}</strong>
-            {form.prix_original && <del>NIS {form.prix_original}</del>}
+            <strong>{form.prix || '0'} ₪</strong>
+            {form.prix_original && <del>{form.prix_original} ₪</del>}
           </div>
         </div>
       )}
