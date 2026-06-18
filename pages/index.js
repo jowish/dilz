@@ -359,10 +359,8 @@ function ThemeToggle() {
   );
 }
 // ─── SearchTab ────────────────────────────────────────────────────────────────
-function SearchTab({ promos, deals, lang, isDark, onPromoClick, userCoords, promoVotes, onPromoVote, savedKeys, onToggleSave, votedDeals, onDealVote, user, searchQuery, onSearchQueryChange, isAdmin, onAdminDeleteDeal }) {
+function SearchTab({ promos, deals, lang, isDark, onPromoClick, userCoords, promoVotes, onPromoVote, savedKeys, onToggleSave, votedDeals, onDealVote, user, searchQuery, isAdmin, onAdminDeleteDeal }) {
   const q = searchQuery || '';
-  const inputRef = useRef(null);
-  useEffect(() => { setTimeout(() => inputRef.current?.focus(), 80); }, []);
 
   const mPromos = q.length > 1
     ? promos.filter(p => matchSearch(p.nom, q) || matchSearch(p.nom_en, q))
@@ -375,31 +373,6 @@ function SearchTab({ promos, deals, lang, isDark, onPromoClick, userCoords, prom
 
   return (
     <div style={{ padding: '0 14px' }}>
-      {/* Search input */}
-      <div style={{
-        display: 'flex', alignItems: 'center', gap: 10,
-        background: 'var(--bg-card)', borderRadius: 8,
-        border: '1px solid var(--border)', padding: '0 16px',
-        marginBottom: 20,
-      }}>
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="2" strokeLinecap="round" style={{ flexShrink: 0 }}>
-          <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
-        </svg>
-        <input
-          ref={inputRef}
-          type="text"
-          value={q}
-          onChange={e => onSearchQueryChange(e.target.value)}
-          placeholder={lang !== 'he' ? 'Search deals, stores, products...' : 'חפש דילים, חנויות, מוצרים...'}
-          style={{
-            flex: 1, padding: '14px 0', background: 'none', border: 'none',
-            color: 'var(--text)', fontSize: 16, outline: 'none',
-          }}
-        />
-        {q && (
-          <button onClick={() => onSearchQueryChange('')} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', fontSize: 18, cursor: 'pointer', padding: 0 }}>×</button>
-        )}
-      </div>
 
       {!q && (
         <div style={{ textAlign: 'center', paddingTop: 40 }}>
@@ -1247,6 +1220,8 @@ export default function Home() {
           onLogoClick={() => setTab('deals')}
           onPostDeal={() => setShowPostModal(true)}
           onSearch={() => setTab('search')}
+          searchValue={searchQuery}
+          onSearchChange={(event) => setSearchQuery(event.target.value)}
           onCommunity={() => setTab('deals')}
           onSupermarkets={() => setTab('sales')}
           onAlerts={() => user ? setShowAlertModal(true) : router.push('/auth?redirect=/')}
@@ -1558,7 +1533,6 @@ export default function Home() {
               onDealVote={handleDealVote}
               user={user}
               searchQuery={searchQuery}
-              onSearchQueryChange={setSearchQuery}
               isAdmin={Boolean(adminToken)}
               onAdminDeleteDeal={handleAdminDeleteDeal}
             />

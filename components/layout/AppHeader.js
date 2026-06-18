@@ -41,6 +41,8 @@ export function AppHeader({
   onLogoClick,
   onPostDeal,
   onSearch,
+  searchValue,
+  onSearchChange,
   onCommunity,
   onSupermarkets,
   onAlerts,
@@ -66,7 +68,7 @@ export function AppHeader({
         </div>
 
         <div className="dilz-app-header__search">
-          <SearchBar onFocus={onSearch} placeholder="Search products, stores, Dilz" />
+          <SearchBar value={searchValue} onChange={onSearchChange} onFocus={onSearch} placeholder="Search products, stores, Dilz" />
         </div>
 
         <div className="dilz-app-header__right">
@@ -108,7 +110,7 @@ export function AppHeader({
         </div>
       </div>
       <div className="dilz-mobile-search">
-        <SearchBar onFocus={onSearch} placeholder="Search products, stores, Dilz" />
+        <SearchBar value={searchValue} onChange={onSearchChange} onFocus={onSearch} placeholder="Search products, stores, Dilz" />
       </div>
     </header>
   );
