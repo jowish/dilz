@@ -1,5 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
-import { flushSync } from 'react-dom';
+import { useMemo, useState, useEffect, useRef } from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
 
@@ -44,23 +43,68 @@ const CITY_COORDS = {
   'קריית אונו': { lat: 32.0639, lon: 34.8556 },
 };
 
+function formatPrice(value) {
+  const n = Number(value);
+  if (!Number.isFinite(n)) return '';
+  return n % 1 === 0
+    ? n.toLocaleString('en-US')
+    : n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+function getCommentCount(deal) {
+  return Number(deal.commentaires?.[0]?.count || deal.comments_count || 0);
+}
+
+function groupDealsByCity(deals) {
+  const grouped = {};
+  deals
+    .filter(deal => deal.ville && CITY_COORDS[deal.ville])
+    .forEach(deal => {
+      if (!grouped[deal.ville]) grouped[deal.ville] = [];
+      grouped[deal.ville].push(deal);
+    });
+  return grouped;
+}
+
 export default function MapPage() {
   const router = useRouter();
   const mapRef = useRef(null);
   const leafletMapRef = useRef(null);
   const [deals, setDeals] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [selectedDeal, setSelectedDeal] = useState(null);
+  const [selectedCity, setSelectedCity] = useState(null);
   const [leafletReady, setLeafletReady] = useState(false);
+
+  const dealsByCity = useMemo(() => groupDealsByCity(deals), [deals]);
+  const cityEntries = useMemo(
+    () => Object.entries(dealsByCity).sort((a, b) => b[1].length - a[1].length),
+    [dealsByCity]
+  );
+  const selectedDeals = selectedCity ? dealsByCity[selectedCity] || [] : [];
 
   useEffect(() => {
     fetch('/api/bons-plans?limit=200&tri=hot')
       .then(r => r.json())
-      .then(d => { setDeals(d.bons_plans || []); setLoading(false); })
-      .catch(() => setLoading(false));
+      .then(data => setDeals(data.bons_plans || []))
+      .catch(() => {})
+      .finally(() => setLoading(false));
   }, []);
 
-  // Load Leaflet CSS + JS from CDN then init map
+  useEffect(() => {
+    if (!selectedCity && cityEntries.length > 0) setSelectedCity(cityEntries[0][0]);
+  }, [cityEntries, selectedCity]);
+
+  useEffect(() => {
+    if (!router.isReady) return;
+    const city = typeof router.query.city === 'string' ? router.query.city : null;
+    if (city && CITY_COORDS[city]) setSelectedCity(city);
+  }, [router.isReady, router.query.city]);
+
+  const selectCity = (city) => {
+    setSelectedCity(city);
+    router.push(`/map?city=${encodeURIComponent(city)}`, undefined, { shallow: true, scroll: false });
+  };
+
   useEffect(() => {
     if (document.getElementById('leaflet-css')) {
       setLeafletReady(true);
@@ -78,11 +122,15 @@ export default function MapPage() {
     document.head.appendChild(js);
   }, []);
 
-  // Init map once Leaflet ready + deals loaded + container mounted
   useEffect(() => {
-    if (!leafletReady || loading || !mapRef.current || leafletMapRef.current) return;
+    if (!leafletReady || loading || !mapRef.current) return;
     const L = window.L;
     if (!L) return;
+
+    if (leafletMapRef.current) {
+      leafletMapRef.current.remove();
+      leafletMapRef.current = null;
+    }
 
     const map = L.map(mapRef.current, {
       center: [31.8, 34.9],
@@ -96,153 +144,97 @@ export default function MapPage() {
       maxZoom: 18,
     }).addTo(map);
 
-    const dealsWithCoords = deals.filter(d => d.ville && CITY_COORDS[d.ville]);
-
-    // Group deals by city to avoid overlapping markers
-    const byCity = {};
-    dealsWithCoords.forEach(deal => {
-      const key = deal.ville;
-      if (!byCity[key]) byCity[key] = [];
-      byCity[key].push(deal);
-    });
-
-    Object.entries(byCity).forEach(([ville, cityDeals]) => {
-      const coords = CITY_COORDS[ville];
+    cityEntries.forEach(([city, cityDeals]) => {
+      const coords = CITY_COORDS[city];
       const count = cityDeals.length;
-
+      const active = city === selectedCity;
       const icon = L.divIcon({
         className: '',
-        html: `<div style="
-          background: ${ACCENT};
-          color: #fff;
-          border-radius: 50%;
-          width: ${count > 1 ? 36 : 30}px;
-          height: ${count > 1 ? 36 : 30}px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-size: ${count > 1 ? 13 : 11}px;
-          font-weight: 800;
-          font-family: -apple-system, sans-serif;
-          box-shadow: 0 2px 8px rgba(2,132,199,0.5);
-          border: 2px solid #fff;
-          cursor: pointer;
-        ">${count > 1 ? count : '🛍️'}</div>`,
-        iconSize: [count > 1 ? 36 : 30, count > 1 ? 36 : 30],
-        iconAnchor: [count > 1 ? 18 : 15, count > 1 ? 18 : 15],
+        html: `<div class="dilz-map-marker ${active ? 'is-active' : ''}"><strong>Dilz</strong><span>${count}</span></div>`,
+        iconSize: [active ? 72 : 62, active ? 40 : 36],
+        iconAnchor: [active ? 36 : 31, active ? 20 : 18],
       });
 
       const marker = L.marker([coords.lat, coords.lon], { icon }).addTo(map);
-      marker.on('click', (e) => {
-        L.DomEvent.stopPropagation(e);
-        flushSync(() => setSelectedDeal({ deals: cityDeals, ville }));
-      });
+      marker.on('click', () => selectCity(city));
     });
 
     return () => {
       map.remove();
       leafletMapRef.current = null;
     };
-  }, [leafletReady, loading, deals]);
+  }, [leafletReady, loading, cityEntries, selectedCity]);
+
+  const openDeal = (dealId) => router.push(`/deal/${dealId}`);
 
   return (
     <>
       <Head>
-        <title>dilz — Map</title>
+        <title>dilz - Map</title>
       </Head>
-      <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', background: 'var(--bg)' }}>
-        {/* Header */}
-        <div style={{
-          background: 'var(--nav-bg)',
-          borderBottom: '0.5px solid var(--border)',
-          padding: '14px 16px',
-          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          backdropFilter: 'blur(20px)',
-          WebkitBackdropFilter: 'blur(20px)',
-          zIndex: 50,
-          flexShrink: 0,
-        }}>
-          <button onClick={() => router.back()} style={{
-            background: 'none', border: 'none',
-            color: 'var(--text-sub)', fontSize: 14, fontWeight: 500, cursor: 'pointer',
-          }}>
-            ← Back
-          </button>
-          <span style={{ fontSize: 18, fontWeight: 800, color: 'var(--text)' }}>
-            dil<span style={{ color: ACCENT }}>z</span> Map
-          </span>
-          <div style={{ width: 48 }} />
-        </div>
-
-        {/* Map container */}
-        {loading ? (
-          <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <span style={{ color: 'var(--text-muted)', fontSize: 14 }}>Loading deals...</span>
+      <div className="dilz-map-page">
+        <header className="dilz-map-header">
+          <button type="button" onClick={() => router.back()}>Back</button>
+          <div>
+            <strong>dilz Map</strong>
+            <span>{cityEntries.length} active points</span>
           </div>
-        ) : (
-          <div ref={mapRef} style={{ flex: 1 }} />
-        )}
+          <button type="button" onClick={() => router.push('/?tab=dilz')}>Feed</button>
+        </header>
 
-        {/* Deal panel — slides up when a marker is tapped */}
-        {selectedDeal && (
-          <div
-            onClick={() => setSelectedDeal(null)}
-            style={{
-              position: 'fixed', inset: 0,
-              background: 'rgba(0,0,0,0.4)', zIndex: 200,
-              display: 'flex', alignItems: 'flex-end',
-            }}
-          >
-            <div
-              onClick={e => e.stopPropagation()}
-              style={{
-                width: '100%', maxWidth: 600, margin: '0 auto',
-                background: 'var(--bg-card)',
-                borderRadius: '24px 24px 0 0',
-                padding: '16px 16px 40px',
-                maxHeight: '55vh', overflowY: 'auto',
-              }}
-            >
-              <div style={{ width: 36, height: 4, borderRadius: 2, background: 'var(--border)', margin: '0 auto 14px' }} />
-              <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-sub)', marginBottom: 10 }}>
-                📍 {selectedDeal.ville} — {selectedDeal.deals.length} deal{selectedDeal.deals.length > 1 ? 's' : ''}
-              </p>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                {selectedDeal.deals.map(deal => (
-                  <div
-                    key={deal.id}
-                    onClick={() => { setSelectedDeal(null); router.push(`/deal/${deal.id}`); }}
-                    style={{
-                      display: 'flex', gap: 12, alignItems: 'center',
-                      background: 'var(--bg-card2)', borderRadius: 16,
-                      padding: '12px 14px', cursor: 'pointer',
-                    }}
-                  >
-                    {deal.image_url && (
-                      <img src={deal.image_url} alt={deal.titre} style={{
-                        width: 56, height: 56, borderRadius: 12, objectFit: 'cover', flexShrink: 0,
-                      }} />
-                    )}
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <p style={{
-                        fontSize: 14, fontWeight: 700, color: 'var(--text)',
-                        marginBottom: 4, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
-                      }}>{deal.titre}</p>
-                      <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                        <span style={{ fontSize: 16, fontWeight: 800, color: ACCENT }}>₪{deal.prix}</span>
-                        {deal.prix_original && (
-                          <span style={{ fontSize: 12, color: 'var(--text-muted)', textDecoration: 'line-through' }}>₪{deal.prix_original}</span>
-                        )}
-                        <span style={{ fontSize: 11, color: 'var(--text-sub)' }}>{deal.magasin}</span>
-                      </div>
-                    </div>
-                    <span style={{ fontSize: 18, color: 'var(--text-sub)', flexShrink: 0 }}>›</span>
-                  </div>
-                ))}
-              </div>
+        <main className="dilz-map-body">
+          <section className="dilz-map-canvas">
+            {loading ? (
+              <div className="dilz-map-loading">Loading Dilz map...</div>
+            ) : (
+              <div ref={mapRef} className="dilz-map-node" />
+            )}
+          </section>
+
+          <aside className="dilz-map-results">
+            <div className="dilz-map-results__header">
+              <p>{selectedCity || 'Israel'}</p>
+              <strong>{selectedDeals.length} Dilz</strong>
+              <span>Select any map point to see the Dilz available there.</span>
             </div>
-          </div>
-        )}
+
+            <div className="dilz-map-city-strip" aria-label="Dilz map points">
+              {cityEntries.slice(0, 12).map(([city, cityDeals]) => (
+                <button
+                  key={city}
+                  type="button"
+                  className={city === selectedCity ? 'is-active' : ''}
+                  onClick={() => selectCity(city)}
+                >
+                  <span>{city}</span>
+                  <strong>{cityDeals.length}</strong>
+                </button>
+              ))}
+            </div>
+
+            <div className="dilz-map-deal-list">
+              {selectedDeals.map(deal => (
+                <button key={deal.id} type="button" className="dilz-map-deal" onClick={() => openDeal(deal.id)}>
+                  {deal.image_url ? (
+                    <img src={deal.image_url} alt="" />
+                  ) : (
+                    <span className="dilz-map-deal__fallback">Dilz</span>
+                  )}
+                  <span className="dilz-map-deal__content">
+                    <strong>{deal.titre}</strong>
+                    <span>{[deal.magasin, deal.auteur_nom].filter(Boolean).join(' · ')}</span>
+                    <span className="dilz-map-deal__stats">
+                      <b>{formatPrice(deal.prix)} ₪</b>
+                      <span>Hot {deal.votes_chaud || 0}</span>
+                      <span>Cold {deal.votes_froid || 0}</span>
+                      <span>Comments {getCommentCount(deal)}</span>
+                    </span>
+                  </span>
+                </button>
+              ))}
+            </div>
+          </aside>
+        </main>
       </div>
     </>
   );

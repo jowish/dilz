@@ -76,7 +76,7 @@ const URL_TO_TAB = {
 };
 
 const PROMO_SORTS = ['discount', 'liked', 'recent', 'price_asc'];
-const DEAL_SORTS = ['hot', 'latest', 'nearby', 'ending'];
+const DEAL_SORTS = ['hot', 'latest', 'nearby', 'ending', 'comments'];
 const DEAL_LAYOUTS = ['card', 'list'];
 const URL_ACTIONS = ['post_deal', 'city', 'alerts', 'notifications', 'view_promo'];
 const CATEGORY_ICONS = { all: '', Food: '', Tech: '', Fashion: '', Activities: '', Online: '' };
@@ -2520,15 +2520,21 @@ export default function Home() {
   };
 
   // Computed displayed deals (proximity sort)
-  const displayedDeals = (sortDeals === 'nearby' && userCoords)
+  const displayedDeals = sortDeals === 'comments'
     ? [...deals].sort((a, b) => {
+        const ac = Number(a.commentaires?.[0]?.count || 0);
+        const bc = Number(b.commentaires?.[0]?.count || 0);
+        return bc - ac || new Date(b.created_at) - new Date(a.created_at);
+      })
+    : (sortDeals === 'nearby' && userCoords)
+      ? [...deals].sort((a, b) => {
         const ca = a.ville ? CITY_COORDS[a.ville] : null;
         const cb = b.ville ? CITY_COORDS[b.ville] : null;
         const da = ca ? distanceKm(userCoords.lat, userCoords.lon, ca.lat, ca.lon) : Infinity;
         const db = cb ? distanceKm(userCoords.lat, userCoords.lon, cb.lat, cb.lon) : Infinity;
         return da - db;
       })
-    : deals;
+      : deals;
 
   const filteredPromos = storeFilter === 'all'
     ? promos
@@ -2794,6 +2800,7 @@ export default function Home() {
                 {[
                   { id: 'all', label: 'Top Dilz' },
                   { id: 'latest', label: 'New' },
+                  { id: 'comments', label: 'Discussed' },
                   ...(userCoords ? [{ id: 'nearby', label: 'Near me' }] : []),
                   { id: 'ending', label: 'Ending soon' },
                   { id: 'Food', label: 'Food' },
@@ -2805,7 +2812,7 @@ export default function Home() {
                   const active =
                     (view.id === 'all' && sortDeals === 'hot' && categoryFilter === 'all' && !myDealsOnly) ||
                     (view.id === 'mine' && myDealsOnly) ||
-                    (['latest', 'nearby', 'ending'].includes(view.id) && sortDeals === view.id && categoryFilter === 'all' && !myDealsOnly) ||
+                    (['latest', 'nearby', 'ending', 'comments'].includes(view.id) && sortDeals === view.id && categoryFilter === 'all' && !myDealsOnly) ||
                     (view.id !== 'all' && CATEGORIES.includes(view.id) && categoryFilter === view.id && !myDealsOnly);
                   return (
                     <button
@@ -2817,7 +2824,7 @@ export default function Home() {
                         setCategoryFilter('all');
                         if (view.id === 'all') setSortDeals('hot');
                         else if (view.id === 'mine') setMyDealsOnly(true);
-                        else if (['latest', 'nearby', 'ending'].includes(view.id)) setSortDeals(view.id);
+                        else if (['latest', 'nearby', 'ending', 'comments'].includes(view.id)) setSortDeals(view.id);
                         else {
                           setSortDeals('hot');
                           setCategoryFilter(view.id);

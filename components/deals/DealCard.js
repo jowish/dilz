@@ -53,6 +53,7 @@ export function DealCard({
   const isOnline = deal.ville === 'Online' || deal.categorie === 'Online' || /online/i.test(String(deal.ville || ''));
   const trust = deal.auteur_nom === 'DilzCurator' || deal.auteur_nom === 'DilzBot' ? 'Store promo' : 'Community find';
   const authorName = deal.auteur_nom || (isOwner ? 'You' : 'Dilz member');
+  const commentCount = Number(deal.commentaires?.[0]?.count || deal.comments_count || 0);
   const city = deal.ville && !isOnline
     ? (translateCity ? translateCity(deal.ville, lang === 'he' ? 'he' : 'en') : deal.ville)
     : 'Online';
@@ -156,6 +157,9 @@ export function DealCard({
           <span>{deal.categorie || 'Deal'}</span>
           <span>{ending || timeAgo(deal.created_at)}</span>
           <span>{isOnline ? 'Online' : 'In-store'}</span>
+          <span className="dilz-deal-card__comment-meta">
+            <CommentIcon /> {commentCount}
+          </span>
         </div>
         <div className="dilz-deal-card__actions" onClick={(event) => event.stopPropagation()}>
           <div className="dilz-vote-pill" aria-label="Vote controls">
@@ -185,6 +189,17 @@ export function DealCard({
             </button>
           </div>
           <div className="dilz-deal-card__right-actions">
+            <IconButton
+              aria-label={`${commentCount} comments`}
+              onClick={(event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                go();
+              }}
+            >
+              <CommentIcon />
+              <span className="dilz-comment-count">{commentCount}</span>
+            </IconButton>
             <IconButton aria-label="Share deal" onClick={() => navigator.share?.({ title: deal.titre, url: `/deal/${deal.id}` }).catch(() => {})}>
               <ShareIcon />
             </IconButton>
@@ -194,6 +209,10 @@ export function DealCard({
       </div>
     </article>
   );
+}
+
+function CommentIcon() {
+  return <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z" /></svg>;
 }
 
 function ShareIcon() {

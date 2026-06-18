@@ -39,6 +39,8 @@ export default async function handler(req, res) {
     // ─── GET ──────────────────────────────────────────────────────────────────
     if (req.method === 'GET') {
       const { ville, categorie, limit = 50, tri = 'hot', auteur_id: filterAuteurId } = req.query;
+      const responseLimit = clampLimit(limit);
+      const fetchLimit = tri === 'comments' ? 200 : responseLimit;
       let query = supabase
         .from('bons_plans')
         .select('*, commentaires(count)')
@@ -53,9 +55,10 @@ export default async function handler(req, res) {
           .gte('date_fin', today)
           .order('date_fin', { ascending: true });
       }
+      else if (tri === 'comments') query = query.order('created_at', { ascending: false });
       else query = query.order('votes_chaud', { ascending: false });
 
-      query = query.limit(clampLimit(limit));
+      query = query.limit(fetchLimit);
 
       if (ville) query = query.eq('ville', ville);
       if (categorie && categorie !== 'all') query = query.eq('categorie', categorie);
@@ -63,7 +66,15 @@ export default async function handler(req, res) {
 
       const { data, error } = await query;
       if (error) return res.status(500).json({ erreur: error.message });
-      return res.status(200).json({ bons_plans: (data || []).map(normalizeDealDates) });
+      const rows = (data || []).map(normalizeDealDates);
+      if (tri === 'comments') {
+        rows.sort((a, b) => {
+          const ac = Number(a.commentaires?.[0]?.count || 0);
+          const bc = Number(b.commentaires?.[0]?.count || 0);
+          return bc - ac || new Date(b.created_at) - new Date(a.created_at);
+        });
+      }
+      return res.status(200).json({ bons_plans: rows.slice(0, responseLimit) });
     }
 
     // ─── POST ─────────────────────────────────────────────────────────────────
