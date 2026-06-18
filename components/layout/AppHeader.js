@@ -4,11 +4,16 @@ import { SearchBar } from '../ui/SearchBar';
 
 function Logo({ onClick }) {
   const content = (
-    <span className="dilz-logo-lockup" aria-label="Dilz Promotion Hunter">
-      <span className="dilz-logo">
-        d<span>IL</span>z
+    <span className="dilz-logo-lockup" aria-label="dILz">
+      <span className="dilz-logo-mark" aria-hidden="true">
+        <svg viewBox="0 0 48 48" focusable="false">
+          <circle cx="21" cy="21" r="12" />
+          <path d="M30.5 30.5 40 40" />
+        </svg>
       </span>
-      <span className="dilz-logo-tagline">Promotion Hunter</span>
+      <span className="dilz-logo">
+        dILz
+      </span>
     </span>
   );
 

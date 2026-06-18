@@ -34,14 +34,6 @@ function ShopBagIcon() {
   );
 }
 
-function HotIcon() {
-  return <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2c0 0-4.5 5.5-4.5 10a4.5 4.5 0 0 0 9 0C16.5 7.5 12 2 12 2zm0 13a2.5 2.5 0 0 1-2.5-2.5C9.5 10 12 6.5 12 6.5S14.5 10 14.5 12.5A2.5 2.5 0 0 1 12 15z"/></svg>;
-}
-
-function ColdIcon() {
-  return <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><line x1="12" y1="2" x2="12" y2="22"/><path d="m20 10-8-8-8 8"/><path d="m20 14-8 8-8-8"/><line x1="2" y1="12" x2="22" y2="12"/><path d="m18 6-6 6-6-6"/><path d="m18 18-6-6-6 6"/></svg>;
-}
-
 function SaveIcon({ saved }) {
   return (
     <svg width="16" height="16" viewBox="0 0 24 24" fill={saved ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2" aria-hidden="true">
@@ -57,9 +49,7 @@ export function PromoCard({ promo, lang, isDark, onClick, votes, onVote, isSaved
   const imageSrc = productImageSrc(promo.image);
   const storeName = lang === 'he' ? promo.meilleurEnseigne : (s?.nameEn || promo.meilleurEnseigne);
 
-  const bannerBg = s
-    ? (isDark ? `linear-gradient(135deg, ${s.dark}, #17171D)` : `linear-gradient(135deg, ${s.bg}, #fff)`)
-    : 'var(--surface-soft)';
+  const bannerBg = isDark ? 'var(--surface-soft)' : 'var(--section-bg)';
 
   return (
     <article className="dilz-promo-card">
@@ -81,10 +71,7 @@ export function PromoCard({ promo, lang, isDark, onClick, votes, onVote, isSaved
             <del>&#8362;{promo.prixMax.toFixed(2)}</del>
           )}
         </div>
-        <span
-          className="dilz-promo-card__store"
-          style={s ? { color: s.color, background: isDark ? s.dark : s.bg } : undefined}
-        >
+        <span className="dilz-promo-card__store">
           {storeName}
         </span>
       </div>
@@ -97,7 +84,8 @@ export function PromoCard({ promo, lang, isDark, onClick, votes, onVote, isSaved
           aria-label="Hot"
           aria-pressed={myVote === 'chaud'}
         >
-          <HotIcon /> {votes?.chaud || 0}
+          <span className="dilz-vote-emoji" aria-hidden="true">{'\u{1F525}'}</span>
+          <strong>{votes?.chaud || 0}</strong>
         </button>
         <button
           type="button"
@@ -106,7 +94,8 @@ export function PromoCard({ promo, lang, isDark, onClick, votes, onVote, isSaved
           aria-label="Cold"
           aria-pressed={myVote === 'froid'}
         >
-          <ColdIcon /> {votes?.froid || 0}
+          <span className="dilz-vote-emoji" aria-hidden="true">{'\u2744\uFE0F'}</span>
+          <strong>{votes?.froid || 0}</strong>
         </button>
         {onSave && (
           <IconButton
@@ -130,21 +119,17 @@ export function HeroPromoCard({ promo, lang, isDark, onClick, votes, onVote, isS
   const imageSrc = productImageSrc(promo.image);
   const storeName = lang === 'he' ? promo.meilleurEnseigne : (s?.nameEn || promo.meilleurEnseigne);
 
-  const bannerBg = s
-    ? (isDark ? `linear-gradient(145deg, ${s.dark} 0%, #0E0E12 100%)` : `linear-gradient(145deg, ${s.bg} 0%, #FFFFFF 100%)`)
-    : 'var(--surface-soft)';
+  const bannerBg = isDark ? 'var(--surface-soft)' : 'var(--section-bg)';
 
   return (
     <article className="dilz-hero-promo-card" style={{ background: bannerBg }}>
-      <button type="button" className="dilz-hero-promo-card__media" onClick={onClick} aria-label={`View ${nom}`} style={{
-        background: s ? (isDark ? `linear-gradient(145deg, ${s.dark}, #17171D)` : `linear-gradient(145deg, ${s.bg}, #fff)`) : 'var(--surface-soft)',
-      }}>
+      <button type="button" className="dilz-hero-promo-card__media" onClick={onClick} aria-label={`View ${nom}`} style={{ background: bannerBg }}>
         <span className="dilz-hero-promo-card__media-icon" aria-hidden="true"><ShopBagIcon /></span>
         {imageSrc && (
           <img src={imageSrc} alt={nom} onError={(e) => { e.currentTarget.style.display = 'none'; }} />
         )}
         <div className="dilz-hero-promo-card__badges">
-          {s && <span className="dilz-hero-promo-card__store" style={{ color: s.color, background: isDark ? s.dark : s.bg }}>{storeName}</span>}
+          {s && <span className="dilz-hero-promo-card__store">{storeName}</span>}
           {promo.reduction > 3 && <span className="dilz-promo-card__discount">-{promo.reduction}%</span>}
         </div>
       </button>
@@ -169,7 +154,8 @@ export function HeroPromoCard({ promo, lang, isDark, onClick, votes, onVote, isS
           aria-label="Hot"
           aria-pressed={myVote === 'chaud'}
         >
-          <HotIcon /> {votes?.chaud || 0}
+          <span className="dilz-vote-emoji" aria-hidden="true">{'\u{1F525}'}</span>
+          <strong>{votes?.chaud || 0}</strong>
         </button>
         <button
           type="button"
@@ -178,7 +164,8 @@ export function HeroPromoCard({ promo, lang, isDark, onClick, votes, onVote, isS
           aria-label="Cold"
           aria-pressed={myVote === 'froid'}
         >
-          <ColdIcon /> {votes?.froid || 0}
+          <span className="dilz-vote-emoji" aria-hidden="true">{'\u2744\uFE0F'}</span>
+          <strong>{votes?.froid || 0}</strong>
         </button>
         <button type="button" className="dilz-button dilz-button--ghost dilz-button--sm" onClick={onClick}>View</button>
         {onSave && (

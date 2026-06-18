@@ -5,48 +5,53 @@
 }
 
 :root {
-  --bg-app: #F8FAF7;
+  --bg-app: #FFFFFF;
   --surface-main: #FFFFFF;
-  --surface-soft: #F1F5F9;
+  --surface-soft: #F8F9FB;
   --surface-dark: #0B1220;
+  --section-bg: #F8F9FB;
 
   --text-primary: #0B1220;
-  --text-secondary: #526070;
+  --text-secondary: #4B5563;
   --text-inverted: #FFFFFF;
 
-  --border-default: #E2E8F0;
-  --border-focus: #E2552D;
+  --border-default: #E8EAED;
+  --border-focus: #0B1220;
+  --border-soft: #F1F3F5;
 
-  --brand: #E2552D;
-  --brand-hover: #C2410C;
-  --brand-active: #9A3412;
-  --brand-soft: #FFF1EA;
-  --brand-softer: #FFF8F4;
+  --brand: #FF6500;
+  --brand-hover: #E85B00;
+  --brand-active: #D65100;
+  --brand-soft: #FFF2E8;
+  --brand-softer: #FFF7F0;
+  --primary: #0B1220;
+  --primary-hover: #172133;
+  --primary-active: #050A14;
   --accent: var(--brand);
   --accent-dark: var(--brand-hover);
-  --accent-rgb: 226, 85, 45;
+  --accent-rgb: 255, 101, 0;
 
   /* ── Background ── */
-  --bg: #F8FAF7;
+  --bg: #FFFFFF;
   --bg-surface: #FFFFFF;
-  --bg-soft: #F1F5F9;
+  --bg-soft: #F8F9FB;
   --bg-card: #FFFFFF;
-  --bg-card2: #F1F5F9;
+  --bg-card2: #F8F9FB;
   --bg-input: #FFFFFF;
 
   /* ── Text ── */
   --text: #0B1220;
-  --text-sub: #526070;
-  --text-muted: #7A8699;
-  --text-disabled: #A0AEC0;
+  --text-sub: #4B5563;
+  --text-muted: #6B7280;
+  --text-disabled: #D1D5DB;
 
   /* ── Borders ── */
-  --border: #E2E8F0;
-  --border-strong: #CBD5E1;
+  --border: #E8EAED;
+  --border-strong: #D7DCE2;
 
   /* ── Nav ── */
-  --nav-bg: rgba(255, 255, 255, 0.94);
-  --header-bg: rgba(248, 250, 247, 0.90);
+  --nav-bg: rgba(255, 255, 255, 0.92);
+  --header-bg: rgba(255, 255, 255, 0.92);
 
   /* ── Savings ── */
   --savings: #15803D;
@@ -62,18 +67,19 @@
   --danger-soft: #FEF2F2;
   --warning: #F59E0B;
   --warning-soft: #FFFBEB;
-  --vote-up: #E2552D;
-  --vote-down: #64748B;
-  --vote-active-bg: #EAF8EF;
-  --vote-neutral-bg: #F1F5F9;
+  --vote-up: #FF6500;
+  --vote-down: #0B1220;
+  --vote-active-bg: #FFF2E8;
+  --vote-neutral-bg: #F8F9FB;
 
   /* ── Shadows ── */
-  --shadow-card: 0 8px 24px rgba(15, 23, 42, 0.06);
-  --shadow-card-hover: 0 16px 40px rgba(15, 23, 42, 0.10);
-  --shadow-modal: 0 24px 80px rgba(15, 23, 42, 0.22);
-  --shadow-btn: 0 8px 18px rgba(226, 85, 45, 0.18);
-  --shadow-float: 0 8px 18px rgba(226, 85, 45, 0.22);
-  --shadow-nav: 0 -1px 0 rgba(0, 0, 0, 0.06);
+  --shadow-card: none;
+  --shadow-card-hover: none;
+  --shadow-modal: 0 18px 50px rgba(11, 18, 32, 0.12);
+  --shadow-btn: none;
+  --shadow-float: none;
+  --shadow-soft: none;
+  --shadow-nav: 0 -1px 0 #ECECEC;
 
   /* ── Radius ── */
   --r-xs: 8px;
@@ -4934,6 +4940,12 @@ textarea:focus {
   line-height: 1;
 }
 
+.dilz-promo-vote-btn strong {
+  color: inherit;
+  font-size: 12px;
+  font-weight: 900;
+}
+
 .dilz-vote-pill {
   height: auto;
   gap: 8px;
@@ -5052,6 +5064,23 @@ textarea:focus {
     height: 38px;
     padding: 0 10px;
     font-size: 12px;
+  }
+
+  .dilz-bottom-nav {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1000;
+    transform: translateZ(0);
+  }
+
+  .dilz-page-shell {
+    padding-bottom: calc(112px + env(safe-area-inset-bottom)) !important;
+  }
+
+  .dilz-modal {
+    padding-bottom: calc(72px + env(safe-area-inset-bottom));
   }
 
   .dilz-feed-grid.is-list {
@@ -5206,5 +5235,384 @@ textarea:focus {
 
   .dilz-feed-grid.is-list .dilz-deal-card.is-list .dilz-deal-card__right-actions {
     gap: 6px;
+  }
+}
+
+/* Dilz premium minimal design system */
+:root,
+.dark {
+  --bg-app: #FFFFFF;
+  --surface-main: #FFFFFF;
+  --surface-soft: #F8F9FB;
+  --surface-dark: #0B1220;
+  --section-bg: #F8F9FB;
+  --text-primary: #0B1220;
+  --text-secondary: #4B5563;
+  --text-muted: #6B7280;
+  --text-disabled: #D1D5DB;
+  --text: #0B1220;
+  --text-sub: #4B5563;
+  --bg: #FFFFFF;
+  --bg-surface: #FFFFFF;
+  --bg-soft: #F8F9FB;
+  --bg-card: #FFFFFF;
+  --bg-card2: #F8F9FB;
+  --bg-input: #FFFFFF;
+  --border-default: #E8EAED;
+  --border-soft: #F1F3F5;
+  --border: #E8EAED;
+  --border-strong: #D7DCE2;
+  --border-focus: #0B1220;
+  --brand: #FF6500;
+  --brand-hover: #E85B00;
+  --brand-active: #D65100;
+  --brand-soft: #FFF2E8;
+  --brand-softer: #FFF7F0;
+  --primary: #0B1220;
+  --primary-hover: #172133;
+  --primary-active: #050A14;
+  --nav-bg: rgba(255, 255, 255, 0.92);
+  --header-bg: rgba(255, 255, 255, 0.92);
+  --vote-up: #FF6500;
+  --vote-down: #0B1220;
+  --shadow-card: none;
+  --shadow-card-hover: none;
+  --shadow-soft: none;
+  --shadow-btn: none;
+  --shadow-float: none;
+  --shadow-nav: 0 -1px 0 #ECECEC;
+}
+
+html,
+body {
+  background: #FFFFFF;
+  color: #0B1220;
+}
+
+.dilz-app-frame,
+.dark .dilz-app-frame,
+.dilz-auth-page,
+.dilz-deal-page,
+.dilz-page-shell {
+  background: #FFFFFF !important;
+}
+
+.dilz-logo-button {
+  color: #0B1220;
+  border-radius: 16px;
+}
+
+.dilz-logo-lockup {
+  display: inline-flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  line-height: 1;
+}
+
+.dilz-logo-mark {
+  width: 31px;
+  height: 31px;
+  color: #0B1220;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+}
+
+.dilz-logo-mark svg {
+  width: 100%;
+  height: 100%;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 5.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.dilz-logo-lockup .dilz-logo,
+.dilz-logo {
+  color: #0B1220;
+  font-size: 30px;
+  font-weight: 950;
+  letter-spacing: -1.3px;
+  line-height: 1;
+}
+
+.dilz-logo span {
+  color: inherit;
+}
+
+.dilz-app-header {
+  background: rgba(255, 255, 255, 0.92);
+  border-bottom: 1px solid #ECECEC;
+  box-shadow: none !important;
+}
+
+.dilz-app-header__inner {
+  height: 68px;
+}
+
+.dilz-desktop-tabs,
+.dilz-segmented,
+.dilz-layout-toggle {
+  background: #F8F9FB;
+  border: 1px solid #E8EAED;
+  box-shadow: none !important;
+}
+
+.dilz-desktop-tabs button,
+.dilz-segmented button,
+.dilz-layout-toggle button {
+  color: #4B5563;
+  font-weight: 800;
+}
+
+.dilz-desktop-tabs button.is-active,
+.dilz-segmented button.is-active,
+.dilz-segmented button.is-selected,
+.dilz-segmented button[aria-selected="true"],
+.dilz-layout-toggle button.is-active {
+  background: #0B1220;
+  color: #FFFFFF;
+  box-shadow: none !important;
+}
+
+.dilz-search-bar,
+.dilz-input,
+.dilz-textarea,
+.dilz-select,
+input,
+select,
+textarea {
+  background: #FFFFFF;
+  border-color: #E8EAED;
+  color: #0B1220;
+}
+
+.dilz-search-bar:focus-within,
+.dilz-input:focus,
+.dilz-textarea:focus,
+.dilz-select:focus,
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: #0B1220 !important;
+  box-shadow: 0 0 0 3px rgba(11, 18, 32, 0.08) !important;
+  outline: none;
+}
+
+.dilz-search-bar input::placeholder,
+input::placeholder,
+textarea::placeholder {
+  color: #9CA3AF;
+}
+
+.dilz-card,
+.dilz-deal-card,
+.dilz-promo-card,
+.dilz-hero-promo-card,
+.dilz-auth-card,
+.dilz-panel,
+.dilz-sheet,
+.dilz-modal__panel {
+  background: #FFFFFF !important;
+  border: 1px solid #E8EAED !important;
+  border-radius: 20px !important;
+  box-shadow: none !important;
+}
+
+.dilz-card:hover,
+.dilz-deal-card:hover,
+.dilz-promo-card:hover,
+.dilz-hero-promo-card:hover {
+  border-color: #D7DCE2 !important;
+  box-shadow: none !important;
+  transform: translateY(-2px);
+}
+
+.dilz-deal-card__media,
+.dilz-promo-card__media,
+.dilz-hero-promo-card__media,
+.dilz-deal-card__image-fallback {
+  background: #F8F9FB !important;
+}
+
+.dilz-promo-card__media-icon,
+.dilz-hero-promo-card__media-icon {
+  color: #0B1220;
+  opacity: 0.12;
+}
+
+.dilz-button,
+.dilz-header-alerts-btn,
+.dilz-map-quick-btn,
+.dilz-filter-toggle,
+.dilz-compact-filter-chip,
+.dilz-filter-chip,
+.dilz-icon-button,
+.dilz-promo-vote-btn,
+.dilz-vote-pill button {
+  box-shadow: none !important;
+}
+
+.dilz-button--primary,
+.dilz-button:not(.dilz-button--secondary):not(.dilz-button--ghost):not(.dilz-button--outline):not(.dilz-button--success),
+.dilz-bottom-nav__item.is-post .dilz-bottom-nav__icon {
+  background: #0B1220;
+  border-color: #0B1220;
+  color: #FFFFFF;
+}
+
+.dilz-button--primary:hover,
+.dilz-button:not(.dilz-button--secondary):not(.dilz-button--ghost):not(.dilz-button--outline):not(.dilz-button--success):hover {
+  background: #172133;
+  border-color: #172133;
+}
+
+.dilz-button--secondary,
+.dilz-button--ghost,
+.dilz-button--outline,
+.dilz-icon-button,
+.dilz-map-quick-btn,
+.dilz-filter-toggle,
+.dilz-filter-chip,
+.dilz-compact-filter-chip {
+  background: #FFFFFF;
+  border: 1px solid #E8EAED;
+  color: #0B1220;
+}
+
+.dilz-button--secondary:hover,
+.dilz-button--ghost:hover,
+.dilz-button--outline:hover,
+.dilz-icon-button:hover,
+.dilz-map-quick-btn:hover,
+.dilz-filter-toggle:hover,
+.dilz-filter-chip:hover,
+.dilz-compact-filter-chip:hover {
+  background: #F8F9FB;
+  border-color: #D7DCE2;
+  color: #0B1220;
+}
+
+.dilz-header-post,
+.dilz-header-alerts-btn,
+.dilz-filter-chip.is-selected,
+.dilz-compact-filter-chip.is-active,
+.dilz-promo-card__discount,
+.dilz-badge--saving,
+.dilz-badge--saving-strong,
+.dilz-badge--brand {
+  background: #FF6500 !important;
+  border-color: #FF6500 !important;
+  color: #FFFFFF !important;
+}
+
+.dilz-filter-chip.is-selected,
+.dilz-compact-filter-chip.is-active {
+  background: #0B1220 !important;
+  border-color: #0B1220 !important;
+}
+
+.dilz-deal-card__price-row strong,
+.dilz-promo-card__prices strong,
+.dilz-hero-promo-card__prices strong,
+.dilz-deal-card__comment-meta {
+  color: #FF6500;
+  font-weight: 950;
+}
+
+.dilz-deal-card__price-row span,
+.dilz-promo-card__prices del,
+.dilz-hero-promo-card__prices del {
+  color: #9CA3AF;
+  font-weight: 800;
+}
+
+.dilz-promo-card__store,
+.dilz-hero-promo-card__store,
+.dilz-badge--neutral {
+  background: #F8F9FB !important;
+  border: 1px solid #E8EAED;
+  color: #4B5563 !important;
+}
+
+.dilz-vote-pill button,
+.dilz-promo-vote-btn,
+.dilz-deal-vote-btn {
+  background: #FFFFFF;
+  border: 1px solid #E8EAED;
+  color: #0B1220;
+}
+
+.dilz-vote-pill button.is-up,
+.dilz-promo-vote-btn.is-hot,
+.dilz-deal-vote-btn.is-hot {
+  background: #FF6500 !important;
+  border-color: #FF6500 !important;
+  color: #FFFFFF !important;
+}
+
+.dilz-vote-pill button.is-down,
+.dilz-promo-vote-btn.is-cold,
+.dilz-deal-vote-btn.is-cold {
+  background: #0B1220 !important;
+  border-color: #0B1220 !important;
+  color: #FFFFFF !important;
+}
+
+.dilz-vote-emoji {
+  opacity: 1;
+  filter: none;
+}
+
+.dilz-admin-controls {
+  background: #F8F9FB !important;
+  border: 1px solid #E8EAED !important;
+}
+
+.dilz-bottom-nav {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1000;
+  background: rgba(255, 255, 255, 0.92);
+  border-top: 1px solid #ECECEC;
+  box-shadow: none !important;
+  transform: translateZ(0);
+}
+
+.dilz-bottom-nav__item {
+  color: #6B7280;
+}
+
+.dilz-bottom-nav__item.is-active {
+  color: #FF6500;
+}
+
+.dilz-bottom-nav__item.is-active .dilz-bottom-nav__icon {
+  background: #FFF2E8;
+}
+
+@media (max-width: 767px) {
+  .dilz-app-header__inner {
+    height: 58px;
+  }
+
+  .dilz-logo-lockup .dilz-logo,
+  .dilz-logo {
+    font-size: 25px;
+  }
+
+  .dilz-logo-mark {
+    width: 27px;
+    height: 27px;
+  }
+
+  .dilz-bottom-nav {
+    height: calc(72px + env(safe-area-inset-bottom));
+    padding-bottom: env(safe-area-inset-bottom);
   }
 }

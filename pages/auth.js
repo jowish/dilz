@@ -111,7 +111,15 @@ export default function Auth() {
         <div className="dilz-auth-container">
           <div className="dilz-auth-logo">
             <Link href="/" className="dilz-logo-button" aria-label="Dilz home">
-              <span className="dilz-logo">d<span>IL</span>z</span>
+              <span className="dilz-logo-lockup" aria-label="dILz">
+                <span className="dilz-logo-mark" aria-hidden="true">
+                  <svg viewBox="0 0 48 48" focusable="false">
+                    <circle cx="21" cy="21" r="12" />
+                    <path d="M30.5 30.5 40 40" />
+                  </svg>
+                </span>
+                <span className="dilz-logo">dILz</span>
+              </span>
             </Link>
             <p className="dilz-auth-tagline">Deals &amp; promotions in Israel</p>
           </div>
