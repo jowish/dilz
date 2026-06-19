@@ -61,7 +61,7 @@ export function AppHeader({
             <button type="button" className={activeTab === 'deals' ? 'is-active' : ''} onClick={onCommunity}>
               Dilz
             </button>
-            <button type="button" className={activeTab === 'sales' ? 'is-active' : ''} onClick={onSupermarkets}>
+            <button type="button" className={`dilz-promotions-nav-test ${activeTab === 'sales' ? 'is-active' : ''}`} onClick={onSupermarkets}>
               Promotions
             </button>
           </nav>

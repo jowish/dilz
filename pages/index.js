@@ -7,6 +7,7 @@ import { translations, traduireVille } from '../lib/translations';
 import { supabase } from '../lib/supabase';
 import { AppHeader } from '../components/layout/AppHeader';
 import { BottomNav } from '../components/layout/BottomNav';
+import { MainMenuSheet } from '../components/ui/MainMenuSheet';
 import { DealCard as PremiumDealCard } from '../components/deals/DealCard';
 import { PostDealModal as PremiumPostDealModal } from '../components/deals/PostDealModal';
 import { PromoCard } from '../components/deals/PromoCard';
@@ -79,6 +80,7 @@ const URL_TO_TAB = {
 const PROMO_SORTS = ['discount', 'liked', 'recent', 'price_asc'];
 const DEAL_SORTS = ['hot', 'latest', 'nearby', 'ending', 'comments'];
 const DEAL_LAYOUTS = ['card', 'list'];
+const DEAL_COLLECTIONS = ['all', 'codes', 'free'];
 const URL_ACTIONS = ['post_deal', 'city', 'alerts', 'notifications', 'view_promo'];
 const CATEGORY_ICONS = { all: '', Food: '', Tech: '', Fashion: '', Activities: '', Online: '' };
 
@@ -194,6 +196,8 @@ function readHomeStateFromUrl(asPath) {
   const dealCategory = params.get('category');
   const dealSort = params.get('sort');
   const dealLayout = params.get('layout');
+  const requestedCollection = params.get('collection');
+  const dealCollection = DEAL_COLLECTIONS.includes(requestedCollection) ? requestedCollection : 'all';
   const mine = params.get('mine') === '1';
   const action = params.get('action');
   const selectedPromoBarcode = params.get('promo') || null;
@@ -215,6 +219,7 @@ function readHomeStateFromUrl(asPath) {
     sortDeals: DEAL_SORTS.includes(dealSort) ? dealSort : 'hot',
     myDealsOnly: mine,
     dealLayout: DEAL_LAYOUTS.includes(dealLayout) ? dealLayout : 'card',
+    dealCollection,
     action: normalizedAction,
     selectedPromoBarcode,
   };
@@ -230,6 +235,7 @@ function buildHomeUrl({
   sortDeals,
   myDealsOnly,
   dealLayout,
+  dealCollection,
   city,
   searchQuery,
   action,
@@ -248,6 +254,7 @@ function buildHomeUrl({
   }
 
   if (tab === 'deals') {
+    if (dealCollection !== 'all') params.set('collection', dealCollection);
     if (myDealsOnly) {
       params.set('mine', '1');
     } else if (categoryFilter !== 'all') {
@@ -683,6 +690,7 @@ export default function Home() {
   const [sortDeals, setSortDeals] = useState('hot');
   const [myDealsOnly, setMyDealsOnly] = useState(false);
   const [dealLayout, setDealLayout] = useState('card');
+  const [dealCollection, setDealCollection] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
 
   // City
@@ -706,6 +714,7 @@ export default function Home() {
   const [selectedPromo, setSelectedPromo] = useState(null);
   const [selectedPromoBarcode, setSelectedPromoBarcode] = useState(null);
   const [showPostModal, setShowPostModal] = useState(false);
+  const [showMainMenu, setShowMainMenu] = useState(false);
   const [postSuccess, setPostSuccess] = useState(false);
 
   // Alerts & Notifications
@@ -803,6 +812,7 @@ export default function Home() {
     setSortDeals(next.sortDeals);
     setMyDealsOnly(next.myDealsOnly);
     setDealLayout(next.dealLayout);
+    setDealCollection(next.dealCollection);
     setSearchQuery(next.searchQuery);
     setVille(next.city);
     setUserCoords(next.city ? CITY_COORDS[next.city] || null : null);
@@ -833,6 +843,7 @@ export default function Home() {
       sortDeals,
       myDealsOnly,
       dealLayout,
+      dealCollection,
       city: ville,
       searchQuery,
       action: selectedPromoBarcode
@@ -863,6 +874,7 @@ export default function Home() {
     sortDeals,
     myDealsOnly,
     dealLayout,
+    dealCollection,
     ville,
     searchQuery,
     showPostModal,
@@ -1170,8 +1182,18 @@ export default function Home() {
     }
   };
 
+  const openDealCollection = ({ collection = 'all', category = 'all', sort = 'hot' } = {}) => {
+    setTab('deals');
+    setDealCollection(collection);
+    setCategoryFilter(category);
+    setSortDeals(sort);
+    setMyDealsOnly(false);
+    setShowMainMenu(false);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   // Computed displayed deals (proximity sort)
-  const displayedDeals = sortDeals === 'comments'
+  const sortedDeals = sortDeals === 'comments'
     ? [...deals].sort((a, b) => {
         const ac = Number(a.commentaires?.[0]?.count || 0);
         const bc = Number(b.commentaires?.[0]?.count || 0);
@@ -1186,6 +1208,12 @@ export default function Home() {
         return da - db;
       })
       : deals;
+
+  const displayedDeals = dealCollection === 'codes'
+    ? sortedDeals.filter((deal) => /\b(code promo|promo code|coupon|voucher)\b|קוד|קופון/i.test([deal.titre, deal.description, deal.magasin].filter(Boolean).join(' ')))
+    : dealCollection === 'free'
+      ? sortedDeals.filter((deal) => Number(deal.prix) === 0 || /\b(gratuit|gratuito|free|cadeau)\b|חינם/i.test([deal.titre, deal.description].filter(Boolean).join(' ')))
+      : sortedDeals;
 
   const filteredPromos = storeFilter === 'all'
     ? promos
@@ -1397,6 +1425,7 @@ export default function Home() {
                       className={active ? 'is-active' : ''}
                       onClick={() => {
                         setMyDealsOnly(false);
+                        setDealCollection('all');
                         setCategoryFilter('all');
                         if (view.id === 'all') setSortDeals('hot');
                         else if (view.id === 'mine') setMyDealsOnly(true);
@@ -1510,7 +1539,7 @@ export default function Home() {
                 </div>
               )}
 
-              {!loadingDeals && displayedDeals.length > 0 && (
+              {false && !loadingDeals && displayedDeals.length > 0 && (
                 <div className="dilz-tab-footer">
                   <p>{textFor(lang, { en: 'Looking for supermarket prices?', he: 'מחפש מחירי סופרמרקט?', fr: 'Tu cherches les prix des supermarchés ?', es: '¿Buscas precios de supermercado?' })}</p>
                   <button type="button" className="dilz-button dilz-button--secondary dilz-button--sm" onClick={() => setTab('sales')}>
@@ -1552,9 +1581,23 @@ export default function Home() {
           )}
         </main>
 
+        <MainMenuSheet
+          open={showMainMenu}
+          onClose={() => setShowMainMenu(false)}
+          onHome={() => openDealCollection()}
+          onDeals={() => openDealCollection()}
+          onCodePromos={() => openDealCollection({ collection: 'codes', sort: 'latest' })}
+          onCategory={(category) => openDealCollection({ category })}
+          onFree={() => openDealCollection({ collection: 'free', sort: 'latest' })}
+          activeCollection={dealCollection}
+          activeCategory={categoryFilter}
+        />
+
         <BottomNav
           activeTab={tab}
-          onTab={setTab}
+          menuOpen={showMainMenu}
+          onMenu={() => setShowMainMenu(true)}
+          onTab={() => openDealCollection()}
           onPost={() => setShowPostModal(true)}
           onAlerts={() => user ? setShowAlertModal(true) : router.push('/auth?redirect=/')}
           onProfile={() => setTab('profile')}
