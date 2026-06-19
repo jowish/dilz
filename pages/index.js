@@ -679,6 +679,7 @@ export default function Home() {
   const [promos, setPromos] = useState([]);
   const [loadingPromos, setLoadingPromos] = useState(true);
   const [deals, setDeals] = useState([]);
+  const [dealTotal, setDealTotal] = useState(0);
   const [loadingDeals, setLoadingDeals] = useState(false);
 
   // Filters
@@ -920,7 +921,12 @@ export default function Home() {
     if (myDealsOnly && user?.id) params.set('auteur_id', user.id);
     fetch(`/api/bons-plans?${params}`)
       .then(r => r.json())
-      .then(d => { setDeals(d.bons_plans || []); setLoadingDeals(false); })
+      .then(d => {
+        const nextDeals = d.bons_plans || [];
+        setDeals(nextDeals);
+        setDealTotal(Number.isFinite(d.total) ? d.total : nextDeals.length);
+        setLoadingDeals(false);
+      })
       .catch(() => setLoadingDeals(false));
   }, [tab, categoryFilter, sortDeals, myDealsOnly, user]);
 
@@ -930,7 +936,12 @@ export default function Home() {
       setLoadingDeals(true);
       fetch('/api/bons-plans?tri=latest')
         .then(r => r.json())
-        .then(d => { setDeals(d.bons_plans || []); setLoadingDeals(false); })
+        .then(d => {
+          const nextDeals = d.bons_plans || [];
+          setDeals(nextDeals);
+          setDealTotal(Number.isFinite(d.total) ? d.total : nextDeals.length);
+          setLoadingDeals(false);
+        })
         .catch(() => setLoadingDeals(false));
     }
   }, [tab]);
@@ -1002,6 +1013,7 @@ export default function Home() {
       return;
     }
     setDeals(prev => prev.filter(deal => deal.id !== id));
+    setDealTotal(current => Math.max(0, current - 1));
   };
 
   const handleDealVote = async (id, type) => {
@@ -1176,7 +1188,12 @@ export default function Home() {
         setLoadingDeals(true);
         fetch('/api/bons-plans?tri=latest')
           .then(r => r.json())
-          .then(d => { setDeals(d.bons_plans || []); setLoadingDeals(false); })
+          .then(d => {
+            const nextDeals = d.bons_plans || [];
+            setDeals(nextDeals);
+            setDealTotal(Number.isFinite(d.total) ? d.total : nextDeals.length);
+            setLoadingDeals(false);
+          })
           .catch(() => setLoadingDeals(false));
       }, 1800);
     }
@@ -1214,6 +1231,8 @@ export default function Home() {
     : dealCollection === 'free'
       ? sortedDeals.filter((deal) => Number(deal.prix) === 0 || /\b(gratuit|gratuito|free|cadeau)\b|חינם/i.test([deal.titre, deal.description].filter(Boolean).join(' ')))
       : sortedDeals;
+
+  const displayedDealCount = dealCollection === 'all' ? dealTotal : displayedDeals.length;
 
   const filteredPromos = storeFilter === 'all'
     ? promos
@@ -1445,10 +1464,10 @@ export default function Home() {
                 <div className="dilz-feed-controls" aria-label="Dilz feed controls">
                 <span className="dilz-view-switcher__count">
                   {textFor(lang, {
-                    en: `${displayedDeals.length} Dilz`,
-                    he: `${displayedDeals.length} דילז`,
-                    fr: `${displayedDeals.length} Dilz`,
-                    es: `${displayedDeals.length} Dilz`,
+                    en: `${displayedDealCount} Dilz`,
+                    he: `${displayedDealCount} דילז`,
+                    fr: `${displayedDealCount} Dilz`,
+                    es: `${displayedDealCount} Dilz`,
                   })}
                 </span>
                 <button type="button" className="dilz-map-quick-btn" onClick={openMap} aria-label="Open Dilz map">

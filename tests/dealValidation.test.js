@@ -68,6 +68,8 @@ test('clamps public API limits', () => {
   assert.equal(clampLimit('25'), 25);
   assert.equal(clampLimit('999'), 200);
   assert.equal(clampLimit('invalid'), 50);
+  assert.equal(clampLimit('999', 200, 500), 500);
+  assert.equal(clampLimit(undefined, 200, 500), 200);
 });
 
 test('handles date-only values without timestamp comparisons', () => {

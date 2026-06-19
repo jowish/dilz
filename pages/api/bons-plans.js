@@ -38,12 +38,12 @@ export default async function handler(req, res) {
   try {
     // ─── GET ──────────────────────────────────────────────────────────────────
     if (req.method === 'GET') {
-      const { ville, categorie, limit = 50, tri = 'hot', auteur_id: filterAuteurId } = req.query;
-      const responseLimit = clampLimit(limit);
-      const fetchLimit = tri === 'comments' ? 200 : responseLimit;
+      const { ville, categorie, limit = 200, tri = 'hot', auteur_id: filterAuteurId } = req.query;
+      const responseLimit = clampLimit(limit, 200, 500);
+      const fetchLimit = tri === 'comments' ? 500 : responseLimit;
       let query = supabase
         .from('bons_plans')
-        .select('*, commentaires(count)')
+        .select('*, commentaires(count)', { count: 'exact' })
         .or('statut.eq.actif,statut.is.null');
 
       if (tri === 'oldest') query = query.order('created_at', { ascending: true });
@@ -64,7 +64,7 @@ export default async function handler(req, res) {
       if (categorie && categorie !== 'all') query = query.eq('categorie', categorie);
       if (filterAuteurId) query = query.eq('auteur_id', filterAuteurId);
 
-      const { data, error } = await query;
+      const { data, error, count } = await query;
       if (error) return res.status(500).json({ erreur: error.message });
       const rows = (data || []).map(normalizeDealDates);
       if (tri === 'comments') {
@@ -74,7 +74,10 @@ export default async function handler(req, res) {
           return bc - ac || new Date(b.created_at) - new Date(a.created_at);
         });
       }
-      return res.status(200).json({ bons_plans: rows.slice(0, responseLimit) });
+      return res.status(200).json({
+        bons_plans: rows.slice(0, responseLimit),
+        total: count || 0,
+      });
     }
 
     // ─── POST ─────────────────────────────────────────────────────────────────
