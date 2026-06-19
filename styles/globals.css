@@ -5704,3 +5704,152 @@ textarea::placeholder {
 .dilz-main-menu__category-grid button{min-height:42px;padding:8px 12px;border:1px solid #E8EAED;border-radius:14px;background:#fff;color:#4B5563;font-size:13px;font-weight:800;cursor:pointer}
 .dilz-main-menu__category-grid button:hover,.dilz-main-menu__category-grid button.is-active{border-color:#0B1220;background:#0B1220;color:#fff}
 @media(min-width:768px){.dilz-main-menu__backdrop{display:none}}
+/* Curated discovery pages */
+.dilz-discovery-page {
+  min-height: 100vh;
+  background: #fafafa;
+  color: #0b1220;
+}
+
+.dilz-discovery-header {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  border-bottom: 1px solid #ececec;
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(16px);
+}
+
+.dilz-discovery-header__inner {
+  display: grid;
+  grid-template-columns: 44px 1fr 44px;
+  align-items: center;
+  max-width: 1180px;
+  height: 72px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+.dilz-discovery-header .dilz-logo-button { justify-self: center; }
+.dilz-discovery-header__spacer { width: 44px; }
+.dilz-discovery-back {
+  display: grid;
+  width: 40px;
+  height: 40px;
+  place-items: center;
+  border: 1px solid #e8eaed;
+  border-radius: 14px;
+  color: #0b1220;
+  background: #fff;
+}
+.dilz-discovery-back svg { width: 20px; fill: none; stroke: currentColor; stroke-width: 2; }
+
+.dilz-discovery-main {
+  width: min(1120px, calc(100% - 48px));
+  margin: 0 auto;
+  padding: 56px 0 96px;
+}
+
+.dilz-discovery-hero { max-width: 720px; margin-bottom: 32px; }
+.dilz-discovery-hero > span,
+.dilz-discovery-section__heading span {
+  display: block;
+  margin-bottom: 10px;
+  color: #ff6500;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+.dilz-discovery-hero h1 { margin: 0; font-size: clamp(36px, 6vw, 64px); line-height: .98; letter-spacing: -.045em; }
+.dilz-discovery-hero p { max-width: 670px; margin: 18px 0 0; color: #4b5563; font-size: 18px; line-height: 1.6; }
+
+.dilz-source-note {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 24px;
+  padding: 16px 18px;
+  border: 1px solid #e8eaed;
+  border-radius: 16px;
+  color: #4b5563;
+  background: #fff;
+  font-size: 13px;
+}
+.dilz-source-note strong { color: #0b1220; }
+
+.dilz-code-merchants { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; }
+.dilz-code-merchant { padding: 24px; border: 1px solid #e8eaed; border-radius: 20px; background: #fff; }
+.dilz-code-merchant__header { display: flex; align-items: center; gap: 14px; margin-bottom: 22px; }
+.dilz-code-merchant__mark { display: grid; width: 46px; height: 46px; place-items: center; border-radius: 14px; color: #fff; font-size: 20px; font-weight: 900; }
+.dilz-code-merchant__header h2 { margin: 0 0 3px; font-size: 21px; }
+.dilz-code-merchant__header p { margin: 0; color: #6b7280; font-size: 13px; }
+.dilz-code-list { display: grid; gap: 10px; }
+.dilz-code-card { display: grid; grid-template-columns: 74px 1fr auto; align-items: center; gap: 14px; padding: 14px; border: 1px solid #e8eaed; border-radius: 16px; }
+.dilz-code-card__value { color: #ff6500; font-size: 20px; font-weight: 900; letter-spacing: -.03em; }
+.dilz-code-card__content { display: grid; gap: 4px; min-width: 0; }
+.dilz-code-card__content strong { font-size: 13px; }
+.dilz-code-card__content span { color: #6b7280; font-size: 11px; }
+.dilz-code-card__action,
+.dilz-free-card__action,
+.dilz-discovery-section__heading a,
+.dilz-destination-card__link { display: inline-flex; align-items: center; gap: 5px; color: #0b1220; font-size: 12px; font-weight: 800; white-space: nowrap; }
+.dilz-code-card__action svg,
+.dilz-free-card__action svg,
+.dilz-discovery-cta svg,
+.dilz-discovery-section__heading a svg,
+.dilz-destination-card__link svg { width: 16px; fill: none; stroke: currentColor; stroke-width: 2; }
+
+.dilz-shopping-feature { display: grid; grid-template-columns: 1.4fr .8fr; gap: 40px; padding: 38px; border-radius: 20px; color: #fff; background: #0b1220; }
+.dilz-shopping-feature__label { color: #ff6500; font-size: 12px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; }
+.dilz-shopping-feature h2 { max-width: 580px; margin: 12px 0; font-size: clamp(28px, 4vw, 44px); line-height: 1.08; letter-spacing: -.035em; }
+.dilz-shopping-feature p { max-width: 620px; margin: 0 0 24px; color: #cbd5e1; line-height: 1.65; }
+.dilz-discovery-cta { display: inline-flex; align-items: center; gap: 8px; padding: 13px 17px; border-radius: 12px; color: #fff; background: #ff6500; font-size: 13px; font-weight: 800; }
+.dilz-shopping-feature__steps { display: grid; align-content: center; gap: 12px; }
+.dilz-shopping-feature__steps span { display: flex; align-items: center; gap: 12px; padding: 13px; border: 1px solid #263246; border-radius: 14px; color: #e5e7eb; font-size: 13px; }
+.dilz-shopping-feature__steps b { display: grid; width: 26px; height: 26px; flex: 0 0 auto; place-items: center; border-radius: 8px; color: #0b1220; background: #fff; }
+.dilz-discovery-section { margin-top: 48px; }
+.dilz-discovery-section__heading { display: flex; align-items: end; justify-content: space-between; gap: 16px; margin-bottom: 18px; }
+.dilz-discovery-section__heading span { margin-bottom: 5px; }
+.dilz-discovery-section__heading h2 { margin: 0; font-size: 28px; letter-spacing: -.03em; }
+.dilz-destination-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+.dilz-destination-card { padding: 24px; border: 1px solid #e8eaed; border-radius: 20px; color: #0b1220; background: #fff; transition: transform .18s, border-color .18s; }
+.dilz-destination-card:hover { border-color: #d7dce2; transform: translateY(-2px); }
+.dilz-destination-card__icon { display: grid; width: 42px; height: 42px; place-items: center; border-radius: 13px; background: #f3f4f6; }
+.dilz-destination-card__icon svg { width: 21px; fill: none; stroke: currentColor; stroke-width: 1.8; }
+.dilz-destination-card h3 { margin: 18px 0 8px; font-size: 19px; }
+.dilz-destination-card p { min-height: 64px; margin: 0 0 18px; color: #6b7280; font-size: 13px; line-height: 1.6; }
+.dilz-discovery-disclaimer { margin: 24px 0 0; color: #6b7280; font-size: 12px; line-height: 1.6; }
+
+.dilz-free-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
+.dilz-free-card { overflow: hidden; border: 1px solid #e8eaed; border-radius: 20px; background: #fff; }
+.dilz-free-card__media { position: relative; display: block; aspect-ratio: 16 / 10; overflow: hidden; background: #f3f4f6; }
+.dilz-free-card__media img { width: 100%; height: 100%; object-fit: cover; transition: transform .25s; }
+.dilz-free-card:hover .dilz-free-card__media img { transform: scale(1.025); }
+.dilz-free-card__media > span { position: absolute; top: 12px; left: 12px; padding: 7px 10px; border-radius: 10px; color: #fff; background: #ff6500; font-size: 12px; font-weight: 900; }
+.dilz-free-card__body { padding: 19px; }
+.dilz-free-card__store { color: #6b7280; font-size: 12px; font-weight: 700; }
+.dilz-free-card h2 { margin: 7px 0; font-size: 18px; line-height: 1.25; letter-spacing: -.02em; }
+.dilz-free-card p { min-height: 60px; margin: 0 0 15px; color: #6b7280; font-size: 13px; line-height: 1.55; }
+
+@media (max-width: 800px) {
+  .dilz-discovery-header__inner { height: 62px; padding: 0 14px; }
+  .dilz-discovery-main { width: min(100% - 28px, 600px); padding: 30px 0 88px; }
+  .dilz-discovery-hero { margin-bottom: 22px; }
+  .dilz-discovery-hero h1 { font-size: 38px; }
+  .dilz-discovery-hero p { margin-top: 12px; font-size: 15px; line-height: 1.55; }
+  .dilz-source-note { align-items: flex-start; flex-direction: column; gap: 5px; }
+  .dilz-code-merchants,
+  .dilz-free-grid,
+  .dilz-destination-grid { grid-template-columns: 1fr; }
+  .dilz-code-merchant { padding: 17px; }
+  .dilz-code-card { grid-template-columns: 64px 1fr; }
+  .dilz-code-card__action { grid-column: 1 / -1; justify-content: center; padding: 10px; border-radius: 10px; background: #f3f4f6; }
+  .dilz-shopping-feature { grid-template-columns: 1fr; gap: 26px; padding: 24px; }
+  .dilz-shopping-feature h2 { font-size: 30px; }
+  .dilz-discovery-section { margin-top: 34px; }
+  .dilz-discovery-section__heading { align-items: flex-start; flex-direction: column; }
+  .dilz-destination-card p,
+  .dilz-free-card p { min-height: 0; }
+}

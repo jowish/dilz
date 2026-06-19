@@ -12,6 +12,7 @@
     "products:classify": "node scripts/classify-products.js",
     "products:reclassify": "node scripts/classify-products.js --reclassify-other",
     "import:super-pharm": "node scripts/import-prix.js --super-pharm-only",
+    "import:free-deals": "node scripts/insert-free-deals.js",
     "check": "npm test && npm run build"
   },
   "dependencies": {

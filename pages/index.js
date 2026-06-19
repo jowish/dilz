@@ -1585,10 +1585,10 @@ export default function Home() {
           open={showMainMenu}
           onClose={() => setShowMainMenu(false)}
           onHome={() => openDealCollection()}
-          onDeals={() => openDealCollection()}
-          onCodePromos={() => openDealCollection({ collection: 'codes', sort: 'latest' })}
+          onDeals={() => router.push('/bons-plans-shopping')}
+          onCodePromos={() => router.push('/codes-promo')}
           onCategory={(category) => openDealCollection({ category })}
-          onFree={() => openDealCollection({ collection: 'free', sort: 'latest' })}
+          onFree={() => router.push('/gratuit')}
           activeCollection={dealCollection}
           activeCategory={categoryFilter}
         />
