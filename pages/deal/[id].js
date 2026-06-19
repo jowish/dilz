@@ -9,6 +9,7 @@ import { copyText } from '../../lib/copyText';
 import { CopyToast } from '../../components/ui/CopyToast';
 import { VoteEmoji } from '../../components/ui/VoteEmoji';
 import { useAppLanguage } from '../../lib/useAppLanguage';
+import { SafetyActions } from '../../components/ui/SafetyActions';
 
 const DETAIL_TEXT = {
   en: { now: 'Just now', hour: 'h ago', day: 'd ago', notFound: 'Deal not found', backDeals: 'Back to deals', back: 'Back', copy: 'Copy link', edit: 'Edit', photos: 'Deal photos', viewPhoto: 'View photo', by: 'by', starts: 'Starts', ends: 'Ends', online: 'View online deal', comments: 'Comments', noComments: 'No comments yet - be the first!', anonymous: 'Anonymous', reply: 'Reply', replyTo: 'Reply to', addComment: 'Add a comment...', send: 'Send', signInComment: 'Sign in to comment', editDeal: 'Edit deal', close: 'Close', changePhoto: 'Change photo', cancel: 'Cancel', save: 'Save changes', saving: 'Saving...' },
@@ -116,11 +117,18 @@ export default function DealPage() {
   const [editImageError, setEditImageError] = useState('');
   const [copySuccess, setCopySuccess] = useState(false);
   const [activeImageIndex, setActiveImageIndex] = useState(0);
+  const [blockedUserIds, setBlockedUserIds] = useState([]);
 
   useEffect(() => {
     setMounted(true);
     supabase.auth.getSession().then(({ data }) => {
-      if (data.session) setUser(data.session.user);
+      if (data.session) {
+        setUser(data.session.user);
+        fetch('/api/safety', { headers: { Authorization: `Bearer ${data.session.access_token}` } })
+          .then((response) => response.ok ? response.json() : null)
+          .then((payload) => { if (payload) setBlockedUserIds(payload.blockedUserIds || []); })
+          .catch(() => {});
+      }
     });
     try {
       const saved = localStorage.getItem('dilzCommentVotes');
@@ -359,6 +367,9 @@ export default function DealPage() {
   const dealImages = [...new Set([...(Array.isArray(deal.image_urls) ? deal.image_urls : []), deal.image_url].filter(Boolean))].slice(0, 3);
   const activeImage = dealImages[activeImageIndex] || dealImages[0] || null;
   const isOwner = user && user.id === deal.auteur_id;
+  const visibleComments = blockedUserIds.length
+    ? comments.filter((comment) => !comment.auteur_id || !blockedUserIds.includes(comment.auteur_id))
+    : comments;
   const pageTitle = `${deal.titre} — ₪${deal.prix} at ${deal.magasin} | Dilz`;
   const pageDesc = deal.description
     ? `${deal.description.slice(0, 120)}…`
@@ -480,6 +491,19 @@ export default function DealPage() {
               {' · '}{timeAgo(deal.created_at, text)}
               {deal.auteur_nom ? ` · ${text.by} ${deal.auteur_nom}` : ''}
             </p>
+            <div className="dilz-deal-safety-row">
+              <SafetyActions
+                contentType="deal"
+                contentId={deal.id}
+                authorId={deal.auteur_id}
+                currentUserId={user?.id}
+                lang={lang}
+                onBlocked={(userId) => {
+                  setBlockedUserIds((current) => current.includes(userId) ? current : [...current, userId]);
+                  router.replace('/?tab=dilz');
+                }}
+              />
+            </div>
 
             {(deal.date_debut || deal.date_fin) && (
               <div className="dilz-deal-dates">
@@ -544,15 +568,15 @@ export default function DealPage() {
             </div>
 
             {/* Comments */}
-            <h2 className="dilz-deal-section-title">{text.comments} ({comments.length})</h2>
+            <h2 className="dilz-deal-section-title">{text.comments} ({visibleComments.length})</h2>
 
-            {comments.length === 0 ? (
+            {visibleComments.length === 0 ? (
               <div className="dilz-deal-comments-empty">
                 <p>{text.noComments}</p>
               </div>
             ) : (
               <div className="dilz-deal-comments">
-                {comments.map((c) => {
+                {visibleComments.map((c) => {
                   const initials = (c.auteur_nom || 'A').slice(0, 2).toUpperCase();
                   const isReply = c.contenu.startsWith('↩ @');
                   const myCommentVote = commentVotes[c.id] || null;
@@ -587,6 +611,14 @@ export default function DealPage() {
                               <ReplyIcon /> {text.reply}
                             </button>
                           )}
+                          <SafetyActions
+                            contentType="comment"
+                            contentId={c.id}
+                            authorId={c.auteur_id}
+                            currentUserId={user?.id}
+                            lang={lang}
+                            onBlocked={(userId) => setBlockedUserIds((current) => current.includes(userId) ? current : [...current, userId])}
+                          />
                         </div>
                         {replyTo?.id === c.id && (
                           <div className="dilz-comment-reply-input">

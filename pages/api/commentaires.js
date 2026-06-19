@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+import { moderateUserText } from '../../lib/contentModeration';
 
 export default async function handler(req, res) {
   const {
@@ -50,6 +51,10 @@ export default async function handler(req, res) {
     }
     if (normalizedContent.length > 2000) {
       return res.status(400).json({ erreur: 'Comment must be 2000 characters or fewer.' });
+    }
+    const moderation = moderateUserText(normalizedContent);
+    if (!moderation.allowed) {
+      return res.status(400).json({ erreur: moderation.reason, code: 'CONTENT_REJECTED' });
     }
 
     // Author name comes from verified JWT — not from client body

@@ -126,6 +126,19 @@ export default async function handler(req, res) {
       return res.status(200).json({ ok: true });
     }
 
+    if (action === 'review_report') {
+      const id = String(req.body.id || '').trim();
+      const status = String(req.body.status || '').trim();
+      if (!/^[0-9a-f-]{36}$/i.test(id)) return res.status(400).json({ erreur: 'Valid report id required.' });
+      if (!['reviewed', 'actioned', 'dismissed'].includes(status)) return res.status(400).json({ erreur: 'Invalid report status.' });
+      const { error } = await supabase
+        .from('content_reports')
+        .update({ status, updated_at: new Date().toISOString() })
+        .eq('id', id);
+      if (error) throw error;
+      return res.status(200).json({ ok: true });
+    }
+
     if (action === 'ban_user' || action === 'unban_user') {
       const userId = String(req.body.user_id || '').trim();
       if (!/^[0-9a-f-]{36}$/i.test(userId)) return res.status(400).json({ erreur: 'Valid user id required.' });

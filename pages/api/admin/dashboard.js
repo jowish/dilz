@@ -136,6 +136,8 @@ export default async function handler(req, res) {
       notificationsTotal,
       unreadNotifications,
       pushSubscriptions,
+      reportsPending,
+      recentReports,
     ] = await Promise.all([
       getUsers(supabase),
       countRows(supabase, 'bons_plans'),
@@ -171,6 +173,8 @@ export default async function handler(req, res) {
       countRows(supabase, 'notifications'),
       countRows(supabase, 'notifications', q => q.eq('is_read', false)),
       countRows(supabase, 'push_subscriptions'),
+      countRows(supabase, 'content_reports', q => q.eq('status', 'pending')),
+      selectRows(supabase, 'content_reports', 'id,content_type,content_id,reported_user_id,reason,details,status,created_at', q => q.order('created_at', { ascending: false }).limit(50)),
     ]);
 
     const dealsWithoutImage = Math.max((dealsTotal || 0) - (dealsWithImage || 0), 0);
@@ -256,6 +260,8 @@ export default async function handler(req, res) {
         notificationsTotal,
         unreadNotifications,
         pushSubscriptions,
+        reportsPending,
+        recentReports,
       },
       health: {
         pendingDeals,
@@ -264,8 +270,10 @@ export default async function handler(req, res) {
         productsPendingImage,
         stalePriceRows,
         unreadNotifications,
+        reportsPending,
         warnings: [
           pendingDeals ? `${pendingDeals} pending deals need moderation.` : null,
+          reportsPending ? `${reportsPending} user reports need moderation.` : null,
           dealsWithoutImage ? `${dealsWithoutImage} community deals have no image.` : null,
           productsWithoutImage ? `${productsWithoutImage} supermarket products have no image.` : null,
           stalePriceRows ? `${stalePriceRows} price rows are older than 3 days in the sampled data.` : null,

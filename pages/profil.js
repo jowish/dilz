@@ -8,8 +8,13 @@ import { VoteEmoji } from '../components/ui/VoteEmoji';
 import { readDealSortPreference, writeDealSortPreference } from '../lib/userPreferences';
 
 const PROFILE_TEXT = {
-  en: { profile: 'Profile', back: 'Back', signOut: 'Sign out', posted: 'Deals posted', received: 'Hot votes received', settings: 'Account settings', settingsHelp: 'Choose how Dilz should look when you return.', language: 'Language', feedOrder: 'Default feed order', english: 'English', hebrew: 'Hebrew', hot: 'Hottest first', latest: 'Newest first', comments: 'Most commented', saved: 'Preference saved', mine: 'My deals', loading: 'Loading...', empty: 'No deals yet', emptyText: 'Share a deal you spotted!', post: 'Post a deal', now: 'Just now', hour: 'h ago', day: 'd ago' },
+  en: { profile: 'Profile', back: 'Back', signOut: 'Sign out', posted: 'Deals posted', received: 'Hot votes received', settings: 'Account settings', settingsHelp: 'Choose how Dilz should look when you return.', language: 'Language', feedOrder: 'Default feed order', english: 'English', hebrew: 'Hebrew', hot: 'Hottest first', latest: 'Newest first', comments: 'Most commented', saved: 'Preference saved', mine: 'My deals', loading: 'Loading...', empty: 'No deals yet', emptyText: 'Share a deal you spotted!', post: 'Post a deal', now: 'Just now', hour: 'h ago', day: 'd ago', legal: 'Legal and privacy', privacy: 'Privacy Policy', terms: 'Terms of Use', danger: 'Delete account', dangerHelp: 'Permanently delete your account and private data. Your public contributions will be anonymized.', delete: 'Delete my account', confirmTitle: 'This action cannot be undone', confirmHelp: 'Type DELETE to permanently delete your Dilz account.', confirmWord: 'DELETE', cancel: 'Cancel', deleting: 'Deleting...', deleteError: 'Account deletion failed. Please try again or contact support.' },
   he: { profile: 'פרופיל', back: 'חזרה', signOut: 'התנתקות', posted: 'דילים שפורסמו', received: 'הצבעות חמות שהתקבלו', settings: 'הגדרות חשבון', settingsHelp: 'בחרו כיצד Dilz יוצג בכל כניסה.', language: 'שפה', feedOrder: 'סדר ברירת מחדל בפיד', english: 'אנגלית', hebrew: 'עברית', hot: 'החמים ביותר', latest: 'החדשים ביותר', comments: 'עם הכי הרבה תגובות', saved: 'ההעדפה נשמרה', mine: 'הדילים שלי', loading: 'טוען...', empty: 'עדיין אין דילים', emptyText: 'שתפו דיל שמצאתם!', post: 'פרסום דיל', now: 'עכשיו', hour: 'ש׳', day: 'י׳' },
+};
+
+const ACCOUNT_SAFETY_TEXT = {
+  en: { legal: 'Legal and privacy', privacy: 'Privacy Policy', terms: 'Terms of Use', danger: 'Delete account', dangerHelp: 'Permanently delete your account and private data. Your public contributions will be anonymized.', delete: 'Delete my account', confirmTitle: 'This action cannot be undone', confirmHelp: 'Type DELETE to permanently delete your Dilz account.', confirmWord: 'DELETE', cancel: 'Cancel', deleting: 'Deleting...', deleteError: 'Account deletion failed. Please try again or contact support.' },
+  he: { legal: 'משפטי ופרטיות', privacy: 'מדיניות פרטיות', terms: 'תנאי שימוש', danger: 'מחיקת חשבון', dangerHelp: 'מחיקה לצמיתות של החשבון והמידע הפרטי. התרומות הציבוריות שלכם יעברו אנונימיזציה.', delete: 'מחיקת החשבון שלי', confirmTitle: 'לא ניתן לבטל פעולה זו', confirmHelp: 'הקלידו DELETE כדי למחוק לצמיתות את חשבון Dilz.', confirmWord: 'DELETE', cancel: 'ביטול', deleting: 'מוחק...', deleteError: 'מחיקת החשבון נכשלה. נסו שוב או פנו לתמיכה.' },
 };
 
 function timeAgo(date, text) {
@@ -32,12 +37,17 @@ export default function Profil() {
   const router = useRouter();
   const { lang, setLang, dir } = useAppLanguage();
   const text = PROFILE_TEXT[lang];
+  const safetyText = ACCOUNT_SAFETY_TEXT[lang];
   const [user, setUser] = useState(null);
   const [deals, setDeals] = useState([]);
   const [loading, setLoading] = useState(true);
   const [mounted, setMounted] = useState(false);
   const [feedPreference, setFeedPreference] = useState('hot');
   const [preferenceSaved, setPreferenceSaved] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleteConfirmation, setDeleteConfirmation] = useState('');
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState('');
 
   useEffect(() => {
     setMounted(true);
@@ -87,6 +97,34 @@ export default function Profil() {
     setFeedPreference(writeDealSortPreference(value));
     saveIndicator();
     await supabase.auth.updateUser({ data: { dilz_deal_sort: value } });
+  };
+
+  const deleteAccount = async () => {
+    if (deleteConfirmation !== 'DELETE') return;
+    setDeleting(true);
+    setDeleteError('');
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+      router.replace('/auth?redirect=/profil');
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/account/delete', {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      });
+      if (!response.ok) throw new Error('delete_failed');
+      await supabase.auth.signOut();
+      try {
+        localStorage.removeItem('dilzDealVotes');
+        localStorage.removeItem('dilzCommentVotes');
+      } catch {}
+      router.replace('/?account=deleted');
+    } catch {
+      setDeleteError(safetyText.deleteError);
+      setDeleting(false);
+    }
   };
 
   if (!mounted) return null;
@@ -168,6 +206,45 @@ export default function Profil() {
                 ))}
               </div>
             </fieldset>
+          </section>
+
+          <section className="dilz-profile-legal" aria-labelledby="legal-title">
+            <h2 id="legal-title">{safetyText.legal}</h2>
+            <div>
+              <Link href="/privacy">{safetyText.privacy}</Link>
+              <Link href="/terms">{safetyText.terms}</Link>
+            </div>
+          </section>
+
+          <section className="dilz-account-danger" aria-labelledby="delete-account-title">
+            <h2 id="delete-account-title">{safetyText.danger}</h2>
+            <p>{safetyText.dangerHelp}</p>
+            {!showDeleteConfirm ? (
+              <button type="button" className="dilz-button dilz-button--danger dilz-button--md" onClick={() => setShowDeleteConfirm(true)}>
+                {safetyText.delete}
+              </button>
+            ) : (
+              <div className="dilz-delete-confirm">
+                <strong>{safetyText.confirmTitle}</strong>
+                <p>{safetyText.confirmHelp}</p>
+                <input
+                  className="dilz-input"
+                  value={deleteConfirmation}
+                  onChange={(event) => setDeleteConfirmation(event.target.value)}
+                  placeholder={safetyText.confirmWord}
+                  autoComplete="off"
+                />
+                {deleteError && <p className="dilz-form-error" role="alert">{deleteError}</p>}
+                <div className="dilz-delete-confirm__actions">
+                  <button type="button" className="dilz-button dilz-button--ghost dilz-button--md" onClick={() => { setShowDeleteConfirm(false); setDeleteConfirmation(''); setDeleteError(''); }} disabled={deleting}>
+                    {safetyText.cancel}
+                  </button>
+                  <button type="button" className="dilz-button dilz-button--danger dilz-button--md" onClick={deleteAccount} disabled={deleting || deleteConfirmation !== 'DELETE'}>
+                    {deleting ? safetyText.deleting : safetyText.delete}
+                  </button>
+                </div>
+              </div>
+            )}
           </section>
 
           <h2 className="dilz-profil-section-title">{text.mine}</h2>

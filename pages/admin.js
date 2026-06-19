@@ -333,9 +333,37 @@ export default function AdminDashboard() {
           <MetricCard label="Users" value={data.overview.users} detail={`${data.users.new7d} new in 7d`} />
           <MetricCard label="Dilz" value={data.overview.deals} detail={`${data.deals.new7d} new in 7d`} />
           <MetricCard label="Pending moderation" value={data.deals.pending} detail="Deals to review" tone={data.deals.pending ? 'warn' : 'good'} />
+          <MetricCard label="User reports" value={data.engagement.reportsPending || 0} detail="Pending safety reports" tone={data.engagement.reportsPending ? 'danger' : 'good'} />
           <MetricCard label="Products" value={data.overview.products} detail={`${data.products.imageCoveragePct}% with image`} />
           <MetricCard label="Price rows" value={data.overview.priceRows} detail={`${data.supermarkets.priceRowsUpdated24h} updated 24h`} />
           <MetricCard label="Health" value={data.health.warnings.length} detail={data.health.warnings.length ? 'Warnings' : 'All clear'} tone={healthTone} />
+        </section>
+
+        <section className="admin-grid">
+          <Panel title="Signalements utilisateurs" subtitle="File de moderation des contenus signales dans Dilz">
+            <DataTable
+              rows={data.engagement.recentReports || []}
+              columns={[
+                { key: 'content_type', label: 'Type' },
+                { key: 'content_id', label: 'Content', render: row => row.content_type === 'deal' ? <a href={`/deal/${row.content_id}`} target="_blank" rel="noreferrer">Deal #{row.content_id}</a> : `${row.content_type} #${row.content_id}` },
+                { key: 'reason', label: 'Reason' },
+                { key: 'details', label: 'Details', render: row => String(row.details || '-').slice(0, 100) },
+                { key: 'status', label: 'Status', render: row => <StatusPill tone={row.status === 'pending' ? 'danger' : row.status === 'actioned' ? 'good' : 'warn'}>{row.status}</StatusPill> },
+                { key: 'created_at', label: 'Date', render: row => formatDate(row.created_at) },
+                {
+                  key: 'actions',
+                  label: 'Actions',
+                  render: row => (
+                    <div className="admin-row-actions">
+                      {row.status === 'pending' && <AdminButton tone="admin" onClick={() => runAdminAction({ action: 'review_report', id: row.id, status: 'reviewed' }, 'Report reviewed.')}>Reviewed</AdminButton>}
+                      {row.status === 'pending' && <AdminButton tone="danger" onClick={() => runAdminAction({ action: 'review_report', id: row.id, status: 'actioned' }, 'Report actioned.')}>Actioned</AdminButton>}
+                      {row.status === 'pending' && <AdminButton onClick={() => runAdminAction({ action: 'review_report', id: row.id, status: 'dismissed' }, 'Report dismissed.')}>Dismiss</AdminButton>}
+                    </div>
+                  ),
+                },
+              ]}
+            />
+          </Panel>
         </section>
 
         <section className="admin-grid admin-grid--three">

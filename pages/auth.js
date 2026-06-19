@@ -6,8 +6,8 @@ import { supabase } from '../lib/supabase';
 import { useAppLanguage } from '../lib/useAppLanguage';
 
 const AUTH_TEXT = {
-  en: { title: 'Sign in', tagline: 'Deals & promotions in Israel', required: 'Email and password are required', generic: 'Something went wrong. Please try again.', enterEmail: 'Enter your email address first.', resent: 'Confirmation email sent again. Check inbox and spam.', check: 'Check your email', sent: 'We sent a confirmation link to', instructions: 'Open it on this device if possible. If you do not see it, check spam or send it again.', sending: 'Sending...', resend: 'Resend confirmation email', backSignIn: 'Back to sign in', signIn: 'Sign in', signUp: 'Sign up', authMode: 'Authentication mode', name: 'Display name', email: 'Email', password: 'Password', wait: 'Please wait...', create: 'Create account', backDeals: 'Back to deals', home: 'Dilz home' },
-  he: { title: 'התחברות', tagline: 'דילים ומבצעים בישראל', required: 'יש להזין אימייל וסיסמה', generic: 'אירעה שגיאה. נסו שוב.', enterEmail: 'יש להזין קודם כתובת אימייל.', resent: 'מייל האימות נשלח שוב. בדקו גם את תיקיית הספאם.', check: 'בדקו את האימייל', sent: 'שלחנו קישור אימות אל', instructions: 'מומלץ לפתוח אותו במכשיר הזה. אם הוא לא מופיע, בדקו בספאם או שלחו שוב.', sending: 'שולח...', resend: 'שליחת מייל אימות מחדש', backSignIn: 'חזרה להתחברות', signIn: 'התחברות', signUp: 'הרשמה', authMode: 'מצב אימות', name: 'שם תצוגה', email: 'אימייל', password: 'סיסמה', wait: 'נא להמתין...', create: 'יצירת חשבון', backDeals: 'חזרה לדילים', home: 'דף הבית של Dilz' },
+  en: { title: 'Sign in', tagline: 'Deals & promotions in Israel', required: 'Email and password are required', generic: 'Something went wrong. Please try again.', enterEmail: 'Enter your email address first.', resent: 'Confirmation email sent again. Check inbox and spam.', check: 'Check your email', sent: 'We sent a confirmation link to', instructions: 'Open it on this device if possible. If you do not see it, check spam or send it again.', sending: 'Sending...', resend: 'Resend confirmation email', backSignIn: 'Back to sign in', signIn: 'Sign in', signUp: 'Sign up', authMode: 'Authentication mode', name: 'Display name', email: 'Email', password: 'Password', wait: 'Please wait...', create: 'Create account', backDeals: 'Back to deals', home: 'Dilz home', legalPrefix: 'By creating an account, you agree to the', terms: 'Terms of Use', and: 'and', privacy: 'Privacy Policy' },
+  he: { title: 'התחברות', tagline: 'דילים ומבצעים בישראל', required: 'יש להזין אימייל וסיסמה', generic: 'אירעה שגיאה. נסו שוב.', enterEmail: 'יש להזין קודם כתובת אימייל.', resent: 'מייל האימות נשלח שוב. בדקו גם את תיקיית הספאם.', check: 'בדקו את האימייל', sent: 'שלחנו קישור אימות אל', instructions: 'מומלץ לפתוח אותו במכשיר הזה. אם הוא לא מופיע, בדקו בספאם או שלחו שוב.', sending: 'שולח...', resend: 'שליחת מייל אימות מחדש', backSignIn: 'חזרה להתחברות', signIn: 'התחברות', signUp: 'הרשמה', authMode: 'מצב אימות', name: 'שם תצוגה', email: 'אימייל', password: 'סיסמה', wait: 'נא להמתין...', create: 'יצירת חשבון', backDeals: 'חזרה לדילים', home: 'דף הבית של Dilz', legalPrefix: 'ביצירת חשבון אתם מסכימים ל', terms: 'תנאי השימוש', and: 'ול', privacy: 'מדיניות הפרטיות' },
 };
 
 function getRedirectPath(value) {
@@ -223,6 +223,11 @@ export default function Auth() {
                 >
                   {loading ? text.wait : (mode === 'signin' ? text.signIn : text.create)}
                 </button>
+                {mode === 'signup' && (
+                  <p className="dilz-auth-legal">
+                    {text.legalPrefix} <Link href="/terms">{text.terms}</Link> {text.and} <Link href="/privacy">{text.privacy}</Link>.
+                  </p>
+                )}
               </>
             )}
           </div>

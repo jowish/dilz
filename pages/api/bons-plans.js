@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import { processNewDeal } from '../../lib/alerts';
+import { moderateFields } from '../../lib/contentModeration';
 
 const { clampLimit, dateOnlyInTimeZone, dateOnlyPart, normalizeDealImageUrls, normalizeDealInput } = require('../../lib/dealValidation');
 
@@ -94,6 +95,10 @@ export default async function handler(req, res) {
       const normalized = normalizeDealInput({ ...req.body, image_url: imageUrls[0] });
       if (normalized.errors.length) {
         return res.status(400).json({ erreur: normalized.errors[0], errors: normalized.errors });
+      }
+      const moderation = moderateFields([normalized.value.titre, normalized.value.description, normalized.value.magasin]);
+      if (!moderation.allowed) {
+        return res.status(400).json({ erreur: moderation.reason, code: 'CONTENT_REJECTED' });
       }
 
       const auteur_nom =
@@ -222,6 +227,10 @@ export default async function handler(req, res) {
         });
         if (normalized.errors.length) {
           return res.status(400).json({ erreur: normalized.errors[0], errors: normalized.errors });
+        }
+        const moderation = moderateFields([normalized.value.titre, normalized.value.description, normalized.value.magasin]);
+        if (!moderation.allowed) {
+          return res.status(400).json({ erreur: moderation.reason, code: 'CONTENT_REJECTED' });
         }
 
         const { error } = await supabaseAdmin.from('bons_plans').update(normalized.value).eq('id', dealId);

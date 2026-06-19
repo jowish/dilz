@@ -709,6 +709,7 @@ export default function Home() {
 
   // Auth
   const [user, setUser] = useState(null);
+  const [blockedUserIds, setBlockedUserIds] = useState([]);
 
   // Modals
   const [selectedPromo, setSelectedPromo] = useState(null);
@@ -806,6 +807,10 @@ export default function Home() {
               setUnreadCount((d.notifications || []).filter(n => !n.is_read).length);
             }
           }).catch(() => {});
+        fetch('/api/safety', { headers: { 'Authorization': `Bearer ${data.session.access_token}` } })
+          .then(r => r.ok ? r.json() : null)
+          .then(d => { if (d) setBlockedUserIds(d.blockedUserIds || []); })
+          .catch(() => {});
       }
     });
   }, []);
@@ -1221,21 +1226,24 @@ export default function Home() {
   };
 
   // Computed displayed deals (proximity sort)
+  const unblockedDeals = blockedUserIds.length
+    ? deals.filter((deal) => !deal.auteur_id || !blockedUserIds.includes(deal.auteur_id))
+    : deals;
   const sortedDeals = sortDeals === 'comments'
-    ? [...deals].sort((a, b) => {
+    ? [...unblockedDeals].sort((a, b) => {
         const ac = Number(a.commentaires?.[0]?.count || 0);
         const bc = Number(b.commentaires?.[0]?.count || 0);
         return bc - ac || new Date(b.created_at) - new Date(a.created_at);
       })
     : (sortDeals === 'nearby' && userCoords)
-      ? [...deals].sort((a, b) => {
+      ? [...unblockedDeals].sort((a, b) => {
         const ca = a.ville ? CITY_COORDS[a.ville] : null;
         const cb = b.ville ? CITY_COORDS[b.ville] : null;
         const da = ca ? distanceKm(userCoords.lat, userCoords.lon, ca.lat, ca.lon) : Infinity;
         const db = cb ? distanceKm(userCoords.lat, userCoords.lon, cb.lat, cb.lon) : Infinity;
         return da - db;
       })
-      : deals;
+      : unblockedDeals;
 
   const displayedDeals = dealCollection === 'codes'
     ? sortedDeals.filter((deal) => /\b(code promo|promo code|coupon|voucher)\b|קוד|קופון/i.test([deal.titre, deal.description, deal.magasin].filter(Boolean).join(' ')))
@@ -1561,6 +1569,7 @@ export default function Home() {
                     user={user}
                     isAdmin={Boolean(adminToken)}
                     onAdminDelete={handleAdminDeleteDeal}
+                    onBlocked={(userId) => setBlockedUserIds((current) => current.includes(userId) ? current : [...current, userId])}
                     isSaved={Boolean(savedKeys[`deal:${deal.id}`])}
                     onSave={() => handleToggleSave('deal', deal.id)}
                     translateCity={traduireVille}

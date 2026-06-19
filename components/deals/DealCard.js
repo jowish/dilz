@@ -5,6 +5,7 @@ import { Button, IconButton } from '../ui/Button';
 import { CopyToast } from '../ui/CopyToast';
 import { VoteEmoji } from '../ui/VoteEmoji';
 import { copyText } from '../../lib/copyText';
+import { SafetyActions } from '../ui/SafetyActions';
 
 function getDiscount(deal) {
   const original = Number(deal.prix_original);
@@ -49,6 +50,7 @@ export function DealCard({
   layout = 'card',
   isAdmin = false,
   onAdminDelete,
+  onBlocked,
 }) {
   const router = useRouter();
   const text = lang === 'he'
@@ -160,6 +162,7 @@ export function DealCard({
           <strong>{deal.magasin}</strong>
           <span>{city}</span>
           {isOwner && <span>{text.myDeal}</span>}
+          <SafetyActions contentType="deal" contentId={deal.id} authorId={deal.auteur_id} currentUserId={user?.id} lang={lang} onBlocked={onBlocked} />
         </div>
         <h3>{deal.titre}</h3>
         <p className="dilz-deal-card__author">
