@@ -3,6 +3,12 @@ import { useRouter } from 'next/router';
 import Link from 'next/link';
 import Head from 'next/head';
 import { supabase } from '../lib/supabase';
+import { useAppLanguage } from '../lib/useAppLanguage';
+
+const AUTH_TEXT = {
+  en: { title: 'Sign in', tagline: 'Deals & promotions in Israel', required: 'Email and password are required', generic: 'Something went wrong. Please try again.', enterEmail: 'Enter your email address first.', resent: 'Confirmation email sent again. Check inbox and spam.', check: 'Check your email', sent: 'We sent a confirmation link to', instructions: 'Open it on this device if possible. If you do not see it, check spam or send it again.', sending: 'Sending...', resend: 'Resend confirmation email', backSignIn: 'Back to sign in', signIn: 'Sign in', signUp: 'Sign up', authMode: 'Authentication mode', name: 'Display name', email: 'Email', password: 'Password', wait: 'Please wait...', create: 'Create account', backDeals: 'Back to deals', home: 'Dilz home' },
+  he: { title: 'התחברות', tagline: 'דילים ומבצעים בישראל', required: 'יש להזין אימייל וסיסמה', generic: 'אירעה שגיאה. נסו שוב.', enterEmail: 'יש להזין קודם כתובת אימייל.', resent: 'מייל האימות נשלח שוב. בדקו גם את תיקיית הספאם.', check: 'בדקו את האימייל', sent: 'שלחנו קישור אימות אל', instructions: 'מומלץ לפתוח אותו במכשיר הזה. אם הוא לא מופיע, בדקו בספאם או שלחו שוב.', sending: 'שולח...', resend: 'שליחת מייל אימות מחדש', backSignIn: 'חזרה להתחברות', signIn: 'התחברות', signUp: 'הרשמה', authMode: 'מצב אימות', name: 'שם תצוגה', email: 'אימייל', password: 'סיסמה', wait: 'נא להמתין...', create: 'יצירת חשבון', backDeals: 'חזרה לדילים', home: 'דף הבית של Dilz' },
+};
 
 function getRedirectPath(value) {
   const raw = Array.isArray(value) ? value[0] : value;
@@ -24,6 +30,8 @@ function MailIcon() {
 
 export default function Auth() {
   const router = useRouter();
+  const { lang, setLang, dir } = useAppLanguage();
+  const text = AUTH_TEXT[lang];
   const [mode, setMode] = useState('signin');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -55,7 +63,7 @@ export default function Auth() {
 
   const handleSubmit = async () => {
     setError('');
-    if (!email || !password) { setError('Email and password are required'); return; }
+    if (!email || !password) { setError(text.required); return; }
     setLoading(true);
     try {
       if (mode === 'signin') {
@@ -78,7 +86,7 @@ export default function Auth() {
       }
       router.replace(getRedirectPath(router.query.redirect));
     } catch {
-      setError('Something went wrong. Please try again.');
+      setError(text.generic);
       setLoading(false);
     }
   };
@@ -86,7 +94,7 @@ export default function Auth() {
   const handleResendConfirmation = async () => {
     setError('');
     setResendMessage('');
-    if (!email) { setError('Enter your email address first.'); return; }
+    if (!email) { setError(text.enterEmail); return; }
     setResendLoading(true);
     const redirectPath = getRedirectPath(router.query.redirect);
     const { error: err } = await supabase.auth.resend({
@@ -96,7 +104,7 @@ export default function Auth() {
     });
     setResendLoading(false);
     if (err) { setError(err.message); return; }
-    setResendMessage('Confirmation email sent again. Check inbox and spam.');
+    setResendMessage(text.resent);
   };
 
   if (!mounted) return null;
@@ -104,13 +112,13 @@ export default function Auth() {
   return (
     <>
       <Head>
-        <title>Sign in — Dilz</title>
+        <title>{text.title} - Dilz</title>
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
       </Head>
-      <div className="dilz-auth-page">
+      <div className="dilz-auth-page" dir={dir}>
         <div className="dilz-auth-container">
           <div className="dilz-auth-logo">
-            <Link href="/" className="dilz-logo-button" aria-label="Dilz home">
+            <Link href="/" className="dilz-logo-button" aria-label={text.home}>
               <span className="dilz-logo-lockup" aria-label="dILz">
                 <span className="dilz-logo-mark" aria-hidden="true">
                   <svg viewBox="0 0 48 48" focusable="false">
@@ -121,17 +129,19 @@ export default function Auth() {
                 <span className="dilz-logo">dILz</span>
               </span>
             </Link>
-            <p className="dilz-auth-tagline">Deals &amp; promotions in Israel</p>
+            <p className="dilz-auth-tagline">{text.tagline}</p>
+            <select className="dilz-language-select" value={lang} onChange={(event) => setLang(event.target.value)} aria-label="Language">
+              <option value="en">English</option><option value="he">עברית</option>
+            </select>
           </div>
 
           <div className="dilz-auth-card">
             {signupDone ? (
               <div className="dilz-auth-confirm">
                 <span className="dilz-auth-confirm__icon"><MailIcon /></span>
-                <h1>Check your email</h1>
+                <h1>{text.check}</h1>
                 <p>
-                  We sent a confirmation link to <strong>{email}</strong>.
-                  Open it on this device if possible. If you do not see it, check spam or send it again.
+                  {text.sent} <strong>{email}</strong>. {text.instructions}
                 </p>
                 {resendMessage && (
                   <div className="dilz-success-banner">{resendMessage}</div>
@@ -144,7 +154,7 @@ export default function Auth() {
                   onClick={handleResendConfirmation}
                   disabled={resendLoading}
                 >
-                  {resendLoading ? 'Sending...' : 'Resend confirmation email'}
+                  {resendLoading ? text.sending : text.resend}
                 </button>
                 <button
                   type="button"
@@ -152,13 +162,13 @@ export default function Auth() {
                   style={{ width: '100%' }}
                   onClick={() => { setMode('signin'); setSignupDone(false); setError(''); setResendMessage(''); }}
                 >
-                  Back to sign in
+                  {text.backSignIn}
                 </button>
               </div>
             ) : (
               <>
-                <div className="dilz-segmented" role="tablist" aria-label="Auth mode">
-                  {[['signin', 'Sign in'], ['signup', 'Sign up']].map(([m, label]) => (
+                <div className="dilz-segmented" role="tablist" aria-label={text.authMode}>
+                  {[['signin', text.signIn], ['signup', text.signUp]].map(([m, label]) => (
                     <button
                       key={m}
                       type="button"
@@ -177,7 +187,7 @@ export default function Auth() {
                     <input
                       type="text"
                       className="dilz-input"
-                      placeholder="Display name"
+                      placeholder={text.name}
                       value={name}
                       onChange={(e) => setName(e.target.value)}
                       autoComplete="name"
@@ -186,7 +196,7 @@ export default function Auth() {
                   <input
                     type="email"
                     className="dilz-input"
-                    placeholder="Email"
+                    placeholder={text.email}
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     autoComplete="email"
@@ -194,7 +204,7 @@ export default function Auth() {
                   <input
                     type="password"
                     className="dilz-input"
-                    placeholder="Password"
+                    placeholder={text.password}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     onKeyDown={(e) => e.key === 'Enter' && handleSubmit()}
@@ -211,7 +221,7 @@ export default function Auth() {
                   onClick={handleSubmit}
                   disabled={loading}
                 >
-                  {loading ? 'Please wait...' : (mode === 'signin' ? 'Sign in' : 'Create account')}
+                  {loading ? text.wait : (mode === 'signin' ? text.signIn : text.create)}
                 </button>
               </>
             )}
@@ -220,7 +230,7 @@ export default function Auth() {
           <p className="dilz-auth-back">
             <Link href="/" className="dilz-auth-back__link">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true"><path d="M19 12H5m7-7-7 7 7 7"/></svg>
-              Back to deals
+              {text.backDeals}
             </Link>
           </p>
         </div>

@@ -1,66 +1,41 @@
 import { DiscoveryPage, ExternalArrow } from '../components/layout/DiscoveryPage';
+import { useAppLanguage } from '../lib/useAppLanguage';
 
 const merchants = [
-  {
-    name: 'AliExpress',
-    source: 'https://www.aliexpress.com/',
-    color: '#FF6500',
-    offers: [
-      { value: '60 EUR', text: 'des 479 EUR de commande', expiry: 'Expire le 20/06/2026' },
-      { value: '20 EUR', text: 'des 149 EUR de commande', expiry: 'Expire le 20/06/2026' },
-      { value: '10 EUR', text: 'des 79 EUR de commande', expiry: 'Expire le 20/06/2026' },
-      { value: '5 EUR', text: 'des 39 EUR de commande', expiry: 'Expire le 20/06/2026' },
-      { value: '2 EUR', text: 'des 18 EUR de commande', expiry: 'Expire le 20/06/2026' },
-    ],
-  },
-  {
-    name: 'Amazon',
-    source: 'https://www.amazon.fr/gp/goldbox',
-    color: '#0B1220',
-    offers: [
-      { value: '5 EUR', text: 'sur les commandes eligibles', expiry: 'Expire le 14/07/2026' },
-      { value: '10 EUR', text: 'sur une premiere commande dans l app', expiry: 'Expire le 01/10/2026' },
-      { value: '25%', text: 'sur une selection d accessoires', expiry: 'Expire le 17/09/2026' },
-      { value: '10%', text: 'membres Prime, marques Mode eligibles', expiry: 'Expire le 11/08/2026' },
-    ],
-  },
+  { name: 'AliExpress', source: 'https://www.aliexpress.com/', color: '#FF6500', offers: [
+    { value: '60 EUR', minimum: '479 EUR', expiry: '2026-06-20' }, { value: '20 EUR', minimum: '149 EUR', expiry: '2026-06-20' }, { value: '10 EUR', minimum: '79 EUR', expiry: '2026-06-20' }, { value: '5 EUR', minimum: '39 EUR', expiry: '2026-06-20' }, { value: '2 EUR', minimum: '18 EUR', expiry: '2026-06-20' },
+  ] },
+  { name: 'Amazon', source: 'https://www.amazon.fr/gp/goldbox', color: '#0B1220', offers: [
+    { value: '5 EUR', condition: { en: 'on eligible orders', he: 'בהזמנות זכאיות' }, expiry: '2026-07-14' },
+    { value: '10 EUR', condition: { en: 'on a first app order', he: 'בהזמנה ראשונה באפליקציה' }, expiry: '2026-10-01' },
+    { value: '25%', condition: { en: 'on selected accessories', he: 'על אביזרים נבחרים' }, expiry: '2026-09-17' },
+    { value: '10%', condition: { en: 'for Prime members on eligible fashion brands', he: 'לחברי Prime על מותגי אופנה זכאים' }, expiry: '2026-08-11' },
+  ] },
 ];
 
-export default function PromoCodesPage() {
-  return (
-    <DiscoveryPage
-      title="Codes promo"
-      eyebrow="Economies en ligne"
-      description="Une selection de remises verifiees aujourd hui. Ouvre la source pour afficher le code et controler les conditions avant de commander."
-    >
-      <div className="dilz-source-note">
-        <strong>Verifie le 19 juin 2026</strong>
-        <span>Les codes peuvent etre limites a un pays, un compte ou une selection de produits.</span>
-      </div>
+function formatDate(value, lang) {
+  return new Intl.DateTimeFormat(lang === 'he' ? 'he-IL' : 'en-GB', { day: 'numeric', month: 'short', year: 'numeric' }).format(new Date(`${value}T12:00:00Z`));
+}
 
+export default function PromoCodesPage() {
+  const { lang, setLang } = useAppLanguage();
+  const text = lang === 'he'
+    ? { title: 'קודי קופון', eyebrow: 'חיסכון אונליין', description: 'מבחר הנחות שנבדקו. פתחו את המקור כדי לראות את הקוד ולבדוק את התנאים לפני ההזמנה.', checked: 'נבדק ב-19 ביוני 2026', note: 'קודים עשויים להיות מוגבלים למדינה, חשבון או מוצרים מסוימים.', codes: 'קודים שזוהו', from: 'בקנייה מעל', expires: 'בתוקף עד', use: 'למימוש ההצעה' }
+    : { title: 'Promo codes', eyebrow: 'Save online', description: 'A selection of recently checked discounts. Open the source to view the code and verify its conditions before ordering.', checked: 'Checked on 19 June 2026', note: 'Codes may be limited to a country, account or selection of products.', codes: 'codes found', from: 'on orders over', expires: 'Expires', use: 'Use offer' };
+
+  return (
+    <DiscoveryPage title={text.title} eyebrow={text.eyebrow} description={text.description} lang={lang} onLanguageChange={setLang}>
+      <div className="dilz-source-note"><strong>{text.checked}</strong><span>{text.note}</span></div>
       <div className="dilz-code-merchants">
         {merchants.map((merchant) => (
           <section className="dilz-code-merchant" key={merchant.name}>
-            <div className="dilz-code-merchant__header">
-              <span className="dilz-code-merchant__mark" style={{ backgroundColor: merchant.color }}>
-                {merchant.name.slice(0, 1)}
-              </span>
-              <div>
-                <h2>{merchant.name}</h2>
-                <p>{merchant.offers.length} codes identifies</p>
-              </div>
-            </div>
+            <div className="dilz-code-merchant__header"><span className="dilz-code-merchant__mark" style={{ backgroundColor: merchant.color }}>{merchant.name[0]}</span><div><h2>{merchant.name}</h2><p>{merchant.offers.length} {text.codes}</p></div></div>
             <div className="dilz-code-list">
               {merchant.offers.map((offer) => (
-                <article className="dilz-code-card" key={`${merchant.name}-${offer.value}-${offer.text}`}>
+                <article className="dilz-code-card" key={`${merchant.name}-${offer.value}-${offer.expiry}`}>
                   <div className="dilz-code-card__value">-{offer.value}</div>
-                  <div className="dilz-code-card__content">
-                    <strong>{offer.text}</strong>
-                    <span>{offer.expiry}</span>
-                  </div>
-                  <a href={merchant.source} target="_blank" rel="noreferrer" className="dilz-code-card__action">
-                    Utiliser l offre <ExternalArrow />
-                  </a>
+                  <div className="dilz-code-card__content"><strong>{offer.minimum ? `${text.from} ${offer.minimum}` : offer.condition[lang]}</strong><span>{text.expires} {formatDate(offer.expiry, lang)}</span></div>
+                  <a href={merchant.source} target="_blank" rel="noreferrer" className="dilz-code-card__action">{text.use} <ExternalArrow /></a>
                 </article>
               ))}
             </div>

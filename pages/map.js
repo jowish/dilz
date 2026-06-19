@@ -1,6 +1,14 @@
 import { useMemo, useState, useEffect, useRef } from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
+import { traduireVille } from '../lib/translations';
+import { useAppLanguage } from '../lib/useAppLanguage';
+import { VoteEmoji } from '../components/ui/VoteEmoji';
+
+const MAP_TEXT = {
+  en: { title: 'Dilz Map', back: 'Back', feed: 'Feed', points: 'active points', loading: 'Loading Dilz map...', israel: 'All Israel', tap: 'Tap a city to filter', mapPoints: 'Dilz map points', comments: 'comments' },
+  he: { title: 'מפת Dilz', back: 'חזרה', feed: 'פיד', points: 'נקודות פעילות', loading: 'מפת Dilz נטענת...', israel: 'כל ישראל', tap: 'לחצו על עיר כדי לסנן', mapPoints: 'נקודות במפת Dilz', comments: 'תגובות' },
+};
 
 const ACCENT = '#0284C7';
 const ISRAEL_BOUNDS = [
@@ -72,6 +80,8 @@ function groupDealsByCity(deals) {
 
 export default function MapPage() {
   const router = useRouter();
+  const { lang, setLang, dir } = useAppLanguage();
+  const text = MAP_TEXT[lang];
   const mapRef = useRef(null);
   const leafletMapRef = useRef(null);
   const [deals, setDeals] = useState([]);
@@ -201,22 +211,22 @@ export default function MapPage() {
   return (
     <>
       <Head>
-        <title>dilz - Map</title>
+        <title>{text.title}</title>
       </Head>
-      <div className="dilz-map-page">
+      <div className="dilz-map-page" dir={dir}>
         <header className="dilz-map-header">
-          <button type="button" onClick={goBackToFeed}>Back</button>
+          <button type="button" onClick={goBackToFeed}>{text.back}</button>
           <div>
-            <strong>dilz Map</strong>
-            <span>{cityEntries.length} active points</span>
+            <strong>{text.title}</strong>
+            <span>{cityEntries.length} {text.points}</span>
           </div>
-          <button type="button" onClick={() => router.push('/?tab=dilz')}>Feed</button>
+          <select className="dilz-language-select" value={lang} onChange={(event) => setLang(event.target.value)} aria-label="Language"><option value="en">EN</option><option value="he">HE</option></select>
         </header>
 
         <main className="dilz-map-body">
           <section className="dilz-map-canvas">
             {loading ? (
-              <div className="dilz-map-loading">Loading Dilz map...</div>
+              <div className="dilz-map-loading">{text.loading}</div>
             ) : (
               <div ref={mapRef} className="dilz-map-node" />
             )}
@@ -224,12 +234,12 @@ export default function MapPage() {
 
           <aside className="dilz-map-results">
             <div className="dilz-map-results__header">
-              <p>{selectedCity || 'All Israel'}</p>
+              <p>{selectedCity ? traduireVille(selectedCity, lang) : text.israel}</p>
               <strong>{selectedDeals.length} Dilz</strong>
-              {!selectedCity && <span>Tap a city to filter</span>}
+              {!selectedCity && <span>{text.tap}</span>}
             </div>
 
-            <div className="dilz-map-city-strip" aria-label="Dilz map points">
+            <div className="dilz-map-city-strip" aria-label={text.mapPoints}>
               {cityEntries.slice(0, 12).map(([city, cityDeals]) => (
                 <button
                   key={city}
@@ -237,7 +247,7 @@ export default function MapPage() {
                   className={city === selectedCity ? 'is-active' : ''}
                   onClick={() => selectCity(city)}
                 >
-                  <span>{city}</span>
+                  <span>{traduireVille(city, lang)}</span>
                   <strong>{cityDeals.length}</strong>
                 </button>
               ))}
@@ -256,9 +266,9 @@ export default function MapPage() {
                     <span>{[deal.magasin, deal.auteur_nom].filter(Boolean).join(' · ')}</span>
                     <span className="dilz-map-deal__stats">
                       <b>{formatPrice(deal.prix)} ₪</b>
-                      <span>Hot {deal.votes_chaud || 0}</span>
-                      <span>Cold {deal.votes_froid || 0}</span>
-                      <span>Comments {getCommentCount(deal)}</span>
+                      <span><VoteEmoji type="chaud" /> {deal.votes_chaud || 0}</span>
+                      <span><VoteEmoji type="froid" /> {deal.votes_froid || 0}</span>
+                      <span>{getCommentCount(deal)} {text.comments}</span>
                     </span>
                   </span>
                 </button>

@@ -1,5 +1,6 @@
 import { Badge } from '../ui/Badge';
 import { IconButton } from '../ui/Button';
+import { VoteEmoji } from '../ui/VoteEmoji';
 
 const STORE_COLORS = {
   'שופרסל':  { color: '#2563EB', bg: '#EFF6FF', dark: '#1A2744', nameEn: 'Shufersal' },
@@ -84,7 +85,7 @@ export function PromoCard({ promo, lang, isDark, onClick, votes, onVote, isSaved
           aria-label="Hot"
           aria-pressed={myVote === 'chaud'}
         >
-          <span className="dilz-vote-emoji" aria-hidden="true">{'\u{1F525}'}</span>
+          <VoteEmoji type="chaud" />
           <strong>{votes?.chaud || 0}</strong>
         </button>
         <button
@@ -94,7 +95,7 @@ export function PromoCard({ promo, lang, isDark, onClick, votes, onVote, isSaved
           aria-label="Cold"
           aria-pressed={myVote === 'froid'}
         >
-          <span className="dilz-vote-emoji" aria-hidden="true">{'\u2744\uFE0F'}</span>
+          <VoteEmoji type="froid" />
           <strong>{votes?.froid || 0}</strong>
         </button>
         {onSave && (
@@ -154,7 +155,7 @@ export function HeroPromoCard({ promo, lang, isDark, onClick, votes, onVote, isS
           aria-label="Hot"
           aria-pressed={myVote === 'chaud'}
         >
-          <span className="dilz-vote-emoji" aria-hidden="true">{'\u{1F525}'}</span>
+          <VoteEmoji type="chaud" />
           <strong>{votes?.chaud || 0}</strong>
         </button>
         <button
@@ -164,7 +165,7 @@ export function HeroPromoCard({ promo, lang, isDark, onClick, votes, onVote, isS
           aria-label="Cold"
           aria-pressed={myVote === 'froid'}
         >
-          <span className="dilz-vote-emoji" aria-hidden="true">{'\u2744\uFE0F'}</span>
+          <VoteEmoji type="froid" />
           <strong>{votes?.froid || 0}</strong>
         </button>
         <button type="button" className="dilz-button dilz-button--ghost dilz-button--sm" onClick={onClick}>View</button>

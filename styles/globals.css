@@ -531,6 +531,11 @@ textarea:focus {
   font-weight: 650;
 }
 
+.dilz-field__required {
+  color: var(--danger);
+  font-weight: 850;
+}
+
 .dilz-field__error,
 .dilz-field__helper {
   font-size: 12px;
@@ -1063,6 +1068,19 @@ textarea:focus {
   width: 100%;
   height: 100%;
   object-fit: cover;
+}
+
+.dilz-deal-card__photo-count {
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  z-index: 3;
+  padding: 5px 8px;
+  border-radius: 9px;
+  color: #fff;
+  background: rgba(11, 18, 32, 0.78);
+  font-size: 10px;
+  font-weight: 850;
 }
 
 .dilz-deal-card__image-fallback {
@@ -1749,6 +1767,7 @@ textarea:focus {
 }
 
 .dilz-upload-zone {
+  width: 100%;
   min-height: 220px;
   border-radius: 18px;
   border: 1px dashed var(--border-strong);
@@ -1759,6 +1778,14 @@ textarea:focus {
   text-align: center;
   overflow: hidden;
   cursor: pointer;
+  color: inherit;
+  font: inherit;
+}
+
+.dilz-upload-zone.has-error {
+  border-color: var(--danger);
+  background: var(--danger-soft);
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
 }
 
 .dilz-upload-zone.has-image {
@@ -1794,6 +1821,64 @@ textarea:focus {
   display: flex;
   gap: 10px;
   margin-top: 12px;
+}
+
+.dilz-upload-gallery {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.dilz-upload-gallery__item {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  border: 1px solid var(--border-default);
+  border-radius: 14px;
+  background: var(--surface-soft);
+}
+
+.dilz-upload-gallery__item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.dilz-upload-gallery__item button {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  display: grid;
+  width: 26px;
+  height: 26px;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  color: #fff;
+  background: rgba(11, 18, 32, 0.82);
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.dilz-upload-gallery__item > span {
+  position: absolute;
+  bottom: 6px;
+  left: 6px;
+  display: grid;
+  width: 22px;
+  height: 22px;
+  place-items: center;
+  border-radius: 7px;
+  color: #fff;
+  background: rgba(11, 18, 32, 0.78);
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.dilz-upload-gallery > .dilz-button {
+  min-height: 80px;
 }
 
 .dilz-form-grid {
@@ -1838,17 +1923,23 @@ textarea:focus {
   box-shadow: var(--shadow-card);
 }
 
-.dilz-post-preview__image {
-  aspect-ratio: 4 / 3;
-  border-radius: 14px;
-  background: var(--surface-soft);
-  overflow: hidden;
+.dilz-post-preview__gallery {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
 }
 
-.dilz-post-preview__image img {
+.dilz-post-preview__gallery img {
   width: 100%;
-  height: 100%;
+  aspect-ratio: 4 / 3;
   object-fit: cover;
+  border-radius: 12px;
+  background: var(--surface-soft);
+}
+
+.dilz-post-preview__gallery img:first-child:last-child,
+.dilz-post-preview__gallery img:nth-child(3) {
+  grid-column: 1 / -1;
 }
 
 .dilz-post-preview span {
@@ -4263,6 +4354,46 @@ textarea:focus {
   border-radius: 4px;
 }
 
+.dilz-deal-gallery-count {
+  position: absolute;
+  right: 16px;
+  bottom: 14px;
+  padding: 6px 9px;
+  border-radius: 9px;
+  color: #fff;
+  background: rgba(11, 18, 32, 0.78);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.dilz-deal-gallery-thumbs {
+  display: flex;
+  gap: 8px;
+  padding: 10px 16px 0;
+  background: var(--surface-main);
+}
+
+.dilz-deal-gallery-thumbs button {
+  width: 62px;
+  height: 48px;
+  overflow: hidden;
+  padding: 0;
+  border: 2px solid transparent;
+  border-radius: 10px;
+  background: var(--surface-soft);
+  cursor: pointer;
+}
+
+.dilz-deal-gallery-thumbs button.is-active {
+  border-color: var(--brand);
+}
+
+.dilz-deal-gallery-thumbs img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
 /* Body */
 .dilz-deal-body {
   padding: 20px 16px 0;
@@ -4966,8 +5097,11 @@ textarea:focus {
 .dilz-vote-emoji {
   width: 18px;
   display: inline-flex;
+  align-items: center;
   justify-content: center;
+  font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif !important;
   font-size: 15px;
+  font-variant-emoji: emoji;
   line-height: 1;
 }
 
@@ -5567,6 +5701,32 @@ textarea::placeholder {
   filter: none;
 }
 
+.dilz-copy-toast {
+  position: fixed;
+  left: 50%;
+  bottom: calc(24px + env(safe-area-inset-bottom));
+  z-index: 300;
+  min-width: 112px;
+  padding: 11px 18px;
+  border-radius: 12px;
+  color: #fff;
+  background: #0b1220;
+  font-size: 13px;
+  font-weight: 800;
+  text-align: center;
+  transform: translateX(-50%);
+  animation: dilz-toast-in .18s ease-out;
+}
+
+@keyframes dilz-toast-in {
+  from { opacity: 0; transform: translate(-50%, 8px); }
+  to { opacity: 1; transform: translate(-50%, 0); }
+}
+
+@media (max-width: 767px) {
+  .dilz-copy-toast { bottom: calc(88px + env(safe-area-inset-bottom)); }
+}
+
 .dilz-admin-controls {
   background: #F8F9FB !important;
   border: 1px solid #E8EAED !important;
@@ -5731,7 +5891,7 @@ textarea::placeholder {
 }
 
 .dilz-discovery-header .dilz-logo-button { justify-self: center; }
-.dilz-discovery-header__spacer { width: 44px; }
+.dilz-discovery-header__spacer { display: flex; min-width: 44px; justify-content: flex-end; }
 .dilz-discovery-back {
   display: grid;
   width: 40px;

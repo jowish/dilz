@@ -1,6 +1,10 @@
+import { useState } from 'react';
 import { useRouter } from 'next/router';
 import { Badge } from '../ui/Badge';
 import { Button, IconButton } from '../ui/Button';
+import { CopyToast } from '../ui/CopyToast';
+import { VoteEmoji } from '../ui/VoteEmoji';
+import { copyText } from '../../lib/copyText';
 
 function getDiscount(deal) {
   const original = Number(deal.prix_original);
@@ -15,22 +19,22 @@ function formatPrice(value) {
   return n % 1 === 0 ? n.toLocaleString('en-US') : n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
-function timeRemaining(dateFin) {
+function timeRemaining(dateFin, lang) {
   if (!dateFin) return null;
   const end = new Date(String(dateFin).slice(0, 10) + 'T23:59:59');
   const days = Math.ceil((end.getTime() - Date.now()) / 86400000);
-  if (days < 0) return 'Expired';
-  if (days === 0) return 'Ends today';
-  if (days <= 3) return `Ends in ${days}d`;
-  return `Ends ${end.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })}`;
+  if (days < 0) return lang === 'he' ? 'פג תוקף' : 'Expired';
+  if (days === 0) return lang === 'he' ? 'מסתיים היום' : 'Ends today';
+  if (days <= 3) return lang === 'he' ? `מסתיים בעוד ${days} ימים` : `Ends in ${days}d`;
+  return lang === 'he' ? `מסתיים ב-${end.toLocaleDateString('he-IL', { day: '2-digit', month: 'short' })}` : `Ends ${end.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })}`;
 }
 
-function timeAgo(date) {
+function timeAgo(date, lang) {
   const diff = Date.now() - new Date(date).getTime();
   const h = Math.floor(diff / 3600000);
-  if (h < 1) return 'Just now';
-  if (h < 24) return `${h}h ago`;
-  return `${Math.floor(h / 24)}d ago`;
+  if (h < 1) return lang === 'he' ? 'עכשיו' : 'Just now';
+  if (h < 24) return lang === 'he' ? `לפני ${h} שעות` : `${h}h ago`;
+  return lang === 'he' ? `לפני ${Math.floor(h / 24)} ימים` : `${Math.floor(h / 24)}d ago`;
 }
 
 export function DealCard({
@@ -47,16 +51,23 @@ export function DealCard({
   onAdminDelete,
 }) {
   const router = useRouter();
+  const text = lang === 'he'
+    ? { storePromo: 'מבצע חנות', community: 'מהקהילה', you: 'אתם', member: 'חבר Dilz', online: 'אונליין', myDeal: 'הדיל שלי', shared: 'שותף על ידי', deal: 'דיל', inStore: 'בחנות', voteControls: 'כפתורי הצבעה', hot: 'סימון כחם', cold: 'סימון כקר', unsave: 'הסרה מהשמורים', save: 'שמירת הדיל', comments: 'תגובות' }
+    : { storePromo: 'Store promo', community: 'Community find', you: 'You', member: 'Dilz member', online: 'Online', myDeal: 'My deal', shared: 'Shared by', deal: 'Deal', inStore: 'In-store', voteControls: 'Vote controls', hot: 'Mark as hot', cold: 'Mark as cold', unsave: 'Unsave deal', save: 'Save deal', comments: 'comments' };
+  const [copied, setCopied] = useState(false);
+  const images = [...new Set([...(Array.isArray(deal.image_urls) ? deal.image_urls : []), deal.image_url].filter(Boolean))].slice(0, 3);
+  const primaryImage = images[0] || null;
   const discount = getDiscount(deal);
-  const ending = timeRemaining(deal.date_fin);
+  const ending = timeRemaining(deal.date_fin, lang);
   const isOwner = user && user.id === deal.auteur_id;
   const isOnline = deal.ville === 'Online' || deal.categorie === 'Online' || /online/i.test(String(deal.ville || ''));
-  const trust = deal.auteur_nom === 'DilzCurator' || deal.auteur_nom === 'DilzBot' ? 'Store promo' : 'Community find';
-  const authorName = deal.auteur_nom || (isOwner ? 'You' : 'Dilz member');
+  const isStorePromo = deal.auteur_nom === 'DilzCurator' || deal.auteur_nom === 'DilzBot';
+  const trust = isStorePromo ? text.storePromo : text.community;
+  const authorName = deal.auteur_nom || (isOwner ? text.you : text.member);
   const commentCount = Number(deal.commentaires?.[0]?.count || deal.comments_count || 0);
   const city = deal.ville && !isOnline
     ? (translateCity ? translateCity(deal.ville, lang === 'he' ? 'he' : 'en') : deal.ville)
-    : 'Online';
+    : text.online;
 
   const go = () => {
     try {
@@ -66,11 +77,18 @@ export function DealCard({
     router.push(`/deal/${deal.id}`);
   };
 
+  const copyDealLink = async () => {
+    const url = `${window.location.origin}/deal/${deal.id}`;
+    await copyText(url);
+    setCopied(true);
+    window.setTimeout(() => setCopied(false), 1800);
+  };
+
   return (
     <article className={['dilz-card', 'dilz-deal-card', layout === 'list' && 'is-list'].filter(Boolean).join(' ')} onClick={go}>
       <div className="dilz-deal-card__media">
-        {deal.image_url ? (
-          <img src={deal.image_url} alt={deal.titre} onError={(event) => { event.currentTarget.style.display = 'none'; }} />
+        {primaryImage ? (
+          <img src={primaryImage} alt={deal.titre} onError={(event) => { event.currentTarget.style.display = 'none'; }} />
         ) : (
           <div className="dilz-deal-card__image-fallback" aria-hidden="true">
             <svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
@@ -83,12 +101,13 @@ export function DealCard({
           {discount !== null && (
             <Badge tone={discount >= 30 ? 'saving-strong' : 'saving'}>-{discount}%</Badge>
           )}
-          {ending && ending.toLowerCase().includes('ends') && <Badge tone="danger">{ending}</Badge>}
+          {ending && <Badge tone="danger">{ending}</Badge>}
         </div>
+        {images.length > 1 && <span className="dilz-deal-card__photo-count">1 / {images.length}</span>}
         <div className="dilz-deal-card__save">
           {onSave && (
             <IconButton
-              aria-label={isSaved ? 'Unsave deal' : 'Save deal'}
+              aria-label={isSaved ? text.unsave : text.save}
               selected={isSaved}
               onClick={(event) => {
                 event.stopPropagation();
@@ -102,7 +121,7 @@ export function DealCard({
           )}
         </div>
         <div className="dilz-deal-card__trust">
-          <Badge tone={trust === 'Store promo' ? 'brand' : 'neutral'}>{trust}</Badge>
+          <Badge tone={isStorePromo ? 'brand' : 'neutral'}>{trust}</Badge>
         </div>
         {isAdmin && (
           <div className="dilz-deal-card__admin-badge">
@@ -140,11 +159,11 @@ export function DealCard({
         <div className="dilz-deal-card__store-row">
           <strong>{deal.magasin}</strong>
           <span>{city}</span>
-          {isOwner && <span>My deal</span>}
+          {isOwner && <span>{text.myDeal}</span>}
         </div>
         <h3>{deal.titre}</h3>
         <p className="dilz-deal-card__author">
-          {lang === 'he' ? 'שותף על ידי' : 'Shared by'} <strong>{authorName}</strong>
+          {text.shared} <strong>{authorName}</strong>
         </p>
         {deal.description && (
           <p className="dilz-deal-card__description">{deal.description}</p>
@@ -154,15 +173,15 @@ export function DealCard({
           {deal.prix_original && <span>{formatPrice(deal.prix_original)} ₪</span>}
         </div>
         <div className="dilz-deal-card__meta">
-          <span>{deal.categorie || 'Deal'}</span>
-          <span>{ending || timeAgo(deal.created_at)}</span>
-          <span>{isOnline ? 'Online' : 'In-store'}</span>
+          <span>{deal.categorie || text.deal}</span>
+          <span>{ending || timeAgo(deal.created_at, lang)}</span>
+          <span>{isOnline ? text.online : text.inStore}</span>
           <span className="dilz-deal-card__comment-meta">
             <CommentIcon /> {commentCount}
           </span>
         </div>
         <div className="dilz-deal-card__actions" onClick={(event) => event.stopPropagation()}>
-          <div className="dilz-vote-pill" aria-label="Vote controls">
+          <div className="dilz-vote-pill" aria-label={text.voteControls}>
             <button
               type="button"
               className={votedDeal === 'chaud' ? 'is-up' : ''}
@@ -171,9 +190,9 @@ export function DealCard({
                 event.stopPropagation();
                 onVote(deal.id, 'chaud');
               }}
-              aria-label="Mark as hot"
+              aria-label={text.hot}
             >
-              <span className="dilz-vote-emoji" aria-hidden="true">{'\u{1F525}'}</span>
+              <VoteEmoji type="chaud" />
               <strong>{deal.votes_chaud || 0}</strong>
             </button>
             <button
@@ -184,15 +203,15 @@ export function DealCard({
                 event.stopPropagation();
                 onVote(deal.id, 'froid');
               }}
-              aria-label="Mark as cold"
+              aria-label={text.cold}
             >
-              <span className="dilz-vote-emoji" aria-hidden="true">{'\u2744\uFE0F'}</span>
+              <VoteEmoji type="froid" />
               <strong>{deal.votes_froid || 0}</strong>
             </button>
           </div>
           <div className="dilz-deal-card__right-actions">
             <IconButton
-              aria-label={`${commentCount} comments`}
+              aria-label={`${commentCount} ${text.comments}`}
               onClick={(event) => {
                 event.preventDefault();
                 event.stopPropagation();
@@ -202,12 +221,13 @@ export function DealCard({
               <CommentIcon />
               <span className="dilz-comment-count">{commentCount}</span>
             </IconButton>
-            <IconButton aria-label="Share deal" onClick={() => navigator.share?.({ title: deal.titre, url: `/deal/${deal.id}` }).catch(() => {})}>
+            <IconButton aria-label={lang === 'he' ? 'העתקת קישור' : 'Copy link'} onClick={(event) => { event.preventDefault(); event.stopPropagation(); copyDealLink().catch(() => {}); }}>
               <ShareIcon />
             </IconButton>
           </div>
         </div>
       </div>
+      <CopyToast visible={copied} lang={lang} />
     </article>
   );
 }

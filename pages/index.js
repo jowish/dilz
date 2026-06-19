@@ -27,8 +27,6 @@ const ACCENT = '#E2552D';
 const LANG_OPTIONS = [
   { id: 'en', label: 'EN' },
   { id: 'he', label: 'עב' },
-  { id: 'fr', label: 'FR' },
-  { id: 'es', label: 'ES' },
 ];
 
 const STORE_COLORS = {
@@ -736,7 +734,8 @@ export default function Home() {
       const dv = localStorage.getItem('dilzDealVotes');
       if (dv) setVotedDeals(JSON.parse(dv));
       const ll = localStorage.getItem('dilzLang');
-      if (ll && translations[ll]) setLang(ll);
+      if (ll === 'en' || ll === 'he') setLang(ll);
+      else if (ll) localStorage.setItem('dilzLang', 'en');
       const savedPromoFilters = localStorage.getItem('dilzShowPromoFilters');
       if (savedPromoFilters !== null) setShowPromoFilters(savedPromoFilters === 'true');
       const savedDealLayout = localStorage.getItem('dilzDealLayout');
@@ -971,7 +970,7 @@ export default function Home() {
   };
 
   const setLanguage = (next) => {
-    if (!translations[next]) return;
+    if (next !== 'en' && next !== 'he') return;
     setLang(next);
     try { localStorage.setItem('dilzLang', next); } catch {}
   };
@@ -1283,8 +1282,8 @@ export default function Home() {
           {tab === 'sales' && (
             <div>
               <SectionHeader
-                title="Promotions"
-                subtitle="Official supermarket promotions and price drops across Israel."
+                title={lang === 'he' ? 'מבצעים' : 'Promotions'}
+                subtitle={lang === 'he' ? 'מבצעי סופרמרקט רשמיים וירידות מחירים ברחבי ישראל.' : 'Official supermarket promotions and price drops across Israel.'}
               />
               <button
                 type="button"
@@ -1419,18 +1418,18 @@ export default function Home() {
           {tab === 'deals' && (
             <div>
               <div className="dilz-deal-toolbar">
-                <div className="dilz-view-switcher" aria-label="Dilz views">
+                <div className="dilz-view-switcher" aria-label={lang === 'he' ? 'תצוגות דילז' : 'Dilz views'}>
                 {[
-                  { id: 'all', label: 'Top Dilz' },
-                  { id: 'latest', label: 'New' },
-                  { id: 'comments', label: 'Discussed' },
-                  ...(userCoords ? [{ id: 'nearby', label: 'Near me' }] : []),
-                  { id: 'ending', label: 'Ending soon' },
-                  { id: 'Food', label: 'Food' },
-                  { id: 'Tech', label: 'Tech' },
-                  { id: 'Fashion', label: 'Fashion' },
-                  { id: 'Online', label: 'Online' },
-                  ...(user ? [{ id: 'mine', label: 'My Dilz' }] : []),
+                  { id: 'all', label: lang === 'he' ? 'דילז מובילים' : 'Top Dilz' },
+                  { id: 'latest', label: lang === 'he' ? 'חדשים' : 'New' },
+                  { id: 'comments', label: lang === 'he' ? 'מדוברים' : 'Discussed' },
+                  ...(userCoords ? [{ id: 'nearby', label: lang === 'he' ? 'לידי' : 'Near me' }] : []),
+                  { id: 'ending', label: lang === 'he' ? 'מסתיימים בקרוב' : 'Ending soon' },
+                  { id: 'Food', label: lang === 'he' ? 'מזון' : 'Food' },
+                  { id: 'Tech', label: lang === 'he' ? 'טכנולוגיה' : 'Tech' },
+                  { id: 'Fashion', label: lang === 'he' ? 'אופנה' : 'Fashion' },
+                  { id: 'Online', label: lang === 'he' ? 'אונליין' : 'Online' },
+                  ...(user ? [{ id: 'mine', label: lang === 'he' ? 'הדילז שלי' : 'My Dilz' }] : []),
                 ].map(view => {
                   const active =
                     (view.id === 'all' && sortDeals === 'hot' && categoryFilter === 'all' && !myDealsOnly) ||
@@ -1461,7 +1460,7 @@ export default function Home() {
                 })}
                 </div>
 
-                <div className="dilz-feed-controls" aria-label="Dilz feed controls">
+                <div className="dilz-feed-controls" aria-label={lang === 'he' ? 'פקדי פיד דילז' : 'Dilz feed controls'}>
                 <span className="dilz-view-switcher__count">
                   {textFor(lang, {
                     en: `${displayedDealCount} Dilz`,
@@ -1470,13 +1469,13 @@ export default function Home() {
                     es: `${displayedDealCount} Dilz`,
                   })}
                 </span>
-                <button type="button" className="dilz-map-quick-btn" onClick={openMap} aria-label="Open Dilz map">
+                <button type="button" className="dilz-map-quick-btn" onClick={openMap} aria-label={lang === 'he' ? 'פתיחת מפת דילז' : 'Open Dilz map'}>
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                     <path d="M9 18 3 21V6l6-3 6 3 6-3v15l-6 3-6-3Z" />
                     <path d="M9 3v15M15 6v15" />
                   </svg>
                 </button>
-                <div className="dilz-layout-toggle" aria-label="Dilz display options">
+                <div className="dilz-layout-toggle" aria-label={lang === 'he' ? 'אפשרויות תצוגה' : 'Dilz display options'}>
                   <button
                     type="button"
                     className={dealLayout === 'card' ? 'is-active' : ''}
@@ -1601,6 +1600,7 @@ export default function Home() {
         </main>
 
         <MainMenuSheet
+          lang={lang}
           open={showMainMenu}
           onClose={() => setShowMainMenu(false)}
           onHome={() => openDealCollection()}
@@ -1613,6 +1613,7 @@ export default function Home() {
         />
 
         <BottomNav
+          lang={lang}
           activeTab={tab}
           menuOpen={showMainMenu}
           onMenu={() => setShowMainMenu(true)}
@@ -1637,6 +1638,7 @@ export default function Home() {
         {showPostModal && (
           <PremiumPostDealModal
             user={user}
+            lang={lang}
             onClose={() => setShowPostModal(false)}
             onSuccess={handlePostSuccess}
             cityOptions={Object.keys(CITY_COORDS)}

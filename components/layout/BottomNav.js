@@ -1,14 +1,17 @@
-export function BottomNav({ activeTab, menuOpen = false, onMenu, onTab, onPost, onAlerts, onProfile }) {
+export function BottomNav({ lang = 'en', activeTab, menuOpen = false, onMenu, onTab, onPost, onAlerts, onProfile }) {
+  const labels = lang === 'he'
+    ? { menu: 'תפריט', deals: 'דילז', post: 'פרסום', alerts: 'התראות', profile: 'פרופיל', nav: 'ניווט במובייל' }
+    : { menu: 'Menu', deals: 'Dilz', post: 'Post', alerts: 'Alerts', profile: 'Profile', nav: 'Mobile navigation' };
   const items = [
-    { id: 'menu', label: 'Menu', action: onMenu, icon: MenuIcon },
-    { id: 'deals', label: 'Dilz', action: () => onTab('deals'), icon: HomeIcon },
-    { id: 'post', label: 'Post', action: onPost, icon: PlusIcon, post: true },
-    { id: 'alerts', label: 'Alerts', action: onAlerts, icon: BellIcon },
-    { id: 'profile', label: 'Profile', action: onProfile, icon: UserIcon },
+    { id: 'menu', label: labels.menu, action: onMenu, icon: MenuIcon },
+    { id: 'deals', label: labels.deals, action: () => onTab('deals'), icon: HomeIcon },
+    { id: 'post', label: labels.post, action: onPost, icon: PlusIcon, post: true },
+    { id: 'alerts', label: labels.alerts, action: onAlerts, icon: BellIcon },
+    { id: 'profile', label: labels.profile, action: onProfile, icon: UserIcon },
   ];
 
   return (
-    <nav className="dilz-bottom-nav" aria-label="Mobile navigation">
+    <nav className="dilz-bottom-nav" aria-label={labels.nav}>
       <div className="dilz-bottom-nav__inner">
         {items.map((item) => {
           const active = item.id === 'menu' ? menuOpen : activeTab === item.id;

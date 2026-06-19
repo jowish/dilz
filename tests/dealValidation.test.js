@@ -7,6 +7,7 @@ const {
   dateOnlyInTimeZone,
   isDateOnly,
   normalizeDealInput,
+  normalizeDealImageUrls,
   normalizeHttpUrl,
 } = require('../lib/dealValidation');
 
@@ -62,6 +63,16 @@ test('allows an edit without replacing an existing image', () => {
 test('normalizes only http and https URLs', () => {
   assert.equal(normalizeHttpUrl('mailto:test@example.com', 100), null);
   assert.equal(normalizeHttpUrl('https://example.com/a', 100), 'https://example.com/a');
+});
+
+test('normalizes and limits deal galleries to three unique images', () => {
+  assert.deepEqual(
+    normalizeDealImageUrls(
+      ['https://example.com/2.jpg', 'javascript:bad', 'https://example.com/1.jpg', 'https://example.com/3.jpg', 'https://example.com/4.jpg'],
+      'https://example.com/1.jpg'
+    ),
+    ['https://example.com/1.jpg', 'https://example.com/2.jpg', 'https://example.com/3.jpg']
+  );
 });
 
 test('clamps public API limits', () => {

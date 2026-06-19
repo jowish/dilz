@@ -5,6 +5,15 @@ import Link from 'next/link';
 import { supabase } from '../../lib/supabase';
 import { traduireVille } from '../../lib/translations';
 import { uploadDealImage, validateImageFile, deleteDealImage } from '../../lib/uploadImage';
+import { copyText } from '../../lib/copyText';
+import { CopyToast } from '../../components/ui/CopyToast';
+import { VoteEmoji } from '../../components/ui/VoteEmoji';
+import { useAppLanguage } from '../../lib/useAppLanguage';
+
+const DETAIL_TEXT = {
+  en: { now: 'Just now', hour: 'h ago', day: 'd ago', notFound: 'Deal not found', backDeals: 'Back to deals', back: 'Back', copy: 'Copy link', edit: 'Edit', photos: 'Deal photos', viewPhoto: 'View photo', by: 'by', starts: 'Starts', ends: 'Ends', online: 'View online deal', comments: 'Comments', noComments: 'No comments yet - be the first!', anonymous: 'Anonymous', reply: 'Reply', replyTo: 'Reply to', addComment: 'Add a comment...', send: 'Send', signInComment: 'Sign in to comment', editDeal: 'Edit deal', close: 'Close', changePhoto: 'Change photo', cancel: 'Cancel', save: 'Save changes', saving: 'Saving...' },
+  he: { now: 'עכשיו', hour: 'ש׳', day: 'י׳', notFound: 'הדיל לא נמצא', backDeals: 'חזרה לדילים', back: 'חזרה', copy: 'העתקת קישור', edit: 'עריכה', photos: 'תמונות הדיל', viewPhoto: 'הצגת תמונה', by: 'מאת', starts: 'מתחיל', ends: 'מסתיים', online: 'מעבר לדיל אונליין', comments: 'תגובות', noComments: 'אין עדיין תגובות - היו הראשונים!', anonymous: 'אנונימי', reply: 'תגובה', replyTo: 'תגובה אל', addComment: 'הוספת תגובה...', send: 'שליחה', signInComment: 'התחברו כדי להגיב', editDeal: 'עריכת דיל', close: 'סגירה', changePhoto: 'החלפת תמונה', cancel: 'ביטול', save: 'שמירת שינויים', saving: 'שומר...' },
+};
 
 const CATEGORIES = ['Food', 'Tech', 'Fashion', 'Activities', 'Online'];
 
@@ -19,12 +28,12 @@ const CITY_COORDS = {
   'קריית אונו': {},
 };
 
-function timeAgo(date) {
+function timeAgo(date, text) {
   const diff = Date.now() - new Date(date).getTime();
   const h = Math.floor(diff / 3600000);
-  if (h < 1) return 'Just now';
-  if (h < 24) return `${h}h ago`;
-  return `${Math.floor(h / 24)}d ago`;
+  if (h < 1) return text.now;
+  if (h < 24) return `${h}${text.hour}`;
+  return `${Math.floor(h / 24)}${text.day}`;
 }
 
 function dateInputValue(value) {
@@ -32,11 +41,11 @@ function dateInputValue(value) {
   return match ? match[1] : '';
 }
 
-function formatDateOnly(value) {
+function formatDateOnly(value, lang = 'en') {
   const match = String(value || '').match(/^(\d{4}-\d{2}-\d{2})(?:$|[T\s])/);
   if (!match) return '';
   const [year, month, day] = match[1].split('-').map(Number);
-  return new Date(year, month - 1, day).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+  return new Date(year, month - 1, day).toLocaleDateString(lang === 'he' ? 'he-IL' : 'en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
 }
 
 function HotIcon() {
@@ -81,6 +90,8 @@ function BagIcon() {
 
 export default function DealPage() {
   const router = useRouter();
+  const { lang, setLang, dir } = useAppLanguage();
+  const text = DETAIL_TEXT[lang];
   const { id } = router.query;
 
   const [deal, setDeal] = useState(null);
@@ -104,6 +115,7 @@ export default function DealPage() {
   const [editImagePreview, setEditImagePreview] = useState(null);
   const [editImageError, setEditImageError] = useState('');
   const [copySuccess, setCopySuccess] = useState(false);
+  const [activeImageIndex, setActiveImageIndex] = useState(0);
 
   useEffect(() => {
     setMounted(true);
@@ -132,6 +144,7 @@ export default function DealPage() {
     const data = await res.json();
     if (data.bon_plan) {
       setDeal(data.bon_plan);
+      setActiveImageIndex(0);
       setEditForm({
         titre: data.bon_plan.titre || '',
         description: data.bon_plan.description || '',
@@ -316,26 +329,9 @@ export default function DealPage() {
 
   const handleShare = async () => {
     if (!deal) return;
-    const url = window.location.href;
-    const text = `${deal.titre} — ₪${deal.prix} at ${deal.magasin}${deal.ville ? `, ${deal.ville}` : ''}`;
-    if (navigator.share) {
-      try { await navigator.share({ title: deal.titre, text, url }); } catch {}
-    } else {
-      try {
-        await navigator.clipboard.writeText(url);
-        setCopySuccess(true);
-        setTimeout(() => setCopySuccess(false), 2000);
-      } catch {
-        const ta = document.createElement('textarea');
-        ta.value = url;
-        document.body.appendChild(ta);
-        ta.select();
-        document.execCommand('copy');
-        document.body.removeChild(ta);
-        setCopySuccess(true);
-        setTimeout(() => setCopySuccess(false), 2000);
-      }
-    }
+    await copyText(window.location.href);
+    setCopySuccess(true);
+    window.setTimeout(() => setCopySuccess(false), 1800);
   };
 
   if (!mounted) return null;
@@ -351,8 +347,8 @@ export default function DealPage() {
   if (!deal) {
     return (
       <div className="dilz-deal-notfound">
-        <p>Deal not found</p>
-        <Link href="/" className="dilz-button dilz-button--primary dilz-button--md">Back to deals</Link>
+        <p>{text.notFound}</p>
+        <Link href="/" className="dilz-button dilz-button--primary dilz-button--md">{text.backDeals}</Link>
       </div>
     );
   }
@@ -360,6 +356,8 @@ export default function DealPage() {
   const reduction = deal.prix_original
     ? Math.round((deal.prix_original - deal.prix) / deal.prix_original * 100)
     : null;
+  const dealImages = [...new Set([...(Array.isArray(deal.image_urls) ? deal.image_urls : []), deal.image_url].filter(Boolean))].slice(0, 3);
+  const activeImage = dealImages[activeImageIndex] || dealImages[0] || null;
   const isOwner = user && user.id === deal.auteur_id;
   const pageTitle = `${deal.titre} — ₪${deal.prix} at ${deal.magasin} | Dilz`;
   const pageDesc = deal.description
@@ -379,7 +377,7 @@ export default function DealPage() {
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
       </Head>
 
-      <div className="dilz-deal-page">
+      <div className="dilz-deal-page" dir={dir}>
         <header className="dilz-app-header">
           <div className="dilz-app-header__inner">
             <button
@@ -390,7 +388,7 @@ export default function DealPage() {
                 router.back();
               }}
             >
-              <BackArrow /> Back
+              <BackArrow /> {text.back}
             </button>
             <Link href="/" className="dilz-logo-button" aria-label="Dilz home">
               <span className="dilz-logo-lockup" aria-label="dILz">
@@ -404,12 +402,13 @@ export default function DealPage() {
               </span>
             </Link>
             <div className="dilz-deal-header-actions">
+              <select className="dilz-language-select" value={lang} onChange={(event) => setLang(event.target.value)} aria-label="Language"><option value="en">EN</option><option value="he">HE</option></select>
               <button
                 type="button"
-                className={['dilz-button dilz-button--sm', copySuccess ? 'dilz-button--success' : 'dilz-button--ghost'].join(' ')}
+                className="dilz-button dilz-button--sm dilz-button--ghost"
                 onClick={handleShare}
               >
-                <ShareIcon /> {copySuccess ? 'Copied' : 'Share'}
+                <ShareIcon /> {text.copy}
               </button>
               {isOwner && (
                 <button
@@ -417,7 +416,7 @@ export default function DealPage() {
                   className="dilz-button dilz-button--outline dilz-button--sm"
                   onClick={() => setIsEditing(true)}
                 >
-                  <EditIcon /> Edit
+                  <EditIcon /> {text.edit}
                 </button>
               )}
             </div>
@@ -425,10 +424,10 @@ export default function DealPage() {
         </header>
 
         <div className="dilz-deal-content">
-          {deal.image_url ? (
+          {activeImage ? (
             <div className="dilz-deal-hero">
               <img
-                src={deal.image_url}
+                src={activeImage}
                 alt={deal.titre}
                 className="dilz-deal-hero__img"
                 onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }}
@@ -438,6 +437,7 @@ export default function DealPage() {
               </div>
               {deal.categorie && <span className="dilz-deal-category-badge">{deal.categorie}</span>}
               {reduction !== null && <span className="dilz-deal-discount-badge">-{reduction}%</span>}
+              {dealImages.length > 1 && <span className="dilz-deal-gallery-count">{activeImageIndex + 1} / {dealImages.length}</span>}
             </div>
           ) : (
             <div className="dilz-deal-hero dilz-deal-hero--empty">
@@ -445,11 +445,28 @@ export default function DealPage() {
             </div>
           )}
 
+          {dealImages.length > 1 && (
+            <div className="dilz-deal-gallery-thumbs" aria-label={text.photos}>
+              {dealImages.map((image, index) => (
+                <button
+                  key={image}
+                  type="button"
+                  className={index === activeImageIndex ? 'is-active' : ''}
+                  onClick={() => setActiveImageIndex(index)}
+                  aria-label={`${text.viewPhoto} ${index + 1}`}
+                  aria-pressed={index === activeImageIndex}
+                >
+                  <img src={image} alt="" />
+                </button>
+              ))}
+            </div>
+          )}
+
           <div className="dilz-deal-body">
             <div className="dilz-deal-price-row">
-              <span className="dilz-deal-price">&#8362;{deal.prix}</span>
+              <span className="dilz-deal-price">{deal.prix} &#8362;</span>
               {deal.prix_original && (
-                <span className="dilz-deal-price-original">&#8362;{deal.prix_original}</span>
+                <span className="dilz-deal-price-original">{deal.prix_original} &#8362;</span>
               )}
               {reduction !== null && (
                 <span className="dilz-badge dilz-badge--saving">-{reduction}%</span>
@@ -459,15 +476,15 @@ export default function DealPage() {
             <h1 className="dilz-deal-title">{deal.titre}</h1>
 
             <p className="dilz-deal-meta">
-              {[deal.magasin, deal.ville ? traduireVille(deal.ville, 'en') : null].filter(Boolean).join(' · ')}
-              {' · '}{timeAgo(deal.created_at)}
-              {deal.auteur_nom ? ` · by ${deal.auteur_nom}` : ''}
+              {[deal.magasin, deal.ville ? traduireVille(deal.ville, lang) : null].filter(Boolean).join(' · ')}
+              {' · '}{timeAgo(deal.created_at, text)}
+              {deal.auteur_nom ? ` · ${text.by} ${deal.auteur_nom}` : ''}
             </p>
 
             {(deal.date_debut || deal.date_fin) && (
               <div className="dilz-deal-dates">
-                {deal.date_debut && <span>Starts: {formatDateOnly(deal.date_debut)}</span>}
-                {deal.date_fin && <span>Ends: {formatDateOnly(deal.date_fin)}</span>}
+                {deal.date_debut && <span>{text.starts}: {formatDateOnly(deal.date_debut, lang)}</span>}
+                {deal.date_fin && <span>{text.ends}: {formatDateOnly(deal.date_fin, lang)}</span>}
               </div>
             )}
 
@@ -479,7 +496,7 @@ export default function DealPage() {
 
             {deal.url_source && (
               <a href={deal.url_source} target="_blank" rel="noopener noreferrer" className="dilz-deal-source-link">
-                View online deal ↗
+                {text.online} ↗
               </a>
             )}
 
@@ -490,14 +507,14 @@ export default function DealPage() {
                 className={['dilz-deal-vote-btn', myVote === 'chaud' ? 'is-hot' : ''].filter(Boolean).join(' ')}
                 onClick={() => handleVote('chaud')}
               >
-                <HotIcon /> {deal.votes_chaud || 0}
+                <VoteEmoji type="chaud" /> {deal.votes_chaud || 0}
               </button>
               <button
                 type="button"
                 className={['dilz-deal-vote-btn', myVote === 'froid' ? 'is-cold' : ''].filter(Boolean).join(' ')}
                 onClick={() => handleVote('froid')}
               >
-                <ColdIcon /> {deal.votes_froid || 0}
+                <VoteEmoji type="froid" /> {deal.votes_froid || 0}
               </button>
             </div>
 
@@ -519,19 +536,19 @@ export default function DealPage() {
               </a>
               <button
                 type="button"
-                className={['dilz-deal-share-btn', copySuccess ? 'dilz-deal-share-btn--copied' : 'dilz-deal-share-btn--copy'].join(' ')}
+                className="dilz-deal-share-btn dilz-deal-share-btn--copy"
                 onClick={handleShare}
               >
-                {copySuccess ? 'Copied' : 'Copy link'}
+                {text.copy}
               </button>
             </div>
 
             {/* Comments */}
-            <h2 className="dilz-deal-section-title">Comments ({comments.length})</h2>
+            <h2 className="dilz-deal-section-title">{text.comments} ({comments.length})</h2>
 
             {comments.length === 0 ? (
               <div className="dilz-deal-comments-empty">
-                <p>No comments yet — be the first!</p>
+                <p>{text.noComments}</p>
               </div>
             ) : (
               <div className="dilz-deal-comments">
@@ -546,8 +563,8 @@ export default function DealPage() {
                       </div>
                       <div className="dilz-comment__body">
                         <div className="dilz-comment__header">
-                          <span className="dilz-comment__author">{c.auteur_nom || 'Anonymous'}</span>
-                          <span className="dilz-comment__time">{timeAgo(c.created_at)}</span>
+                          <span className="dilz-comment__author">{c.auteur_nom || text.anonymous}</span>
+                          <span className="dilz-comment__time">{timeAgo(c.created_at, text)}</span>
                         </div>
                         <p className="dilz-comment__text">{c.contenu}</p>
                         <div className="dilz-comment__actions">
@@ -567,7 +584,7 @@ export default function DealPage() {
                               className="dilz-comment-reply-btn"
                               onClick={() => { setReplyTo({ id: c.id, auteur_nom: c.auteur_nom }); setReplyText(''); }}
                             >
-                              <ReplyIcon /> Reply
+                              <ReplyIcon /> {text.reply}
                             </button>
                           )}
                         </div>
@@ -577,7 +594,7 @@ export default function DealPage() {
                               autoFocus
                               type="text"
                               className="dilz-input"
-                              placeholder={`Reply to ${c.auteur_nom}...`}
+                              placeholder={`${text.replyTo} ${c.auteur_nom}...`}
                               value={replyText}
                               onChange={(e) => setReplyText(e.target.value)}
                               onKeyDown={(e) => e.key === 'Enter' && handleReply()}
@@ -613,7 +630,7 @@ export default function DealPage() {
                 <input
                   type="text"
                   className="dilz-input"
-                  placeholder="Add a comment..."
+                  placeholder={text.addComment}
                   value={newComment}
                   onChange={(e) => setNewComment(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && handleComment()}
@@ -624,12 +641,12 @@ export default function DealPage() {
                   onClick={handleComment}
                   disabled={submitting || !newComment.trim()}
                 >
-                  {submitting ? '...' : 'Send'}
+                  {submitting ? '...' : text.send}
                 </button>
               </div>
             ) : (
               <Link href={`/auth?redirect=/deal/${id}`} className="dilz-deal-signin-prompt">
-                Sign in to comment
+                {text.signInComment}
               </Link>
             )}
           </div>
@@ -637,12 +654,12 @@ export default function DealPage() {
 
         {/* Edit modal */}
         {isEditing && (
-          <div className="dilz-sheet-overlay" onClick={() => setIsEditing(false)} role="dialog" aria-modal="true" aria-label="Edit deal">
+          <div className="dilz-sheet-overlay" onClick={() => setIsEditing(false)} role="dialog" aria-modal="true" aria-label={text.editDeal}>
             <div className="dilz-sheet" onClick={(e) => e.stopPropagation()}>
               <div className="dilz-sheet__handle" aria-hidden="true" />
               <div className="dilz-sheet__header">
-                <h2 className="dilz-sheet__title">Edit deal</h2>
-                <button type="button" className="dilz-sheet__close" onClick={() => setIsEditing(false)} aria-label="Close">
+                <h2 className="dilz-sheet__title">{text.editDeal}</h2>
+                <button type="button" className="dilz-sheet__close" onClick={() => setIsEditing(false)} aria-label={text.close}>
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6 6 18M6 6l12 12"/></svg>
                 </button>
               </div>
@@ -656,7 +673,7 @@ export default function DealPage() {
                     ) : (
                       <div className="dilz-image-upload__placeholder">
                         <CameraIcon />
-                        <span>Change photo</span>
+                        <span>{text.changePhoto}</span>
                       </div>
                     )}
                   </div>
@@ -773,7 +790,7 @@ export default function DealPage() {
                     className="dilz-button dilz-button--secondary dilz-button--lg"
                     onClick={() => setIsEditing(false)}
                   >
-                    Cancel
+                    {text.cancel}
                   </button>
                   <button
                     type="button"
@@ -781,13 +798,14 @@ export default function DealPage() {
                     onClick={handleEditSubmit}
                     disabled={editSubmitting}
                   >
-                    {editSubmitting ? 'Saving...' : 'Save changes'}
+                    {editSubmitting ? text.saving : text.save}
                   </button>
                 </div>
               </div>
             </div>
           </div>
         )}
+        <CopyToast visible={copySuccess} lang={lang} />
       </div>
     </>
   );

@@ -3,17 +3,20 @@ import Link from 'next/link';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
 import { supabase } from '../lib/supabase';
+import { useAppLanguage } from '../lib/useAppLanguage';
+import { VoteEmoji } from '../components/ui/VoteEmoji';
 
-function timeAgo(date) {
+const PROFILE_TEXT = {
+  en: { profile: 'Profile', back: 'Back', signOut: 'Sign out', posted: 'Deals posted', received: 'Hot votes received', mine: 'My deals', loading: 'Loading...', empty: 'No deals yet', emptyText: 'Share a deal you spotted!', post: 'Post a deal', now: 'Just now', hour: 'h ago', day: 'd ago' },
+  he: { profile: 'פרופיל', back: 'חזרה', signOut: 'התנתקות', posted: 'דילים שפורסמו', received: 'הצבעות חמות שהתקבלו', mine: 'הדילים שלי', loading: 'טוען...', empty: 'עדיין אין דילים', emptyText: 'שתפו דיל שמצאתם!', post: 'פרסום דיל', now: 'עכשיו', hour: 'ש׳', day: 'י׳' },
+};
+
+function timeAgo(date, text) {
   const diff = Date.now() - new Date(date).getTime();
   const h = Math.floor(diff / 3600000);
-  if (h < 1) return 'Just now';
-  if (h < 24) return `${h}h ago`;
-  return `${Math.floor(h / 24)}d ago`;
-}
-
-function HotIcon() {
-  return <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2c0 0-4.5 5.5-4.5 10a4.5 4.5 0 0 0 9 0C16.5 7.5 12 2 12 2zm0 13a2.5 2.5 0 0 1-2.5-2.5C9.5 10 12 6.5 12 6.5S14.5 10 14.5 12.5A2.5 2.5 0 0 1 12 15z"/></svg>;
+  if (h < 1) return text.now;
+  if (h < 24) return `${h}${text.hour}`;
+  return `${Math.floor(h / 24)}${text.day}`;
 }
 
 function BackArrow() {
@@ -26,6 +29,8 @@ function ShoppingBagIcon() {
 
 export default function Profil() {
   const router = useRouter();
+  const { lang, setLang, dir } = useAppLanguage();
+  const text = PROFILE_TEXT[lang];
   const [user, setUser] = useState(null);
   const [deals, setDeals] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -74,19 +79,20 @@ export default function Profil() {
   return (
     <>
       <Head>
-        <title>Profile — Dilz</title>
+        <title>{text.profile} - Dilz</title>
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
       </Head>
-      <div className="dilz-profil-page">
+      <div className="dilz-profil-page" dir={dir}>
         <header className="dilz-app-header">
           <div className="dilz-app-header__inner">
             <Link href="/" className="dilz-profil-back">
-              <BackArrow /> Back
+              <BackArrow /> {text.back}
             </Link>
-            <span className="dilz-profil-heading">Profile</span>
-            <button type="button" className="dilz-button dilz-button--ghost dilz-button--sm" onClick={handleSignOut}>
-              Sign out
-            </button>
+            <span className="dilz-profil-heading">{text.profile}</span>
+            <div className="dilz-deal-header-actions">
+              <select className="dilz-language-select" value={lang} onChange={(event) => setLang(event.target.value)} aria-label="Language"><option value="en">EN</option><option value="he">HE</option></select>
+              <button type="button" className="dilz-button dilz-button--ghost dilz-button--sm" onClick={handleSignOut}>{text.signOut}</button>
+            </div>
           </div>
         </header>
 
@@ -102,28 +108,28 @@ export default function Profil() {
           <div className="dilz-profil-stats">
             <div className="dilz-stat-card">
               <strong>{deals.length}</strong>
-              <span>Deals posted</span>
+              <span>{text.posted}</span>
             </div>
             <div className="dilz-stat-card">
-              <strong><HotIcon /> {totalHot}</strong>
-              <span>Hot votes received</span>
+              <strong><VoteEmoji type="chaud" /> {totalHot}</strong>
+              <span>{text.received}</span>
             </div>
           </div>
 
-          <h2 className="dilz-profil-section-title">My deals</h2>
+          <h2 className="dilz-profil-section-title">{text.mine}</h2>
 
           {loading ? (
             <div className="dilz-loading-state">
               <div className="dilz-spinner" />
-              <p>Loading...</p>
+              <p>{text.loading}</p>
             </div>
           ) : deals.length === 0 ? (
             <div className="dilz-empty-state">
               <span className="dilz-empty-state__icon"><ShoppingBagIcon /></span>
-              <p className="dilz-empty-state__title">No deals yet</p>
-              <p className="dilz-empty-state__text">Share a deal you spotted!</p>
+              <p className="dilz-empty-state__title">{text.empty}</p>
+              <p className="dilz-empty-state__text">{text.emptyText}</p>
               <Link href="/" className="dilz-button dilz-button--primary dilz-button--md">
-                Post a deal
+                {text.post}
               </Link>
             </div>
           ) : (
@@ -146,11 +152,11 @@ export default function Profil() {
                       <div className="dilz-profil-deal-row__meta">
                         <strong>&#8362;{deal.prix}</strong>
                         {reduction && <span className="dilz-badge dilz-badge--saving">-{reduction}%</span>}
-                        <span>{timeAgo(deal.created_at)}</span>
+                        <span>{timeAgo(deal.created_at, text)}</span>
                       </div>
                     </div>
                     <div className="dilz-profil-deal-row__votes">
-                      <HotIcon /> {deal.votes_chaud || 0}
+                      <VoteEmoji type="chaud" /> {deal.votes_chaud || 0}
                     </div>
                   </Link>
                 );

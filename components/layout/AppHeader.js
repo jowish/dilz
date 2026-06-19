@@ -48,6 +48,9 @@ export function AppHeader({
   onAlerts,
   activeTab,
 }) {
+  const labels = lang === 'he'
+    ? { primary: 'ניווט ראשי', promos: 'מבצעים', search: 'חיפוש מוצרים, חנויות ודילז', notifications: 'התראות', alert: 'יצירת התראת מחיר', alerts: 'התראות', post: 'פרסום דיל', profile: 'פרופיל', signIn: 'התחברות', allIsrael: 'כל הארץ' }
+    : { primary: 'Primary navigation', promos: 'Promotions', search: 'Search products, stores, Dilz', notifications: 'Notifications', alert: 'Create a price alert', alerts: 'Alerts', post: 'Post deal', profile: 'Profile', signIn: 'Sign in', allIsrael: 'All Israel' };
   const initials = user
     ? (user.user_metadata?.display_name || user.email || 'U').slice(0, 2).toUpperCase()
     : null;
@@ -57,18 +60,18 @@ export function AppHeader({
       <div className="dilz-app-header__inner">
         <div className="dilz-app-header__left">
           <Logo onClick={onLogoClick} />
-          <nav className="dilz-desktop-tabs" aria-label="Primary">
+          <nav className="dilz-desktop-tabs" aria-label={labels.primary}>
             <button type="button" className={activeTab === 'deals' ? 'is-active' : ''} onClick={onCommunity}>
               Dilz
             </button>
             <button type="button" className={`dilz-promotions-nav-test ${activeTab === 'sales' ? 'is-active' : ''}`} onClick={onSupermarkets}>
-              Promotions
+              {labels.promos}
             </button>
           </nav>
         </div>
 
         <div className="dilz-app-header__search">
-          <SearchBar value={searchValue} onChange={onSearchChange} onFocus={onSearch} placeholder="Search products, stores, Dilz" />
+          <SearchBar value={searchValue} onChange={onSearchChange} onFocus={onSearch} placeholder={labels.search} />
         </div>
 
         <div className="dilz-app-header__right">
@@ -78,10 +81,10 @@ export function AppHeader({
             ))}
           </select>
           <Button variant="secondary" size="sm" onClick={onCityClick}>
-            {cityLabel || 'All Israel'}
+            {cityLabel || labels.allIsrael}
           </Button>
           {user && (
-            <IconButton aria-label="Notifications" onClick={onNotificationsClick} className={unreadCount > 0 ? 'has-unread' : ''}>
+            <IconButton aria-label={labels.notifications} onClick={onNotificationsClick} className={unreadCount > 0 ? 'has-unread' : ''}>
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9" />
                 <path d="M13.73 21a2 2 0 0 1-3.46 0" />
@@ -89,15 +92,15 @@ export function AppHeader({
               {unreadCount > 0 && <span className="dilz-notification-dot">{unreadCount > 9 ? '9+' : unreadCount}</span>}
             </IconButton>
           )}
-          <button type="button" className="dilz-header-alerts-btn" onClick={onAlerts} aria-label="Create a price alert">
+          <button type="button" className="dilz-header-alerts-btn" onClick={onAlerts} aria-label={labels.alert}>
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
               <path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>
               <line x1="12" y1="3" x2="12" y2="1"/><line x1="15" y1="2" x2="12" y2="5"/><line x1="9" y1="2" x2="12" y2="5"/>
             </svg>
-            Alerts
+            {labels.alerts}
           </button>
-          <Button className="dilz-header-post" onClick={onPostDeal}>Post deal</Button>
-          <IconButton aria-label={user ? 'Profile' : 'Sign in'} onClick={onProfileClick} selected={Boolean(user)}>
+          <Button className="dilz-header-post" onClick={onPostDeal}>{labels.post}</Button>
+          <IconButton aria-label={user ? labels.profile : labels.signIn} onClick={onProfileClick} selected={Boolean(user)}>
             {user ? (
               <span className="dilz-avatar-mini">{initials}</span>
             ) : (
@@ -110,7 +113,7 @@ export function AppHeader({
         </div>
       </div>
       <div className="dilz-mobile-search">
-        <SearchBar value={searchValue} onChange={onSearchChange} onFocus={onSearch} placeholder="Search products, stores, Dilz" />
+        <SearchBar value={searchValue} onChange={onSearchChange} onFocus={onSearch} placeholder={labels.search} />
       </div>
     </header>
   );

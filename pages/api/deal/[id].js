@@ -1,6 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 
-const { dateOnlyPart } = require('../../../lib/dealValidation');
+const { dateOnlyPart, normalizeDealImageUrls } = require('../../../lib/dealValidation');
 
 export default async function handler(req, res) {
   res.setHeader('Allow', 'GET');
@@ -23,6 +23,7 @@ export default async function handler(req, res) {
   return res.status(200).json({
     bon_plan: {
       ...data,
+      image_urls: normalizeDealImageUrls(data.image_urls, data.image_url),
       date_debut: dateOnlyPart(data.date_debut),
       date_fin: dateOnlyPart(data.date_fin),
     },

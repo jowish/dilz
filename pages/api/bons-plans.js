@@ -1,11 +1,12 @@
 import { createClient } from '@supabase/supabase-js';
 import { processNewDeal } from '../../lib/alerts';
 
-const { clampLimit, dateOnlyInTimeZone, dateOnlyPart, normalizeDealInput } = require('../../lib/dealValidation');
+const { clampLimit, dateOnlyInTimeZone, dateOnlyPart, normalizeDealImageUrls, normalizeDealInput } = require('../../lib/dealValidation');
 
 function normalizeDealDates(deal) {
   return {
     ...deal,
+    image_urls: normalizeDealImageUrls(deal.image_urls, deal.image_url),
     date_debut: dateOnlyPart(deal.date_debut),
     date_fin: dateOnlyPart(deal.date_fin),
   };
@@ -89,7 +90,8 @@ export default async function handler(req, res) {
       const { user, error: authErr } = await verifyUser();
       if (!user) return res.status(401).json({ erreur: authErr });
 
-      const normalized = normalizeDealInput(req.body);
+      const imageUrls = normalizeDealImageUrls(req.body.image_urls, req.body.image_url);
+      const normalized = normalizeDealInput({ ...req.body, image_url: imageUrls[0] });
       if (normalized.errors.length) {
         return res.status(400).json({ erreur: normalized.errors[0], errors: normalized.errors });
       }
@@ -102,15 +104,20 @@ export default async function handler(req, res) {
 
       const insertData = {
         ...normalized.value,
+        image_urls: imageUrls,
         auteur_id: user.id,
         auteur_nom,
         statut: 'actif',
       };
 
-      const { data: rows, error } = await supabaseAdmin
-        .from('bons_plans')
-        .insert([insertData])
-        .select('id');
+      let { data: rows, error } = await supabaseAdmin.from('bons_plans').insert([insertData]).select('id');
+
+      // Keep single-image posting available while the gallery migration rolls out.
+      if (error && /image_urls/i.test([error.message, error.details, error.hint].filter(Boolean).join(' '))) {
+        const compatibleInsert = { ...insertData };
+        delete compatibleInsert.image_urls;
+        ({ data: rows, error } = await supabaseAdmin.from('bons_plans').insert([compatibleInsert]).select('id'));
+      }
 
       if (error) {
         return res.status(500).json({
