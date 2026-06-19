@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
+import { registerNativePushToken } from '../../lib/nativeApp';
 
 const POPULAR_CITIES = ['תל אביב', 'ירושלים', 'חיפה', 'ראשון לציון', 'נתניה', 'רעננה', 'הרצליה', 'כפר סבא', 'רמת גן', 'פתח תקווה'];
 
@@ -54,7 +55,9 @@ export function AlertModal({ user, lang, onClose }) {
       keyword: form.keyword.trim() || null,
     };
 
-    if ('Notification' in window && Notification.permission === 'default') {
+    const nativePushRegistered = await registerNativePushToken(data.session.access_token).catch(() => false);
+
+    if (!nativePushRegistered && 'Notification' in window && Notification.permission === 'default') {
       const perm = await Notification.requestPermission().catch(() => 'denied');
       if (perm === 'granted' && 'serviceWorker' in navigator) {
         try {

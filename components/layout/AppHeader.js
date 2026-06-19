@@ -44,7 +44,6 @@ export function AppHeader({
   searchValue,
   onSearchChange,
   onCommunity,
-  onSupermarkets,
   onAlerts,
   activeTab,
 }) {
@@ -63,9 +62,6 @@ export function AppHeader({
           <nav className="dilz-desktop-tabs" aria-label={labels.primary}>
             <button type="button" className={activeTab === 'deals' ? 'is-active' : ''} onClick={onCommunity}>
               Dilz
-            </button>
-            <button type="button" className={`dilz-promotions-nav-test ${activeTab === 'sales' ? 'is-active' : ''}`} onClick={onSupermarkets}>
-              {labels.promos}
             </button>
           </nav>
         </div>

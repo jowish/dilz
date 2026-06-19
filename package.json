@@ -14,9 +14,18 @@
     "import:super-pharm": "node scripts/import-prix.js --super-pharm-only",
     "import:free-deals": "node scripts/insert-free-deals.js",
     "deals:discover": "node scripts/deal-bot.js",
-    "check": "npm test && npm run build"
+    "check": "npm test && npm run build",
+    "ios:add": "npx cap add ios",
+    "ios:sync": "npx cap sync ios",
+    "ios:open": "npx cap open ios"
   },
   "dependencies": {
+    "@capacitor/app": "^8.0.1",
+    "@capacitor/core": "^8.4.1",
+    "@capacitor/geolocation": "^8.1.0",
+    "@capacitor/push-notifications": "^8.0.1",
+    "@capacitor/splash-screen": "^8.0.1",
+    "@capacitor/status-bar": "^8.0.1",
     "@supabase/supabase-js": "^2.108.1",
     "dotenv": "^17.4.2",
     "next": "16.2.9",
@@ -26,5 +35,13 @@
     "web-push": "^3.6.7",
     "ws": "^8.21.0",
     "xml2js": "^0.6.2"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^8.4.1",
+    "@capacitor/ios": "^8.4.1",
+    "typescript": "^6.0.3"
+  },
+  "overrides": {
+    "postcss": "8.5.10"
   }
 }

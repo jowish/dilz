@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { traduireVille } from '../../lib/translations';
+import { getDevicePosition } from '../../lib/nativeApp';
 
 const POPULAR_CITIES = ['תל אביב', 'ירושלים', 'חיפה', 'ראשון לציון', 'נתניה', 'רעננה', 'הרצליה', 'כפר סבא', 'רמת גן', 'פתח תקווה'];
 
@@ -48,25 +49,19 @@ export function CityModal({ villes = [], current, lang, onSelect, onClose }) {
     (traduireVille(v, 'en') || '').toLowerCase().includes(search.toLowerCase())
   );
 
-  const handleGps = () => {
+  const handleGps = async () => {
     setGpsLoading(true);
-    if (!navigator.geolocation) { setGpsLoading(false); return; }
-    navigator.geolocation.getCurrentPosition(
-      async ({ coords: { latitude, longitude } }) => {
-        try {
-          const r = await fetch(
-            `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json&accept-language=he`
-          );
-          const d = await r.json();
-          const v = d.address?.city || d.address?.town || d.address?.village || null;
-          onSelect(v, { lat: latitude, lon: longitude });
-          onClose();
-        } catch {}
-        setGpsLoading(false);
-      },
-      () => setGpsLoading(false),
-      { timeout: 6000 }
-    );
+    try {
+      const { coords: { latitude, longitude } } = await getDevicePosition({ timeout: 8000 });
+      const r = await fetch(
+        `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json&accept-language=he`
+      );
+      const d = await r.json();
+      const v = d.address?.city || d.address?.town || d.address?.village || null;
+      onSelect(v, { lat: latitude, lon: longitude });
+      onClose();
+    } catch {}
+    setGpsLoading(false);
   };
 
   return (

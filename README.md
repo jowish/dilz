@@ -2,6 +2,12 @@
 
 Dilz compares supermarket prices in Israel and provides a community feed for local and online deals.
 
+## iOS application
+
+The Capacitor 8 iOS shell lives in `ios/` and loads the production Dilz application from `https://dilz.vercel.app`. App Store preparation, remaining blockers and the Mac release procedure are documented in `docs/app-store/`.
+
+Run `npm run ios:sync` after changing Capacitor configuration or native plugins. Opening and signing the Xcode project requires macOS with Xcode 26 or later.
+
 ## Stack
 
 - Next.js 16 Pages Router and React 19
@@ -19,6 +25,8 @@ Dilz compares supermarket prices in Israel and provides a community feed for loc
    - `supabase-deal-images-setup.sql`
    - `supabase-votes-setup.sql`
    - `supabase-alerts-setup.sql`
+   - `supabase-safety-setup.sql`
+   - `supabase-native-push-setup.sql`
 4. Start the application with `npm run dev`.
 
 The service-role key is server-only. Never prefix it with `NEXT_PUBLIC_` or expose it to browser code.
@@ -29,6 +37,8 @@ The service-role key is server-only. Never prefix it with `NEXT_PUBLIC_` or expo
 - `npm test`: run the unit tests
 - `npm run build`: create a production build
 - `npm run check`: run tests followed by the production build
+- `npm run ios:sync`: copy Capacitor configuration and plugins into the iOS project
+- `npm run ios:open`: open the iOS project on a Mac with Xcode
 
 ## Data imports
 

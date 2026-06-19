@@ -20,8 +20,8 @@ const sections = [
   {
     title: { en: 'Service providers and external links', he: 'ספקי שירות וקישורים חיצוניים' },
     body: {
-      en: ['Dilz uses Supabase for authentication, database and storage, and Vercel for hosting. Push notification providers process delivery information when you enable notifications. Merchant links open third-party services governed by their own privacy policies.'],
-      he: ['Dilz משתמשת ב-Supabase לאימות, מסד נתונים ואחסון וב-Vercel לאירוח. ספקי הודעות דחיפה מעבדים פרטי מסירה כאשר אתם מפעילים התראות. קישורים לסוחרים פותחים שירותי צד שלישי הכפופים למדיניות שלהם.'],
+      en: ['Dilz uses Supabase for authentication, database and storage, and Vercel for hosting. Push notification providers process delivery information when you enable notifications. If you explicitly request My location, OpenStreetMap Nominatim receives coordinates to identify the nearby city. Merchant links open third-party services governed by their own privacy policies.'],
+      he: ['Dilz משתמשת ב-Supabase לאימות, מסד נתונים ואחסון וב-Vercel לאירוח. ספקי הודעות דחיפה מעבדים פרטי מסירה כאשר אתם מפעילים התראות. אם תבחרו במפורש במיקום שלי, OpenStreetMap Nominatim יקבל קואורדינטות כדי לזהות את העיר הקרובה. קישורים לסוחרים פותחים שירותי צד שלישי הכפופים למדיניות שלהם.'],
     },
   },
   {

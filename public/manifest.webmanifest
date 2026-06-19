@@ -1,0 +1,22 @@
+{
+  "name": "Dilz - Deals in Israel",
+  "short_name": "Dilz",
+  "description": "Discover and share deals, promotions and supermarket prices in Israel.",
+  "start_url": "/?source=installed",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#FFFFFF",
+  "theme_color": "#0B1220",
+  "lang": "en",
+  "dir": "auto",
+  "categories": ["shopping", "lifestyle", "utilities"],
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "any",
+      "type": "image/x-icon",
+      "purpose": "any"
+    }
+  ]
+}

@@ -13,8 +13,8 @@ const PROFILE_TEXT = {
 };
 
 const ACCOUNT_SAFETY_TEXT = {
-  en: { legal: 'Legal and privacy', privacy: 'Privacy Policy', terms: 'Terms of Use', danger: 'Delete account', dangerHelp: 'Permanently delete your account and private data. Your public contributions will be anonymized.', delete: 'Delete my account', confirmTitle: 'This action cannot be undone', confirmHelp: 'Type DELETE to permanently delete your Dilz account.', confirmWord: 'DELETE', cancel: 'Cancel', deleting: 'Deleting...', deleteError: 'Account deletion failed. Please try again or contact support.' },
-  he: { legal: 'משפטי ופרטיות', privacy: 'מדיניות פרטיות', terms: 'תנאי שימוש', danger: 'מחיקת חשבון', dangerHelp: 'מחיקה לצמיתות של החשבון והמידע הפרטי. התרומות הציבוריות שלכם יעברו אנונימיזציה.', delete: 'מחיקת החשבון שלי', confirmTitle: 'לא ניתן לבטל פעולה זו', confirmHelp: 'הקלידו DELETE כדי למחוק לצמיתות את חשבון Dilz.', confirmWord: 'DELETE', cancel: 'ביטול', deleting: 'מוחק...', deleteError: 'מחיקת החשבון נכשלה. נסו שוב או פנו לתמיכה.' },
+  en: { legal: 'Legal and privacy', privacy: 'Privacy Policy', terms: 'Terms of Use', support: 'Support', danger: 'Delete account', dangerHelp: 'Permanently delete your account and private data. Your public contributions will be anonymized.', delete: 'Delete my account', confirmTitle: 'This action cannot be undone', confirmHelp: 'Type DELETE to permanently delete your Dilz account.', confirmWord: 'DELETE', cancel: 'Cancel', deleting: 'Deleting...', deleteError: 'Account deletion failed. Please try again or contact support.' },
+  he: { legal: 'משפטי ופרטיות', privacy: 'מדיניות פרטיות', terms: 'תנאי שימוש', support: 'תמיכה', danger: 'מחיקת חשבון', dangerHelp: 'מחיקה לצמיתות של החשבון והמידע הפרטי. התרומות הציבוריות שלכם יעברו אנונימיזציה.', delete: 'מחיקת החשבון שלי', confirmTitle: 'לא ניתן לבטל פעולה זו', confirmHelp: 'הקלידו DELETE כדי למחוק לצמיתות את חשבון Dilz.', confirmWord: 'DELETE', cancel: 'ביטול', deleting: 'מוחק...', deleteError: 'מחיקת החשבון נכשלה. נסו שוב או פנו לתמיכה.' },
 };
 
 function timeAgo(date, text) {
@@ -213,6 +213,7 @@ export default function Profil() {
             <div>
               <Link href="/privacy">{safetyText.privacy}</Link>
               <Link href="/terms">{safetyText.terms}</Link>
+              <Link href="/support">{safetyText.support}</Link>
             </div>
           </section>
 

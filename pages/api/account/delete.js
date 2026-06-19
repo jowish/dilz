@@ -10,6 +10,7 @@ const OPTIONAL_TABLES = [
   ['blocked_users', 'blocker_id'],
   ['blocked_users', 'blocked_user_id'],
   ['content_reports', 'reporter_id'],
+  ['native_push_tokens', 'user_id'],
 ];
 
 function isMissingRelation(error) {

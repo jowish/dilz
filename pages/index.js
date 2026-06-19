@@ -61,7 +61,6 @@ const CATEGORIES = ['all', 'Food', 'Tech', 'Fashion', 'Activities', 'Online'];
 
 const TAB_TO_URL = {
   deals: 'dilz',
-  sales: 'promos',
   search: 'search',
   profile: 'profile',
 };
@@ -69,9 +68,6 @@ const TAB_TO_URL = {
 const URL_TO_TAB = {
   dilz: 'deals',
   deals: 'deals',
-  promos: 'sales',
-  promotions: 'sales',
-  sales: 'sales',
   search: 'search',
   profile: 'profile',
 };
@@ -902,6 +898,7 @@ export default function Home() {
   ]);
 
   useEffect(() => {
+    if (tab !== 'sales') return;
     setLoadingPromos(true);
     const params = new URLSearchParams({ sort: promoSort });
     if (promoCategory !== 'all') params.set('category', promoCategory);
@@ -925,7 +922,7 @@ export default function Home() {
         setLoadingPromos(false);
       })
       .catch(() => setLoadingPromos(false));
-  }, [promoCategory, promoSort]);
+  }, [tab, promoCategory, promoSort]);
 
   // ── Deals fetch ──
   useEffect(() => {
@@ -1291,7 +1288,6 @@ export default function Home() {
           searchValue={searchQuery}
           onSearchChange={(event) => setSearchQuery(event.target.value)}
           onCommunity={() => setTab('deals')}
-          onSupermarkets={() => setTab('sales')}
           onAlerts={() => user ? setShowAlertModal(true) : router.push('/auth?redirect=/')}
           activeTab={tab}
         />
