@@ -3,7 +3,7 @@ import { DiscoveryPage, ExternalArrow } from '../components/layout/DiscoveryPage
 const merchants = [
   {
     name: 'AliExpress',
-    source: 'https://www.dealabs.com/codes-promo/aliexpress',
+    source: 'https://www.aliexpress.com/',
     color: '#FF6500',
     offers: [
       { value: '60 EUR', text: 'des 479 EUR de commande', expiry: 'Expire le 20/06/2026' },
@@ -15,7 +15,7 @@ const merchants = [
   },
   {
     name: 'Amazon',
-    source: 'https://www.dealabs.com/codes-promo/amazon',
+    source: 'https://www.amazon.fr/gp/goldbox',
     color: '#0B1220',
     offers: [
       { value: '5 EUR', text: 'sur les commandes eligibles', expiry: 'Expire le 14/07/2026' },
@@ -59,7 +59,7 @@ export default function PromoCodesPage() {
                     <span>{offer.expiry}</span>
                   </div>
                   <a href={merchant.source} target="_blank" rel="noreferrer" className="dilz-code-card__action">
-                    Voir le code <ExternalArrow />
+                    Utiliser l offre <ExternalArrow />
                   </a>
                 </article>
               ))}

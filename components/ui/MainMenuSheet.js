@@ -75,19 +75,16 @@ export function MainMenuSheet({
           />
           <MenuItem
             label="Bons plans"
-            active={activeCollection === 'all' && activeCategory === 'all'}
             onClick={onDeals}
             icon={<svg viewBox="0 0 24 24"><path d="M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8Z" /><path d="M7.5 7.5h.01" /></svg>}
           />
           <MenuItem
             label="Codes promo"
-            active={activeCollection === 'codes'}
             onClick={onCodePromos}
             icon={<svg viewBox="0 0 24 24"><path d="M4 8.5A2.5 2.5 0 0 0 4 13v4h16v-4a2.5 2.5 0 0 0 0-4.5V5H4v3.5Z" /><path d="M9 8h.01M15 14h.01M15 8l-6 6" /></svg>}
           />
           <MenuItem
             label="Gratuit"
-            active={activeCollection === 'free'}
             onClick={onFree}
             icon={<svg viewBox="0 0 24 24"><path d="M20 12v8H4v-8M2 7h20v5H2zM12 7v13M12 7H7.5A2.5 2.5 0 1 1 10 4.5L12 7Zm0 0h4.5A2.5 2.5 0 1 0 14 4.5L12 7Z" /></svg>}
           />

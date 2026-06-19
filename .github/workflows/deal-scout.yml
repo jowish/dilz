@@ -1,0 +1,40 @@
+name: Dilz Deal Scout
+
+on:
+  schedule:
+    - cron: '15 5,11,17,23 * * *'
+  workflow_dispatch:
+
+concurrency:
+  group: dilz-deal-scout
+  cancel-in-progress: false
+
+jobs:
+  discover:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Discover deals
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+          DEAL_BOT_TELEGRAM_CHANNELS: ${{ vars.DEAL_BOT_TELEGRAM_CHANNELS }}
+          DEAL_BOT_RSS_FEEDS: ${{ vars.DEAL_BOT_RSS_FEEDS }}
+          DEAL_BOT_FACEBOOK_PAGE_IDS: ${{ vars.DEAL_BOT_FACEBOOK_PAGE_IDS }}
+          META_ACCESS_TOKEN: ${{ secrets.META_ACCESS_TOKEN }}
+          META_GRAPH_VERSION: ${{ vars.META_GRAPH_VERSION }}
+          DEAL_BOT_MIN_SCORE: '65'
+          DEAL_BOT_MAX_PER_RUN: '25'
+        run: npm run deals:discover
