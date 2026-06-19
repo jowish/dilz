@@ -5,10 +5,11 @@ import { useRouter } from 'next/router';
 import { supabase } from '../lib/supabase';
 import { useAppLanguage } from '../lib/useAppLanguage';
 import { VoteEmoji } from '../components/ui/VoteEmoji';
+import { readDealSortPreference, writeDealSortPreference } from '../lib/userPreferences';
 
 const PROFILE_TEXT = {
-  en: { profile: 'Profile', back: 'Back', signOut: 'Sign out', posted: 'Deals posted', received: 'Hot votes received', mine: 'My deals', loading: 'Loading...', empty: 'No deals yet', emptyText: 'Share a deal you spotted!', post: 'Post a deal', now: 'Just now', hour: 'h ago', day: 'd ago' },
-  he: { profile: 'פרופיל', back: 'חזרה', signOut: 'התנתקות', posted: 'דילים שפורסמו', received: 'הצבעות חמות שהתקבלו', mine: 'הדילים שלי', loading: 'טוען...', empty: 'עדיין אין דילים', emptyText: 'שתפו דיל שמצאתם!', post: 'פרסום דיל', now: 'עכשיו', hour: 'ש׳', day: 'י׳' },
+  en: { profile: 'Profile', back: 'Back', signOut: 'Sign out', posted: 'Deals posted', received: 'Hot votes received', settings: 'Account settings', settingsHelp: 'Choose how Dilz should look when you return.', language: 'Language', feedOrder: 'Default feed order', english: 'English', hebrew: 'Hebrew', hot: 'Hottest first', latest: 'Newest first', comments: 'Most commented', saved: 'Preference saved', mine: 'My deals', loading: 'Loading...', empty: 'No deals yet', emptyText: 'Share a deal you spotted!', post: 'Post a deal', now: 'Just now', hour: 'h ago', day: 'd ago' },
+  he: { profile: 'פרופיל', back: 'חזרה', signOut: 'התנתקות', posted: 'דילים שפורסמו', received: 'הצבעות חמות שהתקבלו', settings: 'הגדרות חשבון', settingsHelp: 'בחרו כיצד Dilz יוצג בכל כניסה.', language: 'שפה', feedOrder: 'סדר ברירת מחדל בפיד', english: 'אנגלית', hebrew: 'עברית', hot: 'החמים ביותר', latest: 'החדשים ביותר', comments: 'עם הכי הרבה תגובות', saved: 'ההעדפה נשמרה', mine: 'הדילים שלי', loading: 'טוען...', empty: 'עדיין אין דילים', emptyText: 'שתפו דיל שמצאתם!', post: 'פרסום דיל', now: 'עכשיו', hour: 'ש׳', day: 'י׳' },
 };
 
 function timeAgo(date, text) {
@@ -35,13 +36,22 @@ export default function Profil() {
   const [deals, setDeals] = useState([]);
   const [loading, setLoading] = useState(true);
   const [mounted, setMounted] = useState(false);
+  const [feedPreference, setFeedPreference] = useState('hot');
+  const [preferenceSaved, setPreferenceSaved] = useState(false);
 
   useEffect(() => {
     setMounted(true);
+    setFeedPreference(readDealSortPreference());
     supabase.auth.getSession().then(({ data }) => {
       if (!data.session) { router.replace('/auth?redirect=/profil'); return; }
       const u = data.session.user;
       setUser(u);
+      const accountLanguage = u.user_metadata?.dilz_language;
+      if (accountLanguage === 'en' || accountLanguage === 'he') setLang(accountLanguage);
+      const accountSort = u.user_metadata?.dilz_deal_sort;
+      if (['hot', 'latest', 'comments'].includes(accountSort)) {
+        setFeedPreference(writeDealSortPreference(accountSort));
+      }
       fetchUserDeals(u.id);
     });
   }, []);
@@ -60,6 +70,23 @@ export default function Profil() {
   const handleSignOut = async () => {
     await supabase.auth.signOut();
     router.replace('/');
+  };
+
+  const saveIndicator = () => {
+    setPreferenceSaved(true);
+    window.setTimeout(() => setPreferenceSaved(false), 1600);
+  };
+
+  const changeLanguage = async (value) => {
+    setLang(value);
+    saveIndicator();
+    await supabase.auth.updateUser({ data: { dilz_language: value } });
+  };
+
+  const changeFeedPreference = async (value) => {
+    setFeedPreference(writeDealSortPreference(value));
+    saveIndicator();
+    await supabase.auth.updateUser({ data: { dilz_deal_sort: value } });
   };
 
   if (!mounted) return null;
@@ -89,10 +116,7 @@ export default function Profil() {
               <BackArrow /> {text.back}
             </Link>
             <span className="dilz-profil-heading">{text.profile}</span>
-            <div className="dilz-deal-header-actions">
-              <select className="dilz-language-select" value={lang} onChange={(event) => setLang(event.target.value)} aria-label="Language"><option value="en">EN</option><option value="he">HE</option></select>
-              <button type="button" className="dilz-button dilz-button--ghost dilz-button--sm" onClick={handleSignOut}>{text.signOut}</button>
-            </div>
+            <button type="button" className="dilz-button dilz-button--ghost dilz-button--sm" onClick={handleSignOut}>{text.signOut}</button>
           </div>
         </header>
 
@@ -115,6 +139,36 @@ export default function Profil() {
               <span>{text.received}</span>
             </div>
           </div>
+
+          <section id="settings" className="dilz-account-settings" aria-labelledby="account-settings-title">
+            <div className="dilz-account-settings__header">
+              <div>
+                <h2 id="account-settings-title">{text.settings}</h2>
+                <p>{text.settingsHelp}</p>
+              </div>
+              {preferenceSaved && <span role="status">{text.saved}</span>}
+            </div>
+
+            <fieldset className="dilz-preference-group">
+              <legend>{text.language}</legend>
+              <div className="dilz-preference-options">
+                {[['en', text.english], ['he', text.hebrew]].map(([value, label]) => (
+                  <button key={value} type="button" className={lang === value ? 'is-selected' : ''} aria-pressed={lang === value} onClick={() => changeLanguage(value)}>{label}</button>
+                ))}
+              </div>
+            </fieldset>
+
+            <fieldset className="dilz-preference-group">
+              <legend>{text.feedOrder}</legend>
+              <div className="dilz-preference-options dilz-preference-options--stacked">
+                {[['hot', text.hot], ['latest', text.latest], ['comments', text.comments]].map(([value, label]) => (
+                  <button key={value} type="button" className={feedPreference === value ? 'is-selected' : ''} aria-pressed={feedPreference === value} onClick={() => changeFeedPreference(value)}>
+                    <span>{label}</span><span className="dilz-preference-check" aria-hidden="true">✓</span>
+                  </button>
+                ))}
+              </div>
+            </fieldset>
+          </section>
 
           <h2 className="dilz-profil-section-title">{text.mine}</h2>
 

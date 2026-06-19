@@ -4140,6 +4140,110 @@ textarea:focus {
   margin-bottom: -8px;
 }
 
+.dilz-account-settings {
+  scroll-margin-top: 84px;
+  background: var(--surface-main);
+  border: 1px solid var(--border-default);
+  border-radius: 18px;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.dilz-account-settings__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.dilz-account-settings__header h2 {
+  color: var(--text-primary);
+  font-size: 17px;
+  font-weight: 750;
+  margin: 0 0 4px;
+}
+
+.dilz-account-settings__header p {
+  color: var(--text-secondary);
+  font-size: 13px;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.dilz-account-settings__header [role="status"] {
+  color: #16A34A;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.dilz-preference-group {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  min-width: 0;
+}
+
+.dilz-preference-group legend {
+  color: var(--text-primary);
+  font-size: 13px;
+  font-weight: 700;
+  margin-bottom: 9px;
+}
+
+.dilz-preference-options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.dilz-preference-options button {
+  min-height: 42px;
+  border: 1px solid var(--border-default);
+  border-radius: 12px;
+  background: var(--surface-main);
+  color: var(--text-primary);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 650;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease;
+}
+
+.dilz-preference-options button:hover {
+  background: var(--surface-soft);
+  border-color: var(--border-strong);
+}
+
+.dilz-preference-options button.is-selected {
+  background: var(--brand);
+  border-color: var(--brand);
+  color: white;
+}
+
+.dilz-preference-options--stacked {
+  grid-template-columns: 1fr;
+}
+
+.dilz-preference-options--stacked button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 14px;
+  text-align: start;
+}
+
+.dilz-preference-check {
+  opacity: 0;
+  font-size: 15px;
+}
+
+.dilz-preference-options button.is-selected .dilz-preference-check {
+  opacity: 1;
+}
+
 .dilz-profil-deals {
   display: flex;
   flex-direction: column;
@@ -4244,6 +4348,7 @@ textarea:focus {
 /* Dark mode */
 .dark .dilz-profil-card,
 .dark .dilz-stat-card,
+.dark .dilz-account-settings,
 .dark .dilz-profil-deals {
   background: #181C26;
 }

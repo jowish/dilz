@@ -18,6 +18,7 @@ import { NotificationSheet } from '../components/ui/NotificationSheet';
 import { Button } from '../components/ui/Button';
 import { EmptyState } from '../components/ui/EmptyState';
 import { SectionHeader } from '../components/ui/SectionHeader';
+import { readDealSortPreference } from '../lib/userPreferences';
 
 const { PRODUCT_CATEGORIES, getProductCategoryLabel } = require('../lib/productCategories');
 
@@ -183,7 +184,7 @@ function isValidDealCategory(value) {
   return CATEGORIES.includes(value);
 }
 
-function readHomeStateFromUrl(asPath) {
+function readHomeStateFromUrl(asPath, preferredSort = 'hot') {
   const params = queryParamsFromPath(asPath);
   const tab = URL_TO_TAB[params.get('tab')] || 'deals';
 
@@ -214,7 +215,7 @@ function readHomeStateFromUrl(asPath) {
     promoSort: PROMO_SORTS.includes(promoSort) ? promoSort : 'discount',
     showPromoFilters: params.get('filters') === '1',
     categoryFilter: mine ? 'all' : (isValidDealCategory(dealCategory) ? dealCategory : 'all'),
-    sortDeals: DEAL_SORTS.includes(dealSort) ? dealSort : 'hot',
+    sortDeals: DEAL_SORTS.includes(dealSort) ? dealSort : preferredSort,
     myDealsOnly: mine,
     dealLayout: DEAL_LAYOUTS.includes(dealLayout) ? dealLayout : 'card',
     dealCollection,
@@ -258,7 +259,7 @@ function buildHomeUrl({
     } else if (categoryFilter !== 'all') {
       params.set('category', categoryFilter);
     }
-    if (sortDeals !== 'hot') params.set('sort', sortDeals);
+    params.set('sort', sortDeals);
     if (dealLayout !== 'card') params.set('layout', dealLayout);
   }
 
@@ -524,7 +525,7 @@ function ProfileTab({ user, lang, savedItems = [], onToggleSave, onOpenAlerts })
       <div style={{ display: 'flex', flexDirection: 'column', gap: 2, marginBottom: 12 }}>
         {[
           { label: lang !== 'he' ? 'My deals' : 'הדילים שלי', href: '/profil' },
-          { label: lang !== 'he' ? 'Account settings' : 'הגדרות חשבון', href: '/profil' },
+          { label: lang !== 'he' ? 'Account settings' : 'הגדרות חשבון', href: '/profil#settings' },
           { label: lang !== 'he' ? 'Deals map' : 'מפת דילים', href: '/map' },
         ].map(item => (
           <Link
@@ -730,6 +731,7 @@ export default function Home() {
   // ── Init ──
   useEffect(() => {
     setMounted(true);
+    const initialHasDealSort = queryParamsFromPath(window.location.search).has('sort');
     try {
       const dv = localStorage.getItem('dilzDealVotes');
       if (dv) setVotedDeals(JSON.parse(dv));
@@ -766,6 +768,16 @@ export default function Home() {
       const u = data.session?.user || null;
       setUser(u);
       if (u && data.session) {
+        const accountLanguage = u.user_metadata?.dilz_language;
+        if (accountLanguage === 'en' || accountLanguage === 'he') {
+          setLang(accountLanguage);
+          try { localStorage.setItem('dilzLang', accountLanguage); } catch {}
+        }
+        const accountSort = u.user_metadata?.dilz_deal_sort;
+        if (['hot', 'latest', 'comments'].includes(accountSort)) {
+          try { localStorage.setItem('dilzDealSortPreference', accountSort); } catch {}
+          if (!initialHasDealSort) setSortDeals(accountSort);
+        }
         fetch('/api/saved-items', { headers: { 'Authorization': `Bearer ${data.session.access_token}` } })
           .then(r => r.ok ? r.json() : null)
           .then(d => {
@@ -800,7 +812,7 @@ export default function Home() {
 
   useEffect(() => {
     if (!router.isReady) return;
-    const next = readHomeStateFromUrl(router.asPath);
+    const next = readHomeStateFromUrl(router.asPath, readDealSortPreference());
     syncingUrlRef.current = true;
 
     setTab(next.tab);
@@ -1198,11 +1210,11 @@ export default function Home() {
     }
   };
 
-  const openDealCollection = ({ collection = 'all', category = 'all', sort = 'hot' } = {}) => {
+  const openDealCollection = ({ collection = 'all', category = 'all', sort } = {}) => {
     setTab('deals');
     setDealCollection(collection);
     setCategoryFilter(category);
-    setSortDeals(sort);
+    setSortDeals(sort || readDealSortPreference());
     setMyDealsOnly(false);
     setShowMainMenu(false);
     window.scrollTo({ top: 0, behavior: 'smooth' });
