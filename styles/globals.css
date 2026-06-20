@@ -3513,24 +3513,48 @@ textarea:focus {
   border-radius: 14px;
   background: var(--bg-card);
 }
-.dilz-city-picker__letters {
+.dilz-city-picker__list-shell {
+  min-height: 0;
   display: flex;
-  gap: 4px;
-  padding: 8px 0;
-  overflow-x: auto;
-  scrollbar-width: thin;
-  flex-shrink: 0;
+  align-items: stretch;
+  gap: 6px;
+  direction: ltr;
 }
-.dilz-city-picker__letters button {
-  min-width: 30px;
-  height: 30px;
-  border: 1px solid var(--border);
-  border-radius: 8px;
+.dilz-city-modal__list-shell { flex: 1; }
+.dilz-city-picker__index {
+  width: 20px;
+  min-width: 20px;
+  max-height: 230px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 1px 0;
+  border-radius: 10px;
   background: var(--bg-card2);
-  color: var(--text-muted);
+  user-select: none;
+  touch-action: manipulation;
 }
-.dilz-city-picker__letters button.is-active { background: var(--text); color: var(--bg-card); border-color: var(--text); }
+.dilz-city-modal__list-shell .dilz-city-picker__index { max-height: none; }
+.dilz-city-picker__index button {
+  width: 18px;
+  min-height: 9px;
+  flex: 1 1 auto;
+  padding: 0;
+  border: 0;
+  border-radius: 5px;
+  background: transparent;
+  color: var(--brand);
+  font-size: 9px;
+  font-weight: 800;
+  line-height: 1;
+}
+.dilz-city-picker__index button.is-active { background: var(--brand); color: #fff; }
+.dilz-city-picker__list-shell.is-rtl .dilz-city-picker__options,
+.dilz-city-picker__list-shell.is-rtl .dilz-city-modal__grid { direction: rtl; }
 .dilz-city-picker__options {
+  flex: 1;
+  min-width: 0;
   max-height: 230px;
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));

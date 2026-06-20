@@ -2,10 +2,11 @@ import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
 import { registerNativePushToken } from '../../lib/nativeApp';
 import { CityPicker } from './CityPicker';
+import { cityDisplayName } from '../../lib/israelCities';
 
-function alertSummary(a) {
+function alertSummary(a, lang) {
   const parts = [];
-  if (a.city) parts.push(a.city);
+  if (a.city) parts.push(cityDisplayName(a.city, lang));
   if (a.online_only) parts.push('Online');
   if (a.min_discount_percent != null) parts.push(`-${a.min_discount_percent}%+`);
   if (a.keyword) parts.push(`"${a.keyword}"`);
@@ -167,7 +168,7 @@ export function AlertModal({ user, lang, villes = [], onClose }) {
               <div className="dilz-alert-list">
                 {alerts.map((a) => (
                   <div key={a.id} className={['dilz-alert-item', !a.is_active && 'is-paused'].filter(Boolean).join(' ')}>
-                    <p className="dilz-alert-item__summary">{alertSummary(a)}</p>
+                    <p className="dilz-alert-item__summary">{alertSummary(a, lang)}</p>
                     <div className="dilz-alert-item__actions">
                       <button
                         type="button"
