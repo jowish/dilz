@@ -18,8 +18,8 @@ import { NotificationSheet } from '../components/ui/NotificationSheet';
 import { Button } from '../components/ui/Button';
 import { EmptyState } from '../components/ui/EmptyState';
 import { SectionHeader } from '../components/ui/SectionHeader';
-import { readDealSortPreference } from '../lib/userPreferences';
-import { bottomNavPanelState, dealViewState, mainDealViewState, sortDealsForView } from '../lib/navigationState';
+import { readDealLayoutPreference, readDealSortPreference, readSessionDealSort, writeDealLayoutPreference, writeSessionDealSort } from '../lib/userPreferences';
+import { bottomNavPanelState, dealViewState, resolveDealLayout, resolveDealSort, sortDealsForView } from '../lib/navigationState';
 
 const { PRODUCT_CATEGORIES, getProductCategoryLabel } = require('../lib/productCategories');
 
@@ -75,7 +75,6 @@ const URL_TO_TAB = {
 
 const PROMO_SORTS = ['discount', 'liked', 'recent', 'price_asc'];
 const DEAL_SORTS = ['hot', 'latest', 'nearby', 'ending', 'comments'];
-const DEAL_LAYOUTS = ['card', 'list'];
 const DEAL_COLLECTIONS = ['all', 'codes', 'free'];
 const URL_ACTIONS = ['post_deal', 'city', 'alerts', 'notifications', 'view_promo'];
 const CATEGORY_ICONS = { all: '', Food: '', Tech: '', Fashion: '', Activities: '', Online: '' };
@@ -181,7 +180,7 @@ function isValidDealCategory(value) {
   return CATEGORIES.includes(value);
 }
 
-function readHomeStateFromUrl(asPath, preferredSort = 'hot') {
+function readHomeStateFromUrl(asPath, preferredSort = 'hot', savedLayout = 'card', sessionSort = null) {
   const params = queryParamsFromPath(asPath);
   const tab = URL_TO_TAB[params.get('tab')] || 'deals';
 
@@ -212,9 +211,9 @@ function readHomeStateFromUrl(asPath, preferredSort = 'hot') {
     promoSort: PROMO_SORTS.includes(promoSort) ? promoSort : 'discount',
     showPromoFilters: params.get('filters') === '1',
     categoryFilter: mine ? 'all' : (isValidDealCategory(dealCategory) ? dealCategory : 'all'),
-    sortDeals: DEAL_SORTS.includes(dealSort) ? dealSort : preferredSort,
+    sortDeals: resolveDealSort({ requestedSort: dealSort, sessionSort, preferredSort }),
     myDealsOnly: mine,
-    dealLayout: DEAL_LAYOUTS.includes(dealLayout) ? dealLayout : 'card',
+    dealLayout: resolveDealLayout({ requestedLayout: dealLayout, savedLayout }),
     dealCollection,
     action: normalizedAction,
     selectedPromoBarcode,
@@ -730,6 +729,7 @@ export default function Home() {
   useEffect(() => {
     setMounted(true);
     const initialHasDealSort = queryParamsFromPath(window.location.search).has('sort');
+    let initialSessionSort = readSessionDealSort();
     try {
       const dv = localStorage.getItem('dilzDealVotes');
       if (dv) setVotedDeals(JSON.parse(dv));
@@ -738,8 +738,7 @@ export default function Home() {
       else if (ll) localStorage.setItem('dilzLang', 'en');
       const savedPromoFilters = localStorage.getItem('dilzShowPromoFilters');
       if (savedPromoFilters !== null) setShowPromoFilters(savedPromoFilters === 'true');
-      const savedDealLayout = localStorage.getItem('dilzDealLayout');
-      if (savedDealLayout === 'list' || savedDealLayout === 'card') setDealLayout(savedDealLayout);
+      setDealLayout(readDealLayoutPreference());
       setAdminToken(localStorage.getItem('dilzAdminToken') || '');
       // Restore tab from back-nav
       const rt = sessionStorage.getItem('dilzReturnTab');
@@ -754,7 +753,11 @@ export default function Home() {
       }
       // Restore sort after posting a deal (show user their new deal)
       const rs = sessionStorage.getItem('dilzReturnSort');
-      if (rs) { setSortDeals(rs); sessionStorage.removeItem('dilzReturnSort'); }
+      if (rs) {
+        setSortDeals(rs);
+        initialSessionSort = writeSessionDealSort(rs);
+        sessionStorage.removeItem('dilzReturnSort');
+      }
     } catch {}
 
     fetch('/api/villes')
@@ -774,7 +777,7 @@ export default function Home() {
         const accountSort = u.user_metadata?.dilz_deal_sort;
         if (['hot', 'latest', 'comments'].includes(accountSort)) {
           try { localStorage.setItem('dilzDealSortPreference', accountSort); } catch {}
-          if (!initialHasDealSort) setSortDeals(accountSort);
+          if (!initialHasDealSort && !initialSessionSort) setSortDeals(accountSort);
         }
         fetch('/api/saved-items', { headers: { 'Authorization': `Bearer ${data.session.access_token}` } })
           .then(r => r.ok ? r.json() : null)
@@ -814,7 +817,12 @@ export default function Home() {
 
   useEffect(() => {
     if (!router.isReady) return;
-    const next = readHomeStateFromUrl(router.asPath, readDealSortPreference());
+    const next = readHomeStateFromUrl(
+      router.asPath,
+      readDealSortPreference(),
+      readDealLayoutPreference(),
+      readSessionDealSort()
+    );
     syncingUrlRef.current = true;
 
     setTab(next.tab);
@@ -824,6 +832,7 @@ export default function Home() {
     setShowPromoFilters(next.showPromoFilters);
     setCategoryFilter(next.categoryFilter);
     setSortDeals(next.sortDeals);
+    if (next.tab === 'deals') writeSessionDealSort(next.sortDeals);
     setMyDealsOnly(next.myDealsOnly);
     setDealLayout(next.dealLayout);
     setDealCollection(next.dealCollection);
@@ -975,8 +984,13 @@ export default function Home() {
     setVille(villeNom);
     const c = coords || (villeNom ? CITY_COORDS[villeNom] || null : null);
     setUserCoords(c);
-    if (c?.exact) setSortDeals('nearby');
-    else setSortDeals('hot');
+    if (c?.exact) {
+      setSortDeals('nearby');
+      writeSessionDealSort('nearby');
+    } else {
+      setSortDeals('hot');
+      writeSessionDealSort('hot');
+    }
   };
 
   const openPromo = (promo) => {
@@ -1004,8 +1018,7 @@ export default function Home() {
   };
 
   const changeDealLayout = (next) => {
-    setDealLayout(next);
-    try { localStorage.setItem('dilzDealLayout', next); } catch {}
+    setDealLayout(writeDealLayoutPreference(next));
   };
 
   const openMap = () => {
@@ -1200,6 +1213,7 @@ export default function Home() {
     } else {
       // No id returned — fall back to showing the feed sorted by New
       setSortDeals('latest');
+      writeSessionDealSort('latest');
       setPostSuccess(true);
       setTimeout(() => {
         setPostSuccess(false);
@@ -1219,11 +1233,16 @@ export default function Home() {
   };
 
   const openDealCollection = ({ collection = 'all', category = 'all', sort } = {}) => {
-    const mainState = mainDealViewState(sort || readDealSortPreference());
+    const nextSort = resolveDealSort({
+      requestedSort: sort,
+      sessionSort: readSessionDealSort(),
+      preferredSort: readDealSortPreference(),
+    });
     setTab('deals');
     setDealCollection(collection);
     setCategoryFilter(category);
-    setSortDeals(mainState.sort);
+    setSortDeals(nextSort);
+    writeSessionDealSort(nextSort);
     setMyDealsOnly(false);
     setShowMainMenu(false);
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -1243,7 +1262,10 @@ export default function Home() {
       router.push('/auth?redirect=/');
       return;
     }
-    if (destination === 'deals') openDealCollection();
+    if (destination === 'deals') {
+      setTab('deals');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
     if (destination === 'profile') setTab('profile');
   };
 
@@ -1488,6 +1510,7 @@ export default function Home() {
                         setDealCollection(nextView.collection);
                         setCategoryFilter(nextView.category);
                         setSortDeals(nextView.sort);
+                        writeSessionDealSort(nextView.sort);
                       }}
                     >
                       {view.label}

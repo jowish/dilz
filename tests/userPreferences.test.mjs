@@ -1,6 +1,17 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { DEAL_SORT_PREFERENCES, normalizeDealSortPreference, readDealSortPreference, writeDealSortPreference } from '../lib/userPreferences.js';
+import {
+  DEAL_LAYOUT_PREFERENCES,
+  DEAL_SORT_PREFERENCES,
+  normalizeDealLayoutPreference,
+  normalizeDealSortPreference,
+  readDealLayoutPreference,
+  readDealSortPreference,
+  readSessionDealSort,
+  writeDealLayoutPreference,
+  writeDealSortPreference,
+  writeSessionDealSort,
+} from '../lib/userPreferences.js';
 
 for (const value of DEAL_SORT_PREFERENCES) {
   test(`accepts deal sort preference ${value}`, () => assert.equal(normalizeDealSortPreference(value), value));
@@ -37,6 +48,44 @@ test('storage failures safely fall back to hot', () => {
   try {
     assert.equal(readDealSortPreference(), 'hot');
     assert.equal(writeDealSortPreference('comments'), 'comments');
+  } finally {
+    if (originalWindow === undefined) delete globalThis.window;
+    else globalThis.window = originalWindow;
+  }
+});
+
+for (const value of DEAL_LAYOUT_PREFERENCES) {
+  test(`accepts deal layout preference ${value}`, () => assert.equal(normalizeDealLayoutPreference(value), value));
+}
+
+test('persists list layout across sessions in local storage', () => {
+  const originalWindow = globalThis.window;
+  const values = new Map();
+  globalThis.window = { localStorage: { getItem: (key) => values.get(key), setItem: (key, value) => values.set(key, value) } };
+  try {
+    assert.equal(writeDealLayoutPreference('list'), 'list');
+    assert.equal(values.get('dilzDealLayout'), 'list');
+    assert.equal(readDealLayoutPreference(), 'list');
+    assert.equal(writeDealLayoutPreference('invalid'), 'card');
+  } finally {
+    if (originalWindow === undefined) delete globalThis.window;
+    else globalThis.window = originalWindow;
+  }
+});
+
+test('keeps the selected sort only in session storage', () => {
+  const originalWindow = globalThis.window;
+  const sessionValues = new Map();
+  const localValues = new Map();
+  globalThis.window = {
+    localStorage: { getItem: (key) => localValues.get(key), setItem: (key, value) => localValues.set(key, value) },
+    sessionStorage: { getItem: (key) => sessionValues.get(key), setItem: (key, value) => sessionValues.set(key, value) },
+  };
+  try {
+    assert.equal(writeSessionDealSort('ending'), 'ending');
+    assert.equal(readSessionDealSort(), 'ending');
+    assert.equal(localValues.has('dilzSessionDealSort'), false);
+    assert.equal(writeSessionDealSort('invalid'), null);
   } finally {
     if (originalWindow === undefined) delete globalThis.window;
     else globalThis.window = originalWindow;

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { bottomNavActiveItem, bottomNavPanelState, dealViewState, mainDealViewState, sortDealsForView } from '../lib/navigationState.js';
+import { bottomNavActiveItem, bottomNavPanelState, dealViewState, mainDealViewState, resolveDealLayout, resolveDealSort, sortDealsForView } from '../lib/navigationState.js';
 
 test('returning to the main Dilz view restores the saved latest preference', () => {
   const temporaryView = dealViewState('comments', 'latest');
@@ -17,6 +17,23 @@ test('returning to the main Dilz view restores the saved latest preference', () 
 
 test('main Dilz view normalizes an invalid saved preference', () => {
   assert.equal(mainDealViewState('nearby').sort, 'hot');
+});
+
+test('current session sort wins when returning from Account to Dilz', () => {
+  assert.equal(resolveDealSort({ sessionSort: 'ending', preferredSort: 'latest' }), 'ending');
+});
+
+test('account setting is restored when a new session has no selected sort', () => {
+  assert.equal(resolveDealSort({ sessionSort: null, preferredSort: 'latest' }), 'latest');
+});
+
+test('an explicit URL sort wins over session and account defaults', () => {
+  assert.equal(resolveDealSort({ requestedSort: 'comments', sessionSort: 'ending', preferredSort: 'latest' }), 'comments');
+});
+
+test('saved list layout is used unless the URL explicitly selects cards', () => {
+  assert.equal(resolveDealLayout({ savedLayout: 'list' }), 'list');
+  assert.equal(resolveDealLayout({ requestedLayout: 'card', savedLayout: 'list' }), 'card');
 });
 
 test('latest view orders the newest Dilz first regardless of API response order', () => {
