@@ -19,7 +19,7 @@ import { Button } from '../components/ui/Button';
 import { EmptyState } from '../components/ui/EmptyState';
 import { SectionHeader } from '../components/ui/SectionHeader';
 import { readDealSortPreference } from '../lib/userPreferences';
-import { dealViewState, mainDealViewState, sortDealsForView } from '../lib/navigationState';
+import { bottomNavPanelState, dealViewState, mainDealViewState, sortDealsForView } from '../lib/navigationState';
 
 const { PRODUCT_CATEGORIES, getProductCategoryLabel } = require('../lib/productCategories');
 
@@ -1229,6 +1229,24 @@ export default function Home() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  const handleBottomNavigation = (destination) => {
+    const panels = bottomNavPanelState(destination, { authenticated: Boolean(user) });
+    setShowMainMenu(panels.menuOpen);
+    setShowPostModal(panels.postOpen);
+    setShowAlertModal(panels.alertsOpen);
+    setShowCityModal(panels.cityOpen);
+    setShowNotificationSheet(panels.notificationsOpen);
+    setSelectedPromo(null);
+    setSelectedPromoBarcode(null);
+
+    if (panels.requiresAuth) {
+      router.push('/auth?redirect=/');
+      return;
+    }
+    if (destination === 'deals') openDealCollection();
+    if (destination === 'profile') setTab('profile');
+  };
+
   // Computed displayed deals (proximity sort)
   const unblockedDeals = blockedUserIds.length
     ? deals.filter((deal) => !deal.auteur_id || !blockedUserIds.includes(deal.auteur_id))
@@ -1636,11 +1654,12 @@ export default function Home() {
           activeTab={tab}
           menuOpen={showMainMenu}
           alertsOpen={showAlertModal}
-          onMenu={() => setShowMainMenu(true)}
-          onTab={() => openDealCollection()}
-          onPost={() => setShowPostModal(true)}
-          onAlerts={() => user ? setShowAlertModal(true) : router.push('/auth?redirect=/')}
-          onProfile={() => setTab('profile')}
+          postOpen={showPostModal}
+          onMenu={() => handleBottomNavigation('menu')}
+          onTab={() => handleBottomNavigation('deals')}
+          onPost={() => handleBottomNavigation('post')}
+          onAlerts={() => handleBottomNavigation('alerts')}
+          onProfile={() => handleBottomNavigation('profile')}
         />
 
         {selectedPromo && (

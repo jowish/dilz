@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { bottomNavActiveItem, dealViewState, mainDealViewState, sortDealsForView } from '../lib/navigationState.js';
+import { bottomNavActiveItem, bottomNavPanelState, dealViewState, mainDealViewState, sortDealsForView } from '../lib/navigationState.js';
 
 test('returning to the main Dilz view restores the saved latest preference', () => {
   const temporaryView = dealViewState('comments', 'latest');
@@ -41,4 +41,39 @@ test('bottom navigation returns to the active page after Alerts closes', () => {
 test('Alerts selection takes precedence over the menu overlay', () => {
   assert.equal(bottomNavActiveItem({ activeTab: 'deals', menuOpen: true, alertsOpen: true }), 'alerts');
   assert.equal(bottomNavActiveItem({ activeTab: 'deals', menuOpen: true }), 'menu');
+});
+
+test('bottom navigation selects Post while the post screen is open', () => {
+  assert.equal(bottomNavActiveItem({ activeTab: 'deals', postOpen: true }), 'post');
+});
+
+for (const destination of ['menu', 'deals', 'post', 'alerts', 'profile']) {
+  test(`navigating to ${destination} closes unrelated transient screens`, () => {
+    const state = bottomNavPanelState(destination, { authenticated: true });
+    assert.equal(state.cityOpen, false);
+    assert.equal(state.notificationsOpen, false);
+    assert.equal(state.promoOpen, false);
+    assert.equal(state.menuOpen, destination === 'menu');
+    assert.equal(state.postOpen, destination === 'post');
+    assert.equal(state.alertsOpen, destination === 'alerts');
+  });
+}
+
+test('moving from Alerts to Dilz closes Alerts immediately', () => {
+  const state = bottomNavPanelState('deals', { authenticated: true });
+  assert.equal(state.alertsOpen, false);
+  assert.equal(state.postOpen, false);
+});
+
+test('moving from Post to Profile closes the post screen immediately', () => {
+  const state = bottomNavPanelState('profile', { authenticated: true });
+  assert.equal(state.postOpen, false);
+  assert.equal(state.alertsOpen, false);
+});
+
+test('unauthenticated Alerts navigation closes panels and requests authentication', () => {
+  const state = bottomNavPanelState('alerts', { authenticated: false });
+  assert.equal(state.alertsOpen, false);
+  assert.equal(state.postOpen, false);
+  assert.equal(state.requiresAuth, true);
 });
