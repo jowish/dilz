@@ -1,10 +1,10 @@
 const ISRAEL_BOUNDS = { minLat: 29.3, maxLat: 33.6, minLon: 34.1, maxLon: 35.95 };
 
-function inIsrael(lat, lon) {
+export function inIsrael(lat, lon) {
   return Number.isFinite(lat) && Number.isFinite(lon) && lat >= ISRAEL_BOUNDS.minLat && lat <= ISRAEL_BOUNDS.maxLat && lon >= ISRAEL_BOUNDS.minLon && lon <= ISRAEL_BOUNDS.maxLon;
 }
 
-function locationPayload(item) {
+export function locationPayload(item) {
   const address = item.address || {};
   return {
     address: item.display_name || '',
@@ -12,6 +12,14 @@ function locationPayload(item) {
     latitude: Number(item.lat),
     longitude: Number(item.lon),
   };
+}
+
+export function simplifyAddress(query) {
+  return String(query)
+    .replace(/\b(street|road|avenue|boulevard|st|rd|ave)\b\.?/gi, '')
+    .replace(/\s+([,.;])/g, '$1')
+    .replace(/\s+/g, ' ')
+    .trim();
 }
 
 async function searchAddress(query, headers) {
@@ -33,7 +41,7 @@ export default async function handler(req, res) {
       if (!query) return res.status(400).json({ erreur: 'Address is required.' });
       let rows = await searchAddress(`${query}, Israel`, headers);
       if (!rows.length) {
-        const simplified = query.replace(/\b(street|road|avenue|boulevard|st\.?|rd\.?|ave\.?)\b/gi, '').replace(/\s+/g, ' ').trim();
+        const simplified = simplifyAddress(query);
         if (simplified !== query) rows = await searchAddress(simplified, headers);
       }
       const item = rows.find((row) => inIsrael(Number(row.lat), Number(row.lon)));

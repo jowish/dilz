@@ -1,7 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 
-const MAX_ALERTS_PER_USER = 20;
-const MAX_KEYWORD_LEN = 80;
+const { MAX_ALERTS_PER_USER, hasReachedAlertLimit, normalizeAlertInput } = require('../../lib/alertValidation');
 
 export default async function handler(req, res) {
   const {
@@ -44,26 +43,9 @@ export default async function handler(req, res) {
       const { user, error: authErr } = await verifyUser();
       if (!user) return res.status(401).json({ erreur: authErr });
 
-      let { city, online_only, min_discount_percent, keyword } = req.body;
-
-      // Validate
-      city = city ? String(city).trim().slice(0, 100) : null;
-      online_only = Boolean(online_only);
-      keyword = keyword ? String(keyword).trim().slice(0, MAX_KEYWORD_LEN) || null : null;
-
-      if (min_discount_percent != null) {
-        min_discount_percent = Number(min_discount_percent);
-        if (isNaN(min_discount_percent) || min_discount_percent < 0 || min_discount_percent > 100) {
-          return res.status(400).json({ erreur: 'min_discount_percent must be between 0 and 100.' });
-        }
-      } else {
-        min_discount_percent = null;
-      }
-
-      // Must have at least one criterion
-      if (!city && !online_only && min_discount_percent == null && !keyword) {
-        return res.status(400).json({ erreur: 'At least one alert criterion is required.' });
-      }
+      const normalized = normalizeAlertInput(req.body);
+      if (normalized.errors.length) return res.status(400).json({ erreur: normalized.errors[0] });
+      const { city, online_only, min_discount_percent, keyword } = normalized.value;
 
       // Rate limit per user
       const { count } = await supabaseAdmin
@@ -71,7 +53,7 @@ export default async function handler(req, res) {
         .select('id', { count: 'exact', head: true })
         .eq('user_id', user.id);
 
-      if (count >= MAX_ALERTS_PER_USER) {
+      if (hasReachedAlertLimit(count)) {
         return res.status(400).json({ erreur: `Maximum ${MAX_ALERTS_PER_USER} alerts per user.` });
       }
 
