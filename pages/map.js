@@ -4,6 +4,7 @@ import { useRouter } from 'next/router';
 import { traduireVille } from '../lib/translations';
 import { useAppLanguage } from '../lib/useAppLanguage';
 import { VoteEmoji } from '../components/ui/VoteEmoji';
+import { buildMapUrl, toggleCityFilter } from '../lib/mapState';
 
 const MAP_TEXT = {
   en: { title: 'Dilz Map', back: 'Back', feed: 'Feed', points: 'active points', loading: 'Loading Dilz map...', israel: 'All Israel', tap: 'Tap a city to filter', mapPoints: 'Dilz map points', comments: 'comments' },
@@ -123,12 +124,13 @@ export default function MapPage() {
   useEffect(() => {
     if (!router.isReady) return;
     const city = typeof router.query.city === 'string' ? router.query.city : null;
-    if (city && dealsByCity[city]) setSelectedCity(city);
+    setSelectedCity(city && dealsByCity[city] ? city : null);
   }, [router.isReady, router.query.city, dealsByCity]);
 
   const selectCity = (city) => {
-    setSelectedCity(city);
-    router.replace(`/map?city=${encodeURIComponent(city)}`, undefined, { shallow: true, scroll: false });
+    const nextCity = toggleCityFilter(selectedCity, city);
+    setSelectedCity(nextCity);
+    router.replace(buildMapUrl(nextCity), undefined, { shallow: true, scroll: false });
   };
 
   const goBackToFeed = () => {
@@ -256,6 +258,14 @@ export default function MapPage() {
             </div>
 
             <div className="dilz-map-city-strip" aria-label={text.mapPoints}>
+              <button
+                type="button"
+                className={!selectedCity ? 'is-active' : ''}
+                onClick={() => selectCity(null)}
+              >
+                <span>{text.israel}</span>
+                <strong>{deals.filter(getDealCoordinates).length}</strong>
+              </button>
               {cityEntries.slice(0, 12).map(([city, cityDeals]) => (
                 <button
                   key={city}

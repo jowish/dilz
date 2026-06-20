@@ -213,6 +213,77 @@ function EditDealModal({ deal, onClose, onSave, loading }) {
   );
 }
 
+function toDateTimeLocal(value) {
+  if (!value) return '';
+  const date = new Date(value);
+  if (!Number.isFinite(date.getTime())) return '';
+  const offset = date.getTimezoneOffset() * 60000;
+  return new Date(date.getTime() - offset).toISOString().slice(0, 16);
+}
+
+function AppMessageModal({ message = {}, onClose, onSave, loading }) {
+  const [form, setForm] = useState(() => ({
+    type: message.type || 'banner',
+    target: message.target || 'all',
+    title_en: message.title_en || '',
+    title_he: message.title_he || '',
+    body_en: message.body_en || '',
+    body_he: message.body_he || '',
+    cta_label_en: message.cta_label_en || '',
+    cta_label_he: message.cta_label_he || '',
+    cta_url: message.cta_url || '',
+    starts_at: toDateTimeLocal(message.starts_at),
+    ends_at: toDateTimeLocal(message.ends_at),
+    priority: message.priority ?? 0,
+    is_active: message.is_active === true,
+    dismissible: message.dismissible !== false,
+  }));
+  const set = (key, value) => setForm(current => ({ ...current, [key]: value }));
+
+  return (
+    <div className="admin-modal" onClick={onClose}>
+      <form
+        className="admin-modal__panel"
+        onClick={(event) => event.stopPropagation()}
+        onSubmit={(event) => {
+          event.preventDefault();
+          onSave(message.id || null, form);
+        }}
+      >
+        <div className="admin-modal__header">
+          <div>
+            <span className="admin-kicker">App communication</span>
+            <h2>{message.id ? 'Edit message' : 'Create message'}</h2>
+          </div>
+          <button type="button" onClick={onClose}>x</button>
+        </div>
+        <div className="admin-form-grid">
+          <label>Format<select value={form.type} onChange={e => set('type', e.target.value)}><option value="banner">Banner</option><option value="yellow_note">Yellow note</option></select></label>
+          <label>Audience<select value={form.target} onChange={e => set('target', e.target.value)}><option value="all">Web + iOS</option><option value="web">Web only</option><option value="ios">iOS only</option></select></label>
+          <label>English title<input value={form.title_en} onChange={e => set('title_en', e.target.value)} maxLength={120} /></label>
+          <label>Hebrew title<input dir="rtl" value={form.title_he} onChange={e => set('title_he', e.target.value)} maxLength={120} /></label>
+          <label className="is-wide">English message *<textarea rows={3} required value={form.body_en} onChange={e => set('body_en', e.target.value)} maxLength={500} /></label>
+          <label className="is-wide">Hebrew message *<textarea dir="rtl" rows={3} required value={form.body_he} onChange={e => set('body_he', e.target.value)} maxLength={500} /></label>
+          <label>English CTA<input value={form.cta_label_en} onChange={e => set('cta_label_en', e.target.value)} maxLength={80} /></label>
+          <label>Hebrew CTA<input dir="rtl" value={form.cta_label_he} onChange={e => set('cta_label_he', e.target.value)} maxLength={80} /></label>
+          <label className="is-wide">CTA URL<input value={form.cta_url} onChange={e => set('cta_url', e.target.value)} placeholder="https://apps.apple.com/... or /page" /></label>
+          <label>Starts at<input type="datetime-local" value={form.starts_at} onChange={e => set('starts_at', e.target.value)} /></label>
+          <label>Ends at<input type="datetime-local" value={form.ends_at} onChange={e => set('ends_at', e.target.value)} /></label>
+          <label>Priority<input type="number" min="-100" max="100" value={form.priority} onChange={e => set('priority', e.target.value)} /></label>
+          <div className="admin-checks">
+            <label><input type="checkbox" checked={form.is_active} onChange={e => set('is_active', e.target.checked)} /> Active</label>
+            <label><input type="checkbox" checked={form.dismissible} onChange={e => set('dismissible', e.target.checked)} /> Dismissible</label>
+          </div>
+        </div>
+        <div className="admin-modal__footer">
+          <AdminButton onClick={onClose}>Cancel</AdminButton>
+          <AdminButton type="submit" tone="admin" disabled={loading}>{loading ? 'Saving...' : 'Save message'}</AdminButton>
+        </div>
+      </form>
+    </div>
+  );
+}
+
 export default function AdminDashboard() {
   const [token, setToken] = useState('');
   const [data, setData] = useState(null);
@@ -221,6 +292,7 @@ export default function AdminDashboard() {
   const [actionLoading, setActionLoading] = useState(false);
   const [actionMessage, setActionMessage] = useState('');
   const [editingDeal, setEditingDeal] = useState(null);
+  const [editingMessage, setEditingMessage] = useState(false);
 
   const loadDashboard = async (nextToken = token) => {
     if (!nextToken) return;
@@ -258,6 +330,7 @@ export default function AdminDashboard() {
       if (!res.ok) throw new Error(json.erreur || 'Admin action failed.');
       setActionMessage(successMessage || 'Action done.');
       setEditingDeal(null);
+      setEditingMessage(false);
       await loadDashboard(token);
     } catch (err) {
       setActionMessage(err.message);
@@ -328,6 +401,38 @@ export default function AdminDashboard() {
         </header>
 
         {actionMessage && <div className="admin-flash">{actionMessage}</div>}
+
+        <section className="admin-grid">
+          <Panel
+            title="Banners and yellow notes"
+            subtitle="Create bilingual, scheduled communications displayed across Dilz."
+            action={<AdminButton tone="admin" onClick={() => setEditingMessage({})}>Create message</AdminButton>}
+          >
+            <DataTable
+              rows={data.appMessages || []}
+              columns={[
+                { key: 'type', label: 'Format', render: row => <StatusPill tone={row.type === 'yellow_note' ? 'warn' : 'default'}>{row.type}</StatusPill> },
+                { key: 'body_en', label: 'Message', render: row => String(row.title_en || row.body_en || '').slice(0, 80) },
+                { key: 'target', label: 'Audience' },
+                { key: 'priority', label: 'Priority' },
+                { key: 'schedule', label: 'Schedule', render: row => `${formatDate(row.starts_at)} - ${formatDate(row.ends_at)}` },
+                { key: 'is_active', label: 'Status', render: row => <StatusPill tone={row.is_active ? 'good' : 'default'}>{row.is_active ? 'active' : 'draft'}</StatusPill> },
+                {
+                  key: 'actions',
+                  label: 'Actions',
+                  render: row => (
+                    <div className="admin-row-actions">
+                      <AdminButton tone="admin" onClick={() => setEditingMessage(row)}>Edit</AdminButton>
+                      <AdminButton onClick={() => runAdminAction({ action: 'upsert_app_message', id: row.id, message: { ...row, is_active: !row.is_active } }, row.is_active ? 'Message disabled.' : 'Message activated.')}>{row.is_active ? 'Disable' : 'Activate'}</AdminButton>
+                      <AdminButton tone="danger" onClick={() => confirmAndRun('Delete this app message?', { action: 'delete_app_message', id: row.id }, 'Message deleted.')}>Delete</AdminButton>
+                    </div>
+                  ),
+                },
+              ]}
+              empty="No app messages configured."
+            />
+          </Panel>
+        </section>
 
         <section className="admin-metrics">
           <MetricCard label="Users" value={data.overview.users} detail={`${data.users.new7d} new in 7d`} />
@@ -531,6 +636,14 @@ export default function AdminDashboard() {
             loading={actionLoading}
             onClose={() => setEditingDeal(null)}
             onSave={(id, updates) => runAdminAction({ action: 'update_deal', id, updates }, 'Deal updated.')}
+          />
+        )}
+        {editingMessage !== false && (
+          <AppMessageModal
+            message={editingMessage}
+            loading={actionLoading}
+            onClose={() => setEditingMessage(false)}
+            onSave={(id, message) => runAdminAction({ action: 'upsert_app_message', id, message }, 'Message saved.')}
           />
         )}
       </main>

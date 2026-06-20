@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+import { normalizeAppMessageInput } from '../../../lib/appMessages';
 
 const { getAdminToken, secretsMatch } = require('../../../lib/adminAuth');
 
@@ -146,6 +147,34 @@ export default async function handler(req, res) {
       const { data, error } = await supabase.auth.admin.updateUserById(userId, { ban_duration: banDuration });
       if (error) throw error;
       return res.status(200).json({ ok: true, user: data?.user || null });
+    }
+
+    if (action === 'upsert_app_message') {
+      const message = normalizeAppMessageInput(req.body.message || {});
+      const id = String(req.body.id || '').trim();
+      let query;
+      if (id) {
+        if (!/^[0-9a-f-]{36}$/i.test(id)) return res.status(400).json({ erreur: 'Valid message id required.' });
+        query = supabase
+          .from('app_messages')
+          .update({ ...message, updated_at: new Date().toISOString() })
+          .eq('id', id)
+          .select('*')
+          .single();
+      } else {
+        query = supabase.from('app_messages').insert(message).select('*').single();
+      }
+      const { data, error } = await query;
+      if (error) throw error;
+      return res.status(200).json({ ok: true, message: data });
+    }
+
+    if (action === 'delete_app_message') {
+      const id = String(req.body.id || '').trim();
+      if (!/^[0-9a-f-]{36}$/i.test(id)) return res.status(400).json({ erreur: 'Valid message id required.' });
+      const { error } = await supabase.from('app_messages').delete().eq('id', id);
+      if (error) throw error;
+      return res.status(200).json({ ok: true });
     }
 
     return res.status(400).json({ erreur: 'Unknown admin action.' });

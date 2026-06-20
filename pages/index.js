@@ -1007,6 +1007,7 @@ export default function Home() {
     if (next !== 'en' && next !== 'he') return;
     setLang(next);
     try { localStorage.setItem('dilzLang', next); } catch {}
+    window.dispatchEvent(new CustomEvent('dilz-language-change', { detail: next }));
   };
 
   const togglePromoFilters = () => {

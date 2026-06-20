@@ -138,6 +138,7 @@ export default async function handler(req, res) {
       pushSubscriptions,
       reportsPending,
       recentReports,
+      appMessages,
     ] = await Promise.all([
       getUsers(supabase),
       countRows(supabase, 'bons_plans'),
@@ -175,6 +176,7 @@ export default async function handler(req, res) {
       countRows(supabase, 'push_subscriptions'),
       countRows(supabase, 'content_reports', q => q.eq('status', 'pending')),
       selectRows(supabase, 'content_reports', 'id,content_type,content_id,reported_user_id,reason,details,status,created_at', q => q.order('created_at', { ascending: false }).limit(50)),
+      selectRows(supabase, 'app_messages', '*', q => q.order('priority', { ascending: false }).order('created_at', { ascending: false })),
     ]);
 
     const dealsWithoutImage = Math.max((dealsTotal || 0) - (dealsWithImage || 0), 0);
@@ -263,6 +265,7 @@ export default async function handler(req, res) {
         reportsPending,
         recentReports,
       },
+      appMessages,
       health: {
         pendingDeals,
         dealsWithoutImage,
