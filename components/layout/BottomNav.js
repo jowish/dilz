@@ -1,4 +1,6 @@
-export function BottomNav({ lang = 'en', activeTab, menuOpen = false, onMenu, onTab, onPost, onAlerts, onProfile }) {
+import { bottomNavActiveItem } from '../../lib/navigationState';
+
+export function BottomNav({ lang = 'en', activeTab, menuOpen = false, alertsOpen = false, onMenu, onTab, onPost, onAlerts, onProfile }) {
   const labels = lang === 'he'
     ? { menu: 'תפריט', deals: 'דילז', post: 'פרסום', alerts: 'התראות', profile: 'פרופיל', nav: 'ניווט במובייל' }
     : { menu: 'Menu', deals: 'Dilz', post: 'Post', alerts: 'Alerts', profile: 'Profile', nav: 'Mobile navigation' };
@@ -9,12 +11,13 @@ export function BottomNav({ lang = 'en', activeTab, menuOpen = false, onMenu, on
     { id: 'alerts', label: labels.alerts, action: onAlerts, icon: BellIcon },
     { id: 'profile', label: labels.profile, action: onProfile, icon: UserIcon },
   ];
+  const activeItem = bottomNavActiveItem({ activeTab, menuOpen, alertsOpen });
 
   return (
     <nav className="dilz-bottom-nav" aria-label={labels.nav}>
       <div className="dilz-bottom-nav__inner">
         {items.map((item) => {
-          const active = item.id === 'menu' ? menuOpen : activeTab === item.id;
+          const active = activeItem === item.id;
           const Icon = item.icon;
           return (
             <button

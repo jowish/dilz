@@ -19,6 +19,7 @@ import { Button } from '../components/ui/Button';
 import { EmptyState } from '../components/ui/EmptyState';
 import { SectionHeader } from '../components/ui/SectionHeader';
 import { readDealSortPreference } from '../lib/userPreferences';
+import { dealViewState, mainDealViewState, sortDealsForView } from '../lib/navigationState';
 
 const { PRODUCT_CATEGORIES, getProductCategoryLabel } = require('../lib/productCategories');
 
@@ -927,13 +928,14 @@ export default function Home() {
   // ── Deals fetch ──
   useEffect(() => {
     if (tab !== 'deals' && tab !== 'search') return;
+    const controller = new AbortController();
     setLoadingDeals(true);
     const params = new URLSearchParams();
     if (categoryFilter !== 'all') params.set('categorie', categoryFilter);
     if (ville && sortDeals !== 'nearby') params.set('ville', ville);
     params.set('tri', sortDeals === 'nearby' ? 'latest' : sortDeals);
     if (myDealsOnly && user?.id) params.set('auteur_id', user.id);
-    fetch(`/api/bons-plans?${params}`)
+    fetch(`/api/bons-plans?${params}`, { signal: controller.signal })
       .then(r => r.json())
       .then(d => {
         const nextDeals = d.bons_plans || [];
@@ -941,7 +943,10 @@ export default function Home() {
         setDealTotal(Number.isFinite(d.total) ? d.total : nextDeals.length);
         setLoadingDeals(false);
       })
-      .catch(() => setLoadingDeals(false));
+      .catch((error) => {
+        if (error.name !== 'AbortError') setLoadingDeals(false);
+      });
+    return () => controller.abort();
   }, [tab, categoryFilter, sortDeals, myDealsOnly, user, ville]);
 
   // Also fetch deals when switching to search tab if empty
@@ -1214,10 +1219,11 @@ export default function Home() {
   };
 
   const openDealCollection = ({ collection = 'all', category = 'all', sort } = {}) => {
+    const mainState = mainDealViewState(sort || readDealSortPreference());
     setTab('deals');
     setDealCollection(collection);
     setCategoryFilter(category);
-    setSortDeals(sort || readDealSortPreference());
+    setSortDeals(mainState.sort);
     setMyDealsOnly(false);
     setShowMainMenu(false);
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -1227,12 +1233,8 @@ export default function Home() {
   const unblockedDeals = blockedUserIds.length
     ? deals.filter((deal) => !deal.auteur_id || !blockedUserIds.includes(deal.auteur_id))
     : deals;
-  const sortedDeals = sortDeals === 'comments'
-    ? [...unblockedDeals].sort((a, b) => {
-        const ac = Number(a.commentaires?.[0]?.count || 0);
-        const bc = Number(b.commentaires?.[0]?.count || 0);
-        return bc - ac || new Date(b.created_at) - new Date(a.created_at);
-      })
+  const sortedDeals = sortDeals === 'comments' || sortDeals === 'latest'
+    ? sortDealsForView(unblockedDeals, sortDeals)
     : (sortDeals === 'nearby' && userCoords)
       ? [...unblockedDeals].sort((a, b) => {
         const ca = Number.isFinite(Number(a.latitude)) && Number.isFinite(Number(a.longitude))
@@ -1463,16 +1465,11 @@ export default function Home() {
                       type="button"
                       className={active ? 'is-active' : ''}
                       onClick={() => {
-                        setMyDealsOnly(false);
-                        setDealCollection('all');
-                        setCategoryFilter('all');
-                        if (view.id === 'all') setSortDeals('hot');
-                        else if (view.id === 'mine') setMyDealsOnly(true);
-                        else if (['latest', 'nearby', 'ending', 'comments'].includes(view.id)) setSortDeals(view.id);
-                        else {
-                          setSortDeals('hot');
-                          setCategoryFilter(view.id);
-                        }
+                        const nextView = dealViewState(view.id, readDealSortPreference());
+                        setMyDealsOnly(nextView.myDealsOnly);
+                        setDealCollection(nextView.collection);
+                        setCategoryFilter(nextView.category);
+                        setSortDeals(nextView.sort);
                       }}
                     >
                       {view.label}
@@ -1638,6 +1635,7 @@ export default function Home() {
           lang={lang}
           activeTab={tab}
           menuOpen={showMainMenu}
+          alertsOpen={showAlertModal}
           onMenu={() => setShowMainMenu(true)}
           onTab={() => openDealCollection()}
           onPost={() => setShowPostModal(true)}

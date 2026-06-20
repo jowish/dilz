@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { getDevicePosition } from '../../lib/nativeApp';
-import { cityInitials, filterCityOptions, localizedCityOptions } from '../../lib/israelCities';
+import { filterCityOptions, localizedCityOptions } from '../../lib/israelCities';
 
 function LocationIcon() {
   return <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>;
@@ -8,12 +8,10 @@ function LocationIcon() {
 
 export function CityModal({ villes = [], current, lang = 'en', onSelect, onClose }) {
   const [search, setSearch] = useState('');
-  const [letter, setLetter] = useState('');
   const [gpsLoading, setGpsLoading] = useState(false);
   const [locationError, setLocationError] = useState('');
   const cities = useMemo(() => localizedCityOptions(villes, lang), [villes, lang]);
-  const letters = useMemo(() => cityInitials(cities, lang), [cities, lang]);
-  const filtered = useMemo(() => filterCityOptions(cities, { search, letter, lang }), [cities, search, letter, lang]);
+  const filtered = useMemo(() => filterCityOptions(cities, { search, lang }), [cities, search, lang]);
 
   useEffect(() => {
     const esc = (event) => { if (event.key === 'Escape') onClose(); };
@@ -48,16 +46,10 @@ export function CityModal({ villes = [], current, lang = 'en', onSelect, onClose
           <LocationIcon /> {gpsLoading ? (lang === 'he' ? 'מאתר...' : 'Locating...') : (lang === 'he' ? 'השתמשו במיקום המדויק שלי' : 'Use my exact location')}
         </button>
         {locationError && <p className="dilz-field__error">{locationError}</p>}
-        <input autoFocus type="search" className="dilz-input dilz-city-modal__search" placeholder={lang === 'he' ? 'חיפוש עיר...' : 'Search city...'} value={search} onChange={(event) => { setSearch(event.target.value); setLetter(''); }} />
-        <div className={['dilz-city-picker__list-shell', 'dilz-city-modal__list-shell', lang === 'he' && 'is-rtl'].filter(Boolean).join(' ')}>
-          <div className="dilz-city-modal__grid">
-            <button type="button" className={['dilz-city-btn', !current && 'is-active'].filter(Boolean).join(' ')} onClick={() => { onSelect(null, null); onClose(); }}>{lang === 'he' ? 'כל ישראל' : 'All Israel'}</button>
-            {filtered.map((city) => <button type="button" key={city.value} className={['dilz-city-btn', current === city.value && 'is-active'].filter(Boolean).join(' ')} onClick={() => { onSelect(city.value, { lat: city.lat, lon: city.lon }); onClose(); }}>{city.label}</button>)}
-          </div>
-          <nav className="dilz-city-picker__index" aria-label={lang === 'he' ? 'סינון לפי אות' : 'Filter by first letter'}>
-            <button type="button" className={!letter ? 'is-active' : ''} onClick={() => setLetter('')}>#</button>
-            {letters.map((item) => <button type="button" key={item} className={letter === item ? 'is-active' : ''} onClick={() => setLetter(item)}>{item}</button>)}
-          </nav>
+        <input autoFocus type="search" className="dilz-input dilz-city-modal__search" placeholder={lang === 'he' ? 'חיפוש עיר...' : 'Search city...'} value={search} onChange={(event) => setSearch(event.target.value)} />
+        <div className="dilz-city-modal__grid" dir={lang === 'he' ? 'rtl' : 'ltr'}>
+          <button type="button" className={['dilz-city-btn', !current && 'is-active'].filter(Boolean).join(' ')} onClick={() => { onSelect(null, null); onClose(); }}>{lang === 'he' ? 'כל ישראל' : 'All Israel'}</button>
+          {filtered.map((city) => <button type="button" key={city.value} className={['dilz-city-btn', current === city.value && 'is-active'].filter(Boolean).join(' ')} onClick={() => { onSelect(city.value, { lat: city.lat, lon: city.lon }); onClose(); }}>{city.label}</button>)}
         </div>
       </div>
     </div>

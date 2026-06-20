@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { CITY_COORDINATES, ISRAEL_CITIES, cityDisplayName, cityInitials, filterCityOptions, getCityCoordinates, localizedCityOptions, mergeCities } from '../lib/israelCities.js';
+import { CITY_COORDINATES, ISRAEL_CITIES, cityDisplayName, filterCityOptions, getCityCoordinates, localizedCityOptions, mergeCities } from '../lib/israelCities.js';
 
 test('catalog contains a broad set of Israeli cities', () => {
   assert.ok(ISRAEL_CITIES.length >= 60);
@@ -54,6 +54,10 @@ test('mergeCities does not duplicate canonical values', () => {
   assert.equal(mergeCities([canonical]).filter((city) => city.value === canonical).length, 1);
 });
 
+test('mergeCities does not duplicate a catalog city supplied in English', () => {
+  assert.equal(mergeCities(['Tel Aviv']).filter((city) => city.en === 'Tel Aviv').length, 1);
+});
+
 test('every catalog city has an English label without Hebrew characters', () => {
   for (const city of localizedCityOptions([], 'en')) {
     assert.equal(/[\u0590-\u05ff]/.test(city.label), false, city.label);
@@ -65,6 +69,16 @@ test('every catalog city displays its Hebrew label in Hebrew mode', () => {
     assert.equal(city.label, city.he);
     assert.ok(/[\u0590-\u05ff]/.test(city.label), city.en);
   }
+});
+
+test('English mode excludes untranslated Hebrew-only database values', () => {
+  const options = localizedCityOptions(['עיר ללא תרגום'], 'en');
+  assert.equal(options.some((city) => /[\u0590-\u05ff]/.test(city.label)), false);
+});
+
+test('Hebrew mode excludes untranslated English-only database values', () => {
+  const options = localizedCityOptions(['Untranslated City'], 'he');
+  assert.equal(options.some((city) => /[A-Za-z]/.test(city.label)), false);
 });
 
 test('translates a database-only Hebrew city in English mode', () => {
@@ -90,36 +104,6 @@ test('sorts Hebrew city options using the Hebrew locale', () => {
   assert.deepEqual(labels, expected);
 });
 
-test('builds an English alphabetical side index', () => {
-  const options = localizedCityOptions([], 'en');
-  const initials = cityInitials(options, 'en');
-  assert.ok(initials.includes('A'));
-  assert.ok(initials.includes('T'));
-  assert.deepEqual(initials, [...initials].sort((a, b) => a.localeCompare(b, 'en')));
-});
-
-test('builds a Hebrew alphabetical side index', () => {
-  const options = localizedCityOptions([], 'he');
-  const initials = cityInitials(options, 'he');
-  assert.ok(initials.includes('א'));
-  assert.ok(initials.includes('ת'));
-  assert.equal(initials.some((letter) => /[A-Z]/.test(letter)), false);
-});
-
-test('filters English cities by their displayed first letter', () => {
-  const filtered = filterCityOptions(localizedCityOptions([], 'en'), { letter: 'H', lang: 'en' });
-  assert.ok(filtered.length >= 3);
-  assert.ok(filtered.every((city) => city.label.startsWith('H')));
-  assert.ok(filtered.some((city) => city.label === 'Haifa'));
-});
-
-test('filters Hebrew cities by their displayed first letter', () => {
-  const filtered = filterCityOptions(localizedCityOptions([], 'he'), { letter: 'ח', lang: 'he' });
-  assert.ok(filtered.length >= 2);
-  assert.ok(filtered.every((city) => city.label.startsWith('ח')));
-  assert.ok(filtered.some((city) => city.label === 'חיפה'));
-});
-
 test('search matches both English and Hebrew city names', () => {
   const englishResults = filterCityOptions(localizedCityOptions([], 'en'), { search: 'ירושלים', lang: 'en' });
   const hebrewResults = filterCityOptions(localizedCityOptions([], 'he'), { search: 'Jerusalem', lang: 'he' });
@@ -127,8 +111,10 @@ test('search matches both English and Hebrew city names', () => {
   assert.equal(hebrewResults[0]?.label, 'ירושלים');
 });
 
-test('search and first-letter filters combine', () => {
-  const options = localizedCityOptions([], 'en');
-  assert.equal(filterCityOptions(options, { letter: 'T', search: 'aviv', lang: 'en' })[0]?.label, 'Tel Aviv');
-  assert.equal(filterCityOptions(options, { letter: 'H', search: 'aviv', lang: 'en' }).length, 0);
+test('search filters city options without changing their display language', () => {
+  const english = filterCityOptions(localizedCityOptions([], 'en'), { search: 'aviv', lang: 'en' });
+  const hebrew = filterCityOptions(localizedCityOptions([], 'he'), { search: 'Tel Aviv', lang: 'he' });
+  assert.deepEqual(english.map((city) => city.label), ['Tel Aviv']);
+  assert.equal(hebrew.length, 1);
+  assert.ok(/[\u0590-\u05ff]/.test(hebrew[0].label));
 });
