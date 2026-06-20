@@ -930,6 +930,7 @@ export default function Home() {
     setLoadingDeals(true);
     const params = new URLSearchParams();
     if (categoryFilter !== 'all') params.set('categorie', categoryFilter);
+    if (ville && sortDeals !== 'nearby') params.set('ville', ville);
     params.set('tri', sortDeals === 'nearby' ? 'latest' : sortDeals);
     if (myDealsOnly && user?.id) params.set('auteur_id', user.id);
     fetch(`/api/bons-plans?${params}`)
@@ -941,7 +942,7 @@ export default function Home() {
         setLoadingDeals(false);
       })
       .catch(() => setLoadingDeals(false));
-  }, [tab, categoryFilter, sortDeals, myDealsOnly, user]);
+  }, [tab, categoryFilter, sortDeals, myDealsOnly, user, ville]);
 
   // Also fetch deals when switching to search tab if empty
   useEffect(() => {
@@ -969,7 +970,7 @@ export default function Home() {
     setVille(villeNom);
     const c = coords || (villeNom ? CITY_COORDS[villeNom] || null : null);
     setUserCoords(c);
-    if (c) setSortDeals('nearby');
+    if (c?.exact) setSortDeals('nearby');
     else setSortDeals('hot');
   };
 
@@ -1234,8 +1235,12 @@ export default function Home() {
       })
     : (sortDeals === 'nearby' && userCoords)
       ? [...unblockedDeals].sort((a, b) => {
-        const ca = a.ville ? CITY_COORDS[a.ville] : null;
-        const cb = b.ville ? CITY_COORDS[b.ville] : null;
+        const ca = Number.isFinite(Number(a.latitude)) && Number.isFinite(Number(a.longitude))
+          ? { lat: Number(a.latitude), lon: Number(a.longitude) }
+          : (a.ville ? CITY_COORDS[a.ville] : null);
+        const cb = Number.isFinite(Number(b.latitude)) && Number.isFinite(Number(b.longitude))
+          ? { lat: Number(b.latitude), lon: Number(b.longitude) }
+          : (b.ville ? CITY_COORDS[b.ville] : null);
         const da = ca ? distanceKm(userCoords.lat, userCoords.lon, ca.lat, ca.lon) : Infinity;
         const db = cb ? distanceKm(userCoords.lat, userCoords.lon, cb.lat, cb.lon) : Infinity;
         return da - db;
@@ -1662,7 +1667,7 @@ export default function Home() {
           />
         )}
         {showAlertModal && user && (
-          <AlertModal user={user} lang={lang} onClose={() => setShowAlertModal(false)} />
+          <AlertModal user={user} lang={lang} villes={villes} onClose={() => setShowAlertModal(false)} />
         )}
         {showNotificationSheet && user && (
           <NotificationSheet

@@ -65,6 +65,9 @@ CREATE TABLE IF NOT EXISTS bons_plans (
   prix_original NUMERIC(12, 2) CHECK (prix_original IS NULL OR prix_original >= 0),
   magasin TEXT NOT NULL CHECK (CHAR_LENGTH(magasin) <= 120),
   ville TEXT,
+  adresse TEXT CHECK (adresse IS NULL OR CHAR_LENGTH(adresse) <= 300),
+  latitude NUMERIC(9, 6) CHECK (latitude IS NULL OR latitude BETWEEN 29.3 AND 33.6),
+  longitude NUMERIC(9, 6) CHECK (longitude IS NULL OR longitude BETWEEN 34.1 AND 35.95),
   categorie TEXT CHECK (categorie IS NULL OR categorie IN ('Food', 'Tech', 'Fashion', 'Activities', 'Online')),
   url_source TEXT,
   image_url TEXT,
@@ -98,6 +101,8 @@ CREATE INDEX IF NOT EXISTS idx_promotions_dates ON promotions(date_debut, date_f
 CREATE INDEX IF NOT EXISTS idx_magasins_ville ON magasins(ville_normalisee);
 CREATE INDEX IF NOT EXISTS idx_bons_plans_status_created ON bons_plans(statut, created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_bons_plans_city ON bons_plans(ville);
+CREATE INDEX IF NOT EXISTS idx_bons_plans_location ON bons_plans(latitude, longitude)
+  WHERE latitude IS NOT NULL AND longitude IS NOT NULL;
 CREATE INDEX IF NOT EXISTS idx_bons_plans_author ON bons_plans(auteur_id);
 CREATE INDEX IF NOT EXISTS idx_commentaires_deal ON commentaires(bon_plan_id, created_at);
 

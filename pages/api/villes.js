@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+import { ISRAEL_CITIES } from '../../lib/israelCities';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -15,9 +16,9 @@ export default async function handler(req, res) {
     .not('ville_normalisee', 'is', null)
     .order('ville_normalisee');
 
-  if (error) return res.status(500).json({ erreur: error.message });
+  if (error) return res.status(200).json({ villes: ISRAEL_CITIES.map((city) => city.value), source: 'catalog' });
 
-  const villes = [...new Set(data.map(m => m.ville_normalisee))].sort();
+  const villes = [...new Set([...ISRAEL_CITIES.map((city) => city.value), ...data.map(m => m.ville_normalisee)])].sort((a, b) => a.localeCompare(b, 'he'));
 
   res.status(200).json({ villes });
 }

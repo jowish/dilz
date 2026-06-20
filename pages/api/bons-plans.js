@@ -117,10 +117,13 @@ export default async function handler(req, res) {
 
       let { data: rows, error } = await supabaseAdmin.from('bons_plans').insert([insertData]).select('id');
 
-      // Keep single-image posting available while the gallery migration rolls out.
-      if (error && /image_urls/i.test([error.message, error.details, error.hint].filter(Boolean).join(' '))) {
+      // Keep posting available while optional gallery/location migrations roll out.
+      if (error && /(image_urls|adresse|latitude|longitude)/i.test([error.message, error.details, error.hint].filter(Boolean).join(' '))) {
         const compatibleInsert = { ...insertData };
         delete compatibleInsert.image_urls;
+        delete compatibleInsert.adresse;
+        delete compatibleInsert.latitude;
+        delete compatibleInsert.longitude;
         ({ data: rows, error } = await supabaseAdmin.from('bons_plans').insert([compatibleInsert]).select('id'));
       }
 
@@ -211,7 +214,7 @@ export default async function handler(req, res) {
         // Verify ownership from JWT (not from body)
         const { data: existing } = await supabaseAdmin
           .from('bons_plans')
-          .select('auteur_id,image_url,categorie,date_debut,date_fin')
+          .select('*')
           .eq('id', dealId)
           .single();
         if (!existing || existing.auteur_id !== user.id) {
@@ -224,6 +227,9 @@ export default async function handler(req, res) {
           categorie: req.body.categorie || existing.categorie,
           date_debut: req.body.date_debut ?? existing.date_debut,
           date_fin: req.body.date_fin ?? existing.date_fin,
+          adresse: req.body.adresse ?? existing.adresse,
+          latitude: req.body.latitude ?? existing.latitude,
+          longitude: req.body.longitude ?? existing.longitude,
         });
         if (normalized.errors.length) {
           return res.status(400).json({ erreur: normalized.errors[0], errors: normalized.errors });
@@ -233,7 +239,14 @@ export default async function handler(req, res) {
           return res.status(400).json({ erreur: moderation.reason, code: 'CONTENT_REJECTED' });
         }
 
-        const { error } = await supabaseAdmin.from('bons_plans').update(normalized.value).eq('id', dealId);
+        let { error } = await supabaseAdmin.from('bons_plans').update(normalized.value).eq('id', dealId);
+        if (error && /(adresse|latitude|longitude)/i.test([error.message, error.details, error.hint].filter(Boolean).join(' '))) {
+          const compatibleUpdate = { ...normalized.value };
+          delete compatibleUpdate.adresse;
+          delete compatibleUpdate.latitude;
+          delete compatibleUpdate.longitude;
+          ({ error } = await supabaseAdmin.from('bons_plans').update(compatibleUpdate).eq('id', dealId));
+        }
         if (error) return res.status(500).json({ erreur: error.message });
         return res.status(200).json({ ok: true });
       }

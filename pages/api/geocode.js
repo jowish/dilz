@@ -1,0 +1,55 @@
+const ISRAEL_BOUNDS = { minLat: 29.3, maxLat: 33.6, minLon: 34.1, maxLon: 35.95 };
+
+function inIsrael(lat, lon) {
+  return Number.isFinite(lat) && Number.isFinite(lon) && lat >= ISRAEL_BOUNDS.minLat && lat <= ISRAEL_BOUNDS.maxLat && lon >= ISRAEL_BOUNDS.minLon && lon <= ISRAEL_BOUNDS.maxLon;
+}
+
+function locationPayload(item) {
+  const address = item.address || {};
+  return {
+    address: item.display_name || '',
+    city: address.city || address.town || address.village || address.municipality || '',
+    latitude: Number(item.lat),
+    longitude: Number(item.lon),
+  };
+}
+
+async function searchAddress(query, headers) {
+  const url = new URL('https://nominatim.openstreetmap.org/search');
+  url.search = new URLSearchParams({ q: query, format: 'jsonv2', addressdetails: '1', limit: '1', countrycodes: 'il' });
+  const response = await fetch(url, { headers });
+  if (!response.ok) throw new Error('Geocoding failed.');
+  return response.json();
+}
+
+export default async function handler(req, res) {
+  res.setHeader('Allow', 'GET');
+  if (req.method !== 'GET') return res.status(405).end();
+  const lang = req.query.lang === 'he' ? 'he' : 'en';
+  const headers = { 'User-Agent': `Dilz/1.0 (${process.env.GEOCODING_CONTACT || 'contact@dilz.app'})`, 'Accept-Language': lang };
+  try {
+    if (req.query.q) {
+      const query = String(req.query.q).trim().slice(0, 300);
+      if (!query) return res.status(400).json({ erreur: 'Address is required.' });
+      let rows = await searchAddress(`${query}, Israel`, headers);
+      if (!rows.length) {
+        const simplified = query.replace(/\b(street|road|avenue|boulevard|st\.?|rd\.?|ave\.?)\b/gi, '').replace(/\s+/g, ' ').trim();
+        if (simplified !== query) rows = await searchAddress(simplified, headers);
+      }
+      const item = rows.find((row) => inIsrael(Number(row.lat), Number(row.lon)));
+      if (!item) return res.status(404).json({ erreur: 'Address not found in Israel.' });
+      return res.status(200).json(locationPayload(item));
+    }
+    const lat = Number(req.query.lat);
+    const lon = Number(req.query.lon);
+    if (!inIsrael(lat, lon)) return res.status(400).json({ erreur: 'Coordinates must be in Israel.' });
+    const url = new URL('https://nominatim.openstreetmap.org/reverse');
+    url.search = new URLSearchParams({ lat: String(lat), lon: String(lon), format: 'jsonv2', addressdetails: '1' });
+    const response = await fetch(url, { headers });
+    const item = await response.json();
+    if (!response.ok) throw new Error('Geocoding failed.');
+    return res.status(200).json(locationPayload(item));
+  } catch (error) {
+    return res.status(502).json({ erreur: error.message || 'Location service unavailable.' });
+  }
+}

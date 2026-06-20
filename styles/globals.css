@@ -3021,6 +3021,8 @@ textarea:focus {
   width: 100%;
   max-width: 600px;
   max-height: 88vh;
+  max-height: 88dvh;
+  min-height: 0;
   display: flex;
   flex-direction: column;
   animation: sheet-up 0.22s cubic-bezier(0.4, 0, 0.2, 1);
@@ -3468,7 +3470,84 @@ textarea:focus {
   gap: 6px;
   overflow-y: auto;
   flex: 1;
+  min-height: 0;
+  overscroll-behavior: contain;
 }
+
+.dilz-location-detect {
+  width: 100%;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--bg-card2);
+  color: var(--text);
+  font-weight: 700;
+}
+
+.dilz-city-picker { position: relative; }
+.dilz-city-picker__trigger {
+  width: 100%;
+  min-height: 46px;
+  padding: 0 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--bg-card);
+  color: var(--text);
+  font: inherit;
+}
+.dilz-city-picker.has-error .dilz-city-picker__trigger { border-color: var(--error, #dc2626); }
+.dilz-city-picker__panel {
+  position: relative;
+  z-index: 20;
+  margin-top: 8px;
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--bg-card);
+}
+.dilz-city-picker__letters {
+  display: flex;
+  gap: 4px;
+  padding: 8px 0;
+  overflow-x: auto;
+  scrollbar-width: thin;
+  flex-shrink: 0;
+}
+.dilz-city-picker__letters button {
+  min-width: 30px;
+  height: 30px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg-card2);
+  color: var(--text-muted);
+}
+.dilz-city-picker__letters button.is-active { background: var(--text); color: var(--bg-card); border-color: var(--text); }
+.dilz-city-picker__options {
+  max-height: 230px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 5px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.dilz-city-picker__options button {
+  min-height: 38px;
+  padding: 7px 9px;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  background: var(--bg-card2);
+  color: var(--text);
+  text-align: start;
+}
+.dilz-city-picker__options button.is-active { border-color: var(--text); font-weight: 700; }
 
 .dilz-city-btn {
   padding: 11px 12px;
@@ -3512,9 +3591,35 @@ textarea:focus {
   flex-shrink: 0;
 }
 
+.dilz-alert-modal {
+  height: min(88dvh, 760px);
+  padding-bottom: max(16px, env(safe-area-inset-bottom));
+  overflow: hidden;
+}
+
 .dilz-alert-modal__body {
   overflow-y: auto;
   flex: 1;
+  min-height: 0;
+  padding: 0 2px 12px;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+.dilz-alert-modal__submit {
+  position: sticky;
+  bottom: 0;
+  z-index: 10;
+  padding: 12px 0 max(12px, env(safe-area-inset-bottom));
+  background: var(--bg-card);
+}
+.dilz-alert-modal__submit .dilz-button { width: 100%; }
+.dilz-post-preview__address { display: block; margin-top: 5px; color: var(--text-muted); }
+.dilz-deal-address { margin: 6px 0 0; color: var(--text-muted); font-size: 13px; line-height: 1.45; }
+
+@media (max-width: 520px) {
+  .dilz-city-picker__options { grid-template-columns: 1fr; }
+  .dilz-city-modal__grid { grid-template-columns: 1fr 1fr; }
 }
 
 .dilz-alert-list {

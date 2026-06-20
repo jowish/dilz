@@ -7,6 +7,8 @@ import { Button } from '../ui/Button';
 import { Input, Select, Textarea } from '../ui/FormControls';
 import { Modal } from '../ui/Modal';
 import { SegmentedControl } from '../ui/SegmentedControl';
+import { CityPicker } from '../ui/CityPicker';
+import { getDevicePosition } from '../../lib/nativeApp';
 
 const CATEGORIES = ['Food', 'Tech', 'Fashion', 'Activities', 'Online'];
 const MAX_IMAGES = 3;
@@ -83,12 +85,13 @@ export function PostDealModal({ user, onClose, onSuccess, cityOptions = [], lang
   const text = copy[lang === 'he' ? 'he' : 'en'];
   const fileInputRef = useRef(null);
   const [step, setStep] = useState(0);
-  const [form, setForm] = useState({ titre: '', description: '', prix: '', prix_original: '', magasin: '', ville: '', categorie: 'Food', url_source: '', date_debut: '', date_fin: '', onlineMode: 'store' });
+  const [form, setForm] = useState({ titre: '', description: '', prix: '', prix_original: '', magasin: '', ville: '', adresse: '', latitude: null, longitude: null, categorie: 'Food', url_source: '', date_debut: '', date_fin: '', onlineMode: 'store' });
   const [images, setImages] = useState([]);
   const [fieldErrors, setFieldErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [uploadPhase, setUploadPhase] = useState(null);
+  const [locating, setLocating] = useState(false);
   const discount = useMemo(() => computeDiscount(form), [form]);
 
   const set = (key, value) => {
@@ -120,6 +123,29 @@ export function PostDealModal({ user, onClose, onSuccess, cityOptions = [], lang
   };
 
   const removeImage = (id) => setImages((current) => current.filter((image) => image.id !== id));
+
+  const useCurrentLocation = async () => {
+    setLocating(true);
+    setError('');
+    try {
+      const { coords } = await getDevicePosition({ timeout: 10000, enableHighAccuracy: true });
+      const response = await fetch(`/api/geocode?lat=${coords.latitude}&lon=${coords.longitude}&lang=${lang}`);
+      const location = await response.json();
+      if (!response.ok) throw new Error(location.erreur);
+      setForm((current) => ({
+        ...current,
+        ville: location.city || current.ville,
+        adresse: location.address || current.adresse,
+        latitude: coords.latitude,
+        longitude: coords.longitude,
+      }));
+      setFieldErrors((current) => ({ ...current, ville: undefined }));
+    } catch {
+      setError(lang === 'he' ? 'לא ניתן לזהות את המיקום. בדקו את הרשאת המיקום.' : 'Location unavailable. Check location permission.');
+    } finally {
+      setLocating(false);
+    }
+  };
 
   const goNext = () => {
     const errors = validateStep(step, form, images, text);
@@ -153,6 +179,11 @@ export function PostDealModal({ user, onClose, onSuccess, cityOptions = [], lang
     setError('');
     const uploadPaths = [];
     try {
+      let resolvedLocation = { latitude: form.latitude, longitude: form.longitude, address: form.adresse, city: form.ville };
+      if (form.onlineMode === 'store' && form.adresse.trim() && (!form.latitude || !form.longitude)) {
+        const geocodeResponse = await fetch(`/api/geocode?q=${encodeURIComponent(`${form.adresse}, ${form.ville}`)}&lang=${lang}`);
+        if (geocodeResponse.ok) resolvedLocation = { ...resolvedLocation, ...(await geocodeResponse.json()) };
+      }
       setUploadPhase('photo');
       const uploaded = [];
       for (const image of images) {
@@ -173,6 +204,9 @@ export function PostDealModal({ user, onClose, onSuccess, cityOptions = [], lang
         prix_original: form.prix_original ? Number(form.prix_original) : null,
         magasin: form.magasin.trim() || storeFromUrl(form.url_source),
         ville: form.onlineMode === 'online' ? 'Online' : form.ville,
+        adresse: form.onlineMode === 'online' ? null : (resolvedLocation.address || form.adresse || null),
+        latitude: form.onlineMode === 'online' ? null : resolvedLocation.latitude,
+        longitude: form.onlineMode === 'online' ? null : resolvedLocation.longitude,
         categorie: form.onlineMode === 'online' ? 'Online' : form.categorie,
         url_source: form.url_source,
         date_debut: form.date_debut,
@@ -274,10 +308,19 @@ export function PostDealModal({ user, onClose, onSuccess, cityOptions = [], lang
           <SegmentedControl ariaLabel={text.availability} value={form.onlineMode} onChange={(value) => { set('onlineMode', value); setFieldErrors({}); }} options={[{ value: 'store', label: text.storeMode }, { value: 'online', label: text.onlineMode }]} />
           <Input required={form.onlineMode === 'store'} label={form.onlineMode === 'online' ? text.website : text.store} error={fieldErrors.magasin} value={form.magasin} onChange={(event) => set('magasin', event.target.value)} placeholder={form.onlineMode === 'online' ? 'Amazon, KSP, Terminal X' : 'Bug, Terminal X, Rami Levy'} helper={form.onlineMode === 'online' ? text.onlineStoreHelp : undefined} />
           {form.onlineMode === 'store' && (
-            <Select required label={text.city} error={fieldErrors.ville} value={form.ville} onChange={(event) => set('ville', event.target.value)}>
-              <option value="">{text.chooseCity}</option>
-              {cityOptions.map((city) => <option key={city} value={city}>{traduireVille(city, lang)}</option>)}
-            </Select>
+            <div className="dilz-field">
+              <span className="dilz-field__label">{text.city}<span className="dilz-field__required"> *</span></span>
+              <CityPicker value={form.ville} cities={cityOptions} lang={lang} includeAll={false} error={fieldErrors.ville} onChange={(city, coords) => {
+                setFieldErrors((current) => ({ ...current, ville: undefined }));
+                setForm((current) => ({ ...current, ville: city, latitude: coords?.lat || null, longitude: coords?.lon || null }));
+              }} />
+            </div>
+          )}
+          {form.onlineMode === 'store' && (
+            <>
+              <Input label={lang === 'he' ? 'כתובת מדויקת' : 'Exact address'} value={form.adresse} onChange={(event) => setForm((current) => ({ ...current, adresse: event.target.value }))} placeholder={lang === 'he' ? 'רחוב, מספר, עיר' : 'Street, number, city'} helper={lang === 'he' ? 'הכתובת מאפשרת להציג את הדיל במפה ולחשב מרחק.' : 'Used to place the Dilz on the map and calculate distance.'} />
+              <Button variant="secondary" loading={locating} onClick={useCurrentLocation}>{lang === 'he' ? 'השתמשו במיקום הנוכחי' : 'Use current location'}</Button>
+            </>
           )}
           <Input required={form.onlineMode === 'online'} label={text.url} error={fieldErrors.url_source} type="url" value={form.url_source} onChange={(event) => set('url_source', event.target.value)} placeholder="https://..." helper={form.onlineMode === 'online' ? text.onlineUrlHelp : text.storeUrlHelp} />
         </div>
@@ -288,6 +331,7 @@ export function PostDealModal({ user, onClose, onSuccess, cityOptions = [], lang
           <div className="dilz-post-preview__gallery">{images.map((image) => <img key={image.id} src={image.preview} alt="" />)}</div>
           <div>
             <span>{form.magasin || text.previewStore} · {form.onlineMode === 'online' ? text.onlineMode : form.ville ? traduireVille(form.ville, lang) : text.previewCity}</span>
+            {form.onlineMode === 'store' && form.adresse && <small className="dilz-post-preview__address">{form.adresse}</small>}
             <h3>{form.titre || text.previewTitle}</h3><p>{form.description || text.previewDescription}</p><strong>{form.prix || '0'} ₪</strong>{form.prix_original && <del>{form.prix_original} ₪</del>}
           </div>
         </div>

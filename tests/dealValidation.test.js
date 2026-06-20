@@ -24,6 +24,9 @@ test('normalizes a valid deal payload', () => {
     url_source: 'https://example.com/deal',
     date_debut: '2026-06-15',
     date_fin: '2026-06-20',
+    adresse: '10 Dizengoff St',
+    latitude: 32.081,
+    longitude: 34.775,
   });
 
   assert.deepEqual(result.errors, []);
@@ -31,6 +34,16 @@ test('normalizes a valid deal payload', () => {
   assert.equal(result.value.prix, 12.5);
   assert.equal(result.value.magasin, 'Cafe');
   assert.equal(result.value.categorie, 'Food');
+  assert.equal(result.value.adresse, '10 Dizengoff St');
+  assert.equal(result.value.latitude, 32.081);
+});
+
+test('rejects incomplete or out-of-country deal coordinates', () => {
+  const incomplete = normalizeDealInput({ titre: 'Deal', prix: 10, magasin: 'Store', image_url: 'https://example.com/a.jpg', latitude: 32 });
+  assert.ok(incomplete.errors.includes('Latitude and longitude must be provided together.'));
+
+  const outsideIsrael = normalizeDealInput({ titre: 'Deal', prix: 10, magasin: 'Store', image_url: 'https://example.com/a.jpg', latitude: 48.85, longitude: 2.35 });
+  assert.ok(outsideIsrael.errors.includes('Deal coordinates must be in Israel.'));
 });
 
 test('rejects invalid prices, protocols, and date ranges', () => {

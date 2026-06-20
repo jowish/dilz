@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
 import { registerNativePushToken } from '../../lib/nativeApp';
-
-const POPULAR_CITIES = ['תל אביב', 'ירושלים', 'חיפה', 'ראשון לציון', 'נתניה', 'רעננה', 'הרצליה', 'כפר סבא', 'רמת גן', 'פתח תקווה'];
+import { CityPicker } from './CityPicker';
 
 function alertSummary(a) {
   const parts = [];
@@ -13,7 +12,7 @@ function alertSummary(a) {
   return parts.join(' · ') || 'All new deals';
 }
 
-export function AlertModal({ user, lang, onClose }) {
+export function AlertModal({ user, lang, villes = [], onClose }) {
   const [activeTab, setActiveTab] = useState('list');
   const [alerts, setAlerts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -193,17 +192,14 @@ export function AlertModal({ user, lang, onClose }) {
 
           {activeTab === 'new' && (
             <div className="dilz-form-grid">
-              <div className="dilz-field">
+              <div className="dilz-field dilz-alert-city-field">
                 <label className="dilz-field__label">{lang !== 'he' ? 'City (optional)' : 'עיר (אופציונלי)'}</label>
-                <select
-                  className="dilz-select"
+                <CityPicker
                   value={form.city}
-                  onChange={(e) => setField('city', e.target.value)}
-                >
-                  <option value="">{lang !== 'he' ? 'All of Israel' : 'כל ישראל'}</option>
-                  {POPULAR_CITIES.map((v) => <option key={v} value={v}>{v}</option>)}
-                  <option value="אונליין">{lang !== 'he' ? 'Online only' : 'אונליין בלבד'}</option>
-                </select>
+                  cities={villes}
+                  lang={lang}
+                  onChange={(city) => setField('city', city)}
+                />
               </div>
 
               <label className="dilz-toggle-row">
@@ -243,15 +239,11 @@ export function AlertModal({ user, lang, onClose }) {
 
               {error && <p className="dilz-form-error">{error}</p>}
 
-              <button
-                type="button"
-                className="dilz-button dilz-button--primary dilz-button--md"
-                style={{ width: '100%' }}
-                disabled={saving}
-                onClick={handleCreate}
-              >
-                {saving ? (lang !== 'he' ? 'Creating...' : 'יוצר...') : (lang !== 'he' ? 'Create alert' : 'צור התראה')}
-              </button>
+              <div className="dilz-alert-modal__submit">
+                <button type="button" className="dilz-button dilz-button--primary dilz-button--md" disabled={saving} onClick={handleCreate}>
+                  {saving ? (lang !== 'he' ? 'Creating...' : 'יוצר...') : (lang !== 'he' ? 'Create alert' : 'צור התראה')}
+                </button>
+              </div>
             </div>
           )}
         </div>

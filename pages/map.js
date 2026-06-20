@@ -67,10 +67,26 @@ function getCommentCount(deal) {
   return Number(deal.commentaires?.[0]?.count || deal.comments_count || 0);
 }
 
+function getDealCoordinates(deal) {
+  const latitude = Number(deal.latitude);
+  const longitude = Number(deal.longitude);
+  if (Number.isFinite(latitude) && Number.isFinite(longitude)) return { lat: latitude, lon: longitude };
+  return deal.ville ? CITY_COORDS[deal.ville] || null : null;
+}
+
+function getGroupCoordinates(city, deals) {
+  const exact = deals.map(getDealCoordinates).filter(Boolean);
+  if (!exact.length) return CITY_COORDS[city] || null;
+  return {
+    lat: exact.reduce((sum, point) => sum + point.lat, 0) / exact.length,
+    lon: exact.reduce((sum, point) => sum + point.lon, 0) / exact.length,
+  };
+}
+
 function groupDealsByCity(deals) {
   const grouped = {};
   deals
-    .filter(deal => deal.ville && CITY_COORDS[deal.ville])
+    .filter(deal => deal.ville && getDealCoordinates(deal))
     .forEach(deal => {
       if (!grouped[deal.ville]) grouped[deal.ville] = [];
       grouped[deal.ville].push(deal);
@@ -94,7 +110,7 @@ export default function MapPage() {
     () => Object.entries(dealsByCity).sort((a, b) => b[1].length - a[1].length),
     [dealsByCity]
   );
-  const selectedDeals = selectedCity ? dealsByCity[selectedCity] || [] : deals.filter(d => d.ville && CITY_COORDS[d.ville]);
+  const selectedDeals = selectedCity ? dealsByCity[selectedCity] || [] : deals.filter(getDealCoordinates);
 
   useEffect(() => {
     fetch('/api/bons-plans?limit=200&tri=hot')
@@ -107,8 +123,8 @@ export default function MapPage() {
   useEffect(() => {
     if (!router.isReady) return;
     const city = typeof router.query.city === 'string' ? router.query.city : null;
-    if (city && CITY_COORDS[city]) setSelectedCity(city);
-  }, [router.isReady, router.query.city]);
+    if (city && dealsByCity[city]) setSelectedCity(city);
+  }, [router.isReady, router.query.city, dealsByCity]);
 
   const selectCity = (city) => {
     setSelectedCity(city);
@@ -167,7 +183,7 @@ export default function MapPage() {
     }).addTo(map);
 
     cityEntries.forEach(([city, cityDeals]) => {
-      const coords = CITY_COORDS[city];
+      const coords = getGroupCoordinates(city, cityDeals);
       const count = cityDeals.length;
       const active = city === selectedCity;
       const icon = L.divIcon({
@@ -186,8 +202,8 @@ export default function MapPage() {
 
     const focusMap = () => {
       map.invalidateSize();
-      if (selectedCity && CITY_COORDS[selectedCity]) {
-        const coords = CITY_COORDS[selectedCity];
+      if (selectedCity && dealsByCity[selectedCity]?.length) {
+        const coords = getGroupCoordinates(selectedCity, dealsByCity[selectedCity]);
         map.flyTo([coords.lat, coords.lon], 12, { animate: false });
       } else {
         map.fitBounds(israelBounds, { padding: [18, 18], animate: false });
