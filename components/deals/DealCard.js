@@ -6,6 +6,7 @@ import { CopyToast } from '../ui/CopyToast';
 import { VoteEmoji } from '../ui/VoteEmoji';
 import { copyText } from '../../lib/copyText';
 import { SafetyActions } from '../ui/SafetyActions';
+import { ShareMenu } from '../ui/ShareMenu';
 
 function getDiscount(deal) {
   const original = Number(deal.prix_original);
@@ -57,6 +58,7 @@ export function DealCard({
     ? { storePromo: 'מבצע חנות', community: 'מהקהילה', you: 'אתם', member: 'חבר Dilz', online: 'אונליין', myDeal: 'הדיל שלי', shared: 'שותף על ידי', deal: 'דיל', inStore: 'בחנות', voteControls: 'כפתורי הצבעה', hot: 'סימון כחם', cold: 'סימון כקר', unsave: 'הסרה מהשמורים', save: 'שמירת הדיל', comments: 'תגובות' }
     : { storePromo: 'Store promo', community: 'Community find', you: 'You', member: 'Dilz member', online: 'Online', myDeal: 'My deal', shared: 'Shared by', deal: 'Deal', inStore: 'In-store', voteControls: 'Vote controls', hot: 'Mark as hot', cold: 'Mark as cold', unsave: 'Unsave deal', save: 'Save deal', comments: 'comments' };
   const [copied, setCopied] = useState(false);
+  const [shareOpen, setShareOpen] = useState(false);
   const images = [...new Set([...(Array.isArray(deal.image_urls) ? deal.image_urls : []), deal.image_url].filter(Boolean))].slice(0, 3);
   const primaryImage = images[0] || null;
   const discount = getDiscount(deal);
@@ -85,6 +87,9 @@ export function DealCard({
     setCopied(true);
     window.setTimeout(() => setCopied(false), 1800);
   };
+
+  const shareUrl = typeof window === 'undefined' ? `/deal/${deal.id}` : `${window.location.origin}/deal/${deal.id}`;
+  const shareMenuId = `deal-share-${deal.id}`;
 
   return (
     <article className={['dilz-card', 'dilz-deal-card', layout === 'list' && 'is-list'].filter(Boolean).join(' ')} onClick={go}>
@@ -224,9 +229,27 @@ export function DealCard({
               <CommentIcon />
               <span className="dilz-comment-count">{commentCount}</span>
             </IconButton>
-            <IconButton aria-label={lang === 'he' ? 'העתקת קישור' : 'Copy link'} onClick={(event) => { event.preventDefault(); event.stopPropagation(); copyDealLink().catch(() => {}); }}>
+            <IconButton
+              aria-label={lang === 'he' ? 'אפשרויות שיתוף' : 'Share options'}
+              aria-expanded={shareOpen}
+              aria-controls={shareMenuId}
+              onClick={(event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                setShareOpen((current) => !current);
+              }}
+            >
               <ShareIcon />
             </IconButton>
+            <ShareMenu
+              id={shareMenuId}
+              open={shareOpen}
+              title={deal.titre}
+              url={shareUrl}
+              lang={lang}
+              onClose={() => setShareOpen(false)}
+              onCopy={() => copyDealLink().catch(() => {})}
+            />
           </div>
         </div>
       </div>

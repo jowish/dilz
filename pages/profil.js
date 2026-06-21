@@ -7,6 +7,7 @@ import { useAppLanguage } from '../lib/useAppLanguage';
 import { VoteEmoji } from '../components/ui/VoteEmoji';
 import { readDealSortPreference, writeDealSortPreference } from '../lib/userPreferences';
 import { ThemeToggle } from '../components/ui/ThemeToggle';
+import { profileBackFallback, profileViewVisibility } from '../lib/profileNavigation';
 
 const PROFILE_TEXT = {
   en: { profile: 'Profile', back: 'Back', signOut: 'Sign out', posted: 'Deals posted', received: 'Hot votes received', settings: 'Account settings', settingsHelp: 'Choose how Dilz should look when you return.', language: 'Language', feedOrder: 'Default feed order', english: 'English', hebrew: 'Hebrew', hot: 'Hottest first', latest: 'Newest first', comments: 'Most commented', saved: 'Preference saved', mine: 'My deals', loading: 'Loading...', empty: 'No deals yet', emptyText: 'Share a deal you spotted!', post: 'Post a deal', now: 'Just now', hour: 'h ago', day: 'd ago', legal: 'Legal and privacy', privacy: 'Privacy Policy', terms: 'Terms of Use', danger: 'Delete account', dangerHelp: 'Permanently delete your account and private data. Your public contributions will be anonymized.', delete: 'Delete my account', confirmTitle: 'This action cannot be undone', confirmHelp: 'Type DELETE to permanently delete your Dilz account.', confirmWord: 'DELETE', cancel: 'Cancel', deleting: 'Deleting...', deleteError: 'Account deletion failed. Please try again or contact support.' },
@@ -83,6 +84,12 @@ export default function Profil() {
     router.replace('/');
   };
 
+  const handleBack = () => {
+    const fallback = profileBackFallback(window.history.length);
+    if (fallback) router.replace(fallback);
+    else router.back();
+  };
+
   const saveIndicator = () => {
     setPreferenceSaved(true);
     window.setTimeout(() => setPreferenceSaved(false), 1600);
@@ -141,6 +148,8 @@ export default function Profil() {
   const displayName = user.user_metadata?.display_name || user.email?.split('@')[0] || 'User';
   const initials = displayName.slice(0, 2).toUpperCase();
   const totalHot = deals.reduce((s, d) => s + (d.votes_chaud || 0), 0);
+  const { view: profileView, showDeals, showSettings } = profileViewVisibility(router.query.view);
+  const pageTitle = profileView === 'deals' ? text.mine : profileView === 'settings' ? text.settings : text.profile;
 
   return (
     <>
@@ -151,13 +160,12 @@ export default function Profil() {
       <div className="dilz-profil-page" dir={dir}>
         <header className="dilz-app-header">
           <div className="dilz-app-header__inner">
-            <Link href="/" className="dilz-profil-back">
+            <button type="button" className="dilz-profil-back" onClick={handleBack}>
               <BackArrow /> {text.back}
-            </Link>
-            <span className="dilz-profil-heading">{text.profile}</span>
+            </button>
+            <span className="dilz-profil-heading">{pageTitle}</span>
             <div className="dilz-profil-header-actions">
               <ThemeToggle lang={lang} />
-              <button type="button" className="dilz-button dilz-button--ghost dilz-button--sm" onClick={handleSignOut}>{text.signOut}</button>
             </div>
           </div>
         </header>
@@ -171,6 +179,8 @@ export default function Profil() {
             </div>
           </div>
 
+          <button type="button" className="dilz-profile-signout" onClick={handleSignOut}>{text.signOut}</button>
+
           <div className="dilz-profil-stats">
             <div className="dilz-stat-card">
               <strong>{deals.length}</strong>
@@ -182,6 +192,7 @@ export default function Profil() {
             </div>
           </div>
 
+          {showSettings && <>
           <section id="settings" className="dilz-account-settings" aria-labelledby="account-settings-title">
             <div className="dilz-account-settings__header">
               <div>
@@ -251,7 +262,9 @@ export default function Profil() {
               </div>
             )}
           </section>
+          </>}
 
+          {showDeals && <>
           <h2 className="dilz-profil-section-title">{text.mine}</h2>
 
           {loading ? (
@@ -299,6 +312,7 @@ export default function Profil() {
               })}
             </div>
           )}
+          </>}
         </main>
       </div>
     </>

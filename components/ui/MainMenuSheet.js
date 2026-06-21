@@ -50,7 +50,6 @@ export function MainMenuSheet({
       <aside
         className="dilz-main-menu"
         role="dialog"
-        aria-modal="true"
         aria-label={text.dialog}
         onClick={(event) => event.stopPropagation()}
       >

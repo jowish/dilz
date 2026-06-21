@@ -416,7 +416,8 @@ function SearchTab({ promos, deals, lang, isDark, onPromoClick, userCoords, prom
 }
 
 // ─── ProfileTab ───────────────────────────────────────────────────────────────
-function ProfileTab({ user, lang, savedItems = [], onToggleSave, onOpenAlerts }) {
+function ProfileTab({ user, lang, savedItems = [], onToggleSave, onSignOut }) {
+  const [savedOpen, setSavedOpen] = useState(false);
   if (!user) {
     return (
       <div style={{ padding: '40px 20px', textAlign: 'center' }}>
@@ -483,41 +484,25 @@ function ProfileTab({ user, lang, savedItems = [], onToggleSave, onOpenAlerts })
         </div>
       </div>
 
+      <button type="button" className="dilz-profile-signout" onClick={onSignOut}>
+        {lang !== 'he' ? 'Sign out' : 'התנתקות'}
+      </button>
+
       {/* Quick links */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 2, marginBottom: 12 }}>
+      <div className="dilz-profile-links">
         {[
-          { label: lang !== 'he' ? 'My deals' : 'הדילים שלי', href: '/profil' },
-          { label: lang !== 'he' ? 'Account settings' : 'הגדרות חשבון', href: '/profil#settings' },
-          { label: lang !== 'he' ? 'Deals map' : 'מפת דילים', href: '/map' },
+          { label: lang !== 'he' ? 'My deals' : 'הדילים שלי', href: '/profil?view=deals' },
+          { label: lang !== 'he' ? 'Account settings' : 'הגדרות חשבון', href: '/profil?view=settings' },
         ].map(item => (
           <Link
             key={item.href + item.label}
             href={item.href}
-            onClick={() => {
-              if (item.href !== '/map') return;
-              try {
-                sessionStorage.setItem('dilzMapReturnUrl', `${window.location.pathname}${window.location.search}` || '/?tab=dilz');
-              } catch {}
-            }}
-            style={{
-            display: 'flex', alignItems: 'center',
-            background: 'var(--bg-card)', borderRadius: 10, padding: '14px 16px',
-            textDecoration: 'none', border: '1px solid var(--border)',
-          }}>
+            className="dilz-profile-link"
+          >
             <span style={{ fontSize: 14, fontWeight: 500, color: 'var(--text)' }}>{item.label}</span>
             <svg style={{ marginLeft: 'auto', color: 'var(--text-muted)' }} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><polyline points="9 18 15 12 9 6"/></svg>
           </Link>
         ))}
-        <button onClick={onOpenAlerts} style={{
-          display: 'flex', alignItems: 'center',
-          background: 'var(--bg-card)', borderRadius: 10, padding: '14px 16px',
-          border: '1px solid var(--border)', cursor: 'pointer', textAlign: 'left', width: '100%',
-        }}>
-          <span style={{ fontSize: 14, fontWeight: 500, color: 'var(--text)' }}>
-            {lang !== 'he' ? 'My deal alerts' : 'התראות שלי'}
-          </span>
-          <svg style={{ marginLeft: 'auto', color: 'var(--text-muted)' }} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><polyline points="9 18 15 12 9 6"/></svg>
-        </button>
       </div>
 
       {/* Saved items */}
@@ -526,14 +511,20 @@ function ProfileTab({ user, lang, savedItems = [], onToggleSave, onOpenAlerts })
         border: '1px solid var(--border)', padding: '14px 14px',
         marginBottom: 12,
       }}>
-        <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 10 }}>
+        <button
+          type="button"
+          className="dilz-saved-items-toggle"
+          aria-expanded={savedOpen}
+          aria-controls="profile-saved-items"
+          onClick={() => setSavedOpen((current) => !current)}
+        >
           <p style={{ fontSize: 15, fontWeight: 700, color: 'var(--text)' }}>
-            {textFor(lang, { en: 'Saved items', he: 'שמורים', fr: 'Favoris', es: 'Guardados' })}
+            {textFor(lang, { en: 'Saved items', he: 'פריטים שמורים', fr: 'Favoris', es: 'Guardados' })}
           </p>
-          <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>{savedItems.length}</span>
-        </div>
+          <span className="dilz-saved-items-toggle__meta">{savedItems.length}<ChevronIcon open={savedOpen} /></span>
+        </button>
 
-        {savedItems.length === 0 ? (
+        {savedOpen && <div id="profile-saved-items" className="dilz-saved-items-content">{savedItems.length === 0 ? (
           <p style={{ fontSize: 13, color: 'var(--text-sub)', lineHeight: 1.6 }}>
             {lang === 'he'
               ? 'שמור מוצרים או דילים כדי למצוא אותם כאן מהר.'
@@ -610,18 +601,14 @@ function ProfileTab({ user, lang, savedItems = [], onToggleSave, onOpenAlerts })
               );
             })}
           </div>
-        )}
+        )}</div>}
       </div>
-
-      <button onClick={async () => { await supabase.auth.signOut(); window.location.reload(); }} style={{
-        width: '100%', padding: '12px', borderRadius: 10, border: '1px solid var(--border)',
-        background: 'transparent', color: 'var(--text-sub)',
-        fontSize: 13, fontWeight: 500, cursor: 'pointer',
-      }}>
-        {lang !== 'he' ? 'Sign out' : 'התנתק'}
-      </button>
     </div>
   );
+}
+
+function ChevronIcon({ open }) {
+  return <svg className={open ? 'is-open' : ''} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m6 9 6 6 6-6" /></svg>;
 }
 
 // ─── Main Home component ──────────────────────────────────────────────────────
@@ -1236,6 +1223,13 @@ export default function Home() {
     if (destination === 'profile') setTab('profile');
   };
 
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    setUser(null);
+    setTab('deals');
+    router.replace('/');
+  };
+
   // Computed displayed deals (proximity sort)
   const unblockedDeals = blockedUserIds.length
     ? deals.filter((deal) => !deal.auteur_id || !blockedUserIds.includes(deal.auteur_id))
@@ -1621,7 +1615,7 @@ export default function Home() {
               lang={lang}
               savedItems={savedItems}
               onToggleSave={handleToggleSave}
-              onOpenAlerts={() => setShowAlertModal(true)}
+              onSignOut={handleSignOut}
             />
           )}
         </main>
