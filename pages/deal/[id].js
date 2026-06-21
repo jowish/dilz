@@ -10,6 +10,7 @@ import { CopyToast } from '../../components/ui/CopyToast';
 import { VoteEmoji } from '../../components/ui/VoteEmoji';
 import { useAppLanguage } from '../../lib/useAppLanguage';
 import { SafetyActions } from '../../components/ui/SafetyActions';
+import { ThemeToggle } from '../../components/ui/ThemeToggle';
 
 const DETAIL_TEXT = {
   en: { now: 'Just now', hour: 'h ago', day: 'd ago', notFound: 'Deal not found', backDeals: 'Back to deals', back: 'Back', copy: 'Copy link', edit: 'Edit', photos: 'Deal photos', viewPhoto: 'View photo', by: 'by', starts: 'Starts', ends: 'Ends', online: 'View online deal', comments: 'Comments', noComments: 'No comments yet - be the first!', anonymous: 'Anonymous', reply: 'Reply', replyTo: 'Reply to', addComment: 'Add a comment...', send: 'Send', signInComment: 'Sign in to comment', editDeal: 'Edit deal', close: 'Close', changePhoto: 'Change photo', cancel: 'Cancel', save: 'Save changes', saving: 'Saving...' },
@@ -413,6 +414,7 @@ export default function DealPage() {
               </span>
             </Link>
             <div className="dilz-deal-header-actions">
+              <ThemeToggle lang={lang} />
               <select className="dilz-language-select" value={lang} onChange={(event) => setLang(event.target.value)} aria-label="Language"><option value="en">EN</option><option value="he">HE</option></select>
               <button
                 type="button"

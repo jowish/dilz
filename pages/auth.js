@@ -4,6 +4,7 @@ import Link from 'next/link';
 import Head from 'next/head';
 import { supabase } from '../lib/supabase';
 import { useAppLanguage } from '../lib/useAppLanguage';
+import { ThemeToggle } from '../components/ui/ThemeToggle';
 
 const AUTH_TEXT = {
   en: { title: 'Sign in', tagline: 'Deals & promotions in Israel', required: 'Email and password are required', generic: 'Something went wrong. Please try again.', enterEmail: 'Enter your email address first.', resent: 'Confirmation email sent again. Check inbox and spam.', check: 'Check your email', sent: 'We sent a confirmation link to', instructions: 'Open it on this device if possible. If you do not see it, check spam or send it again.', sending: 'Sending...', resend: 'Resend confirmation email', backSignIn: 'Back to sign in', signIn: 'Sign in', signUp: 'Sign up', authMode: 'Authentication mode', name: 'Display name', email: 'Email', password: 'Password', wait: 'Please wait...', create: 'Create account', backDeals: 'Back to deals', home: 'Dilz home', legalPrefix: 'By creating an account, you agree to the', terms: 'Terms of Use', and: 'and', privacy: 'Privacy Policy' },
@@ -118,6 +119,7 @@ export default function Auth() {
       <div className="dilz-auth-page" dir={dir}>
         <div className="dilz-auth-container">
           <div className="dilz-auth-logo">
+            <ThemeToggle lang={lang} className="dilz-auth-theme-toggle" />
             <Link href="/" className="dilz-logo-button" aria-label={text.home}>
               <span className="dilz-logo-lockup" aria-label="dILz">
                 <span className="dilz-logo-mark" aria-hidden="true">

@@ -6,6 +6,7 @@ import { supabase } from '../lib/supabase';
 import { useAppLanguage } from '../lib/useAppLanguage';
 import { VoteEmoji } from '../components/ui/VoteEmoji';
 import { readDealSortPreference, writeDealSortPreference } from '../lib/userPreferences';
+import { ThemeToggle } from '../components/ui/ThemeToggle';
 
 const PROFILE_TEXT = {
   en: { profile: 'Profile', back: 'Back', signOut: 'Sign out', posted: 'Deals posted', received: 'Hot votes received', settings: 'Account settings', settingsHelp: 'Choose how Dilz should look when you return.', language: 'Language', feedOrder: 'Default feed order', english: 'English', hebrew: 'Hebrew', hot: 'Hottest first', latest: 'Newest first', comments: 'Most commented', saved: 'Preference saved', mine: 'My deals', loading: 'Loading...', empty: 'No deals yet', emptyText: 'Share a deal you spotted!', post: 'Post a deal', now: 'Just now', hour: 'h ago', day: 'd ago', legal: 'Legal and privacy', privacy: 'Privacy Policy', terms: 'Terms of Use', danger: 'Delete account', dangerHelp: 'Permanently delete your account and private data. Your public contributions will be anonymized.', delete: 'Delete my account', confirmTitle: 'This action cannot be undone', confirmHelp: 'Type DELETE to permanently delete your Dilz account.', confirmWord: 'DELETE', cancel: 'Cancel', deleting: 'Deleting...', deleteError: 'Account deletion failed. Please try again or contact support.' },
@@ -154,7 +155,10 @@ export default function Profil() {
               <BackArrow /> {text.back}
             </Link>
             <span className="dilz-profil-heading">{text.profile}</span>
-            <button type="button" className="dilz-button dilz-button--ghost dilz-button--sm" onClick={handleSignOut}>{text.signOut}</button>
+            <div className="dilz-profil-header-actions">
+              <ThemeToggle lang={lang} />
+              <button type="button" className="dilz-button dilz-button--ghost dilz-button--sm" onClick={handleSignOut}>{text.signOut}</button>
+            </div>
           </div>
         </header>
 

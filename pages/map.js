@@ -5,6 +5,7 @@ import { traduireVille } from '../lib/translations';
 import { useAppLanguage } from '../lib/useAppLanguage';
 import { VoteEmoji } from '../components/ui/VoteEmoji';
 import { buildMapUrl, toggleCityFilter } from '../lib/mapState';
+import { ThemeToggle } from '../components/ui/ThemeToggle';
 
 const MAP_TEXT = {
   en: { title: 'Dilz Map', back: 'Back', feed: 'Feed', points: 'active points', loading: 'Loading Dilz map...', israel: 'All Israel', tap: 'Tap a city to filter', mapPoints: 'Dilz map points', comments: 'comments' },
@@ -238,7 +239,10 @@ export default function MapPage() {
             <strong>{text.title}</strong>
             <span>{cityEntries.length} {text.points}</span>
           </div>
-          <select className="dilz-language-select" value={lang} onChange={(event) => setLang(event.target.value)} aria-label="Language"><option value="en">EN</option><option value="he">HE</option></select>
+          <div className="dilz-map-header__actions">
+            <ThemeToggle lang={lang} />
+            <select className="dilz-language-select" value={lang} onChange={(event) => setLang(event.target.value)} aria-label="Language"><option value="en">EN</option><option value="he">HE</option></select>
+          </div>
         </header>
 
         <main className="dilz-map-body">

@@ -1,6 +1,7 @@
 import Head from 'next/head';
 import Link from 'next/link';
 import { useAppLanguage } from '../../lib/useAppLanguage';
+import { ThemeToggle } from '../ui/ThemeToggle';
 
 function BackIcon() {
   return <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path d="M19 12H5m7-7-7 7 7 7" /></svg>;
@@ -19,6 +20,7 @@ export function LegalPage({ title, intro, sections, updated = 'June 19, 2026' })
         <header className="dilz-legal-header">
           <Link href="/" className="dilz-profil-back"><BackIcon /> {copy.back}</Link>
           <strong>DILZ</strong>
+          <ThemeToggle lang={lang} />
         </header>
         <main className="dilz-legal-main">
           <p className="dilz-legal-eyebrow">DILZ</p>

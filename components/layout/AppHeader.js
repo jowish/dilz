@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { Button, IconButton } from '../ui/Button';
 import { SearchBar } from '../ui/SearchBar';
+import { ThemeToggle } from '../ui/ThemeToggle';
 
 function Logo({ onClick }) {
   const content = (
@@ -71,6 +72,7 @@ export function AppHeader({
         </div>
 
         <div className="dilz-app-header__right">
+          <ThemeToggle lang={lang} />
           <select className="dilz-language-select" value={lang} onChange={(event) => onLanguageChange(event.target.value)} aria-label="Language">
             {languageOptions.map((option) => (
               <option key={option.id} value={option.id}>{option.label}</option>

@@ -5827,8 +5827,7 @@ textarea:focus {
 }
 
 /* Dilz premium minimal design system */
-:root,
-.dark {
+:root {
   --bg-app: #FFFFFF;
   --surface-main: #FFFFFF;
   --surface-soft: #F8F9FB;
@@ -5873,8 +5872,8 @@ textarea:focus {
 
 html,
 body {
-  background: #FFFFFF;
-  color: #0B1220;
+  background: var(--bg);
+  color: var(--text);
 }
 
 .dilz-app-frame,
@@ -5882,11 +5881,11 @@ body {
 .dilz-auth-page,
 .dilz-deal-page,
 .dilz-page-shell {
-  background: #FFFFFF !important;
+  background: var(--bg) !important;
 }
 
 .dilz-logo-button {
-  color: #0B1220;
+  color: var(--text);
   border-radius: 16px;
 }
 
@@ -5901,7 +5900,7 @@ body {
 .dilz-logo-mark {
   width: 31px;
   height: 31px;
-  color: #0B1220;
+  color: var(--text);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -5920,7 +5919,7 @@ body {
 
 .dilz-logo-lockup .dilz-logo,
 .dilz-logo {
-  color: #0B1220;
+  color: var(--text);
   font-size: 30px;
   font-weight: 950;
   letter-spacing: -1.3px;
@@ -5932,8 +5931,8 @@ body {
 }
 
 .dilz-app-header {
-  background: rgba(255, 255, 255, 0.92);
-  border-bottom: 1px solid #ECECEC;
+  background: var(--header-bg);
+  border-bottom: 1px solid var(--border);
   box-shadow: none !important;
 }
 
@@ -6581,4 +6580,185 @@ textarea::placeholder {
 @media (max-width: 430px) {
   .dilz-service-card { padding: 18px; }
   .dilz-service-card h2 { font-size: 18px; }
+}
+
+/* Persistent browser theme. Theme state is intentionally independent of accounts. */
+.dilz-theme-toggle {
+  width: 38px;
+  height: 38px;
+  flex: 0 0 38px;
+  display: inline-grid;
+  place-items: center;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--bg-card);
+  color: var(--text);
+  cursor: pointer;
+  transition: background 150ms ease, border-color 150ms ease, color 150ms ease;
+}
+
+.dilz-theme-toggle:hover { border-color: var(--border-strong); background: var(--bg-soft); }
+.dilz-theme-toggle:disabled { cursor: default; opacity: 0; }
+.dilz-theme-toggle svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
+.dilz-auth-logo { position: relative; }
+.dilz-auth-theme-toggle { position: absolute; top: 0; right: 0; }
+[dir='rtl'] .dilz-auth-theme-toggle { right: auto; left: 0; }
+.dilz-profil-header-actions,
+.dilz-map-header__actions { display: flex; align-items: center; gap: 8px; }
+.dilz-discovery-header__spacer { gap: 8px; }
+
+.dark {
+  color-scheme: dark;
+  --bg-app: #070C14;
+  --surface-main: #0D1522;
+  --surface-soft: #131D2C;
+  --surface-dark: #050A11;
+  --section-bg: #101927;
+  --text-primary: #F8FAFC;
+  --text-secondary: #B7C0CE;
+  --text-inverted: #0B1220;
+  --text: #F8FAFC;
+  --text-sub: #B7C0CE;
+  --text-muted: #8792A3;
+  --text-disabled: #526074;
+  --bg: #070C14;
+  --bg-surface: #0D1522;
+  --bg-soft: #131D2C;
+  --bg-card: #0D1522;
+  --bg-card2: #131D2C;
+  --bg-input: #0A111D;
+  --border-default: #233044;
+  --border-soft: #192438;
+  --border: #233044;
+  --border-strong: #36465D;
+  --border-focus: #F8FAFC;
+  --brand-soft: #3A1D0C;
+  --brand-softer: #241409;
+  --primary: #F8FAFC;
+  --primary-hover: #E5E7EB;
+  --primary-active: #CBD5E1;
+  --nav-bg: rgba(7, 12, 20, 0.94);
+  --header-bg: rgba(7, 12, 20, 0.94);
+  --vote-down: #E2E8F0;
+  --shadow-card: none;
+  --shadow-card-hover: none;
+  --shadow-soft: none;
+  --shadow-nav: 0 -1px 0 #233044;
+}
+
+.dark body,
+.dark #__next,
+.dark .dilz-app-frame,
+.dark .dilz-auth-page,
+.dark .dilz-deal-page,
+.dark .dilz-page-shell,
+.dark .dilz-profil-page,
+.dark .dilz-map-page,
+.dark .dilz-legal-page,
+.dark .dilz-discovery-page { background: var(--bg) !important; color: var(--text); }
+
+.dark .dilz-app-header,
+.dark .dilz-map-header,
+.dark .dilz-legal-header,
+.dark .dilz-discovery-header,
+.dark .dilz-bottom-nav { border-color: var(--border) !important; background: var(--header-bg) !important; color: var(--text); }
+
+.dark .dilz-logo-button,
+.dark .dilz-logo-mark,
+.dark .dilz-logo,
+.dark .dilz-legal-header strong { color: var(--text) !important; }
+
+.dark .dilz-card,
+.dark .dilz-deal-card,
+.dark .dilz-promo-card,
+.dark .dilz-hero-promo-card,
+.dark .dilz-auth-card,
+.dark .dilz-panel,
+.dark .dilz-sheet,
+.dark .dilz-modal__panel,
+.dark .dilz-profil-card,
+.dark .dilz-stat-card,
+.dark .dilz-account-settings,
+.dark .dilz-profile-legal,
+.dark .dilz-account-danger,
+.dark .dilz-map-results,
+.dark .dilz-main-menu,
+.dark .dilz-source-note,
+.dark .dilz-code-merchant,
+.dark .dilz-destination-card,
+.dark .dilz-service-card,
+.dark .dilz-free-card { border-color: var(--border) !important; background: var(--bg-card) !important; color: var(--text) !important; }
+
+.dark .dilz-search-bar,
+.dark .dilz-input,
+.dark .dilz-textarea,
+.dark .dilz-select,
+.dark input,
+.dark select,
+.dark textarea,
+.dark .dilz-button--secondary,
+.dark .dilz-button--ghost,
+.dark .dilz-button--outline,
+.dark .dilz-icon-button,
+.dark .dilz-map-quick-btn,
+.dark .dilz-filter-toggle,
+.dark .dilz-filter-chip,
+.dark .dilz-compact-filter-chip,
+.dark .dilz-vote-pill button,
+.dark .dilz-promo-vote-btn,
+.dark .dilz-deal-vote-btn,
+.dark .dilz-main-menu__close,
+.dark .dilz-main-menu__item,
+.dark .dilz-main-menu__category-grid button,
+.dark .dilz-discovery-back { border-color: var(--border) !important; background: var(--bg-input) !important; color: var(--text) !important; }
+
+.dark .dilz-desktop-tabs,
+.dark .dilz-segmented,
+.dark .dilz-layout-toggle,
+.dark .dilz-deal-card__media,
+.dark .dilz-promo-card__media,
+.dark .dilz-hero-promo-card__media,
+.dark .dilz-deal-card__image-fallback,
+.dark .dilz-main-menu__item-icon,
+.dark .dilz-destination-card__icon,
+.dark .dilz-service-card__regions span,
+.dark .dilz-code-card__action { border-color: var(--border) !important; background: var(--bg-soft) !important; color: var(--text) !important; }
+
+.dark .dilz-button--primary,
+.dark .dilz-button:not(.dilz-button--secondary):not(.dilz-button--ghost):not(.dilz-button--outline):not(.dilz-button--success),
+.dark .dilz-desktop-tabs button.is-active,
+.dark .dilz-segmented button.is-active,
+.dark .dilz-segmented button.is-selected,
+.dark .dilz-segmented button[aria-selected='true'],
+.dark .dilz-layout-toggle button.is-active,
+.dark .dilz-filter-chip.is-selected,
+.dark .dilz-compact-filter-chip.is-active,
+.dark .dilz-main-menu__category-grid button.is-active { border-color: #F8FAFC !important; background: #F8FAFC !important; color: #0B1220 !important; }
+
+.dark .dilz-main-menu__header h2,
+.dark .dilz-discovery-hero h1,
+.dark .dilz-code-card__action,
+.dark .dilz-free-card__action,
+.dark .dilz-discovery-section__heading a,
+.dark .dilz-destination-card__link,
+.dark .dilz-service-results-heading strong,
+.dark .dilz-service-card__action,
+.dark .dilz-source-note strong { color: var(--text) !important; }
+
+.dark .dilz-discovery-hero p,
+.dark .dilz-discovery-disclaimer,
+.dark .dilz-destination-card p,
+.dark .dilz-service-card p,
+.dark .dilz-free-card p,
+.dark .dilz-code-card__content span,
+.dark .dilz-free-card__store,
+.dark .dilz-service-results-heading span { color: var(--text-muted) !important; }
+
+.dark .dilz-service-card.is-featured { border-color: #7C3A14 !important; background: #1B120D !important; }
+
+@media (max-width: 767px) {
+  .dilz-theme-toggle { width: 36px; height: 36px; flex-basis: 36px; }
+  .dilz-discovery-header__inner { grid-template-columns: 40px 1fr auto; }
+  .dilz-discovery-header__spacer .dilz-language-select { display: none; }
 }
