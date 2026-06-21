@@ -44,7 +44,7 @@ export default function PostPage() {
             />
           ) : <div className="dilz-empty-state"><div className="dilz-spinner" /></div>}
         </main>
-        <BottomNav lang={lang} activeTab="post" postOpen onMenu={() => home('?action=menu')} onTab={() => home()} onPost={() => {}} onAlerts={() => router.push('/alerts')} onProfile={() => home('?tab=profile')} />
+        <BottomNav lang={lang} activeTab="post" postOpen onMenu={() => router.push('/explore')} onTab={() => home()} onPost={() => {}} onAlerts={() => router.push('/alerts')} onProfile={() => home('?tab=profile')} />
       </div>
     </>
   );

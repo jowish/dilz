@@ -55,22 +55,22 @@ test('bottom navigation returns to the active page after Alerts closes', () => {
   assert.equal(bottomNavActiveItem({ activeTab: 'profile' }), 'profile');
 });
 
-test('Alerts selection takes precedence over the menu overlay', () => {
+test('Alerts selection takes precedence over the legacy menu overlay', () => {
   assert.equal(bottomNavActiveItem({ activeTab: 'deals', menuOpen: true, alertsOpen: true }), 'alerts');
-  assert.equal(bottomNavActiveItem({ activeTab: 'deals', menuOpen: true }), 'menu');
+  assert.equal(bottomNavActiveItem({ activeTab: 'deals', menuOpen: true }), 'explore');
 });
 
 test('bottom navigation selects Post while the post screen is open', () => {
   assert.equal(bottomNavActiveItem({ activeTab: 'deals', postOpen: true }), 'post');
 });
 
-for (const destination of ['menu', 'deals', 'post', 'alerts', 'profile']) {
+for (const destination of ['explore', 'deals', 'post', 'alerts', 'profile']) {
   test(`navigating to ${destination} closes unrelated transient screens`, () => {
     const state = bottomNavPanelState(destination, { authenticated: true });
     assert.equal(state.cityOpen, false);
     assert.equal(state.notificationsOpen, false);
     assert.equal(state.promoOpen, false);
-    assert.equal(state.menuOpen, destination === 'menu');
+    assert.equal(state.menuOpen, false);
     assert.equal(state.postOpen, destination === 'post');
     assert.equal(state.alertsOpen, destination === 'alerts');
   });

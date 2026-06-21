@@ -27,7 +27,10 @@ export default function ShoppingDealsPage() {
             <div className="dilz-service-card__top">
               <span className="dilz-service-card__mark" style={{ backgroundColor: service.accent }}>{service.mark}</span>
               <div><strong>{service.name}</strong><span>{service.label[lang]}</span></div>
-              <span className="dilz-service-card__external"><VoteEmoji type="chaud" /> 0 &nbsp; <VoteEmoji type="froid" /> 0</span>
+              <span className="dilz-service-card__votes" aria-label="Community votes">
+                <span className="dilz-service-vote is-hot"><VoteEmoji type="chaud" /> <strong>0</strong></span>
+                <span className="dilz-service-vote is-cold"><VoteEmoji type="froid" /> <strong>0</strong></span>
+              </span>
             </div>
             <div className="dilz-service-card__body"><h2>{service.title[lang]}</h2><p>{service.detail[lang]}</p></div>
             <div className="dilz-service-card__footer">

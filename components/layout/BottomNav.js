@@ -2,11 +2,11 @@ import { bottomNavActiveItem } from '../../lib/navigationState';
 
 export function BottomNav({ lang = 'en', activeTab, menuOpen = false, alertsOpen = false, postOpen = false, onMenu, onTab, onPost, onAlerts, onProfile }) {
   const labels = lang === 'he'
-    ? { menu: 'תפריט', deals: 'דילז', post: 'פרסום', alerts: 'התראות', profile: 'פרופיל', nav: 'ניווט במובייל' }
-    : { menu: 'Menu', deals: 'Deals', post: 'Post', alerts: 'Alerts', profile: 'Profile', nav: 'Mobile navigation' };
+    ? { explore: '\u05d2\u05d9\u05dc\u05d5\u05d9', deals: '\u05d3\u05d9\u05dc\u05d9\u05dd', post: '\u05e4\u05e8\u05e1\u05d5\u05dd', alerts: '\u05d4\u05ea\u05e8\u05d0\u05d5\u05ea', profile: '\u05e4\u05e8\u05d5\u05e4\u05d9\u05dc', nav: '\u05e0\u05d9\u05d5\u05d5\u05d8 \u05de\u05d5\u05d1\u05d9\u05d9\u05dc' }
+    : { explore: 'Explore', deals: 'Deals', post: 'Post', alerts: 'Alerts', profile: 'Profile', nav: 'Mobile navigation' };
   const items = [
-    { id: 'menu', label: labels.menu, action: onMenu, icon: MenuIcon },
     { id: 'deals', label: labels.deals, action: () => onTab('deals'), icon: HomeIcon },
+    { id: 'explore', label: labels.explore, action: onMenu, icon: ExploreIcon },
     { id: 'post', label: labels.post, action: onPost, icon: PlusIcon, post: true },
     { id: 'alerts', label: labels.alerts, action: onAlerts, icon: BellIcon },
     { id: 'profile', label: labels.profile, action: onProfile, icon: UserIcon },
@@ -27,7 +27,6 @@ export function BottomNav({ lang = 'en', activeTab, menuOpen = false, alertsOpen
               onClick={item.action}
               aria-label={item.label}
               aria-current={active ? 'page' : undefined}
-              aria-expanded={item.id === 'menu' ? menuOpen : undefined}
             >
               <span className="dilz-bottom-nav__icon nav-pill">
                 <Icon />
@@ -41,8 +40,8 @@ export function BottomNav({ lang = 'en', activeTab, menuOpen = false, alertsOpen
   );
 }
 
-function MenuIcon() {
-  return <svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16" /></svg>;
+function ExploreIcon() {
+  return <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" /><path d="m15 9-2.1 5.1L8 16l2.1-5.1L15 9Z" /></svg>;
 }
 
 function HomeIcon() {

@@ -13,6 +13,8 @@ const [
   alerts,
   map,
   profilePage,
+  bottomNav,
+  explorePage,
   promoApi,
   shoppingPage,
   shoppingDetail,
@@ -27,6 +29,8 @@ const [
   read('components', 'ui', 'AlertModal.js'),
   read('pages', 'map.js'),
   read('pages', 'user', '[id].js'),
+  read('components', 'layout', 'BottomNav.js'),
+  read('pages', 'explore.js'),
   read('pages', 'api', 'promo-codes.js'),
   read('pages', 'bons-plans-shopping.js'),
   read('pages', 'shopping-deal', '[slug].js'),
@@ -35,14 +39,16 @@ const [
   read('supabase-community-content-setup.sql'),
 ]);
 
-test('deal cards expose branded sharing, direct SMS, author profile and owner deletion', () => {
-  assert.match(dealCard, /dilz-card-sms-action/);
-  assert.match(dealCard, /buildSmsUrl/);
+test('deal cards expose branded sharing through the share menu, author profile and owner deletion', () => {
+  assert.doesNotMatch(dealCard, /dilz-card-sms-action/);
+  assert.doesNotMatch(dealCard, /buildSmsUrl/);
+  assert.match(dealCard, /<ShareMenu/);
   assert.match(dealCard, /router\.push\(`\/user\/\$\{deal\.auteur_id\}`\)/);
   assert.match(dealCard, /dilz-owner-delete/);
   assert.match(css, /\.is-whatsapp svg[^}]*#25D366/);
   assert.match(css, /\.is-telegram svg[^}]*#229ED9/);
   assert.match(css, /\.is-sms svg[^}]*#34C759/);
+  assert.match(css, /\.dilz-card-sms-action\s*\{[^}]*display:\s*none\s*!important/s);
 });
 
 test('posting is a standalone bottom-nav page and accepts city or exact coordinates', () => {
@@ -81,10 +87,39 @@ test('public profiles expose membership stats, deals and follow controls', () =>
 test('shopping deals have internal detail pages, votes, comments and third-party links', () => {
   assert.match(shoppingPage, /href=\{`\/shopping-deal\/\$\{service\.name\.toLowerCase\(\)/);
   assert.match(shoppingPage, /VoteEmoji/);
+  assert.match(shoppingPage, /dilz-service-card__votes/);
+  assert.match(css, /\.dilz-service-vote/);
   assert.match(shoppingDetail, /act\(\{ action: 'vote'/);
   assert.match(shoppingDetail, /act\(\{ action: 'comment'/);
   assert.match(shoppingDetail, /service\.url/);
   assert.doesNotMatch(shoppingPage, /Official links/);
+});
+
+test('bottom nav uses a real Explore page and no longer opens the old menu sheet', () => {
+  assert.match(bottomNav, /id: 'explore'/);
+  assert.match(bottomNav, /ExploreIcon/);
+  assert.doesNotMatch(bottomNav, /id: 'menu'/);
+  assert.match(bottomNav, /id: 'deals'[\s\S]*id: 'explore'[\s\S]*id: 'post'[\s\S]*id: 'alerts'[\s\S]*id: 'profile'/);
+  assert.match(home, /handleBottomNavigation\('explore'\)/);
+  assert.match(home, /router\.push\('\/explore'\)/);
+  assert.match(explorePage, /function ExplorePage/);
+  assert.match(explorePage, /activeTab="explore"/);
+  assert.match(explorePage, /href="\/bons-plans-shopping"/);
+  assert.match(explorePage, /href="\/codes-promo"/);
+  assert.match(explorePage, /href="\/gratuit"/);
+});
+
+test('display toggles keep visible active icons and start with a single card icon', () => {
+  assert.match(home, /aria-label="Card view"[\s\S]*<rect x="5" y="5" width="14" height="14" rx="3"\/>/);
+  assert.match(css, /\.dilz-layout-toggle button\.is-active\s*\{[^}]*background:\s*var\(--surface-main\)\s*!important/s);
+  assert.match(css, /\.dilz-layout-toggle button\.is-active\s*\{[^}]*border:\s*1px solid var\(--text-primary\)\s*!important/s);
+});
+
+test('search result deal cards keep actions inside the card boundary', () => {
+  assert.match(home, /dilz-search-deal-results/);
+  assert.match(css, /\.dilz-search-deal-results \.dilz-deal-card\s*\{[^}]*overflow:\s*hidden/s);
+  assert.match(css, /\.dilz-search-deal-results \.dilz-deal-card__right-actions\s*\{[^}]*justify-content:\s*flex-end/s);
+  assert.match(css, /\.dilz-deal-card__actions,[\s\S]*flex-wrap:\s*wrap/s);
 });
 
 test('community promo codes are user-submittable and protected by database policies', () => {

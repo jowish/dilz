@@ -45,9 +45,9 @@ export default function AlertsPage() {
         <BottomNav
           lang={lang}
           activeTab="alerts"
-          onMenu={() => goHome('?action=menu')}
+          onMenu={() => router.push('/explore')}
           onTab={() => goHome()}
-          onPost={() => goHome('?action=post_deal')}
+          onPost={() => router.push('/post')}
           onAlerts={() => {}}
           onProfile={() => goHome('?tab=profile')}
         />

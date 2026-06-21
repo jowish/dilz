@@ -222,9 +222,6 @@ export function DealCard({
             </button>
           </div>
           <div className="dilz-deal-card__right-actions">
-            <a className="dilz-card-sms-action" href={buildSmsUrl(deal.titre, shareUrl)} aria-label="SMS" onClick={(event) => event.stopPropagation()}>
-              <SmsIcon />
-            </a>
             <IconButton
               aria-label={`${commentCount} ${text.comments}`}
               onClick={(event) => {
@@ -268,14 +265,6 @@ export function DealCard({
       <CopyToast visible={copied} lang={lang} />
     </article>
   );
-}
-
-function buildSmsUrl(title, url) {
-  return `sms:?&body=${encodeURIComponent(`${title}\n${url}`)}`;
-}
-
-function SmsIcon() {
-  return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z"/><path d="M8 10h.01M12 10h.01M16 10h.01"/></svg>;
 }
 
 function CommentIcon() {
