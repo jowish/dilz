@@ -26,6 +26,7 @@ export function BottomNav({ lang = 'en', activeTab, menuOpen = false, alertsOpen
               className={['dilz-bottom-nav__item', active && 'is-active', item.post && 'is-post'].filter(Boolean).join(' ')}
               onClick={item.action}
               aria-label={item.label}
+              aria-current={active ? 'page' : undefined}
               aria-expanded={item.id === 'menu' ? menuOpen : undefined}
             >
               <span className="dilz-bottom-nav__icon nav-pill">
