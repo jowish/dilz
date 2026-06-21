@@ -3,7 +3,7 @@ import { bottomNavActiveItem } from '../../lib/navigationState';
 export function BottomNav({ lang = 'en', activeTab, menuOpen = false, alertsOpen = false, postOpen = false, onMenu, onTab, onPost, onAlerts, onProfile }) {
   const labels = lang === 'he'
     ? { menu: 'תפריט', deals: 'דילז', post: 'פרסום', alerts: 'התראות', profile: 'פרופיל', nav: 'ניווט במובייל' }
-    : { menu: 'Menu', deals: 'Dilz', post: 'Post', alerts: 'Alerts', profile: 'Profile', nav: 'Mobile navigation' };
+    : { menu: 'Menu', deals: 'Deals', post: 'Post', alerts: 'Alerts', profile: 'Profile', nav: 'Mobile navigation' };
   const items = [
     { id: 'menu', label: labels.menu, action: onMenu, icon: MenuIcon },
     { id: 'deals', label: labels.deals, action: () => onTab('deals'), icon: HomeIcon },

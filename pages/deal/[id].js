@@ -416,13 +416,6 @@ export default function DealPage() {
             <div className="dilz-deal-header-actions">
               <ThemeToggle lang={lang} />
               <select className="dilz-language-select" value={lang} onChange={(event) => setLang(event.target.value)} aria-label="Language"><option value="en">EN</option><option value="he">HE</option></select>
-              <button
-                type="button"
-                className="dilz-button dilz-button--sm dilz-button--ghost"
-                onClick={handleShare}
-              >
-                <ShareIcon /> {text.copy}
-              </button>
               {isOwner && (
                 <button
                   type="button"

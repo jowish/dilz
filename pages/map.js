@@ -76,6 +76,10 @@ function getDealCoordinates(deal) {
   return deal.ville ? CITY_COORDS[deal.ville] || null : null;
 }
 
+function hasExactCoordinates(deal) {
+  return Number.isFinite(Number(deal.latitude)) && Number.isFinite(Number(deal.longitude));
+}
+
 function getGroupCoordinates(city, deals) {
   const exact = deals.map(getDealCoordinates).filter(Boolean);
   if (!exact.length) return CITY_COORDS[city] || null;
@@ -115,7 +119,7 @@ export default function MapPage() {
   const selectedDeals = selectedCity ? dealsByCity[selectedCity] || [] : deals.filter(getDealCoordinates);
 
   useEffect(() => {
-    fetch('/api/bons-plans?limit=200&tri=hot')
+    fetch('/api/bons-plans?limit=500&tri=hot')
       .then(r => r.json())
       .then(data => setDeals(data.bons_plans || []))
       .catch(() => {})
@@ -186,8 +190,10 @@ export default function MapPage() {
     }).addTo(map);
 
     cityEntries.forEach(([city, cityDeals]) => {
-      const coords = getGroupCoordinates(city, cityDeals);
-      const count = cityDeals.length;
+      const fallbackDeals = cityDeals.filter((deal) => !hasExactCoordinates(deal));
+      if (!fallbackDeals.length) return;
+      const coords = getGroupCoordinates(city, fallbackDeals);
+      const count = fallbackDeals.length;
       const active = city === selectedCity;
       const icon = L.divIcon({
         className: '',
@@ -200,6 +206,23 @@ export default function MapPage() {
       marker.on('click', () => {
         selectCity(city);
         map.flyTo([coords.lat, coords.lon], 12, { animate: true, duration: 0.5 });
+      });
+    });
+
+    deals.filter(hasExactCoordinates).forEach((deal) => {
+      const coords = getDealCoordinates(deal);
+      const icon = L.divIcon({
+        className: '',
+        html: `<div class="dilz-map-marker dilz-map-marker--exact"><strong>${formatPrice(deal.prix)} ₪</strong></div>`,
+        iconSize: [64, 34],
+        iconAnchor: [32, 17],
+      });
+      const marker = L.marker([coords.lat, coords.lon], { icon }).addTo(map);
+      marker.on('click', () => {
+        const nextCity = deal.ville || null;
+        setSelectedCity(nextCity);
+        router.replace(buildMapUrl(nextCity), undefined, { shallow: true, scroll: false });
+        map.flyTo([coords.lat, coords.lon], 15, { animate: true, duration: 0.5 });
       });
     });
 
@@ -223,7 +246,7 @@ export default function MapPage() {
       map.remove();
       leafletMapRef.current = null;
     };
-  }, [leafletReady, loading, cityEntries, selectedCity]);
+  }, [leafletReady, loading, cityEntries, selectedCity, deals]);
 
   const openDeal = (dealId) => router.push(`/deal/${dealId}`);
 

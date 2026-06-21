@@ -13,13 +13,13 @@ export function ShareMenu({ id, open, title, url, lang = 'en', onCopy, onClose }
 
   return (
     <div id={id} className="dilz-share-menu" role="menu" aria-label={text.label} onClick={stop}>
-      <a href={links.whatsapp} target="_blank" rel="noopener noreferrer" role="menuitem" onClick={linkAction}>
+      <a className="is-whatsapp" href={links.whatsapp} target="_blank" rel="noopener noreferrer" role="menuitem" onClick={linkAction}>
         <WhatsAppIcon /><span>{text.whatsapp}</span>
       </a>
-      <a href={links.telegram} target="_blank" rel="noopener noreferrer" role="menuitem" onClick={linkAction}>
+      <a className="is-telegram" href={links.telegram} target="_blank" rel="noopener noreferrer" role="menuitem" onClick={linkAction}>
         <TelegramIcon /><span>{text.telegram}</span>
       </a>
-      <a href={links.sms} role="menuitem" onClick={linkAction}>
+      <a className="is-sms" href={links.sms} role="menuitem" onClick={linkAction}>
         <SmsIcon /><span>{text.sms}</span>
       </a>
       <button type="button" role="menuitem" onClick={() => { onCopy?.(); onClose?.(); }}>

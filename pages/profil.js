@@ -148,6 +148,7 @@ export default function Profil() {
   const displayName = user.user_metadata?.display_name || user.email?.split('@')[0] || 'User';
   const initials = displayName.slice(0, 2).toUpperCase();
   const totalHot = deals.reduce((s, d) => s + (d.votes_chaud || 0), 0);
+  const totalCold = deals.reduce((s, d) => s + (d.votes_froid || 0), 0);
   const { view: profileView, showDeals, showSettings } = profileViewVisibility(router.query.view);
   const pageTitle = profileView === 'deals' ? text.mine : profileView === 'settings' ? text.settings : text.profile;
 
@@ -179,8 +180,6 @@ export default function Profil() {
             </div>
           </div>
 
-          <button type="button" className="dilz-profile-signout" onClick={handleSignOut}>{text.signOut}</button>
-
           <div className="dilz-profil-stats">
             <div className="dilz-stat-card">
               <strong>{deals.length}</strong>
@@ -190,6 +189,7 @@ export default function Profil() {
               <strong><VoteEmoji type="chaud" /> {totalHot}</strong>
               <span>{text.received}</span>
             </div>
+            <div className="dilz-stat-card"><strong><VoteEmoji type="froid" /> {totalCold}</strong><span>Cold votes</span></div>
           </div>
 
           {showSettings && <>
@@ -313,6 +313,7 @@ export default function Profil() {
             </div>
           )}
           </>}
+          <button type="button" className="dilz-profile-signout dilz-profile-signout--bottom" onClick={handleSignOut}>{text.signOut}</button>
         </main>
       </div>
     </>

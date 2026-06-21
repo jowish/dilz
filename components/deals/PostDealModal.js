@@ -8,7 +8,7 @@ import { Input, Select, Textarea } from '../ui/FormControls';
 import { Modal } from '../ui/Modal';
 import { SegmentedControl } from '../ui/SegmentedControl';
 import { CityPicker } from '../ui/CityPicker';
-import { getDevicePosition } from '../../lib/nativeApp';
+import { getDevicePosition, triggerSuccessHaptic } from '../../lib/nativeApp';
 import { clearDealCity, dealImageSlots } from '../../lib/postDealForm';
 
 const CATEGORIES = ['Food', 'Tech', 'Fashion', 'Activities', 'Online'];
@@ -25,7 +25,7 @@ const copy = {
     onlineStoreHelp: 'Optional. The website can also be identified from the URL.', onlineUrlHelp: 'Required for an online-only Dilz.', storeUrlHelp: 'Optional, but recommended for trust.',
     previewStore: 'Store', previewCity: 'City', previewTitle: 'Deal title', previewDescription: 'A short helpful description will appear here.',
     errors: {
-      images: 'Add at least one clear deal photo.', title: 'Enter a deal title.', price: 'Enter the current price.', oldPrice: 'Old price must be equal to or higher than the current price.', store: 'Enter the store name.', city: 'Choose a city.', url: 'Enter the online deal URL.', dates: 'The end date must be after the start date.', form: 'Complete the required fields highlighted below.', auth: 'Please sign in to post a deal.', session: 'Session expired. Please sign in again.', failed: 'Failed to post deal', network: 'Network error. Please try again.', maxImages: 'You can add up to 3 photos.',
+      images: 'Add at least one clear deal photo.', title: 'Enter a deal title.', price: 'Enter the current price.', oldPrice: 'Old price must be equal to or higher than the current price.', store: 'Enter the store name.', city: 'Choose a city or use your exact location.', url: 'Enter the online deal URL.', dates: 'The end date must be after the start date.', form: 'Complete the required fields highlighted below.', auth: 'Please sign in to post a deal.', session: 'Session expired. Please sign in again.', failed: 'Failed to post deal', network: 'Network error. Please try again.', maxImages: 'You can add up to 3 photos.',
     },
   },
   he: {
@@ -77,7 +77,7 @@ function validateStep(step, form, images, text) {
   if (step === 2) {
     if (form.onlineMode === 'store') {
       if (!form.magasin.trim()) errors.magasin = text.errors.store;
-      if (!form.ville) errors.ville = text.errors.city;
+      if (!form.ville && !form.adresse.trim() && !(Number.isFinite(Number(form.latitude)) && Number.isFinite(Number(form.longitude)))) errors.ville = text.errors.city;
     } else if (!form.url_source.trim()) {
       errors.url_source = text.errors.url;
     }
@@ -85,7 +85,7 @@ function validateStep(step, form, images, text) {
   return errors;
 }
 
-export function PostDealModal({ user, onClose, onSuccess, cityOptions = [], lang = 'en' }) {
+export function PostDealModal({ user, onClose, onSuccess, cityOptions = [], lang = 'en', pageMode = false }) {
   const text = copy[lang === 'he' ? 'he' : 'en'];
   const fileInputRef = useRef(null);
   const [step, setStep] = useState(0);
@@ -227,6 +227,7 @@ export function PostDealModal({ user, onClose, onSuccess, cityOptions = [], lang
       });
       const data = await response.json();
       if (!response.ok || data.erreur) throw new Error(data.erreur || text.errors.failed);
+      await triggerSuccessHaptic();
       onSuccess(data.bon_plan?.id || null);
     } catch (publishError) {
       await Promise.all(uploadPaths.map((path) => deleteDealImage(path)));
@@ -238,18 +239,19 @@ export function PostDealModal({ user, onClose, onSuccess, cityOptions = [], lang
 
   if (!user) {
     return (
-      <Modal title={text.title} subtitle={text.signInSubtitle} onClose={onClose}>
+      <PostSurface pageMode={pageMode} title={text.title} subtitle={text.signInSubtitle} onClose={onClose}>
         <div className="dilz-auth-required">
           <p>{text.authText}</p>
           <Button as={Link} href="/auth" variant="primary">{text.signIn}</Button>
           <Button variant="secondary" onClick={onClose}>{text.cancel}</Button>
         </div>
-      </Modal>
+      </PostSurface>
     );
   }
 
   return (
-    <Modal
+    <PostSurface
+      pageMode={pageMode}
       title={text.title}
       subtitle={text.subtitle}
       onClose={onClose}
@@ -323,7 +325,7 @@ export function PostDealModal({ user, onClose, onSuccess, cityOptions = [], lang
           <Input required={form.onlineMode === 'store'} label={form.onlineMode === 'online' ? text.website : text.store} error={fieldErrors.magasin} value={form.magasin} onChange={(event) => set('magasin', event.target.value)} placeholder={form.onlineMode === 'online' ? 'Amazon, KSP, Terminal X' : 'Bug, Terminal X, Rami Levy'} helper={form.onlineMode === 'online' ? text.onlineStoreHelp : undefined} />
           {form.onlineMode === 'store' && (
             <div className="dilz-field">
-              <span className="dilz-field__label">{text.city}<span className="dilz-field__required"> *</span></span>
+              <span className="dilz-field__label">{text.city} / {lang === 'he' ? '×ž×™×§×•× ×ž×“×•×™×§' : 'exact location'}<span className="dilz-field__required"> *</span></span>
               <CityPicker value={form.ville} cities={cityOptions} lang={lang} includeAll={false} error={fieldErrors.ville} onChange={(city, coords) => {
                 setFieldErrors((current) => ({ ...current, ville: undefined }));
                 setForm((current) => city
@@ -354,6 +356,20 @@ export function PostDealModal({ user, onClose, onSuccess, cityOptions = [], lang
       )}
 
       {error && <p className="dilz-form-error">{error}</p>}
-    </Modal>
+    </PostSurface>
+  );
+}
+
+function PostSurface({ pageMode, title, subtitle, onClose, footer, children }) {
+  if (!pageMode) return <Modal title={title} subtitle={subtitle} onClose={onClose} footer={footer}>{children}</Modal>;
+  return (
+    <section className="dilz-post-page__surface">
+      <header className="dilz-modal__header">
+        <div><h2>{title}</h2>{subtitle && <p>{subtitle}</p>}</div>
+        <button type="button" className="dilz-modal__close" onClick={onClose} aria-label="Close">x</button>
+      </header>
+      <div className="dilz-post-page__body">{children}</div>
+      {footer && <footer className="dilz-modal__footer">{footer}</footer>}
+    </section>
   );
 }

@@ -160,8 +160,9 @@ export function AlertModal({ user, lang, villes = [], onClose }) {
             <h3 id="alert-suggestions-title">{lang !== 'he' ? 'Popular alerts' : 'התראות פופולריות'}</h3>
             <span>{lang !== 'he' ? 'Start with a common search' : 'התחילו מחיפוש נפוץ'}</span>
           </div>
+          <p className="dilz-alert-value">{lang !== 'he' ? 'Tell us what you want. Dilz watches the market and lets you know when a matching deal appears.' : 'ספרו לנו מה אתם מחפשים. Dilz יעקוב ויעדכן כשיופיע דיל מתאים.'}</p>
           <div className="dilz-alert-suggestion-list">
-            {['PS5', 'Nintendo Switch 2', 'iPhone', 'MacBook', lang !== 'he' ? 'Fan' : 'מאוורר'].map((keyword) => (
+            {['PS5', 'Nintendo Switch 2', 'iPhone', 'MacBook', lang !== 'he' ? 'Fan' : 'מאוורר', 'KSP', 'Rami Levy', 'Shufersal'].map((keyword) => (
               <button type="button" key={keyword} onClick={() => useSuggestion(keyword)}>{keyword}</button>
             ))}
           </div>
@@ -277,6 +278,8 @@ export function AlertModal({ user, lang, villes = [], onClose }) {
                 <label className="dilz-field__label">{lang !== 'he' ? 'Minimum discount % (optional)' : 'הנחה מינימלית % (אופציונלי)'}</label>
                 <input
                   type="number"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
                   className="dilz-input"
                   min="0"
                   max="100"

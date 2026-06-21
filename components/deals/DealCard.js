@@ -51,6 +51,7 @@ export function DealCard({
   layout = 'card',
   isAdmin = false,
   onAdminDelete,
+  onOwnerDelete,
   onBlocked,
 }) {
   const router = useRouter();
@@ -92,7 +93,7 @@ export function DealCard({
   const shareMenuId = `deal-share-${deal.id}`;
 
   return (
-    <article className={['dilz-card', 'dilz-deal-card', layout === 'list' && 'is-list'].filter(Boolean).join(' ')} onClick={go}>
+    <article className={['dilz-card', 'dilz-deal-card', layout === 'list' && 'is-list', layout === 'compact' && 'is-compact'].filter(Boolean).join(' ')} onClick={go}>
       <div className="dilz-deal-card__media">
         {primaryImage ? (
           <img src={primaryImage} alt={deal.titre} onError={(event) => { event.currentTarget.style.display = 'none'; }} />
@@ -171,7 +172,10 @@ export function DealCard({
         </div>
         <h3>{deal.titre}</h3>
         <p className="dilz-deal-card__author">
-          {text.shared} <strong>{authorName}</strong>
+          {text.shared}{' '}
+          {deal.auteur_id ? (
+            <button type="button" onClick={(event) => { event.preventDefault(); event.stopPropagation(); router.push(`/user/${deal.auteur_id}`); }}>{authorName}</button>
+          ) : <strong>{authorName}</strong>}
         </p>
         {deal.description && (
           <p className="dilz-deal-card__description">{deal.description}</p>
@@ -218,6 +222,9 @@ export function DealCard({
             </button>
           </div>
           <div className="dilz-deal-card__right-actions">
+            <a className="dilz-card-sms-action" href={buildSmsUrl(deal.titre, shareUrl)} aria-label="SMS" onClick={(event) => event.stopPropagation()}>
+              <SmsIcon />
+            </a>
             <IconButton
               aria-label={`${commentCount} ${text.comments}`}
               onClick={(event) => {
@@ -250,12 +257,25 @@ export function DealCard({
               onClose={() => setShareOpen(false)}
               onCopy={() => copyDealLink().catch(() => {})}
             />
+            {isOwner && onOwnerDelete && (
+              <button type="button" className="dilz-owner-delete" onClick={(event) => { event.preventDefault(); event.stopPropagation(); onOwnerDelete(deal.id); }}>
+                {lang === 'he' ? '×ž×—×§' : 'Delete'}
+              </button>
+            )}
           </div>
         </div>
       </div>
       <CopyToast visible={copied} lang={lang} />
     </article>
   );
+}
+
+function buildSmsUrl(title, url) {
+  return `sms:?&body=${encodeURIComponent(`${title}\n${url}`)}`;
+}
+
+function SmsIcon() {
+  return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z"/><path d="M8 10h.01M12 10h.01M16 10h.01"/></svg>;
 }
 
 function CommentIcon() {

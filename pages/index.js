@@ -9,7 +9,6 @@ import { AppHeader } from '../components/layout/AppHeader';
 import { BottomNav } from '../components/layout/BottomNav';
 import { MainMenuSheet } from '../components/ui/MainMenuSheet';
 import { DealCard as PremiumDealCard } from '../components/deals/DealCard';
-import { PostDealModal as PremiumPostDealModal } from '../components/deals/PostDealModal';
 import { PromoCard } from '../components/deals/PromoCard';
 import { PromoModal } from '../components/deals/PromoModal';
 import { CityModal } from '../components/ui/CityModal';
@@ -662,7 +661,6 @@ export default function Home() {
   // Modals
   const [selectedPromo, setSelectedPromo] = useState(null);
   const [selectedPromoBarcode, setSelectedPromoBarcode] = useState(null);
-  const [showPostModal, setShowPostModal] = useState(false);
   const [showMainMenu, setShowMainMenu] = useState(false);
   const [postSuccess, setPostSuccess] = useState(false);
 
@@ -794,8 +792,11 @@ export default function Home() {
       router.replace('/alerts');
       return;
     }
+    if (next.action === 'post_deal') {
+      router.replace('/post');
+      return;
+    }
     setShowMainMenu(next.action === 'menu');
-    setShowPostModal(next.action === 'post_deal');
     setShowCityModal(next.action === 'city');
     setShowNotificationSheet(next.action === 'notifications');
     setSelectedPromoBarcode(next.action === 'view_promo' ? next.selectedPromoBarcode : null);
@@ -828,8 +829,6 @@ export default function Home() {
         ? 'view_promo'
         : showMainMenu
           ? 'menu'
-          : showPostModal
-          ? 'post_deal'
           : showCityModal
             ? 'city'
             : showNotificationSheet
@@ -856,7 +855,6 @@ export default function Home() {
     ville,
     searchQuery,
     showMainMenu,
-    showPostModal,
     showCityModal,
     showNotificationSheet,
     selectedPromoBarcode,
@@ -1002,6 +1000,20 @@ export default function Home() {
     }
     setDeals(prev => prev.filter(deal => deal.id !== id));
     setDealTotal(current => Math.max(0, current - 1));
+  };
+
+  const handleOwnerDeleteDeal = async (id) => {
+    if (!user || !window.confirm(lang === 'he' ? 'Delete this deal?' : 'Delete this deal?')) return;
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) return;
+    const response = await fetch('/api/bons-plans', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
+      body: JSON.stringify({ action: 'delete', id }),
+    });
+    if (!response.ok) return;
+    setDeals((current) => current.filter((deal) => deal.id !== id));
+    setDealTotal((current) => Math.max(0, current - 1));
   };
 
   const handleDealVote = async (id, type) => {
@@ -1161,7 +1173,6 @@ export default function Home() {
   };
 
   const handlePostSuccess = (newId) => {
-    setShowPostModal(false);
     if (newId) {
       // When user navigates back, they'll see the feed sorted by New so their deal is visible
       try { sessionStorage.setItem('dilzReturnSort', 'latest'); } catch {}
@@ -1210,9 +1221,13 @@ export default function Home() {
       else router.push('/alerts');
       return;
     }
+    if (destination === 'post') {
+      if (!user) router.push('/auth?redirect=/post');
+      else router.push('/post');
+      return;
+    }
     const panels = bottomNavPanelState(destination, { authenticated: Boolean(user) });
     setShowMainMenu(panels.menuOpen);
-    setShowPostModal(panels.postOpen);
     setShowCityModal(panels.cityOpen);
     setShowNotificationSheet(panels.notificationsOpen);
     setSelectedPromo(null);
@@ -1297,7 +1312,7 @@ export default function Home() {
           onNotificationsClick={() => setShowNotificationSheet(true)}
           onProfileClick={() => setTab('profile')}
           onLogoClick={() => setTab('deals')}
-          onPostDeal={() => setShowPostModal(true)}
+          onPostDeal={() => user ? router.push('/post') : router.push('/auth?redirect=/post')}
           onSearch={() => setTab('search')}
           searchValue={searchQuery}
           onSearchChange={(event) => setSearchQuery(event.target.value)}
@@ -1489,10 +1504,10 @@ export default function Home() {
                 <div className="dilz-feed-controls" aria-label={lang === 'he' ? 'פקדי פיד דילז' : 'Dilz feed controls'}>
                 <span className="dilz-view-switcher__count">
                   {textFor(lang, {
-                    en: `${displayedDealCount} Dilz`,
-                    he: `${displayedDealCount} דילז`,
-                    fr: `${displayedDealCount} Dilz`,
-                    es: `${displayedDealCount} Dilz`,
+                    en: `${displayedDealCount} deals`,
+                    he: `${displayedDealCount} דילים`,
+                    fr: `${displayedDealCount} deals`,
+                    es: `${displayedDealCount} deals`,
                   })}
                 </span>
                 <button type="button" className="dilz-map-quick-btn" onClick={openMap} aria-label={lang === 'he' ? 'פתיחת מפת דילז' : 'Open Dilz map'}>
@@ -1521,6 +1536,16 @@ export default function Home() {
                   >
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
                       <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
+                    </svg>
+                  </button>
+                  <button
+                    type="button"
+                    className={dealLayout === 'compact' ? 'is-active' : ''}
+                    onClick={() => changeDealLayout('compact')}
+                    aria-label="Compact card view"
+                  >
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+                      <rect x="3" y="3" width="8" height="8" rx="1"/><rect x="13" y="3" width="8" height="8" rx="1"/><rect x="3" y="13" width="8" height="8" rx="1"/><rect x="13" y="13" width="8" height="8" rx="1"/>
                     </svg>
                   </button>
                 </div>
@@ -1562,10 +1587,10 @@ export default function Home() {
                       : (lang !== 'he' ? 'Be the first to share a deal with the community.' : 'היה הראשון לשתף דיל!')
                   }
                   actionLabel={lang !== 'he' ? 'Share a deal' : 'שתף דיל'}
-                  onAction={() => setShowPostModal(true)}
+                  onAction={() => user ? router.push('/post') : router.push('/auth?redirect=/post')}
                 />
               ) : (
-                <div className={['dilz-feed-grid', dealLayout === 'list' && 'is-list'].filter(Boolean).join(' ')}>
+                <div className={['dilz-feed-grid', dealLayout === 'list' && 'is-list', dealLayout === 'compact' && 'is-compact'].filter(Boolean).join(' ')}>
                 {displayedDeals.map(deal => (
                   <PremiumDealCard
                     key={deal.id} deal={deal} lang={lang} isDark={isDark}
@@ -1575,6 +1600,7 @@ export default function Home() {
                     user={user}
                     isAdmin={Boolean(adminToken)}
                     onAdminDelete={handleAdminDeleteDeal}
+                    onOwnerDelete={handleOwnerDeleteDeal}
                     onBlocked={(userId) => setBlockedUserIds((current) => current.includes(userId) ? current : [...current, userId])}
                     isSaved={Boolean(savedKeys[`deal:${deal.id}`])}
                     onSave={() => handleToggleSave('deal', deal.id)}
@@ -1644,7 +1670,7 @@ export default function Home() {
           activeTab={tab}
           menuOpen={showMainMenu}
           alertsOpen={false}
-          postOpen={showPostModal}
+          postOpen={false}
           onMenu={() => handleBottomNavigation('menu')}
           onTab={() => handleBottomNavigation('deals')}
           onPost={() => handleBottomNavigation('post')}
@@ -1662,15 +1688,6 @@ export default function Home() {
             lang={lang}
             onSelect={handleCitySelect}
             onClose={() => setShowCityModal(false)}
-          />
-        )}
-        {showPostModal && (
-          <PremiumPostDealModal
-            user={user}
-            lang={lang}
-            onClose={() => setShowPostModal(false)}
-            onSuccess={handlePostSuccess}
-            cityOptions={Object.keys(CITY_COORDS)}
           />
         )}
         {showNotificationSheet && user && (
