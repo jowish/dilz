@@ -21,6 +21,9 @@ const [
   css,
   documentPage,
   migration,
+  dealApi,
+  detailPage,
+  nativeApp,
 ] = await Promise.all([
   read('components', 'deals', 'DealCard.js'),
   read('components', 'deals', 'PostDealModal.js'),
@@ -37,7 +40,24 @@ const [
   read('styles', 'globals.css'),
   read('pages', '_document.js'),
   read('supabase-community-content-setup.sql'),
+  read('pages', 'api', 'bons-plans.js'),
+  read('pages', 'deal', '[id].js'),
+  read('lib', 'nativeApp.js'),
 ]);
+
+test('exact deal location is preserved and shown in deal details', () => {
+  assert.match(postForm, /adresse: form\.onlineMode === 'online' \? null : \(resolvedLocation\.address \|\| form\.adresse \|\| null\)/);
+  assert.doesNotMatch(dealApi, /delete compatibleInsert\.(adresse|latitude|longitude)/);
+  assert.doesNotMatch(dealApi, /delete compatibleUpdate\.(adresse|latitude|longitude)/);
+  assert.match(detailPage, /Full address/);
+  assert.match(detailPage, /\{deal\.adresse\}/);
+});
+
+test('post form prevents iOS focus zoom and confirms publishing with haptics', () => {
+  assert.match(css, /\.dilz-post-page input:not\(\[type='file'\]\)[^}]*font-size:\s*16px !important/s);
+  assert.match(postForm, /await triggerSuccessHaptic\(\);[\s\S]*onSuccess\(/);
+  assert.match(nativeApp, /navigator\.vibrate\(\[35, 45, 55\]\)/);
+});
 
 test('deal cards expose branded sharing through the share menu, author profile and owner deletion', () => {
   assert.doesNotMatch(dealCard, /dilz-card-sms-action/);

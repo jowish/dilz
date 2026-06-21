@@ -41,6 +41,7 @@ export function AppHeader({
   onCommunity,
   onAlerts,
   activeTab,
+  showSearch = true,
 }) {
   const labels = lang === 'he'
     ? { primary: 'ניווט ראשי', promos: 'מבצעים', search: 'חיפוש מוצרים, חנויות ודילז', notifications: 'התראות', alert: 'יצירת התראת מחיר', alerts: 'התראות', post: 'פרסום דיל', profile: 'פרופיל', signIn: 'התחברות', allIsrael: 'כל הארץ' }
@@ -61,9 +62,11 @@ export function AppHeader({
           </nav>
         </div>
 
-        <div className="dilz-app-header__search">
-          <SearchBar value={searchValue} onChange={onSearchChange} onFocus={onSearch} placeholder={labels.search} />
-        </div>
+        {showSearch && (
+          <div className="dilz-app-header__search">
+            <SearchBar value={searchValue} onChange={onSearchChange} onFocus={onSearch} placeholder={labels.search} />
+          </div>
+        )}
 
         <div className="dilz-app-header__right">
           <ThemeToggle lang={lang} />
@@ -104,9 +107,11 @@ export function AppHeader({
           </IconButton>
         </div>
       </div>
-      <div className="dilz-mobile-search">
-        <SearchBar value={searchValue} onChange={onSearchChange} onFocus={onSearch} placeholder={labels.search} />
-      </div>
+      {showSearch && (
+        <div className="dilz-mobile-search">
+          <SearchBar value={searchValue} onChange={onSearchChange} onFocus={onSearch} placeholder={labels.search} />
+        </div>
+      )}
     </header>
   );
 }

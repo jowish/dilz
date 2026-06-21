@@ -7262,6 +7262,10 @@ body { touch-action: pan-y; }
 .dilz-post-page__surface .dilz-modal__header, .dilz-post-page__surface .dilz-modal__footer { position: sticky; z-index: 5; background: var(--bg-card); }
 .dilz-post-page__surface .dilz-modal__header { top: 0; }
 .dilz-post-page__surface .dilz-modal__footer { bottom: 0; }
+.dilz-profile-tab { display: flex; min-height: calc(100dvh - 230px); flex-direction: column; padding: 0 14px; }
+.dilz-profile-tab .dilz-profile-signout--bottom { margin-top: auto; margin-bottom: 18px; }
+.dilz-deal-address { display: grid; gap: 3px; font-style: normal; }
+.dilz-deal-address span { color: var(--text-primary); font-size: 11px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; }
 
 .dilz-alert-value { margin: -2px 0 14px; color: var(--text-secondary); font-size: 14px; line-height: 1.5; }
 .dilz-service-card { text-decoration: none !important; }
@@ -7565,7 +7569,8 @@ body { touch-action: pan-y; }
   .dilz-post-page__main { width: 100%; padding: 0; }
   .dilz-post-page__surface { min-height: calc(100dvh - 154px); border-width: 0; border-radius: 0; }
   .dilz-post-page__body { padding: 16px; }
-  .dilz-alert-page input, .dilz-alert-page select, .dilz-alert-page textarea { font-size: 16px !important; }
+  .dilz-alert-page input, .dilz-alert-page select, .dilz-alert-page textarea,
+  .dilz-post-page input:not([type='file']), .dilz-post-page select, .dilz-post-page textarea { font-size: 16px !important; }
   .dilz-code-submit form { grid-template-columns: 1fr; }
   .dilz-public-profile__hero { grid-template-columns: auto 1fr; }
   .dilz-public-profile__hero button { grid-column: 1 / -1; }

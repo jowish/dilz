@@ -462,7 +462,7 @@ function ProfileTab({ user, lang, savedItems = [], onToggleSave, onSignOut }) {
   const initials = displayName.slice(0, 2).toUpperCase();
 
   return (
-    <div style={{ padding: '0 14px' }}>
+    <div className="dilz-profile-tab">
       {/* Profile card */}
       <div style={{
         background: 'var(--bg-card)', borderRadius: 12, padding: '18px 16px',
@@ -481,10 +481,6 @@ function ProfileTab({ user, lang, savedItems = [], onToggleSave, onSignOut }) {
           <p style={{ fontSize: 12, color: 'var(--text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user.email}</p>
         </div>
       </div>
-
-      <button type="button" className="dilz-profile-signout" onClick={onSignOut}>
-        {lang !== 'he' ? 'Sign out' : 'התנתקות'}
-      </button>
 
       {/* Quick links */}
       <div className="dilz-profile-links">
@@ -601,6 +597,9 @@ function ProfileTab({ user, lang, savedItems = [], onToggleSave, onSignOut }) {
           </div>
         )}</div>}
       </div>
+      <button type="button" className="dilz-profile-signout dilz-profile-signout--bottom" onClick={onSignOut}>
+        {lang !== 'he' ? 'Sign out' : 'התנתקות'}
+      </button>
     </div>
   );
 }
@@ -1323,6 +1322,7 @@ export default function Home() {
           onCommunity={() => setTab('deals')}
           onAlerts={() => user ? router.push('/alerts') : router.push('/auth?redirect=/alerts')}
           activeTab={tab}
+          showSearch={tab !== 'profile'}
         />
 
         <main className="dilz-page-shell">

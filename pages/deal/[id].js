@@ -486,7 +486,12 @@ export default function DealPage() {
               {' · '}{timeAgo(deal.created_at, text)}
               {deal.auteur_nom ? ` · ${text.by} ${deal.auteur_nom}` : ''}
             </p>
-            {deal.adresse && <p className="dilz-deal-address">{deal.adresse}</p>}
+            {deal.adresse && (
+              <address className="dilz-deal-address">
+                <span>{lang === 'he' ? 'כתובת מלאה' : 'Full address'}</span>
+                {deal.adresse}
+              </address>
+            )}
             <div className="dilz-deal-safety-row">
               <SafetyActions
                 contentType="deal"

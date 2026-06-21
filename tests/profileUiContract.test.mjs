@@ -6,6 +6,7 @@ import path from 'node:path';
 const index = await readFile(path.join(process.cwd(), 'pages', 'index.js'), 'utf8');
 const profile = await readFile(path.join(process.cwd(), 'pages', 'profil.js'), 'utf8');
 const shareMenu = await readFile(path.join(process.cwd(), 'components', 'ui', 'ShareMenu.js'), 'utf8');
+const appHeader = await readFile(path.join(process.cwd(), 'components', 'layout', 'AppHeader.js'), 'utf8');
 
 test('profile shortcuts separate owned deals from account settings', () => {
   assert.match(index, /href: '\/profil\?view=deals'/);
@@ -26,4 +27,12 @@ test('share menu offers all requested actions including SMS and copy', () => {
 test('Saved items renders the complete fetched collection in a scrollable section', () => {
   assert.match(index, /savedItems\.map\(item =>/);
   assert.doesNotMatch(index, /savedItems\.slice\(0,\s*8\)/);
+});
+
+test('profile hides global search and keeps sign out after profile content', () => {
+  assert.match(index, /showSearch=\{tab !== 'profile'\}/);
+  assert.match(appHeader, /showSearch = true/);
+  assert.match(appHeader, /\{showSearch && \([\s\S]*dilz-app-header__search/);
+  const profileTab = index.slice(index.indexOf('function ProfileTab'), index.indexOf('function ChevronIcon'));
+  assert.ok(profileTab.lastIndexOf('dilz-profile-signout--bottom') > profileTab.lastIndexOf('dilz-saved-items-content'));
 });

@@ -117,13 +117,11 @@ export default async function handler(req, res) {
 
       let { data: rows, error } = await supabaseAdmin.from('bons_plans').insert([insertData]).select('id');
 
-      // Keep posting available while optional gallery/location migrations roll out.
-      if (error && /(image_urls|adresse|latitude|longitude)/i.test([error.message, error.details, error.hint].filter(Boolean).join(' '))) {
+      // The gallery column is optional during rollout. Location data is not:
+      // never silently discard an exact address or coordinates from a new deal.
+      if (error && /image_urls/i.test([error.message, error.details, error.hint].filter(Boolean).join(' '))) {
         const compatibleInsert = { ...insertData };
         delete compatibleInsert.image_urls;
-        delete compatibleInsert.adresse;
-        delete compatibleInsert.latitude;
-        delete compatibleInsert.longitude;
         ({ data: rows, error } = await supabaseAdmin.from('bons_plans').insert([compatibleInsert]).select('id'));
       }
 
@@ -243,14 +241,7 @@ export default async function handler(req, res) {
           return res.status(400).json({ erreur: moderation.reason, code: 'CONTENT_REJECTED' });
         }
 
-        let { error } = await supabaseAdmin.from('bons_plans').update(normalized.value).eq('id', dealId);
-        if (error && /(adresse|latitude|longitude)/i.test([error.message, error.details, error.hint].filter(Boolean).join(' '))) {
-          const compatibleUpdate = { ...normalized.value };
-          delete compatibleUpdate.adresse;
-          delete compatibleUpdate.latitude;
-          delete compatibleUpdate.longitude;
-          ({ error } = await supabaseAdmin.from('bons_plans').update(compatibleUpdate).eq('id', dealId));
-        }
+        const { error } = await supabaseAdmin.from('bons_plans').update(normalized.value).eq('id', dealId);
         if (error) return res.status(500).json({ erreur: error.message });
         return res.status(200).json({ ok: true });
       }
