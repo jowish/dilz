@@ -7,8 +7,8 @@ self.addEventListener('push', event => {
   const title = data.title || 'Dilz — New deal!';
   const options = {
     body:    data.body  || 'A new deal matches your alert.',
-    icon:    '/favicon.ico',
-    badge:   '/favicon.ico',
+    icon:    '/icon-192.png',
+    badge:   '/icon-192.png',
     tag:     data.url   || 'dilz-notification',
     renotify: true,
     data:    { url: data.url || '/' },

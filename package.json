@@ -17,7 +17,8 @@
     "check": "npm test && npm run build",
     "ios:add": "npx cap add ios",
     "ios:sync": "npx cap sync ios",
-    "ios:open": "npx cap open ios"
+    "ios:open": "npx cap open ios",
+    "icons:generate": "node scripts/generate-app-icons.js"
   },
   "dependencies": {
     "@capacitor/app": "^8.0.1",
