@@ -14,8 +14,14 @@ test('the primary photo renders inside the original upload zone', () => {
 
 test('deal dates use two compact controls instead of full-width rows', () => {
   assert.equal((modal.match(/className="dilz-date-input"/g) || []).length, 2);
-  assert.match(css, /\.dilz-form-grid--two\.dilz-date-fields\s*\{[^}]*width:\s*min\(100%, 284px\)[^}]*grid-template-columns:\s*repeat\(2, minmax\(0, 1fr\)\)/s);
-  assert.match(css, /\.dilz-date-fields \.dilz-date-input\s*\{[^}]*min-height:\s*42px/s);
+  assert.match(css, /\.dilz-form-grid--two\.dilz-date-fields\s*\{[^}]*width:\s*min\(100%, 360px\)[^}]*grid-template-columns:\s*repeat\(2, minmax\(0, 1fr\)\)/s);
+  assert.match(css, /\.dilz-date-fields \.dilz-date-input\s*\{[^}]*min-height:\s*46px/s);
+  assert.match(css, /@media \(max-width: 380px\)[\s\S]*?\.dilz-form-grid--two\.dilz-date-fields\s*\{[^}]*grid-template-columns:\s*1fr/s);
+});
+
+test('old price is optional but cannot be below current price', () => {
+  assert.match(modal, /form\.prix_original !== '' && Number\(form\.prix_original\) < Number\(form\.prix\)/);
+  assert.match(modal, /label=\{text\.oldPrice\} error=\{fieldErrors\.prix_original\}/);
 });
 
 test('both price fields request a decimal numeric keyboard', () => {

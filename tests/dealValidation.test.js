@@ -138,6 +138,13 @@ for (const price of [-1, 10000001, 'invalid']) {
   });
 }
 
+test('old price is optional and must not be below the current price', () => {
+  assert.deepEqual(normalizeDealInput(validDeal({ prix: 20, prix_original: '' })).errors, []);
+  assert.deepEqual(normalizeDealInput(validDeal({ prix: 20, prix_original: 20 })).errors, []);
+  assert.deepEqual(normalizeDealInput(validDeal({ prix: 20, prix_original: 30 })).errors, []);
+  assert.ok(normalizeDealInput(validDeal({ prix: 20, prix_original: 10 })).errors.includes('Original price must be equal to or greater than current price.'));
+});
+
 test('truncates user-controlled text to schema limits', () => {
   const result = normalizeDealInput(validDeal({ titre: 't'.repeat(200), description: 'd'.repeat(2500), magasin: 'm'.repeat(150), ville: 'v'.repeat(150), adresse: 'a'.repeat(350) }));
   assert.equal(result.value.titre.length, 160);

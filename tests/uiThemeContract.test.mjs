@@ -9,7 +9,7 @@ const bottomNav = await readFile(path.join(process.cwd(), 'components', 'layout'
 test('mobile navigation uses the larger premium bar contract', () => {
   assert.match(css, /height:\s*calc\(90px \+ env\(safe-area-inset-bottom\)\)/);
   assert.match(css, /padding-bottom:\s*calc\(6px \+ env\(safe-area-inset-bottom\)\)/);
-  assert.match(css, /\.dilz-bottom-nav\s*\{[^}]*bottom:\s*6px/s);
+  assert.match(css, /\.dilz-bottom-nav\s*\{[^}]*bottom:\s*0/s);
   assert.match(css, /\.dilz-bottom-nav__item\.is-active::before\s*\{[^}]*background:\s*var\(--brand-soft\)/s);
   assert.match(bottomNav, /aria-current=\{active \? 'page' : undefined\}/);
 });

@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
-import { processNewDeal } from '../../lib/alerts';
+import { processFollowerNotifications, processNewDeal } from '../../lib/alerts';
 import { moderateFields } from '../../lib/contentModeration';
 
 const { clampLimit, dateOnlyInTimeZone, dateOnlyPart, normalizeDealImageUrls, normalizeDealInput } = require('../../lib/dealValidation');
@@ -138,9 +138,13 @@ export default async function handler(req, res) {
 
       // Finish alert matching before returning so serverless runtimes cannot drop it.
       if (newId) {
-        await processNewDeal({ id: newId, ...insertData }, supabaseAdmin).catch(e => {
-          console.error('[alerts] processNewDeal error:', e.message);
-        });
+        const createdDeal = { id: newId, ...insertData };
+        await Promise.allSettled([
+          processNewDeal(createdDeal, supabaseAdmin),
+          processFollowerNotifications(createdDeal, supabaseAdmin),
+        ]).then((results) => results.forEach((result) => {
+          if (result.status === 'rejected') console.error('[alerts] notification processing error:', result.reason?.message);
+        }));
       }
 
       return res.status(201).json({

@@ -3,7 +3,6 @@ import { supabase } from '../../lib/supabase';
 import { registerNativePushToken } from '../../lib/nativeApp';
 import { CityPicker } from './CityPicker';
 import { cityDisplayName } from '../../lib/israelCities';
-import { useSheetGesture } from '../../lib/useSheetGesture';
 
 function alertSummary(a, lang) {
   const parts = [];
@@ -15,21 +14,20 @@ function alertSummary(a, lang) {
 }
 
 export function AlertModal({ user, lang, villes = [], onClose }) {
-  const { panelRef, handleProps } = useSheetGesture(onClose);
   const [activeTab, setActiveTab] = useState('list');
   const [alerts, setAlerts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [form, setForm] = useState({ city: '', online_only: false, min_discount_percent: '', keyword: '' });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const [followUsers, setFollowUsers] = useState([]);
+  const [followLoading, setFollowLoading] = useState(true);
 
   useEffect(() => {
     const esc = (e) => { if (e.key === 'Escape') onClose(); };
     window.addEventListener('keydown', esc);
-    document.body.style.overflow = 'hidden';
     return () => {
       window.removeEventListener('keydown', esc);
-      document.body.style.overflow = '';
     };
   }, [onClose]);
 
@@ -37,10 +35,16 @@ export function AlertModal({ user, lang, villes = [], onClose }) {
     if (!user) { setLoading(false); return; }
     supabase.auth.getSession().then(({ data }) => {
       if (!data.session) { setLoading(false); return; }
-      fetch('/api/alerts', { headers: { Authorization: `Bearer ${data.session.access_token}` } })
-        .then((r) => r.json())
-        .then((d) => { setAlerts(d.alerts || []); setLoading(false); })
-        .catch(() => setLoading(false));
+      Promise.all([
+        fetch('/api/alerts', { headers: { Authorization: `Bearer ${data.session.access_token}` } }).then((r) => r.json()),
+        fetch('/api/user-follows', { headers: { Authorization: `Bearer ${data.session.access_token}` } }).then((r) => r.json()),
+      ]).then(([alertData, followData]) => {
+        setAlerts(alertData.alerts || []);
+        setFollowUsers(followData.users || []);
+      }).finally(() => {
+        setLoading(false);
+        setFollowLoading(false);
+      });
     });
   }, [user]);
 
@@ -122,16 +126,46 @@ export function AlertModal({ user, lang, villes = [], onClose }) {
 
   const setField = (key, value) => setForm((f) => ({ ...f, [key]: value }));
 
+  const useSuggestion = (keyword) => {
+    setField('keyword', keyword);
+    setActiveTab('new');
+  };
+
+  const toggleFollow = async (candidate) => {
+    const { data } = await supabase.auth.getSession();
+    if (!data.session) return;
+    setFollowUsers((current) => current.map((item) => item.id === candidate.id ? { ...item, is_following: !item.is_following } : item));
+    const response = await fetch('/api/user-follows', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${data.session.access_token}` },
+      body: JSON.stringify({ followed_user_id: candidate.id, followed_name: candidate.name }),
+    });
+    if (!response.ok) {
+      setFollowUsers((current) => current.map((item) => item.id === candidate.id ? { ...item, is_following: candidate.is_following } : item));
+    }
+  };
+
   return (
-    <div className="dilz-sheet-overlay" onClick={onClose} role="dialog" aria-modal="true" aria-label="My alerts">
-      <div ref={panelRef} className="dilz-sheet dilz-alert-modal" onClick={(e) => e.stopPropagation()}>
-        <div className="dilz-sheet__handle" aria-hidden="true" {...handleProps} />
+    <div className="dilz-alert-page" aria-label="My alerts">
+      <div className="dilz-alert-page__panel">
         <div className="dilz-sheet__header">
           <h2 className="dilz-sheet__title">{lang !== 'he' ? 'My Alerts' : 'ההתראות שלי'}</h2>
           <button type="button" className="dilz-sheet__close" onClick={onClose} aria-label="Close">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6 6 18M6 6l12 12"/></svg>
           </button>
         </div>
+
+        <section className="dilz-alert-suggestions" aria-labelledby="alert-suggestions-title">
+          <div className="dilz-alert-section-heading">
+            <h3 id="alert-suggestions-title">{lang !== 'he' ? 'Popular alerts' : 'התראות פופולריות'}</h3>
+            <span>{lang !== 'he' ? 'Start with a common search' : 'התחילו מחיפוש נפוץ'}</span>
+          </div>
+          <div className="dilz-alert-suggestion-list">
+            {['PS5', 'Nintendo Switch 2', 'iPhone', 'MacBook', lang !== 'he' ? 'Fan' : 'מאוורר'].map((keyword) => (
+              <button type="button" key={keyword} onClick={() => useSuggestion(keyword)}>{keyword}</button>
+            ))}
+          </div>
+        </section>
 
         <div className="dilz-segmented" role="tablist" aria-label="Alert sections">
           {[['list', lang !== 'he' ? 'My alerts' : 'ההתראות שלי'], ['new', lang !== 'he' ? '+ New alert' : '+ התראה חדשה']].map(([id, label]) => (
@@ -150,7 +184,8 @@ export function AlertModal({ user, lang, villes = [], onClose }) {
 
         <div className="dilz-alert-modal__body">
           {activeTab === 'list' && (
-            loading ? (
+            <>
+            {loading ? (
               <div className="dilz-empty-state">
                 <div className="dilz-spinner" />
               </div>
@@ -190,7 +225,29 @@ export function AlertModal({ user, lang, villes = [], onClose }) {
                   </div>
                 ))}
               </div>
-            )
+            )}
+            <section className="dilz-follow-section" aria-labelledby="follow-users-title">
+              <div className="dilz-alert-section-heading">
+                <h3 id="follow-users-title">{lang !== 'he' ? 'Follow Dilz members' : 'מעקב אחרי חברי Dilz'}</h3>
+                <span>{lang !== 'he' ? 'Get an alert when they publish' : 'קבלו התראה כשהם מפרסמים'}</span>
+              </div>
+              {followLoading ? <div className="dilz-spinner" /> : followUsers.length === 0 ? (
+                <p className="dilz-empty-state__text">{lang !== 'he' ? 'Authors will appear here as new Dilz are published.' : 'כותבים יופיעו כאן עם פרסום דילז חדשים.'}</p>
+              ) : (
+                <div className="dilz-follow-list">
+                  {followUsers.slice(0, 20).map((candidate) => (
+                    <div className="dilz-follow-user" key={candidate.id}>
+                      <span className="dilz-follow-user__avatar">{candidate.name.slice(0, 2).toUpperCase()}</span>
+                      <strong>{candidate.name}</strong>
+                      <button type="button" className={candidate.is_following ? 'is-following' : ''} onClick={() => toggleFollow(candidate)}>
+                        {candidate.is_following ? (lang !== 'he' ? 'Following' : 'במעקב') : (lang !== 'he' ? 'Follow' : 'מעקב')}
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </section>
+            </>
           )}
 
           {activeTab === 'new' && (

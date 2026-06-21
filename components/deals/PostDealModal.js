@@ -25,7 +25,7 @@ const copy = {
     onlineStoreHelp: 'Optional. The website can also be identified from the URL.', onlineUrlHelp: 'Required for an online-only Dilz.', storeUrlHelp: 'Optional, but recommended for trust.',
     previewStore: 'Store', previewCity: 'City', previewTitle: 'Deal title', previewDescription: 'A short helpful description will appear here.',
     errors: {
-      images: 'Add at least one clear deal photo.', title: 'Enter a deal title.', price: 'Enter the current price.', store: 'Enter the store name.', city: 'Choose a city.', url: 'Enter the online deal URL.', dates: 'The end date must be after the start date.', form: 'Complete the required fields highlighted below.', auth: 'Please sign in to post a deal.', session: 'Session expired. Please sign in again.', failed: 'Failed to post deal', network: 'Network error. Please try again.', maxImages: 'You can add up to 3 photos.',
+      images: 'Add at least one clear deal photo.', title: 'Enter a deal title.', price: 'Enter the current price.', oldPrice: 'Old price must be equal to or higher than the current price.', store: 'Enter the store name.', city: 'Choose a city.', url: 'Enter the online deal URL.', dates: 'The end date must be after the start date.', form: 'Complete the required fields highlighted below.', auth: 'Please sign in to post a deal.', session: 'Session expired. Please sign in again.', failed: 'Failed to post deal', network: 'Network error. Please try again.', maxImages: 'You can add up to 3 photos.',
     },
   },
   he: {
@@ -69,6 +69,9 @@ function validateStep(step, form, images, text) {
   if (step === 1) {
     if (!form.titre.trim()) errors.titre = text.errors.title;
     if (form.prix === '') errors.prix = text.errors.price;
+    if (form.prix_original !== '' && Number(form.prix_original) < Number(form.prix)) {
+      errors.prix_original = text.errors.oldPrice || 'Old price must be equal to or higher than the current price.';
+    }
     if (form.date_debut && form.date_fin && form.date_fin < form.date_debut) errors.date_fin = text.errors.dates;
   }
   if (step === 2) {
@@ -172,7 +175,7 @@ export function PostDealModal({ user, onClose, onSuccess, cityOptions = [], lang
       setFieldErrors(errors);
       setError(text.errors.form);
       if (errors.images) setStep(0);
-      else if (errors.titre || errors.prix || errors.date_fin) setStep(1);
+      else if (errors.titre || errors.prix || errors.prix_original || errors.date_fin) setStep(1);
       else setStep(2);
       return;
     }
@@ -304,7 +307,7 @@ export function PostDealModal({ user, onClose, onSuccess, cityOptions = [], lang
           <Textarea label={text.description} value={form.description} onChange={(event) => set('description', event.target.value)} placeholder={lang === 'he' ? 'מה הופך את הדיל למשתלם?' : 'What makes this deal useful?'} />
           <div className="dilz-form-grid dilz-form-grid--two dilz-price-fields">
             <Input required label={text.price} error={fieldErrors.prix} type="number" inputMode="decimal" min="0" step="any" value={form.prix} onChange={(event) => set('prix', event.target.value)} placeholder="999" />
-            <Input label={text.oldPrice} type="number" inputMode="decimal" min="0" step="any" value={form.prix_original} onChange={(event) => set('prix_original', event.target.value)} placeholder="1299" helper={discount ? `${discount}% ${text.discount}` : text.optional} />
+            <Input label={text.oldPrice} error={fieldErrors.prix_original} type="number" inputMode="decimal" min="0" step="any" value={form.prix_original} onChange={(event) => set('prix_original', event.target.value)} placeholder="1299" helper={discount ? `${discount}% ${text.discount}` : text.optional} />
           </div>
           <Select label={text.category} value={form.categorie} onChange={(event) => set('categorie', event.target.value)}>{CATEGORIES.map((category) => <option key={category} value={category}>{category}</option>)}</Select>
           <div className="dilz-form-grid dilz-form-grid--two dilz-date-fields">

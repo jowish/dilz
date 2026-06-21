@@ -13,7 +13,6 @@ import { PostDealModal as PremiumPostDealModal } from '../components/deals/PostD
 import { PromoCard } from '../components/deals/PromoCard';
 import { PromoModal } from '../components/deals/PromoModal';
 import { CityModal } from '../components/ui/CityModal';
-import { AlertModal } from '../components/ui/AlertModal';
 import { NotificationSheet } from '../components/ui/NotificationSheet';
 import { Button } from '../components/ui/Button';
 import { EmptyState } from '../components/ui/EmptyState';
@@ -76,7 +75,7 @@ const URL_TO_TAB = {
 const PROMO_SORTS = ['discount', 'liked', 'recent', 'price_asc'];
 const DEAL_SORTS = ['hot', 'latest', 'nearby', 'ending', 'comments'];
 const DEAL_COLLECTIONS = ['all', 'codes', 'free'];
-const URL_ACTIONS = ['post_deal', 'city', 'alerts', 'notifications', 'view_promo'];
+const URL_ACTIONS = ['menu', 'post_deal', 'city', 'alerts', 'notifications', 'view_promo'];
 const CATEGORY_ICONS = { all: '', Food: '', Tech: '', Fashion: '', Activities: '', Online: '' };
 
 const POPULAR_CITIES = ['תל אביב', 'ירושלים', 'חיפה', 'ראשון לציון', 'נתניה', 'רעננה', 'הרצליה', 'כפר סבא', 'רמת גן', 'פתח תקווה'];
@@ -668,7 +667,6 @@ export default function Home() {
   const [postSuccess, setPostSuccess] = useState(false);
 
   // Alerts & Notifications
-  const [showAlertModal, setShowAlertModal] = useState(false);
   const [showNotificationSheet, setShowNotificationSheet] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -792,9 +790,13 @@ export default function Home() {
     setSearchQuery(next.searchQuery);
     setVille(next.city);
     setUserCoords(next.city ? CITY_COORDS[next.city] || null : null);
+    if (next.action === 'alerts') {
+      router.replace('/alerts');
+      return;
+    }
+    setShowMainMenu(next.action === 'menu');
     setShowPostModal(next.action === 'post_deal');
     setShowCityModal(next.action === 'city');
-    setShowAlertModal(next.action === 'alerts');
     setShowNotificationSheet(next.action === 'notifications');
     setSelectedPromoBarcode(next.action === 'view_promo' ? next.selectedPromoBarcode : null);
     if (next.action !== 'view_promo') setSelectedPromo(null);
@@ -824,13 +826,13 @@ export default function Home() {
       searchQuery,
       action: selectedPromoBarcode
         ? 'view_promo'
-        : showPostModal
+        : showMainMenu
+          ? 'menu'
+          : showPostModal
           ? 'post_deal'
           : showCityModal
             ? 'city'
-            : showAlertModal
-              ? 'alerts'
-              : showNotificationSheet
+            : showNotificationSheet
                 ? 'notifications'
                 : null,
       selectedPromoBarcode,
@@ -853,9 +855,9 @@ export default function Home() {
     dealCollection,
     ville,
     searchQuery,
+    showMainMenu,
     showPostModal,
     showCityModal,
-    showAlertModal,
     showNotificationSheet,
     selectedPromoBarcode,
   ]);
@@ -1203,10 +1205,14 @@ export default function Home() {
   };
 
   const handleBottomNavigation = (destination) => {
+    if (destination === 'alerts') {
+      if (!user) router.push('/auth?redirect=/alerts');
+      else router.push('/alerts');
+      return;
+    }
     const panels = bottomNavPanelState(destination, { authenticated: Boolean(user) });
     setShowMainMenu(panels.menuOpen);
     setShowPostModal(panels.postOpen);
-    setShowAlertModal(panels.alertsOpen);
     setShowCityModal(panels.cityOpen);
     setShowNotificationSheet(panels.notificationsOpen);
     setSelectedPromo(null);
@@ -1296,7 +1302,7 @@ export default function Home() {
           searchValue={searchQuery}
           onSearchChange={(event) => setSearchQuery(event.target.value)}
           onCommunity={() => setTab('deals')}
-          onAlerts={() => user ? setShowAlertModal(true) : router.push('/auth?redirect=/')}
+          onAlerts={() => user ? router.push('/alerts') : router.push('/auth?redirect=/alerts')}
           activeTab={tab}
         />
 
@@ -1637,7 +1643,7 @@ export default function Home() {
           lang={lang}
           activeTab={tab}
           menuOpen={showMainMenu}
-          alertsOpen={showAlertModal}
+          alertsOpen={false}
           postOpen={showPostModal}
           onMenu={() => handleBottomNavigation('menu')}
           onTab={() => handleBottomNavigation('deals')}
@@ -1667,9 +1673,6 @@ export default function Home() {
             cityOptions={Object.keys(CITY_COORDS)}
           />
         )}
-        {showAlertModal && user && (
-          <AlertModal user={user} lang={lang} villes={villes} onClose={() => setShowAlertModal(false)} />
-        )}
         {showNotificationSheet && user && (
           <NotificationSheet
             user={user}
@@ -1687,7 +1690,7 @@ export default function Home() {
               setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })));
               setUnreadCount(0);
             }}
-            onOpenAlerts={() => setShowAlertModal(true)}
+            onOpenAlerts={() => router.push('/alerts')}
           />
         )}
       </div>

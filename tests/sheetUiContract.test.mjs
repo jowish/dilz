@@ -14,12 +14,12 @@ test('deal modal keeps its header available while only its body scrolls', () => 
   assert.match(css, /\.dilz-modal__body\s*\{[^}]*overflow-y:\s*auto/s);
 });
 
-test('Menu and Alerts handles support downward swipe dismissal', () => {
-  for (const source of [menu, alerts]) {
-    assert.match(source, /useSheetGesture\(onClose\)/);
-    assert.match(source, /\{\.\.\.handleProps\}/);
-    assert.match(source, /ref=\{panelRef\}/);
-  }
+test('Menu supports swipe dismissal while Alerts is a complete page', () => {
+  assert.match(menu, /useSheetGesture\(onClose\)/);
+  assert.match(menu, /\{\.\.\.handleProps\}/);
+  assert.match(menu, /ref=\{panelRef\}/);
+  assert.match(alerts, /className="dilz-alert-page"/);
+  assert.doesNotMatch(alerts, /dilz-sheet-overlay/);
   assert.match(css, /\.dilz-sheet__handle\s*\{[^}]*touch-action:\s*none/s);
   assert.match(css, /\.dilz-main-menu__handle\{[^}]*touch-action:none/s);
 });
