@@ -15,10 +15,22 @@ export function CityPicker({ value = '', cities = [], lang = 'en', onChange, err
 
   return (
     <div className={['dilz-city-picker', error && 'has-error'].filter(Boolean).join(' ')}>
-      <button type="button" className="dilz-city-picker__trigger" aria-expanded={open} onClick={() => setOpen((current) => !current)}>
-        <span>{value ? cityDisplayName(value, lang) : (lang === 'he' ? 'כל ישראל' : 'All Israel')}</span>
-        <span aria-hidden="true">⌄</span>
-      </button>
+      <div className="dilz-city-picker__control">
+        <button type="button" className="dilz-city-picker__trigger" aria-expanded={open} onClick={() => setOpen((current) => !current)}>
+          <span>{value ? cityDisplayName(value, lang) : (lang === 'he' ? 'כל ישראל' : 'All Israel')}</span>
+          <span aria-hidden="true">⌄</span>
+        </button>
+        {value && (
+          <button
+            type="button"
+            className="dilz-city-picker__clear"
+            aria-label={lang === 'he' ? 'ניקוי בחירת העיר' : 'Clear selected city'}
+            onClick={() => select(null)}
+          >
+            ×
+          </button>
+        )}
+      </div>
       {open && (
         <div className="dilz-city-picker__panel">
           <input autoFocus className="dilz-input" type="search" value={search} onChange={(event) => setSearch(event.target.value)} placeholder={lang === 'he' ? 'חיפוש עיר...' : 'Search city...'} />

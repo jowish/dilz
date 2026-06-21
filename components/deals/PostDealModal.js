@@ -9,6 +9,7 @@ import { Modal } from '../ui/Modal';
 import { SegmentedControl } from '../ui/SegmentedControl';
 import { CityPicker } from '../ui/CityPicker';
 import { getDevicePosition } from '../../lib/nativeApp';
+import { clearDealCity, dealImageSlots } from '../../lib/postDealForm';
 
 const CATEGORIES = ['Food', 'Tech', 'Fashion', 'Activities', 'Online'];
 const MAX_IMAGES = 3;
@@ -93,6 +94,7 @@ export function PostDealModal({ user, onClose, onSuccess, cityOptions = [], lang
   const [uploadPhase, setUploadPhase] = useState(null);
   const [locating, setLocating] = useState(false);
   const discount = useMemo(() => computeDiscount(form), [form]);
+  const imageSlots = useMemo(() => dealImageSlots(images, MAX_IMAGES), [images]);
 
   const set = (key, value) => {
     setError('');
@@ -267,17 +269,26 @@ export function PostDealModal({ user, onClose, onSuccess, cityOptions = [], lang
 
       {step === 0 && (
         <div className="dilz-post-upload">
-          <button type="button" className={['dilz-upload-zone', fieldErrors.images && 'has-error'].filter(Boolean).join(' ')} onClick={() => fileInputRef.current?.click()}>
-            <span><strong>{text.uploadTitle}</strong><small>{text.uploadHelp}</small></span>
-          </button>
+          <div className={['dilz-upload-zone', imageSlots.primary && 'has-image', fieldErrors.images && 'has-error'].filter(Boolean).join(' ')}>
+            <button type="button" className="dilz-upload-zone__picker" onClick={() => fileInputRef.current?.click()}>
+              {imageSlots.primary ? (
+                <img src={imageSlots.primary.preview} alt={`${text.uploadTitle} 1`} />
+              ) : (
+                <span><strong>{text.uploadTitle}</strong><small>{text.uploadHelp}</small></span>
+              )}
+            </button>
+            {imageSlots.primary && (
+              <button type="button" className="dilz-upload-zone__remove" onClick={() => removeImage(imageSlots.primary.id)} aria-label={`${text.remove} 1`}>×</button>
+            )}
+          </div>
           <input ref={fileInputRef} className="dilz-sr-only" type="file" multiple accept="image/jpeg,image/png,image/webp" onChange={handleImages} disabled={submitting || images.length >= MAX_IMAGES} />
           {images.length > 0 && (
             <div className="dilz-upload-gallery">
-              {images.map((image, index) => (
+              {imageSlots.thumbnails.map((image, index) => (
                 <div className="dilz-upload-gallery__item" key={image.id}>
-                  <img src={image.preview} alt={`${text.uploadTitle} ${index + 1}`} />
-                  <button type="button" onClick={() => removeImage(image.id)} aria-label={`${text.remove} ${index + 1}`}>×</button>
-                  <span>{index + 1}</span>
+                  <img src={image.preview} alt={`${text.uploadTitle} ${index + 2}`} />
+                  <button type="button" onClick={() => removeImage(image.id)} aria-label={`${text.remove} ${index + 2}`}>×</button>
+                  <span>{index + 2}</span>
                 </div>
               ))}
               {images.length < MAX_IMAGES && <Button variant="secondary" onClick={() => fileInputRef.current?.click()}>{text.addPhoto}</Button>}
@@ -297,8 +308,8 @@ export function PostDealModal({ user, onClose, onSuccess, cityOptions = [], lang
           </div>
           <Select label={text.category} value={form.categorie} onChange={(event) => set('categorie', event.target.value)}>{CATEGORIES.map((category) => <option key={category} value={category}>{category}</option>)}</Select>
           <div className="dilz-form-grid dilz-form-grid--two dilz-date-fields">
-            <Input label={text.startDate} type="date" value={form.date_debut} max={form.date_fin || undefined} onChange={(event) => set('date_debut', event.target.value)} />
-            <Input label={text.endDate} error={fieldErrors.date_fin} type="date" value={form.date_fin} min={form.date_debut || undefined} onChange={(event) => set('date_fin', event.target.value)} />
+            <Input className="dilz-date-input" label={text.startDate} type="date" value={form.date_debut} max={form.date_fin || undefined} onChange={(event) => set('date_debut', event.target.value)} />
+            <Input className="dilz-date-input" label={text.endDate} error={fieldErrors.date_fin} type="date" value={form.date_fin} min={form.date_debut || undefined} onChange={(event) => set('date_fin', event.target.value)} />
           </div>
         </div>
       )}
@@ -312,7 +323,9 @@ export function PostDealModal({ user, onClose, onSuccess, cityOptions = [], lang
               <span className="dilz-field__label">{text.city}<span className="dilz-field__required"> *</span></span>
               <CityPicker value={form.ville} cities={cityOptions} lang={lang} includeAll={false} error={fieldErrors.ville} onChange={(city, coords) => {
                 setFieldErrors((current) => ({ ...current, ville: undefined }));
-                setForm((current) => ({ ...current, ville: city, latitude: coords?.lat || null, longitude: coords?.lon || null }));
+                setForm((current) => city
+                  ? { ...current, ville: city, latitude: coords?.lat || null, longitude: coords?.lon || null }
+                  : clearDealCity(current));
               }} />
             </div>
           )}

@@ -1767,6 +1767,7 @@ textarea:focus {
 }
 
 .dilz-upload-zone {
+  position: relative;
   width: 100%;
   min-height: 220px;
   border-radius: 18px;
@@ -1780,6 +1781,40 @@ textarea:focus {
   cursor: pointer;
   color: inherit;
   font: inherit;
+}
+
+.dilz-upload-zone__picker {
+  width: 100%;
+  min-height: 220px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: center;
+  cursor: pointer;
+}
+
+.dilz-upload-zone__remove {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 2;
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  border-radius: 50%;
+  background: rgba(11, 18, 32, 0.82);
+  color: #FFFFFF;
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
 }
 
 .dilz-upload-zone.has-error {
@@ -1898,6 +1933,20 @@ textarea:focus {
 .dilz-date-fields .dilz-input,
 .dilz-price-fields .dilz-input {
   text-align: left;
+}
+
+.dilz-form-grid--two.dilz-date-fields {
+  grid-template-columns: repeat(2, minmax(132px, 164px));
+  justify-content: start;
+  gap: 10px;
+}
+
+.dilz-date-fields .dilz-field { width: 100%; }
+.dilz-date-fields .dilz-date-input {
+  width: 100%;
+  min-height: 42px;
+  padding: 0 8px;
+  font-size: 13px;
 }
 
 .dilz-form-error {
@@ -3490,10 +3539,11 @@ textarea:focus {
 }
 
 .dilz-city-picker { position: relative; }
+.dilz-city-picker__control { position: relative; }
 .dilz-city-picker__trigger {
   width: 100%;
   min-height: 46px;
-  padding: 0 14px;
+  padding: 0 48px 0 14px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -3503,6 +3553,26 @@ textarea:focus {
   color: var(--text);
   font: inherit;
 }
+.dilz-city-picker__clear {
+  position: absolute;
+  top: 50%;
+  right: 10px;
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  transform: translateY(-50%);
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  background: var(--bg-card2);
+  color: var(--text-muted);
+  font: inherit;
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+}
+[dir="rtl"] .dilz-city-picker__trigger { padding: 0 14px 0 48px; }
+[dir="rtl"] .dilz-city-picker__clear { right: auto; left: 10px; }
 .dilz-city-picker.has-error .dilz-city-picker__trigger { border-color: var(--error, #dc2626); }
 .dilz-city-picker__panel {
   position: relative;
