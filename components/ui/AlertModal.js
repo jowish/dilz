@@ -3,6 +3,7 @@ import { supabase } from '../../lib/supabase';
 import { registerNativePushToken } from '../../lib/nativeApp';
 import { CityPicker } from './CityPicker';
 import { cityDisplayName } from '../../lib/israelCities';
+import { useSheetGesture } from '../../lib/useSheetGesture';
 
 function alertSummary(a, lang) {
   const parts = [];
@@ -14,6 +15,7 @@ function alertSummary(a, lang) {
 }
 
 export function AlertModal({ user, lang, villes = [], onClose }) {
+  const { panelRef, handleProps } = useSheetGesture(onClose);
   const [activeTab, setActiveTab] = useState('list');
   const [alerts, setAlerts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -122,8 +124,8 @@ export function AlertModal({ user, lang, villes = [], onClose }) {
 
   return (
     <div className="dilz-sheet-overlay" onClick={onClose} role="dialog" aria-modal="true" aria-label="My alerts">
-      <div className="dilz-sheet dilz-alert-modal" onClick={(e) => e.stopPropagation()}>
-        <div className="dilz-sheet__handle" aria-hidden="true" />
+      <div ref={panelRef} className="dilz-sheet dilz-alert-modal" onClick={(e) => e.stopPropagation()}>
+        <div className="dilz-sheet__handle" aria-hidden="true" {...handleProps} />
         <div className="dilz-sheet__header">
           <h2 className="dilz-sheet__title">{lang !== 'he' ? 'My Alerts' : 'ההתראות שלי'}</h2>
           <button type="button" className="dilz-sheet__close" onClick={onClose} aria-label="Close">

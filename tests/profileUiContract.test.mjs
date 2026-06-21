@@ -22,3 +22,8 @@ test('share menu offers all requested actions including SMS and copy', () => {
     assert.ok(shareMenu.includes(action), `missing share action: ${action}`);
   }
 });
+
+test('Saved items renders the complete fetched collection in a scrollable section', () => {
+  assert.match(index, /savedItems\.map\(item =>/);
+  assert.doesNotMatch(index, /savedItems\.slice\(0,\s*8\)/);
+});

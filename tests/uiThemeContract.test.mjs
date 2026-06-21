@@ -9,6 +9,7 @@ const bottomNav = await readFile(path.join(process.cwd(), 'components', 'layout'
 test('mobile navigation uses the larger premium bar contract', () => {
   assert.match(css, /height:\s*calc\(90px \+ env\(safe-area-inset-bottom\)\)/);
   assert.match(css, /padding-bottom:\s*calc\(6px \+ env\(safe-area-inset-bottom\)\)/);
+  assert.match(css, /\.dilz-bottom-nav\s*\{[^}]*bottom:\s*6px/s);
   assert.match(css, /\.dilz-bottom-nav__item\.is-active::before\s*\{[^}]*background:\s*var\(--brand-soft\)/s);
   assert.match(bottomNav, /aria-current=\{active \? 'page' : undefined\}/);
 });
@@ -23,7 +24,7 @@ test('dark cards use the elevated border contrast token', () => {
 });
 
 test('the menu sheet ends above the visible mobile navigation', () => {
-  assert.match(css, /\.dilz-main-menu__backdrop\{[^}]*inset:0 0 calc\(90px \+ env\(safe-area-inset-bottom\)\)/s);
+  assert.match(css, /\.dilz-main-menu__backdrop\{[^}]*inset:0 0 calc\(96px \+ env\(safe-area-inset-bottom\)\)/s);
   assert.match(css, /\.dilz-main-menu__backdrop\{[^}]*z-index:900/s);
 });
 

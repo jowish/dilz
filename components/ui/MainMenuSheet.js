@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { useSheetGesture } from '../../lib/useSheetGesture';
 
 const CATEGORIES = ['Food', 'Tech', 'Fashion', 'Activities', 'Online'];
 
@@ -28,6 +29,7 @@ export function MainMenuSheet({
   activeCollection = 'all',
   activeCategory = 'all',
 }) {
+  const { panelRef, handleProps } = useSheetGesture(onClose);
   const text = lang === 'he'
     ? { dialog: 'תפריט ראשי', navigation: 'ניווט', menu: 'תפריט', close: 'סגירת התפריט', sections: 'חלקי Dilz', home: 'בית', deals: 'קניות חכמות', codes: 'קודי קופון', free: 'חינם', categories: 'קטגוריות', filter: 'סינון דילז', labels: { Food: 'מזון', Tech: 'טכנולוגיה', Fashion: 'אופנה', Activities: 'פעילויות', Online: 'אונליין' } }
     : { dialog: 'Main menu', navigation: 'Navigation', menu: 'Menu', close: 'Close menu', sections: 'Dilz sections', home: 'Home', deals: 'Shopping deals', codes: 'Promo codes', free: 'Free', categories: 'Categories', filter: 'Filter Dilz', labels: { Food: 'Food', Tech: 'Tech', Fashion: 'Fashion', Activities: 'Activities', Online: 'Online' } };
@@ -48,12 +50,13 @@ export function MainMenuSheet({
   return (
     <div className="dilz-main-menu__backdrop" onClick={onClose}>
       <aside
+        ref={panelRef}
         className="dilz-main-menu"
         role="dialog"
         aria-label={text.dialog}
         onClick={(event) => event.stopPropagation()}
       >
-        <div className="dilz-main-menu__handle" aria-hidden="true" />
+        <div className="dilz-main-menu__handle" aria-hidden="true" {...handleProps} />
         <div className="dilz-main-menu__header">
           <div>
             <span>{text.navigation}</span>

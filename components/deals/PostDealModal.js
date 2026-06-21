@@ -303,8 +303,8 @@ export function PostDealModal({ user, onClose, onSuccess, cityOptions = [], lang
           <Input required label={text.dealTitle} error={fieldErrors.titre} value={form.titre} onChange={(event) => set('titre', event.target.value)} placeholder={lang === 'he' ? 'לדוגמה: Apple Watch SE ב-999 ₪' : 'e.g. Apple Watch SE from 999 ₪'} />
           <Textarea label={text.description} value={form.description} onChange={(event) => set('description', event.target.value)} placeholder={lang === 'he' ? 'מה הופך את הדיל למשתלם?' : 'What makes this deal useful?'} />
           <div className="dilz-form-grid dilz-form-grid--two dilz-price-fields">
-            <Input required label={text.price} error={fieldErrors.prix} type="number" min="0" value={form.prix} onChange={(event) => set('prix', event.target.value)} placeholder="999" />
-            <Input label={text.oldPrice} type="number" min="0" value={form.prix_original} onChange={(event) => set('prix_original', event.target.value)} placeholder="1299" helper={discount ? `${discount}% ${text.discount}` : text.optional} />
+            <Input required label={text.price} error={fieldErrors.prix} type="number" inputMode="decimal" min="0" step="any" value={form.prix} onChange={(event) => set('prix', event.target.value)} placeholder="999" />
+            <Input label={text.oldPrice} type="number" inputMode="decimal" min="0" step="any" value={form.prix_original} onChange={(event) => set('prix_original', event.target.value)} placeholder="1299" helper={discount ? `${discount}% ${text.discount}` : text.optional} />
           </div>
           <Select label={text.category} value={form.categorie} onChange={(event) => set('categorie', event.target.value)}>{CATEGORIES.map((category) => <option key={category} value={category}>{category}</option>)}</Select>
           <div className="dilz-form-grid dilz-form-grid--two dilz-date-fields">

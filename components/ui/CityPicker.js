@@ -18,7 +18,6 @@ export function CityPicker({ value = '', cities = [], lang = 'en', onChange, err
       <div className="dilz-city-picker__control">
         <button type="button" className="dilz-city-picker__trigger" aria-expanded={open} onClick={() => setOpen((current) => !current)}>
           <span>{value ? cityDisplayName(value, lang) : (lang === 'he' ? 'כל ישראל' : 'All Israel')}</span>
-          <span aria-hidden="true">⌄</span>
         </button>
         {value && (
           <button
@@ -30,6 +29,7 @@ export function CityPicker({ value = '', cities = [], lang = 'en', onChange, err
             ×
           </button>
         )}
+        <span className="dilz-city-picker__arrow" aria-hidden="true">⌄</span>
       </div>
       {open && (
         <div className="dilz-city-picker__panel">

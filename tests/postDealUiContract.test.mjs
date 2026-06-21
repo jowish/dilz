@@ -14,8 +14,12 @@ test('the primary photo renders inside the original upload zone', () => {
 
 test('deal dates use two compact controls instead of full-width rows', () => {
   assert.equal((modal.match(/className="dilz-date-input"/g) || []).length, 2);
-  assert.match(css, /\.dilz-form-grid--two\.dilz-date-fields\s*\{[^}]*grid-template-columns:\s*repeat\(2, minmax\(132px, 164px\)\)/s);
+  assert.match(css, /\.dilz-form-grid--two\.dilz-date-fields\s*\{[^}]*width:\s*min\(100%, 284px\)[^}]*grid-template-columns:\s*repeat\(2, minmax\(0, 1fr\)\)/s);
   assert.match(css, /\.dilz-date-fields \.dilz-date-input\s*\{[^}]*min-height:\s*42px/s);
+});
+
+test('both price fields request a decimal numeric keyboard', () => {
+  assert.equal((modal.match(/type="number" inputMode="decimal"/g) || []).length, 2);
 });
 
 test('a selected city exposes an accessible clear control', () => {
@@ -23,4 +27,10 @@ test('a selected city exposes an accessible clear control', () => {
   assert.match(cityPicker, /onClick=\{\(\) => select\(null\)\}/);
   assert.match(cityPicker, /Clear selected city/);
   assert.match(modal, /clearDealCity\(current\)/);
+});
+
+test('city arrow stays at the right edge with clear immediately to its left', () => {
+  assert.match(cityPicker, /dilz-city-picker__clear[\s\S]*?dilz-city-picker__arrow/);
+  assert.match(css, /\.dilz-city-picker__clear\s*\{[^}]*right:\s*38px/s);
+  assert.match(css, /\.dilz-city-picker__arrow\s*\{[^}]*right:\s*13px/s);
 });

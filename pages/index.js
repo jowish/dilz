@@ -532,7 +532,7 @@ function ProfileTab({ user, lang, savedItems = [], onToggleSave, onSignOut }) {
           </p>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            {savedItems.slice(0, 8).map(item => {
+            {savedItems.map(item => {
               const snap = item.snapshot || {};
               const title = snap.title || item.item_id;
               const isDeal = item.item_type === 'deal';
