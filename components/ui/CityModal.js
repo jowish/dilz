@@ -25,13 +25,19 @@ export function CityModal({ villes = [], current, lang = 'en', onSelect, onClose
     setLocationError('');
     try {
       const { coords } = await getDevicePosition({ timeout: 10000, enableHighAccuracy: true });
-      const response = await fetch(`/api/geocode?lat=${coords.latitude}&lon=${coords.longitude}&lang=${lang}`);
-      const result = await response.json();
-      if (!response.ok) throw new Error(result.erreur);
-      onSelect(result.city || null, { lat: coords.latitude, lon: coords.longitude, address: result.address || '', exact: true });
+      try {
+        const response = await fetch(`/api/geocode?lat=${coords.latitude}&lon=${coords.longitude}&lang=${lang}`);
+        const result = await response.json();
+        if (response.ok) {
+          onSelect(result.city || null, { lat: coords.latitude, lon: coords.longitude, address: result.address || '', exact: true });
+          onClose();
+          return;
+        }
+      } catch {}
+      onSelect(null, { lat: coords.latitude, lon: coords.longitude, address: '', exact: true });
       onClose();
     } catch {
-      setLocationError(lang === 'he' ? 'לא ניתן לזהות את המיקום. בדקו את ההרשאה.' : 'Location unavailable. Check location permission.');
+      setLocationError(lang === 'he' ? 'לא הצלחנו לזהות את המיקום. בדקו את ההרשאה או נסו שוב.' : 'We could not detect your location. Check permission or try again.');
     } finally {
       setGpsLoading(false);
     }

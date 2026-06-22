@@ -134,19 +134,29 @@ export function PostDealModal({ user, onClose, onSuccess, cityOptions = [], lang
     setError('');
     try {
       const { coords } = await getDevicePosition({ timeout: 10000, enableHighAccuracy: true });
-      const response = await fetch(`/api/geocode?lat=${coords.latitude}&lon=${coords.longitude}&lang=${lang}`);
-      const location = await response.json();
-      if (!response.ok) throw new Error(location.erreur);
       setForm((current) => ({
         ...current,
-        ville: location.city || current.ville,
-        adresse: location.address || current.adresse,
         latitude: coords.latitude,
         longitude: coords.longitude,
       }));
+      try {
+        const response = await fetch(`/api/geocode?lat=${coords.latitude}&lon=${coords.longitude}&lang=${lang}`);
+        const location = await response.json();
+        if (response.ok) {
+          setForm((current) => ({
+            ...current,
+            ville: location.city || current.ville,
+            adresse: location.address || current.adresse,
+            latitude: coords.latitude,
+            longitude: coords.longitude,
+          }));
+        }
+      } catch {}
       setFieldErrors((current) => ({ ...current, ville: undefined }));
     } catch {
-      setError(lang === 'he' ? 'לא ניתן לזהות את המיקום. בדקו את הרשאת המיקום.' : 'Location unavailable. Check location permission.');
+      setError(lang === 'he'
+        ? 'לא הצלחנו לזהות את המיקום. בדקו את הרשאת המיקום או נסו שוב.'
+        : 'We could not detect your location. Check permission or try again.');
     } finally {
       setLocating(false);
     }

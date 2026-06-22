@@ -35,6 +35,12 @@ test('a selected city exposes an accessible clear control', () => {
   assert.match(modal, /clearDealCity\(current\)/);
 });
 
+test('current location keeps coordinates even when reverse geocoding does not resolve an address', () => {
+  assert.match(modal, /setForm\(\(current\) => \(\{\s*\.\.\.current,\s*latitude: coords\.latitude,\s*longitude: coords\.longitude,\s*\}\)\);/s);
+  assert.match(modal, /if \(response\.ok\) \{\s*setForm\(\(current\) => \(\{\s*\.\.\.current,\s*ville: location\.city \|\| current\.ville,\s*adresse: location\.address \|\| current\.adresse,/s);
+  assert.match(modal, /catch \{\}\s*setFieldErrors/);
+});
+
 test('city arrow stays at the right edge with clear immediately to its left', () => {
   assert.match(cityPicker, /dilz-city-picker__clear[\s\S]*?dilz-city-picker__arrow/);
   assert.match(css, /\.dilz-city-picker__clear\s*\{[^}]*right:\s*38px/s);
