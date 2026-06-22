@@ -5,6 +5,8 @@ import path from 'node:path';
 
 const modal = await readFile(path.join(process.cwd(), 'components', 'deals', 'PostDealModal.js'), 'utf8');
 const cityPicker = await readFile(path.join(process.cwd(), 'components', 'ui', 'CityPicker.js'), 'utf8');
+const cityModal = await readFile(path.join(process.cwd(), 'components', 'ui', 'CityModal.js'), 'utf8');
+const nativeApp = await readFile(path.join(process.cwd(), 'lib', 'nativeApp.js'), 'utf8');
 const css = await readFile(path.join(process.cwd(), 'styles', 'globals.css'), 'utf8');
 
 test('the primary photo renders inside the original upload zone', () => {
@@ -39,6 +41,22 @@ test('current location keeps coordinates even when reverse geocoding does not re
   assert.match(modal, /setForm\(\(current\) => \(\{\s*\.\.\.current,\s*latitude: coords\.latitude,\s*longitude: coords\.longitude,\s*\}\)\);/s);
   assert.match(modal, /if \(response\.ok\) \{\s*setForm\(\(current\) => \(\{\s*\.\.\.current,\s*ville: location\.city \|\| current\.ville,\s*adresse: location\.address \|\| current\.adresse,/s);
   assert.match(modal, /catch \{\}\s*setFieldErrors/);
+});
+
+test('geolocation honors requested accuracy and retries transient failures with a cached position', () => {
+  assert.match(nativeApp, /const enableHighAccuracy = options\.enableHighAccuracy \?\? false/);
+  assert.match(nativeApp, /const positionOptions = \{ enableHighAccuracy, timeout, maximumAge \}/);
+  assert.match(nativeApp, /return await Geolocation\.getCurrentPosition\(positionOptions\)/);
+  assert.match(nativeApp, /return await locate\(positionOptions\)/);
+  assert.equal((nativeApp.match(/maximumAge: Math\.max\(maximumAge, 300000\)/g) || []).length, 2);
+  assert.match(nativeApp, /code !== 1/);
+});
+
+test('native permission requests are verified before reading the position', () => {
+  assert.match(nativeApp, /permission = await Geolocation\.requestPermissions/);
+  assert.match(nativeApp, /permission\.location !== 'granted' && permission\.coarseLocation !== 'granted'/);
+  assert.match(nativeApp, /LOCATION_PERMISSION_DENIED/);
+  assert.match(cityModal, /getDevicePosition\(\{ timeout: 10000, enableHighAccuracy: true \}\)/);
 });
 
 test('city arrow stays at the right edge with clear immediately to its left', () => {
