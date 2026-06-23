@@ -40,7 +40,9 @@ test('a selected city exposes an accessible clear control', () => {
 test('current location keeps coordinates even when reverse geocoding does not resolve an address', () => {
   assert.match(modal, /setForm\(\(current\) => \(\{\s*\.\.\.current,\s*latitude: coords\.latitude,\s*longitude: coords\.longitude,\s*\}\)\);/s);
   assert.match(modal, /if \(response\.ok\) \{\s*setForm\(\(current\) => \(\{\s*\.\.\.current,\s*ville: location\.city \|\| current\.ville,\s*adresse: location\.address \|\| current\.adresse,/s);
-  assert.match(modal, /catch \{\}\s*setFieldErrors/);
+  // setFieldErrors for ville is now inside if (response.ok); geocode failure shows an info error instead
+  assert.match(modal, /if \(response\.ok\)[\s\S]*?setFieldErrors\(\(current\) => \(\{ \.\.\.current, ville: undefined \}\)\)/s);
+  assert.match(modal, /} else \{\s*setError\(/s);
 });
 
 test('geolocation honors requested accuracy and retries transient failures with a cached position', () => {

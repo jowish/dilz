@@ -150,9 +150,13 @@ export function PostDealModal({ user, onClose, onSuccess, cityOptions = [], lang
             latitude: coords.latitude,
             longitude: coords.longitude,
           }));
+          setFieldErrors((current) => ({ ...current, ville: undefined }));
+        } else {
+          setError(lang === 'he' ? 'מיקום זוהה. בחרו עיר ידנית.' : 'Location found. Please select a city manually.');
         }
-      } catch {}
-      setFieldErrors((current) => ({ ...current, ville: undefined }));
+      } catch {
+        setError(lang === 'he' ? 'מיקום זוהה. בחרו עיר ידנית.' : 'Location found. Please select a city manually.');
+      }
     } catch (locationError) {
       const permissionDenied = Number(locationError?.code) === 1 || locationError?.code === 'LOCATION_PERMISSION_DENIED';
       setError(permissionDenied

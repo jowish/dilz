@@ -48,11 +48,12 @@ export default async function handler(req, res) {
       const { city, online_only, min_discount_percent, keyword } = normalized.value;
 
       // Rate limit per user
-      const { count } = await supabaseAdmin
+      const { count, error: countError } = await supabaseAdmin
         .from('alerts')
         .select('id', { count: 'exact', head: true })
         .eq('user_id', user.id);
 
+      if (countError) return res.status(500).json({ erreur: countError.message });
       if (hasReachedAlertLimit(count)) {
         return res.status(400).json({ erreur: `Maximum ${MAX_ALERTS_PER_USER} alerts per user.` });
       }
@@ -70,7 +71,8 @@ export default async function handler(req, res) {
         ? duplicateQuery.is('min_discount_percent', null)
         : duplicateQuery.eq('min_discount_percent', min_discount_percent);
 
-      const { data: existing } = await duplicateQuery.maybeSingle();
+      const { data: existing, error: dupeError } = await duplicateQuery.maybeSingle();
+      if (dupeError) return res.status(500).json({ erreur: dupeError.message });
 
       if (existing) {
         return res.status(409).json({ erreur: 'An identical alert already exists.' });

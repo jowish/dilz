@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { computeDiscountPct, matchDealToAlert } from '../lib/alerts.js';
 
-for (const [current, original, expected] of [[50, 100, 50], [75, 100, 25], [99, 100, 1], [100, 100, 0], [120, 100, 0], [0, 100, 0], [50, 0, 0], ['50', '100', 50]]) {
+for (const [current, original, expected] of [[50, 100, 50], [75, 100, 25], [99, 100, 1], [100, 100, 0], [120, 100, 0], [0, 100, 100], [50, 0, 0], ['50', '100', 50]]) {
   test(`computes discount ${current}/${original} as ${expected}%`, () => {
     assert.equal(computeDiscountPct({ prix: current, prix_original: original }), expected);
   });

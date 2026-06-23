@@ -1,5 +1,22 @@
 const ISRAEL_BOUNDS = { minLat: 29.3, maxLat: 33.6, minLon: 34.1, maxLon: 35.95 };
 
+// In-memory rate limiter: max 10 requests per IP per minute
+const rateLimitMap = new Map();
+function checkRateLimit(ip) {
+  const now = Date.now();
+  const window = 60_000;
+  const max = 10;
+  const entry = rateLimitMap.get(ip) || { count: 0, start: now };
+  if (now - entry.start > window) {
+    rateLimitMap.set(ip, { count: 1, start: now });
+    return false;
+  }
+  if (entry.count >= max) return true;
+  entry.count++;
+  rateLimitMap.set(ip, entry);
+  return false;
+}
+
 export function inIsrael(lat, lon) {
   return Number.isFinite(lat) && Number.isFinite(lon) && lat >= ISRAEL_BOUNDS.minLat && lat <= ISRAEL_BOUNDS.maxLat && lon >= ISRAEL_BOUNDS.minLon && lon <= ISRAEL_BOUNDS.maxLon;
 }
@@ -33,6 +50,8 @@ async function searchAddress(query, headers) {
 export default async function handler(req, res) {
   res.setHeader('Allow', 'GET');
   if (req.method !== 'GET') return res.status(405).end();
+  const ip = (req.headers?.['x-forwarded-for'] ?? '').split(',')[0].trim() || req.socket?.remoteAddress || 'unknown';
+  if (checkRateLimit(ip)) return res.status(429).json({ erreur: 'Too many requests. Please try again later.' });
   const lang = req.query.lang === 'he' ? 'he' : 'en';
   const headers = { 'User-Agent': `Dilz/1.0 (${process.env.GEOCODING_CONTACT || 'contact@dilz.app'})`, 'Accept-Language': lang };
   try {
@@ -54,8 +73,8 @@ export default async function handler(req, res) {
     const url = new URL('https://nominatim.openstreetmap.org/reverse');
     url.search = new URLSearchParams({ lat: String(lat), lon: String(lon), format: 'jsonv2', addressdetails: '1' });
     const response = await fetch(url, { headers });
-    const item = await response.json();
     if (!response.ok) throw new Error('Geocoding failed.');
+    const item = await response.json();
     return res.status(200).json(locationPayload(item));
   } catch (error) {
     return res.status(502).json({ erreur: error.message || 'Location service unavailable.' });

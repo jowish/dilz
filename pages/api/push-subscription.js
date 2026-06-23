@@ -25,13 +25,14 @@ export default async function handler(req, res) {
       return res.status(400).json({ erreur: 'Missing subscription fields.' });
     }
 
-    await supabaseAdmin
+    const { error: upsertError } = await supabaseAdmin
       .from('push_subscriptions')
       .upsert(
         { user_id: user.id, endpoint, p256dh, auth },
         { onConflict: 'user_id,endpoint' }
       );
 
+    if (upsertError) return res.status(500).json({ erreur: upsertError.message });
     return res.status(200).json({ ok: true });
   } catch (e) {
     return res.status(500).json({ erreur: e.message || 'Internal server error' });

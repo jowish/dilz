@@ -10,6 +10,7 @@ export function CityModal({ villes = [], current, lang = 'en', onSelect, onClose
   const [search, setSearch] = useState('');
   const [gpsLoading, setGpsLoading] = useState(false);
   const [locationError, setLocationError] = useState('');
+  const [gpsCoords, setGpsCoords] = useState(null);
   const cities = useMemo(() => localizedCityOptions(villes, lang), [villes, lang]);
   const filtered = useMemo(() => filterCityOptions(cities, { search, lang }), [cities, search, lang]);
 
@@ -34,8 +35,11 @@ export function CityModal({ villes = [], current, lang = 'en', onSelect, onClose
           return;
         }
       } catch {}
-      onSelect(null, { lat: coords.latitude, lon: coords.longitude, address: '', exact: true });
-      onClose();
+      // GPS succeeded but city couldn't be resolved — stay open so user can act
+      setLocationError(lang === 'he'
+        ? 'מיקומך זוהה, אך שם העיר לא נמצא. בחרו עיר ידנית או המשיכו ללא שם.'
+        : "Location found, but city couldn't be identified. Select a city or continue without one.");
+      setGpsCoords({ lat: coords.latitude, lon: coords.longitude });
     } catch (locationError) {
       const permissionDenied = Number(locationError?.code) === 1 || locationError?.code === 'LOCATION_PERMISSION_DENIED';
       setLocationError(permissionDenied
@@ -55,6 +59,11 @@ export function CityModal({ villes = [], current, lang = 'en', onSelect, onClose
           <LocationIcon /> {gpsLoading ? (lang === 'he' ? 'מאתר...' : 'Locating...') : (lang === 'he' ? 'השתמשו במיקום המדויק שלי' : 'Use my exact location')}
         </button>
         {locationError && <p className="dilz-field__error">{locationError}</p>}
+        {gpsCoords && (
+          <button type="button" className="dilz-location-detect" onClick={() => { onSelect(null, { ...gpsCoords, exact: true }); onClose(); }}>
+            {lang === 'he' ? 'המשיכו ללא שם עיר' : 'Continue without city name'}
+          </button>
+        )}
         <input autoFocus type="search" className="dilz-input dilz-city-modal__search" placeholder={lang === 'he' ? 'חיפוש עיר...' : 'Search city...'} value={search} onChange={(event) => setSearch(event.target.value)} />
         <div className="dilz-city-modal__grid" dir={lang === 'he' ? 'rtl' : 'ltr'}>
           <button type="button" className={['dilz-city-btn', !current && 'is-active'].filter(Boolean).join(' ')} onClick={() => { onSelect(null, null); onClose(); }}>{lang === 'he' ? 'כל ישראל' : 'All Israel'}</button>

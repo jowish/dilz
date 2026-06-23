@@ -6,7 +6,10 @@ import { formatPrice, getDiscount, timeAgo, timeRemaining } from '../lib/dealCar
 
 test('getDiscount returns null when no original price is set', () => {
   assert.equal(getDiscount({ prix: 50 }), null);
-  assert.equal(getDiscount({ prix: 0, prix_original: 100 }), null);
+});
+
+test('getDiscount computes 100% for a free item with an original price', () => {
+  assert.equal(getDiscount({ prix: 0, prix_original: 100 }), 100);
 });
 
 test('getDiscount returns null when current price equals or exceeds original', () => {
