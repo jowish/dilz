@@ -24,3 +24,45 @@ test('one author publication creates one notification per follower', () => {
   assert.deepEqual(rows.map((row) => row.user_id), ['u1', 'u2']);
   assert.ok(rows.every((row) => row.notification_type === 'follow' && row.alert_id === null));
 });
+
+test('buildFollowerNotifications returns empty array when deal has no id', () => {
+  const rows = buildFollowerNotifications(
+    { auteur_id: 'author', titre: 'Deal without id' },
+    [{ follower_id: 'u1' }],
+  );
+  assert.deepEqual(rows, []);
+});
+
+test('buildFollowerNotifications returns empty array when deal has no auteur_id', () => {
+  const rows = buildFollowerNotifications(
+    { id: 99, titre: 'Anonymous deal' },
+    [{ follower_id: 'u1' }],
+  );
+  assert.deepEqual(rows, []);
+});
+
+test('buildFollowerNotifications falls back when deal has no title', () => {
+  const rows = buildFollowerNotifications(
+    { id: 1, auteur_id: 'author' },
+    [{ follower_id: 'u1' }],
+  );
+  assert.equal(rows[0].message, 'Open the new deal');
+});
+
+test('normalizeFollowSuggestions includes followed users not present in any deal', () => {
+  const users = normalizeFollowSuggestions(
+    [],
+    [{ followed_user_id: 'a', followed_name: 'Alice' }],
+    'me',
+  );
+  assert.deepEqual(users, [{ id: 'a', name: 'Alice', is_following: true }]);
+});
+
+test('normalizeFollowSuggestions falls back to "Dilz member" for unnamed deal authors', () => {
+  const users = normalizeFollowSuggestions(
+    [{ auteur_id: 'x', auteur_nom: null }],
+    [],
+    'other',
+  );
+  assert.equal(users[0].name, 'Dilz member');
+});

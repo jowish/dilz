@@ -94,3 +94,49 @@ test('unauthenticated Alerts navigation closes panels and requests authenticatio
   assert.equal(state.postOpen, false);
   assert.equal(state.requiresAuth, true);
 });
+
+test('comments sort orders by vote count descending then by date as tiebreaker', () => {
+  const deals = [
+    { id: 1, commentaires: [{ count: 5 }], created_at: '2026-06-20T00:00:00Z' },
+    { id: 2, commentaires: [{ count: 10 }], created_at: '2026-06-18T00:00:00Z' },
+    { id: 3, commentaires: [{ count: 5 }], created_at: '2026-06-21T00:00:00Z' },
+  ];
+  assert.deepEqual(sortDealsForView(deals, 'comments').map((d) => d.id), [2, 3, 1]);
+  assert.deepEqual(deals.map((d) => d.id), [1, 2, 3]);
+});
+
+test('comments sort handles missing commentaires without throwing', () => {
+  const deals = [{ id: 1 }, { id: 2, commentaires: [{ count: 3 }] }];
+  assert.deepEqual(sortDealsForView(deals, 'comments').map((d) => d.id), [2, 1]);
+});
+
+test('hot and unknown sorts return deals in their original order', () => {
+  const deals = [{ id: 1 }, { id: 2 }, { id: 3 }];
+  assert.deepEqual(sortDealsForView(deals, 'hot').map((d) => d.id), [1, 2, 3]);
+  assert.deepEqual(sortDealsForView(deals, 'nearby').map((d) => d.id), [1, 2, 3]);
+});
+
+test('dealViewState sets myDealsOnly for the mine view', () => {
+  const state = dealViewState('mine');
+  assert.equal(state.myDealsOnly, true);
+  assert.equal(state.sort, 'hot');
+});
+
+test('dealViewState maps a deal category viewId to a category filter', () => {
+  const state = dealViewState('Food');
+  assert.equal(state.category, 'Food');
+  assert.equal(state.myDealsOnly, false);
+  assert.equal(state.sort, 'hot');
+});
+
+test('dealViewState returns all-deals state for the "all" viewId', () => {
+  const state = dealViewState('all');
+  assert.equal(state.category, 'all');
+  assert.equal(state.myDealsOnly, false);
+});
+
+test('resolveDealLayout accepts compact and list as saved preferences', () => {
+  assert.equal(resolveDealLayout({ savedLayout: 'compact' }), 'compact');
+  assert.equal(resolveDealLayout({ savedLayout: 'list' }), 'list');
+  assert.equal(resolveDealLayout({ savedLayout: 'unknown' }), 'card');
+});

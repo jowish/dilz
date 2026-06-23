@@ -46,3 +46,35 @@ test('filters messages by web and iOS target', () => {
   assert.equal(messageTargetsPlatform({ target: 'ios' }, 'ios'), true);
   assert.equal(messageTargetsPlatform({ target: 'ios' }, 'web'), false);
 });
+
+test('clamps negative priority to -100', () => {
+  const message = normalizeAppMessageInput({ ...valid, priority: -250 });
+  assert.equal(message.priority, -100);
+});
+
+test('a message whose ends_at equals the check time is not live', () => {
+  const now = new Date('2026-07-01T12:00:00.000Z');
+  assert.equal(isAppMessageLive({ ...valid, ends_at: '2026-07-01T12:00:00.000Z' }, now), false);
+});
+
+test('a message with no schedule constraints is live when active', () => {
+  assert.equal(isAppMessageLive({ ...valid, starts_at: null, ends_at: null }), true);
+  assert.equal(isAppMessageLive({ ...valid, is_active: false }), false);
+});
+
+test('allows internal path CTA URLs starting with a single slash', () => {
+  const message = normalizeAppMessageInput({ ...valid, cta_url: '/download' });
+  assert.equal(message.cta_url, '/download');
+});
+
+test('rejects protocol-relative CTA URLs', () => {
+  assert.throws(
+    () => normalizeAppMessageInput({ ...valid, cta_url: '//evil.example.com/script' }),
+    /CTA URL/,
+  );
+});
+
+test('messageTargetsPlatform handles a null or missing target', () => {
+  assert.equal(messageTargetsPlatform(null, 'web'), false);
+  assert.equal(messageTargetsPlatform({ target: 'all' }, 'ios'), true);
+});
