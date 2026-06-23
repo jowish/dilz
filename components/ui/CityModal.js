@@ -36,8 +36,11 @@ export function CityModal({ villes = [], current, lang = 'en', onSelect, onClose
       } catch {}
       onSelect(null, { lat: coords.latitude, lon: coords.longitude, address: '', exact: true });
       onClose();
-    } catch {
-      setLocationError(lang === 'he' ? 'לא הצלחנו לזהות את המיקום. בדקו את ההרשאה או נסו שוב.' : 'We could not detect your location. Check permission or try again.');
+    } catch (locationError) {
+      const permissionDenied = Number(locationError?.code) === 1 || locationError?.code === 'LOCATION_PERMISSION_DENIED';
+      setLocationError(permissionDenied
+        ? (lang === 'he' ? 'גישה למיקום חסומה. אפשרו אותה בהגדרות המכשיר ונסו שוב.' : 'Location access is blocked. Enable it in your device settings and try again.')
+        : (lang === 'he' ? 'לא הצלחנו לזהות את המיקום. נסו שוב.' : 'Could not detect your location. Please try again.'));
     } finally {
       setGpsLoading(false);
     }

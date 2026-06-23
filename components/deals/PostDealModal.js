@@ -153,10 +153,11 @@ export function PostDealModal({ user, onClose, onSuccess, cityOptions = [], lang
         }
       } catch {}
       setFieldErrors((current) => ({ ...current, ville: undefined }));
-    } catch {
-      setError(lang === 'he'
-        ? 'לא הצלחנו לזהות את המיקום. בדקו את הרשאת המיקום או נסו שוב.'
-        : 'We could not detect your location. Check permission or try again.');
+    } catch (locationError) {
+      const permissionDenied = Number(locationError?.code) === 1 || locationError?.code === 'LOCATION_PERMISSION_DENIED';
+      setError(permissionDenied
+        ? (lang === 'he' ? 'גישה למיקום חסומה. אפשרו אותה בהגדרות המכשיר ונסו שוב.' : 'Location access is blocked. Enable it in your device settings and try again.')
+        : (lang === 'he' ? 'לא הצלחנו לזהות את המיקום. נסו שוב.' : 'Could not detect your location. Please try again.'));
     } finally {
       setLocating(false);
     }
