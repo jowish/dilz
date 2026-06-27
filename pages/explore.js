@@ -5,13 +5,8 @@ import { BottomNav } from '../components/layout/BottomNav';
 import { ThemeToggle } from '../components/ui/ThemeToggle';
 import { useAppLanguage } from '../lib/useAppLanguage';
 
-const CATEGORIES = [
-  { id: 'Food', en: 'Food', he: '\u05de\u05d6\u05d5\u05df' },
-  { id: 'Tech', en: 'Tech', he: '\u05d8\u05db\u05e0\u05d5\u05dc\u05d5\u05d2\u05d9\u05d4' },
-  { id: 'Fashion', en: 'Fashion', he: '\u05d0\u05d5\u05e4\u05e0\u05d4' },
-  { id: 'Activities', en: 'Activities', he: '\u05e4\u05e2\u05d9\u05dc\u05d5\u05d9\u05d5\u05ea' },
-  { id: 'Online', en: 'Online', he: '\u05d0\u05d5\u05e0\u05dc\u05d9\u05d9\u05df' },
-];
+const { DEAL_CATEGORIES, getDealCategoryLabel } = require('../lib/dealCategories');
+const CATEGORIES = DEAL_CATEGORIES.map((id) => ({ id, en: getDealCategoryLabel(id, 'en'), he: getDealCategoryLabel(id, 'he') }));
 
 function ExploreCard({ href, title, description, icon, featured = false }) {
   return (

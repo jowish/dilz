@@ -1,7 +1,7 @@
 import { createServerSupabase, requireServerUser } from '../../lib/serverSupabase';
 
 const CONTENT_TYPES = new Set(['deal', 'comment', 'user']);
-const REASONS = new Set(['spam', 'scam', 'abuse', 'hate', 'inappropriate', 'copyright', 'other']);
+const REASONS = new Set(['expired', 'rules', 'spam', 'scam', 'abuse', 'hate', 'inappropriate', 'copyright', 'other']);
 
 async function findReportedUser(supabaseAdmin, contentType, contentId) {
   if (contentType === 'user') return contentId;

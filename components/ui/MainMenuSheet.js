@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { useSheetGesture } from '../../lib/useSheetGesture';
 
-const CATEGORIES = ['Food', 'Tech', 'Fashion', 'Activities', 'Online'];
+const { DEAL_CATEGORIES, getDealCategoryLabel } = require('../../lib/dealCategories');
 
 function MenuItem({ icon, label, active = false, onClick }) {
   return (
@@ -96,14 +96,14 @@ export function MainMenuSheet({
             <small>{text.filter}</small>
           </div>
           <div className="dilz-main-menu__category-grid">
-            {CATEGORIES.map((category) => (
+            {DEAL_CATEGORIES.map((category) => (
               <button
                 key={category}
                 type="button"
                 className={activeCollection === 'all' && activeCategory === category ? 'is-active' : ''}
                 onClick={() => onCategory(category)}
               >
-                {text.labels[category]}
+                {getDealCategoryLabel(category, lang)}
               </button>
             ))}
           </div>

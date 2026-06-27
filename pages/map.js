@@ -6,6 +6,7 @@ import { useAppLanguage } from '../lib/useAppLanguage';
 import { VoteEmoji } from '../components/ui/VoteEmoji';
 import { buildMapUrl, toggleCityFilter } from '../lib/mapState';
 import { ThemeToggle } from '../components/ui/ThemeToggle';
+import { getCityCoordinates } from '../lib/israelCities';
 
 const MAP_TEXT = {
   en: { title: 'Dilz Map', back: 'Back', feed: 'Feed', points: 'active points', loading: 'Loading Dilz map...', israel: 'All Israel', tap: 'Tap a city to filter', mapPoints: 'Dilz map points', comments: 'comments' },
@@ -73,7 +74,7 @@ function getDealCoordinates(deal) {
   const latitude = Number(deal.latitude);
   const longitude = Number(deal.longitude);
   if (Number.isFinite(latitude) && Number.isFinite(longitude)) return { lat: latitude, lon: longitude };
-  return deal.ville ? CITY_COORDS[deal.ville] || null : null;
+  return deal.ville ? getCityCoordinates(deal.ville) || CITY_COORDS[deal.ville] || null : null;
 }
 
 function hasExactCoordinates(deal) {
@@ -148,20 +149,36 @@ export default function MapPage() {
   };
 
   useEffect(() => {
-    if (document.getElementById('leaflet-css')) {
+    if (window.L) {
       setLeafletReady(true);
       return;
     }
-    const css = document.createElement('link');
-    css.id = 'leaflet-css';
-    css.rel = 'stylesheet';
-    css.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
-    document.head.appendChild(css);
 
-    const js = document.createElement('script');
-    js.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
-    js.onload = () => setLeafletReady(true);
-    document.head.appendChild(js);
+    if (!document.getElementById('leaflet-css')) {
+      const css = document.createElement('link');
+      css.id = 'leaflet-css';
+      css.rel = 'stylesheet';
+      css.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+      document.head.appendChild(css);
+    }
+
+    let js = document.getElementById('leaflet-js');
+    if (!js) {
+      js = document.createElement('script');
+      js.id = 'leaflet-js';
+      js.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+      js.async = true;
+      document.head.appendChild(js);
+    }
+    const markReady = () => {
+      if (window.L) setLeafletReady(true);
+    };
+    js.addEventListener('load', markReady);
+    const retry = window.setInterval(markReady, 150);
+    return () => {
+      js.removeEventListener('load', markReady);
+      window.clearInterval(retry);
+    };
   }, []);
 
   useEffect(() => {
@@ -193,6 +210,7 @@ export default function MapPage() {
       const fallbackDeals = cityDeals.filter((deal) => !hasExactCoordinates(deal));
       if (!fallbackDeals.length) return;
       const coords = getGroupCoordinates(city, fallbackDeals);
+      if (!coords) return;
       const count = fallbackDeals.length;
       const active = city === selectedCity;
       const icon = L.divIcon({

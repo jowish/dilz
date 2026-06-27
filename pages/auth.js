@@ -72,17 +72,24 @@ export default function Auth() {
         if (err) { setError(err.message); setLoading(false); return; }
       } else {
         const redirectPath = getRedirectPath(router.query.redirect);
-        const { data, error: err } = await supabase.auth.signUp({
-          email, password,
-          options: {
-            data: { display_name: name || email.split('@')[0] },
-            emailRedirectTo: confirmationRedirect(window.location.origin, redirectPath),
-          },
+        const signupResponse = await fetch('/api/auth/signup', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password, name }),
         });
-        if (err) { setError(err.message); setLoading(false); return; }
-        if (data?.session) { router.replace(redirectPath); return; }
-        setLoading(false);
-        setSignupDone(true);
+        const signupData = await signupResponse.json();
+        if (!signupResponse.ok || signupData.erreur) {
+          setError(signupData.erreur || text.generic);
+          setLoading(false);
+          return;
+        }
+        const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
+        if (signInError) {
+          setError(signInError.message);
+          setLoading(false);
+          return;
+        }
+        router.replace(redirectPath);
         return;
       }
       router.replace(getRedirectPath(router.query.redirect));

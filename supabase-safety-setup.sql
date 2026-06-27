@@ -7,7 +7,7 @@ CREATE TABLE IF NOT EXISTS content_reports (
   content_type     TEXT NOT NULL CHECK (content_type IN ('deal', 'comment', 'user')),
   content_id       TEXT NOT NULL,
   reported_user_id UUID REFERENCES auth.users(id) ON DELETE SET NULL,
-  reason           TEXT NOT NULL CHECK (reason IN ('spam', 'scam', 'abuse', 'hate', 'inappropriate', 'copyright', 'other')),
+  reason           TEXT NOT NULL CHECK (reason IN ('expired', 'rules', 'spam', 'scam', 'abuse', 'hate', 'inappropriate', 'copyright', 'other')),
   details          TEXT CHECK (details IS NULL OR CHAR_LENGTH(details) <= 1000),
   status           TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'reviewed', 'actioned', 'dismissed')),
   created_at       TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -72,3 +72,9 @@ END $$;
 GRANT SELECT, INSERT ON content_reports TO authenticated;
 GRANT SELECT, INSERT, DELETE ON blocked_users TO authenticated;
 GRANT ALL ON content_reports, blocked_users TO service_role;
+
+DO $$ BEGIN
+  ALTER TABLE content_reports DROP CONSTRAINT IF EXISTS content_reports_reason_check;
+  ALTER TABLE content_reports ADD CONSTRAINT content_reports_reason_check
+    CHECK (reason IN ('expired', 'rules', 'spam', 'scam', 'abuse', 'hate', 'inappropriate', 'copyright', 'other'));
+END $$;

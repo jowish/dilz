@@ -20,6 +20,7 @@ import { readDealLayoutPreference, readDealSortPreference, readSessionDealSort, 
 import { bottomNavPanelState, dealViewState, resolveDealLayout, resolveDealSort, sortDealsForView } from '../lib/navigationState';
 
 const { PRODUCT_CATEGORIES, getProductCategoryLabel } = require('../lib/productCategories');
+const { DEAL_CATEGORIES, getDealCategoryLabel } = require('../lib/dealCategories');
 
 // ─── Design tokens ────────────────────────────────────────────────────────────
 const ACCENT = '#E2552D';
@@ -56,7 +57,7 @@ STORE_FILTERS.push({ id: 'BE', nameEn: 'BE' });
 STORE_FILTERS.push({ id: 'Super-Pharm', nameEn: 'Super-Pharm' });
 STORE_FILTERS.push({ id: 'Good Pharm', nameEn: 'Good Pharm' });
 
-const CATEGORIES = ['all', 'Food', 'Tech', 'Fashion', 'Activities', 'Online'];
+const CATEGORIES = ['all', ...DEAL_CATEGORIES];
 
 const TAB_TO_URL = {
   deals: 'dilz',
@@ -75,7 +76,7 @@ const PROMO_SORTS = ['discount', 'liked', 'recent', 'price_asc'];
 const DEAL_SORTS = ['hot', 'latest', 'nearby', 'ending', 'comments'];
 const DEAL_COLLECTIONS = ['all', 'codes', 'free'];
 const URL_ACTIONS = ['menu', 'post_deal', 'city', 'alerts', 'notifications', 'view_promo'];
-const CATEGORY_ICONS = { all: '', Food: '', Tech: '', Fashion: '', Activities: '', Online: '' };
+const CATEGORY_ICONS = Object.fromEntries(CATEGORIES.map((category) => [category, '']));
 
 const POPULAR_CITIES = ['תל אביב', 'ירושלים', 'חיפה', 'ראשון לציון', 'נתניה', 'רעננה', 'הרצליה', 'כפר סבא', 'רמת גן', 'פתח תקווה'];
 
@@ -1474,10 +1475,7 @@ export default function Home() {
                   { id: 'comments', label: lang === 'he' ? 'מדוברים' : 'Discussed' },
                   ...(userCoords ? [{ id: 'nearby', label: lang === 'he' ? 'לידי' : 'Near me' }] : []),
                   { id: 'ending', label: lang === 'he' ? 'מסתיימים בקרוב' : 'Ending soon' },
-                  { id: 'Food', label: lang === 'he' ? 'מזון' : 'Food' },
-                  { id: 'Tech', label: lang === 'he' ? 'טכנולוגיה' : 'Tech' },
-                  { id: 'Fashion', label: lang === 'he' ? 'אופנה' : 'Fashion' },
-                  { id: 'Online', label: lang === 'he' ? 'אונליין' : 'Online' },
+                  ...DEAL_CATEGORIES.slice(0, 8).map((category) => ({ id: category, label: getDealCategoryLabel(category, lang) })),
                   ...(user ? [{ id: 'mine', label: lang === 'he' ? 'הדילז שלי' : 'My Dilz' }] : []),
                 ].map(view => {
                   const active =

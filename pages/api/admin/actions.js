@@ -2,6 +2,7 @@ import { createClient } from '@supabase/supabase-js';
 import { normalizeAppMessageInput } from '../../../lib/appMessages';
 
 const { getAdminToken, secretsMatch } = require('../../../lib/adminAuth');
+const { DEAL_CATEGORIES } = require('../../../lib/dealCategories');
 
 const DEAL_FIELDS = new Set([
   'titre',
@@ -19,7 +20,7 @@ const DEAL_FIELDS = new Set([
 ]);
 
 const STATUSES = new Set(['pending', 'actif', 'rejete']);
-const CATEGORIES = new Set(['Food', 'Tech', 'Fashion', 'Activities', 'Online']);
+const CATEGORIES = new Set(DEAL_CATEGORIES);
 
 function cleanText(value, max = 2000) {
   if (value == null) return null;

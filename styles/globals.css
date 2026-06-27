@@ -6524,7 +6524,8 @@ textarea::placeholder {
 
 /* Global admin-managed communications */
 .dilz-app-messages {
-  position: relative;
+  position: sticky;
+  top: 0;
   z-index: 1500;
   display: grid;
   gap: 1px;
@@ -7224,7 +7225,7 @@ textarea::placeholder {
 }
 
 /* Cross-page stability and compact discovery views */
-html, body, #__next { width: 100%; max-width: 100%; overflow-x: hidden; overscroll-behavior-x: none; }
+html, body, #__next { width: 100%; max-width: 100%; min-height: 100%; height: auto; overflow-x: hidden; overflow-y: auto; overscroll-behavior-x: none; }
 body { touch-action: pan-y; }
 .dilz-bottom-nav { position: fixed !important; left: 0; right: 0; bottom: 0 !important; }
 .dilz-logo-lockup { gap: 0; }

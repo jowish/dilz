@@ -12,12 +12,12 @@ import { useAppLanguage } from '../../lib/useAppLanguage';
 import { SafetyActions } from '../../components/ui/SafetyActions';
 import { ThemeToggle } from '../../components/ui/ThemeToggle';
 
+const { DEAL_CATEGORIES, getDealCategoryLabel } = require('../../lib/dealCategories');
+
 const DETAIL_TEXT = {
   en: { now: 'Just now', hour: 'h ago', day: 'd ago', notFound: 'Deal not found', backDeals: 'Back to deals', back: 'Back', copy: 'Copy link', edit: 'Edit', photos: 'Deal photos', viewPhoto: 'View photo', by: 'by', starts: 'Starts', ends: 'Ends', online: 'View online deal', comments: 'Comments', noComments: 'No comments yet - be the first!', anonymous: 'Anonymous', reply: 'Reply', replyTo: 'Reply to', addComment: 'Add a comment...', send: 'Send', signInComment: 'Sign in to comment', editDeal: 'Edit deal', close: 'Close', changePhoto: 'Change photo', cancel: 'Cancel', save: 'Save changes', saving: 'Saving...' },
   he: { now: 'עכשיו', hour: 'ש׳', day: 'י׳', notFound: 'הדיל לא נמצא', backDeals: 'חזרה לדילים', back: 'חזרה', copy: 'העתקת קישור', edit: 'עריכה', photos: 'תמונות הדיל', viewPhoto: 'הצגת תמונה', by: 'מאת', starts: 'מתחיל', ends: 'מסתיים', online: 'מעבר לדיל אונליין', comments: 'תגובות', noComments: 'אין עדיין תגובות - היו הראשונים!', anonymous: 'אנונימי', reply: 'תגובה', replyTo: 'תגובה אל', addComment: 'הוספת תגובה...', send: 'שליחה', signInComment: 'התחברו כדי להגיב', editDeal: 'עריכת דיל', close: 'סגירה', changePhoto: 'החלפת תמונה', cancel: 'ביטול', save: 'שמירת שינויים', saving: 'שומר...' },
 };
-
-const CATEGORIES = ['Food', 'Tech', 'Fashion', 'Activities', 'Online'];
 
 const CITY_COORDS = {
   'תל אביב': {}, 'ירושלים': {}, 'חיפה': {}, 'באר שבע': {}, 'אילת': {},
@@ -484,7 +484,10 @@ export default function DealPage() {
             <p className="dilz-deal-meta">
               {[deal.magasin, deal.ville ? traduireVille(deal.ville, lang) : null].filter(Boolean).join(' · ')}
               {' · '}{timeAgo(deal.created_at, text)}
-              {deal.auteur_nom ? ` · ${text.by} ${deal.auteur_nom}` : ''}
+              {deal.auteur_nom ? ' · ' : ''}
+              {deal.auteur_nom && deal.auteur_id ? (
+                <Link href={`/user/${deal.auteur_id}`} className="dilz-deal-author-link">{text.by} {deal.auteur_nom}</Link>
+              ) : deal.auteur_nom ? `${text.by} ${deal.auteur_nom}` : ''}
             </p>
             {deal.adresse && (
               <address className="dilz-deal-address">
@@ -780,14 +783,14 @@ export default function DealPage() {
                 <div className="dilz-form-field">
                   <label className="dilz-form-label">Category</label>
                   <div className="dilz-cat-chips">
-                    {CATEGORIES.map((cat) => (
+                    {DEAL_CATEGORIES.map((cat) => (
                       <button
                         key={cat}
                         type="button"
                         className={['dilz-cat-chip', editForm.categorie === cat ? 'is-active' : ''].filter(Boolean).join(' ')}
                         onClick={() => setEditForm({ ...editForm, categorie: cat })}
                       >
-                        {cat}
+                        {getDealCategoryLabel(cat, lang)}
                       </button>
                     ))}
                   </div>

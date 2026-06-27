@@ -8,10 +8,11 @@ export default async function handler(req, res) {
   const admin = createClient(url, key);
   const id = String(req.query.id || '');
 
-  const [{ data: authData, error: authError }, { data: deals, error: dealError }, { count: followerCount }] = await Promise.all([
+  const [{ data: authData, error: authError }, { data: deals, error: dealError }, { count: followerCount }, { count: followingCount }] = await Promise.all([
     admin.auth.admin.getUserById(id),
     admin.from('bons_plans').select('id,titre,image_url,prix,votes_chaud,votes_froid,created_at,auteur_nom').eq('auteur_id', id).or('statut.eq.actif,statut.is.null').order('created_at', { ascending: false }).limit(100),
     admin.from('user_follows').select('*', { count: 'exact', head: true }).eq('followed_user_id', id),
+    admin.from('user_follows').select('*', { count: 'exact', head: true }).eq('follower_id', id),
   ]);
   if (authError || !authData?.user) return res.status(404).json({ erreur: 'User not found.' });
   if (dealError) return res.status(500).json({ erreur: dealError.message });
@@ -24,7 +25,10 @@ export default async function handler(req, res) {
       created_at: authData.user.created_at,
       deals_count: deals?.length || 0,
       followers_count: followerCount || 0,
+      following_count: followingCount || 0,
       hot_votes: (deals || []).reduce((sum, deal) => sum + Number(deal.votes_chaud || 0), 0),
+      cold_votes: (deals || []).reduce((sum, deal) => sum + Number(deal.votes_froid || 0), 0),
+      last_posted_at: deals?.[0]?.created_at || null,
     },
     deals: deals || [],
   });

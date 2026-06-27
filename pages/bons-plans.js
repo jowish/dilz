@@ -7,8 +7,10 @@ import { deleteDealImage, uploadDealImage, validateImageFile } from '../lib/uplo
 const ACCENT = '#E2552D';
 const ACCENT_DARK = '#C2410C';
 
-const CATEGORIES = ['all', 'Food', 'Tech', 'Fashion', 'Activities', 'Online'];
-const CATEGORY_LABELS = { all: 'All', Food: 'Food', Tech: 'Tech', Fashion: 'Fashion', Activities: 'Activities', Online: 'Online' };
+const { DEAL_CATEGORIES, getDealCategoryLabel } = require('../lib/dealCategories');
+
+const CATEGORIES = ['all', ...DEAL_CATEGORIES];
+const CATEGORY_LABELS = { all: 'All', ...Object.fromEntries(DEAL_CATEGORIES.map((category) => [category, getDealCategoryLabel(category, 'en')])) };
 
 function timeAgo(date) {
   const diff = Date.now() - new Date(date).getTime();

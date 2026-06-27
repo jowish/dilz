@@ -11,7 +11,7 @@ import { CityPicker } from '../ui/CityPicker';
 import { getDevicePosition, triggerSuccessHaptic } from '../../lib/nativeApp';
 import { clearDealCity, dealImageSlots } from '../../lib/postDealForm';
 
-const CATEGORIES = ['Food', 'Tech', 'Fashion', 'Activities', 'Online'];
+const { DEAL_CATEGORIES, getDealCategoryLabel } = require('../../lib/dealCategories');
 const MAX_IMAGES = 3;
 
 const copy = {
@@ -326,7 +326,7 @@ export function PostDealModal({ user, onClose, onSuccess, cityOptions = [], lang
             <Input required label={text.price} error={fieldErrors.prix} type="number" inputMode="decimal" min="0" step="any" value={form.prix} onChange={(event) => set('prix', event.target.value)} placeholder="999" />
             <Input label={text.oldPrice} error={fieldErrors.prix_original} type="number" inputMode="decimal" min="0" step="any" value={form.prix_original} onChange={(event) => set('prix_original', event.target.value)} placeholder="1299" helper={discount ? `${discount}% ${text.discount}` : text.optional} />
           </div>
-          <Select label={text.category} value={form.categorie} onChange={(event) => set('categorie', event.target.value)}>{CATEGORIES.map((category) => <option key={category} value={category}>{category}</option>)}</Select>
+          <Select label={text.category} value={form.categorie} onChange={(event) => set('categorie', event.target.value)}>{DEAL_CATEGORIES.map((category) => <option key={category} value={category}>{getDealCategoryLabel(category, lang)}</option>)}</Select>
           <div className="dilz-form-grid dilz-form-grid--two dilz-date-fields">
             <Input className="dilz-date-input" label={text.startDate} type="date" value={form.date_debut} max={form.date_fin || undefined} onChange={(event) => set('date_debut', event.target.value)} />
             <Input className="dilz-date-input" label={text.endDate} error={fieldErrors.date_fin} type="date" value={form.date_fin} min={form.date_debut || undefined} onChange={(event) => set('date_fin', event.target.value)} />

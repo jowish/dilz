@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import Head from 'next/head';
 
+const { DEAL_CATEGORIES } = require('../lib/dealCategories');
+
 function formatNumber(value) {
   if (value == null) return 'n/a';
   return Number(value).toLocaleString('en-US');
@@ -184,7 +186,7 @@ function EditDealModal({ deal, onClose, onSave, loading }) {
           <label>
             Category
             <select value={form.categorie || ''} onChange={e => set('categorie', e.target.value)}>
-              {['Food', 'Tech', 'Fashion', 'Activities', 'Online'].map(value => <option key={value} value={value}>{value}</option>)}
+              {DEAL_CATEGORIES.map(value => <option key={value} value={value}>{value}</option>)}
             </select>
           </label>
           <label>

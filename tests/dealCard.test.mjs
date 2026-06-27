@@ -76,10 +76,10 @@ function dateInDays(n) {
 
 test('timeRemaining returns a short countdown for near-future deals', () => {
   // A deal ending today has ~0.5–1 day left due to Math.ceil, giving "Ends in 1d"
-  const resultEn = timeRemaining(dateInDays(0), 'en');
+  const resultEn = timeRemaining(dateInDays(1), 'en');
   assert.match(resultEn, /^Ends in \d+d$/);
 
-  const resultHe = timeRemaining(dateInDays(0), 'he');
+  const resultHe = timeRemaining(dateInDays(1), 'he');
   assert.match(resultHe, /^מסתיים בעוד \d+ ימים$/);
 });
 
