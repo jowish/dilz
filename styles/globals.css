@@ -129,6 +129,9 @@
 
 html {
   min-height: 100%;
+  height: auto;
+  overflow-x: hidden;
+  overflow-y: scroll;
   scroll-behavior: smooth;
 }
 
@@ -138,15 +141,19 @@ body {
   color: var(--text);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  overscroll-behavior: none;
+  overscroll-behavior-x: none;
+  overscroll-behavior-y: auto;
   font-size: 14px;
   line-height: 1.5;
   min-height: 100%;
+  height: auto;
+  overflow: visible;
 }
 
 #__next {
   min-height: 100vh;
   background: var(--bg);
+  overflow: visible;
 }
 
 .dilz-app-frame {
@@ -7225,7 +7232,9 @@ textarea::placeholder {
 }
 
 /* Cross-page stability and compact discovery views */
-html, body, #__next { width: 100%; max-width: 100%; min-height: 100%; height: auto; overflow-x: hidden; overflow-y: auto; overscroll-behavior-x: none; }
+html, body, #__next { width: 100%; max-width: 100%; min-height: 100%; height: auto; }
+html { overflow-x: hidden; overflow-y: scroll; overscroll-behavior-x: none; overscroll-behavior-y: auto; }
+body, #__next { overflow: visible; }
 body { touch-action: pan-y; }
 .dilz-bottom-nav { position: fixed !important; left: 0; right: 0; bottom: 0 !important; }
 .dilz-logo-lockup { gap: 0; }

@@ -31,3 +31,11 @@ test('the menu sheet ends above the visible mobile navigation', () => {
 test('deal count remains legible in dark mode', () => {
   assert.match(css, /\.dark \.dilz-view-switcher__count\s*\{[^}]*background:\s*#1A2A40[^}]*color:\s*#F8FAFC/s);
 });
+
+test('desktop pages keep the document as the only vertical scroller', () => {
+  assert.match(css, /html\s*\{[^}]*overflow-y:\s*scroll/s);
+  assert.match(css, /body\s*\{[^}]*overflow:\s*visible/s);
+  assert.match(css, /#__(?:next|NEXT)\s*\{[^}]*overflow:\s*visible/s);
+  assert.match(css, /body,\s*#__next\s*\{\s*overflow:\s*visible;\s*\}/s);
+  assert.doesNotMatch(css, /html,\s*body,\s*#__next\s*\{[^}]*overflow-y:\s*auto/s);
+});
