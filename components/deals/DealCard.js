@@ -193,17 +193,6 @@ export function DealCard({
           </div>
           <div className="dilz-deal-card__right-actions">
             <IconButton
-              aria-label={`${commentCount} ${text.comments}`}
-              onClick={(event) => {
-                event.preventDefault();
-                event.stopPropagation();
-                go();
-              }}
-            >
-              <CommentIcon />
-              <span className="dilz-comment-count">{commentCount}</span>
-            </IconButton>
-            <IconButton
               aria-label={lang === 'he' ? 'אפשרויות שיתוף' : 'Share options'}
               aria-expanded={shareOpen}
               aria-controls={shareMenuId}

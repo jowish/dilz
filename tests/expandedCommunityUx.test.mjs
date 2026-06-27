@@ -65,6 +65,8 @@ test('deal cards expose branded sharing through the share menu, author profile a
   assert.match(dealCard, /<ShareMenu/);
   assert.match(dealCard, /router\.push\(`\/user\/\$\{deal\.auteur_id\}`\)/);
   assert.match(dealCard, /dilz-owner-delete/);
+  assert.match(dealCard, /dilz-deal-card__comment-meta/);
+  assert.doesNotMatch(dealCard, /aria-label=\{`\$\{commentCount\} \$\{text\.comments\}`\}/);
   assert.match(css, /\.is-whatsapp svg[^}]*#25D366/);
   assert.match(css, /\.is-telegram svg[^}]*#229ED9/);
   assert.match(css, /\.is-sms svg[^}]*#34C759/);
@@ -92,9 +94,12 @@ test('alerts are mobile-safe and include useful popular Israeli searches', () =>
 
 test('map loads a broad result set and preserves exact deal markers', () => {
   assert.match(map, /limit=500/);
-  assert.match(map, /hasExactCoordinates/);
+  assert.match(map, /mapDealHasExactCoordinates/);
+  assert.match(map, /getMapFocusPoints/);
+  assert.match(map, /resolveMapCityKey/);
   assert.match(map, /dilz-map-marker--exact/);
   assert.match(map, /buildMapUrl\(nextCity\)/);
+  assert.match(css, /\.dilz-map-marker,[\s\S]*background:\s*#DC2626\s*!important/s);
 });
 
 test('public profiles expose membership stats, deals and follow controls', () => {
@@ -102,6 +107,9 @@ test('public profiles expose membership stats, deals and follow controls', () =>
   assert.match(profilePage, /profile\.followers_count/);
   assert.match(profilePage, /toggleFollow/);
   assert.match(profilePage, /profile\.deals_count/);
+  assert.match(profilePage, /formatPrice\(deal\.prix\)[\s\S]*₪/);
+  assert.match(profilePage, /aria-pressed=\{following\}/);
+  assert.match(profilePage, /Following ✓/);
 });
 
 test('shopping deals have internal detail pages, votes, comments and third-party links', () => {
@@ -155,6 +163,8 @@ test('compact and row views remain bounded while global zoom and horizontal drif
   assert.match(css, /\.dilz-feed-grid\.is-compact[^}]*repeat\(4/);
   assert.match(css, /@media \(max-width: 767px\)[\s\S]*\.dilz-feed-grid\.is-compact[^}]*repeat\(2/);
   assert.match(css, /\.dilz-deal-card\.is-list \.dilz-deal-card__description[^}]*-webkit-line-clamp:\s*1/);
+  assert.match(css, /\.dilz-feed-grid\.is-list \.dilz-deal-card\.is-list\s*\{[^}]*grid-template-columns:\s*150px minmax\(0, 1fr\)/s);
+  assert.match(css, /@media \(max-width: 767px\)[\s\S]*\.dilz-feed-grid\.is-list \.dilz-deal-card\.is-list\s*\{[^}]*grid-template-columns:\s*78px minmax\(0, 1fr\)/s);
   assert.match(css, /overflow-x:\s*hidden/);
   assert.match(documentPage, /maximum-scale=1, user-scalable=no/);
 });

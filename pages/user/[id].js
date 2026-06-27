@@ -6,6 +6,7 @@ import { ThemeToggle } from '../../components/ui/ThemeToggle';
 import { VoteEmoji } from '../../components/ui/VoteEmoji';
 import { supabase } from '../../lib/supabase';
 import { useAppLanguage } from '../../lib/useAppLanguage';
+import { formatPrice } from '../../lib/dealCard.js';
 
 export default function PublicUserPage() {
   const router = useRouter();
@@ -30,10 +31,13 @@ export default function PublicUserPage() {
   const toggleFollow = async () => {
     if (!viewer) { router.push(`/auth?redirect=${encodeURIComponent(router.asPath)}`); return; }
     setFollowBusy(true);
-    const { data } = await supabase.auth.getSession();
-    const response = await fetch('/api/user-follows', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${data.session.access_token}` }, body: JSON.stringify({ followed_user_id: profile.id, followed_name: profile.name }) });
-    if (response.ok) setFollowing((await response.json()).following);
-    setFollowBusy(false);
+    try {
+      const { data } = await supabase.auth.getSession();
+      const response = await fetch('/api/user-follows', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${data.session.access_token}` }, body: JSON.stringify({ followed_user_id: profile.id, followed_name: profile.name }) });
+      if (response.ok) setFollowing((await response.json()).following);
+    } finally {
+      setFollowBusy(false);
+    }
   };
 
   if (!profile) return <div className="dilz-loading-state"><div className="dilz-spinner" /></div>;
@@ -46,7 +50,7 @@ export default function PublicUserPage() {
         <section className="dilz-public-profile__hero">
           {profile.avatar_url ? <img src={profile.avatar_url} alt="" /> : <span className="dilz-avatar">{initials}</span>}
           <div><h1>{profile.name}</h1><p>{lang === 'he' ? '×—×‘×¨ ×ž××–' : 'Member since'} {new Date(profile.created_at).toLocaleDateString(lang === 'he' ? 'he-IL' : 'en-GB', { month: 'long', year: 'numeric' })}</p></div>
-          {viewer?.id !== profile.id && <button type="button" className={following ? 'is-following' : ''} onClick={toggleFollow} disabled={followBusy}>{followBusy ? '...' : following ? 'Following' : 'Follow'}</button>}
+          {viewer?.id !== profile.id && <button type="button" className={following ? 'is-following' : ''} aria-pressed={following} onClick={toggleFollow} disabled={followBusy}>{followBusy ? '...' : following ? 'Following ✓' : 'Follow user'}</button>}
         </section>
         <div className="dilz-profil-stats">
           <div className="dilz-stat-card"><strong>{profile.deals_count}</strong><span>Deals</span></div>
@@ -56,7 +60,7 @@ export default function PublicUserPage() {
           <div className="dilz-stat-card"><strong><VoteEmoji type="froid" /> {profile.cold_votes || 0}</strong><span>Cold votes</span></div>
           <div className="dilz-stat-card"><strong>{profile.last_posted_at ? new Date(profile.last_posted_at).toLocaleDateString(lang === 'he' ? 'he-IL' : 'en-GB') : '-'}</strong><span>Last post</span></div>
         </div>
-        <section className="dilz-public-profile__deals"><h2>{lang === 'he' ? '×“×™×œ×™× ×©×¤×•×¨×¡×ž×•' : 'Published deals'}</h2>{deals.map((deal) => <Link href={`/deal/${deal.id}`} key={deal.id}><img src={deal.image_url || '/icon-192.png'} alt=""/><span><strong>{deal.titre}</strong><small>{deal.prix} â‚ª</small></span></Link>)}</section>
+        <section className="dilz-public-profile__deals"><h2>{lang === 'he' ? '×“×™×œ×™× ×©×¤×•×¨×¡×ž×•' : 'Published deals'}</h2>{deals.map((deal) => <Link href={`/deal/${deal.id}`} key={deal.id}><img src={deal.image_url || '/icon-192.png'} alt=""/><span><strong>{deal.titre}</strong><small>{formatPrice(deal.prix)} ₪</small></span></Link>)}</section>
       </main>
     </div>
   );

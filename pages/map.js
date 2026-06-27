@@ -4,9 +4,18 @@ import { useRouter } from 'next/router';
 import { traduireVille } from '../lib/translations';
 import { useAppLanguage } from '../lib/useAppLanguage';
 import { VoteEmoji } from '../components/ui/VoteEmoji';
-import { buildMapUrl, toggleCityFilter } from '../lib/mapState';
+import {
+  buildMapUrl,
+  getMapDealCoordinates,
+  getMapFocusPoints,
+  getMapGroupCoordinates,
+  getVisibleMapDeals,
+  groupMapDealsByCity,
+  mapDealHasExactCoordinates,
+  resolveMapCityKey,
+  toggleCityFilter,
+} from '../lib/mapState';
 import { ThemeToggle } from '../components/ui/ThemeToggle';
-import { getCityCoordinates } from '../lib/israelCities';
 
 const MAP_TEXT = {
   en: { title: 'Dilz Map', back: 'Back', feed: 'Feed', points: 'active points', loading: 'Loading Dilz map...', israel: 'All Israel', tap: 'Tap a city to filter', mapPoints: 'Dilz map points', comments: 'comments' },
@@ -70,37 +79,6 @@ function getCommentCount(deal) {
   return Number(deal.commentaires?.[0]?.count || deal.comments_count || 0);
 }
 
-function getDealCoordinates(deal) {
-  const latitude = Number(deal.latitude);
-  const longitude = Number(deal.longitude);
-  if (Number.isFinite(latitude) && Number.isFinite(longitude)) return { lat: latitude, lon: longitude };
-  return deal.ville ? getCityCoordinates(deal.ville) || CITY_COORDS[deal.ville] || null : null;
-}
-
-function hasExactCoordinates(deal) {
-  return Number.isFinite(Number(deal.latitude)) && Number.isFinite(Number(deal.longitude));
-}
-
-function getGroupCoordinates(city, deals) {
-  const exact = deals.map(getDealCoordinates).filter(Boolean);
-  if (!exact.length) return CITY_COORDS[city] || null;
-  return {
-    lat: exact.reduce((sum, point) => sum + point.lat, 0) / exact.length,
-    lon: exact.reduce((sum, point) => sum + point.lon, 0) / exact.length,
-  };
-}
-
-function groupDealsByCity(deals) {
-  const grouped = {};
-  deals
-    .filter(deal => deal.ville && getDealCoordinates(deal))
-    .forEach(deal => {
-      if (!grouped[deal.ville]) grouped[deal.ville] = [];
-      grouped[deal.ville].push(deal);
-    });
-  return grouped;
-}
-
 export default function MapPage() {
   const router = useRouter();
   const { lang, setLang, dir } = useAppLanguage();
@@ -112,12 +90,15 @@ export default function MapPage() {
   const [selectedCity, setSelectedCity] = useState(null);
   const [leafletReady, setLeafletReady] = useState(false);
 
-  const dealsByCity = useMemo(() => groupDealsByCity(deals), [deals]);
+  const dealsByCity = useMemo(() => groupMapDealsByCity(deals, CITY_COORDS), [deals]);
   const cityEntries = useMemo(
     () => Object.entries(dealsByCity).sort((a, b) => b[1].length - a[1].length),
     [dealsByCity]
   );
-  const selectedDeals = selectedCity ? dealsByCity[selectedCity] || [] : deals.filter(getDealCoordinates);
+  const selectedDeals = useMemo(
+    () => getVisibleMapDeals(deals, selectedCity, dealsByCity, CITY_COORDS),
+    [deals, selectedCity, dealsByCity]
+  );
 
   useEffect(() => {
     fetch('/api/bons-plans?limit=500&tri=hot')
@@ -130,7 +111,7 @@ export default function MapPage() {
   useEffect(() => {
     if (!router.isReady) return;
     const city = typeof router.query.city === 'string' ? router.query.city : null;
-    setSelectedCity(city && dealsByCity[city] ? city : null);
+    setSelectedCity(resolveMapCityKey(city, Object.keys(dealsByCity), CITY_COORDS));
   }, [router.isReady, router.query.city, dealsByCity]);
 
   const selectCity = (city) => {
@@ -207,9 +188,9 @@ export default function MapPage() {
     }).addTo(map);
 
     cityEntries.forEach(([city, cityDeals]) => {
-      const fallbackDeals = cityDeals.filter((deal) => !hasExactCoordinates(deal));
+      const fallbackDeals = cityDeals.filter((deal) => !mapDealHasExactCoordinates(deal));
       if (!fallbackDeals.length) return;
-      const coords = getGroupCoordinates(city, fallbackDeals);
+      const coords = getMapGroupCoordinates(city, fallbackDeals, CITY_COORDS);
       if (!coords) return;
       const count = fallbackDeals.length;
       const active = city === selectedCity;
@@ -227,8 +208,8 @@ export default function MapPage() {
       });
     });
 
-    deals.filter(hasExactCoordinates).forEach((deal) => {
-      const coords = getDealCoordinates(deal);
+    deals.filter(mapDealHasExactCoordinates).forEach((deal) => {
+      const coords = getMapDealCoordinates(deal, CITY_COORDS);
       const icon = L.divIcon({
         className: '',
         html: `<div class="dilz-map-marker dilz-map-marker--exact"><strong>${formatPrice(deal.prix)} ₪</strong></div>`,
@@ -246,9 +227,15 @@ export default function MapPage() {
 
     const focusMap = () => {
       map.invalidateSize();
-      if (selectedCity && dealsByCity[selectedCity]?.length) {
-        const coords = getGroupCoordinates(selectedCity, dealsByCity[selectedCity]);
-        map.flyTo([coords.lat, coords.lon], 12, { animate: false });
+      const focusPoints = getMapFocusPoints(deals, selectedCity, dealsByCity, CITY_COORDS);
+      if (selectedCity && focusPoints.length) {
+        if (focusPoints.length === 1) {
+          map.flyTo([focusPoints[0].lat, focusPoints[0].lon], 13, { animate: false });
+        } else {
+          map.fitBounds(focusPoints.map((point) => [point.lat, point.lon]), { padding: [34, 34], maxZoom: 13, animate: false });
+        }
+      } else if (focusPoints.length) {
+        map.fitBounds(focusPoints.map((point) => [point.lat, point.lon]), { padding: [38, 38], maxZoom: 9, animate: false });
       } else {
         map.fitBounds(israelBounds, { padding: [18, 18], animate: false });
       }
@@ -309,7 +296,7 @@ export default function MapPage() {
                 onClick={() => selectCity(null)}
               >
                 <span>{text.israel}</span>
-                <strong>{deals.filter(getDealCoordinates).length}</strong>
+                <strong>{getVisibleMapDeals(deals, null, dealsByCity, CITY_COORDS).length}</strong>
               </button>
               {cityEntries.slice(0, 12).map(([city, cityDeals]) => (
                 <button
