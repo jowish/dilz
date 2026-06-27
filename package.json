@@ -21,6 +21,7 @@
     "icons:generate": "node scripts/generate-app-icons.js"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.106.0",
     "@capacitor/app": "^8.0.1",
     "@capacitor/core": "^8.4.1",
     "@capacitor/geolocation": "^8.1.0",

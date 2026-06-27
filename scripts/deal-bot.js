@@ -348,10 +348,13 @@ async function main() {
 
 module.exports = {
   candidateFromPost,
+  candidateKey,
+  discoverDeals,
   extractPrices,
   isDirectDealUrl,
   normalizeUrl,
   parseTelegramPage,
+  removeExisting,
   scrapeRssFeed,
   scoreDeal,
   selectQualityDeals,
