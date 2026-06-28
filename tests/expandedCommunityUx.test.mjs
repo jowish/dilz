@@ -53,6 +53,9 @@ test('exact deal location is preserved and shown in deal details', () => {
   assert.match(detailPage, /\{deal\.adresse\}/);
   assert.match(detailPage, /buildDealGpsUrl\(deal\)/);
   assert.match(detailPage, /onPointerDown=\{startAddressPress\}/);
+  assert.match(detailPage, /suppressNextClick/);
+  assert.match(detailPage, /const handleAddressClick/);
+  assert.match(detailPage, /onClick=\{handleAddressClick\}/);
   assert.match(detailPage, /copyDealAddress/);
   assert.match(detailPage, /Tap for GPS/);
   assert.match(css, /\.dilz-deal-address\s*\{[^}]*touch-action:\s*manipulation/s);

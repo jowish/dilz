@@ -120,7 +120,7 @@ export default function DealPage() {
   const [copySuccess, setCopySuccess] = useState(false);
   const [activeImageIndex, setActiveImageIndex] = useState(0);
   const [blockedUserIds, setBlockedUserIds] = useState([]);
-  const addressPressRef = useRef({ timer: null, longPressed: false });
+  const addressPressRef = useRef({ timer: null, longPressed: false, suppressNextClick: false });
 
   useEffect(() => {
     setMounted(true);
@@ -374,6 +374,7 @@ export default function DealPage() {
     addressPressRef.current.longPressed = false;
     addressPressRef.current.timer = window.setTimeout(() => {
       addressPressRef.current.longPressed = true;
+      addressPressRef.current.suppressNextClick = true;
       copyDealAddress().catch(() => {});
     }, 650);
   };
@@ -383,10 +384,18 @@ export default function DealPage() {
     if (addressPressRef.current.longPressed) {
       event?.preventDefault?.();
       event?.stopPropagation?.();
-      window.setTimeout(() => {
-        addressPressRef.current.longPressed = false;
-      }, 0);
     }
+  };
+
+  const handleAddressClick = (event) => {
+    if (addressPressRef.current.suppressNextClick) {
+      event.preventDefault();
+      event.stopPropagation();
+      addressPressRef.current.suppressNextClick = false;
+      addressPressRef.current.longPressed = false;
+      return;
+    }
+    openDealAddressInGps();
   };
 
   if (!mounted) return null;
@@ -539,10 +548,7 @@ export default function DealPage() {
               <button
                 type="button"
                 className="dilz-deal-address"
-                onClick={() => {
-                  if (addressPressRef.current.longPressed) return;
-                  openDealAddressInGps();
-                }}
+                onClick={handleAddressClick}
                 onPointerDown={startAddressPress}
                 onPointerUp={finishAddressPress}
                 onPointerCancel={finishAddressPress}
