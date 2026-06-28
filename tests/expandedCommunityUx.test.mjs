@@ -51,6 +51,11 @@ test('exact deal location is preserved and shown in deal details', () => {
   assert.doesNotMatch(dealApi, /delete compatibleUpdate\.(adresse|latitude|longitude)/);
   assert.match(detailPage, /Full address/);
   assert.match(detailPage, /\{deal\.adresse\}/);
+  assert.match(detailPage, /buildDealGpsUrl\(deal\)/);
+  assert.match(detailPage, /onPointerDown=\{startAddressPress\}/);
+  assert.match(detailPage, /copyDealAddress/);
+  assert.match(detailPage, /Tap for GPS/);
+  assert.match(css, /\.dilz-deal-address\s*\{[^}]*touch-action:\s*manipulation/s);
 });
 
 test('post form prevents iOS focus zoom and confirms publishing with haptics', () => {

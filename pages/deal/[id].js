@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
@@ -11,6 +11,7 @@ import { VoteEmoji } from '../../components/ui/VoteEmoji';
 import { useAppLanguage } from '../../lib/useAppLanguage';
 import { SafetyActions } from '../../components/ui/SafetyActions';
 import { ThemeToggle } from '../../components/ui/ThemeToggle';
+import { buildDealGpsUrl } from '../../lib/dealLocation';
 
 const { DEAL_CATEGORIES, getDealCategoryLabel } = require('../../lib/dealCategories');
 
@@ -119,6 +120,7 @@ export default function DealPage() {
   const [copySuccess, setCopySuccess] = useState(false);
   const [activeImageIndex, setActiveImageIndex] = useState(0);
   const [blockedUserIds, setBlockedUserIds] = useState([]);
+  const addressPressRef = useRef({ timer: null, longPressed: false });
 
   useEffect(() => {
     setMounted(true);
@@ -343,6 +345,50 @@ export default function DealPage() {
     window.setTimeout(() => setCopySuccess(false), 1800);
   };
 
+  const showCopiedToast = () => {
+    setCopySuccess(true);
+    window.setTimeout(() => setCopySuccess(false), 1800);
+  };
+
+  const copyDealAddress = async () => {
+    if (!deal?.adresse) return;
+    await copyText(deal.adresse);
+    showCopiedToast();
+  };
+
+  const openDealAddressInGps = () => {
+    const url = buildDealGpsUrl(deal);
+    if (url) window.location.href = url;
+  };
+
+  const clearAddressPressTimer = () => {
+    if (addressPressRef.current.timer) {
+      window.clearTimeout(addressPressRef.current.timer);
+      addressPressRef.current.timer = null;
+    }
+  };
+
+  const startAddressPress = () => {
+    if (!deal?.adresse) return;
+    clearAddressPressTimer();
+    addressPressRef.current.longPressed = false;
+    addressPressRef.current.timer = window.setTimeout(() => {
+      addressPressRef.current.longPressed = true;
+      copyDealAddress().catch(() => {});
+    }, 650);
+  };
+
+  const finishAddressPress = (event) => {
+    clearAddressPressTimer();
+    if (addressPressRef.current.longPressed) {
+      event?.preventDefault?.();
+      event?.stopPropagation?.();
+      window.setTimeout(() => {
+        addressPressRef.current.longPressed = false;
+      }, 0);
+    }
+  };
+
   if (!mounted) return null;
 
   if (loading) {
@@ -490,10 +536,27 @@ export default function DealPage() {
               ) : deal.auteur_nom ? `${text.by} ${deal.auteur_nom}` : ''}
             </p>
             {deal.adresse && (
-              <address className="dilz-deal-address">
+              <button
+                type="button"
+                className="dilz-deal-address"
+                onClick={() => {
+                  if (addressPressRef.current.longPressed) return;
+                  openDealAddressInGps();
+                }}
+                onPointerDown={startAddressPress}
+                onPointerUp={finishAddressPress}
+                onPointerCancel={finishAddressPress}
+                onPointerLeave={clearAddressPressTimer}
+                onContextMenu={(event) => {
+                  event.preventDefault();
+                  copyDealAddress().catch(() => {});
+                }}
+                aria-label={lang === 'he' ? 'פתח כתובת בניווט או לחץ לחיצה ארוכה כדי להעתיק' : 'Open address in GPS or long press to copy'}
+              >
                 <span>{lang === 'he' ? 'כתובת מלאה' : 'Full address'}</span>
                 {deal.adresse}
-              </address>
+                <small>{lang === 'he' ? 'לחיצה לפתיחת ניווט · לחיצה ארוכה להעתקה' : 'Tap for GPS · long press to copy'}</small>
+              </button>
             )}
             <div className="dilz-deal-safety-row">
               <SafetyActions

@@ -7274,8 +7274,10 @@ body { touch-action: pan-y; }
 .dilz-post-page__surface .dilz-modal__footer { bottom: 0; }
 .dilz-profile-tab { display: flex; min-height: calc(100dvh - 230px); flex-direction: column; padding: 0 14px; }
 .dilz-profile-tab .dilz-profile-signout--bottom { margin-top: auto; margin-bottom: 18px; }
-.dilz-deal-address { display: grid; gap: 3px; font-style: normal; }
+.dilz-deal-address { display: grid; gap: 3px; width: 100%; border: 1px solid var(--border); border-radius: 14px; background: var(--surface-soft); padding: 10px 12px; color: var(--text-muted); font: inherit; font-style: normal; text-align: inherit; cursor: pointer; touch-action: manipulation; user-select: none; -webkit-user-select: none; }
 .dilz-deal-address span { color: var(--text-primary); font-size: 11px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; }
+.dilz-deal-address small { color: var(--text-muted); font-size: 11px; font-weight: 750; }
+.dilz-deal-address:hover { border-color: var(--brand); }
 
 .dilz-alert-value { margin: -2px 0 14px; color: var(--text-secondary); font-size: 14px; line-height: 1.5; }
 .dilz-service-card { text-decoration: none !important; }
