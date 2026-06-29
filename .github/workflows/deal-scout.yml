@@ -1,8 +1,6 @@
 name: Dilz Deal Scout
 
 on:
-  schedule:
-    - cron: '15 5,11,17,23 * * *'
   workflow_dispatch:
 
 concurrency:
