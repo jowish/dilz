@@ -20,4 +20,7 @@ test('alerts page exposes popular suggestions and author follows', () => {
   for (const keyword of ['PS5', 'Nintendo Switch 2', 'iPhone', 'MacBook', 'Fan']) assert.match(alerts, new RegExp(keyword));
   assert.match(alerts, /fetch\('\/api\/user-follows'/);
   assert.match(alerts, /toggleFollow\(candidate\)/);
+  assert.match(alerts, /followedUsers = followUsers\.filter/);
+  assert.match(alerts, /dilz-following-summary/);
+  assert.match(alerts, /aria-pressed=\{candidate\.is_following\}/);
 });

@@ -109,6 +109,9 @@ export function DealCard({
       </div>
 
       <div className="dilz-deal-card__body">
+        <div className="dilz-deal-card__safety-menu">
+          <SafetyActions contentType="deal" contentId={deal.id} authorId={deal.auteur_id} currentUserId={user?.id} lang={lang} onBlocked={onBlocked} />
+        </div>
         {isAdmin && (
           <div className="dilz-admin-controls" onClick={(event) => event.stopPropagation()}>
             <span>Admin tools</span>
@@ -138,7 +141,6 @@ export function DealCard({
           <strong>{deal.magasin}</strong>
           <span>{city}</span>
           {isOwner && <span>{text.myDeal}</span>}
-          <SafetyActions contentType="deal" contentId={deal.id} authorId={deal.auteur_id} currentUserId={user?.id} lang={lang} onBlocked={onBlocked} />
         </div>
         <h3>{deal.titre}</h3>
         <p className="dilz-deal-card__author">
@@ -153,6 +155,10 @@ export function DealCard({
         <div className="dilz-deal-card__price-row">
           <strong>{formatPrice(deal.prix)} ₪</strong>
           {deal.prix_original && <span>{formatPrice(deal.prix_original)} ₪</span>}
+          <span className="dilz-deal-card__price-context">
+            <span>{deal.categorie || text.deal}</span>
+            <span><CommentIcon /> {commentCount}</span>
+          </span>
         </div>
         <div className="dilz-deal-card__meta">
           <span>{deal.categorie || text.deal}</span>

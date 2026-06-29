@@ -22,6 +22,7 @@ export function AlertModal({ user, lang, villes = [], onClose }) {
   const [error, setError] = useState('');
   const [followUsers, setFollowUsers] = useState([]);
   const [followLoading, setFollowLoading] = useState(true);
+  const followedUsers = followUsers.filter((candidate) => candidate.is_following);
 
   useEffect(() => {
     const esc = (e) => { if (e.key === 'Escape') onClose(); };
@@ -232,6 +233,16 @@ export function AlertModal({ user, lang, villes = [], onClose }) {
                 <h3 id="follow-users-title">{lang !== 'he' ? 'Follow Dilz members' : 'מעקב אחרי חברי Dilz'}</h3>
                 <span>{lang !== 'he' ? 'Get an alert when they publish' : 'קבלו התראה כשהם מפרסמים'}</span>
               </div>
+              {!followLoading && followedUsers.length > 0 && (
+                <div className="dilz-following-summary" aria-label={lang !== 'he' ? 'People you follow' : 'מי שאתם עוקבים אחריו'}>
+                  <strong>{lang !== 'he' ? 'You follow' : 'אתם עוקבים אחרי'}</strong>
+                  <div>
+                    {followedUsers.map((candidate) => (
+                      <span key={candidate.id}>{candidate.name}</span>
+                    ))}
+                  </div>
+                </div>
+              )}
               {followLoading ? <div className="dilz-spinner" /> : followUsers.length === 0 ? (
                 <p className="dilz-empty-state__text">{lang !== 'he' ? 'Authors will appear here as new Dilz are published.' : 'כותבים יופיעו כאן עם פרסום דילז חדשים.'}</p>
               ) : (
@@ -240,7 +251,7 @@ export function AlertModal({ user, lang, villes = [], onClose }) {
                     <div className="dilz-follow-user" key={candidate.id}>
                       <span className="dilz-follow-user__avatar">{candidate.name.slice(0, 2).toUpperCase()}</span>
                       <strong>{candidate.name}</strong>
-                      <button type="button" className={candidate.is_following ? 'is-following' : ''} onClick={() => toggleFollow(candidate)}>
+                      <button type="button" className={candidate.is_following ? 'is-following' : ''} aria-pressed={candidate.is_following} onClick={() => toggleFollow(candidate)}>
                         {candidate.is_following ? (lang !== 'he' ? 'Following' : 'במעקב') : (lang !== 'he' ? 'Follow' : 'מעקב')}
                       </button>
                     </div>

@@ -71,6 +71,8 @@ test('deal cards expose branded sharing through the share menu, author profile a
   assert.doesNotMatch(dealCard, /dilz-card-sms-action/);
   assert.doesNotMatch(dealCard, /buildSmsUrl/);
   assert.match(dealCard, /<ShareMenu/);
+  assert.match(dealCard, /dilz-deal-card__safety-menu/);
+  assert.match(dealCard, /dilz-deal-card__price-context/);
   assert.match(dealCard, /router\.push\(`\/user\/\$\{deal\.auteur_id\}`\)/);
   assert.match(dealCard, /dilz-owner-delete/);
   assert.match(dealCard, /dilz-deal-card__comment-meta/);
@@ -117,6 +119,7 @@ test('public profiles expose membership stats, deals and follow controls', () =>
   assert.match(profilePage, /profile\.deals_count/);
   assert.match(profilePage, /formatPrice\(deal\.prix\)[\s\S]*₪/);
   assert.match(profilePage, /aria-pressed=\{following\}/);
+  assert.match(profilePage, /data-follow-state=\{following \? 'following' : 'not-following'\}/);
   assert.match(profilePage, /Following ✓/);
 });
 
@@ -146,7 +149,7 @@ test('bottom nav uses a real Explore page and no longer opens the old menu sheet
 });
 
 test('display toggles keep visible active icons and start with a single card icon', () => {
-  assert.match(home, /aria-label="Card view"[\s\S]*<rect x="5" y="5" width="14" height="14" rx="3"\/>/);
+  assert.match(home, /aria-label="Card view"[\s\S]*<svg width="18" height="18"[\s\S]*<rect x="4" y="4" width="16" height="16" rx="3\.5"\/>/);
   assert.match(css, /\.dilz-layout-toggle button\.is-active\s*\{[^}]*background:\s*var\(--surface-main\)\s*!important/s);
   assert.match(css, /\.dilz-layout-toggle button\.is-active\s*\{[^}]*border:\s*1px solid var\(--text-primary\)\s*!important/s);
 });
@@ -171,8 +174,9 @@ test('compact and row views remain bounded while global zoom and horizontal drif
   assert.match(css, /\.dilz-feed-grid\.is-compact[^}]*repeat\(4/);
   assert.match(css, /@media \(max-width: 767px\)[\s\S]*\.dilz-feed-grid\.is-compact[^}]*repeat\(2/);
   assert.match(css, /\.dilz-deal-card\.is-list \.dilz-deal-card__description[^}]*-webkit-line-clamp:\s*1/);
-  assert.match(css, /\.dilz-feed-grid\.is-list \.dilz-deal-card\.is-list\s*\{[^}]*grid-template-columns:\s*150px minmax\(0, 1fr\)/s);
-  assert.match(css, /@media \(max-width: 767px\)[\s\S]*\.dilz-feed-grid\.is-list \.dilz-deal-card\.is-list\s*\{[^}]*grid-template-columns:\s*78px minmax\(0, 1fr\)/s);
+  assert.match(css, /\.dilz-feed-grid\.is-list \.dilz-deal-card\.is-list\s*\{[^}]*grid-template-columns:\s*118px minmax\(0, 1fr\)/s);
+  assert.match(css, /\.dilz-feed-grid\.is-list \.dilz-deal-card\.is-list \.dilz-deal-card__actions\s*\{[^}]*position:\s*absolute/s);
+  assert.match(css, /@media \(max-width: 767px\)[\s\S]*\.dilz-feed-grid\.is-list \.dilz-deal-card\.is-list\s*\{[^}]*grid-template-columns:\s*74px minmax\(0, 1fr\)/s);
   assert.match(css, /overflow-x:\s*hidden/);
   assert.match(documentPage, /maximum-scale=1, user-scalable=no/);
 });

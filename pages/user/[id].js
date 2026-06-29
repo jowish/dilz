@@ -30,11 +30,16 @@ export default function PublicUserPage() {
 
   const toggleFollow = async () => {
     if (!viewer) { router.push(`/auth?redirect=${encodeURIComponent(router.asPath)}`); return; }
+    const previousFollowing = following;
     setFollowBusy(true);
+    setFollowing(!previousFollowing);
     try {
       const { data } = await supabase.auth.getSession();
       const response = await fetch('/api/user-follows', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${data.session.access_token}` }, body: JSON.stringify({ followed_user_id: profile.id, followed_name: profile.name }) });
       if (response.ok) setFollowing((await response.json()).following);
+      else setFollowing(previousFollowing);
+    } catch {
+      setFollowing(previousFollowing);
     } finally {
       setFollowBusy(false);
     }
@@ -50,7 +55,18 @@ export default function PublicUserPage() {
         <section className="dilz-public-profile__hero">
           {profile.avatar_url ? <img src={profile.avatar_url} alt="" /> : <span className="dilz-avatar">{initials}</span>}
           <div><h1>{profile.name}</h1><p>{lang === 'he' ? '×—×‘×¨ ×ž××–' : 'Member since'} {new Date(profile.created_at).toLocaleDateString(lang === 'he' ? 'he-IL' : 'en-GB', { month: 'long', year: 'numeric' })}</p></div>
-          {viewer?.id !== profile.id && <button type="button" className={following ? 'is-following' : ''} aria-pressed={following} onClick={toggleFollow} disabled={followBusy}>{followBusy ? '...' : following ? 'Following ✓' : 'Follow user'}</button>}
+          {viewer?.id !== profile.id && (
+            <button
+              type="button"
+              className={following ? 'is-following' : ''}
+              data-follow-state={following ? 'following' : 'not-following'}
+              aria-pressed={following}
+              onClick={toggleFollow}
+              disabled={followBusy}
+            >
+              {followBusy ? '...' : following ? 'Following ✓' : 'Follow user'}
+            </button>
+          )}
         </section>
         <div className="dilz-profil-stats">
           <div className="dilz-stat-card"><strong>{profile.deals_count}</strong><span>Deals</span></div>

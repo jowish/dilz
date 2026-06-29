@@ -56,13 +56,14 @@ test('map regressions are guarded by shared coordinate helpers and visible red m
 test('deal cards avoid duplicate comment buttons and keep compact list controls bounded', () => {
   assert.match(dealCard, /dilz-deal-card__comment-meta/);
   assert.doesNotMatch(dealCard, /aria-label=\{`\$\{commentCount\} \$\{text\.comments\}`\}/);
-  assert.match(css, /\.dilz-feed-grid\.is-list \.dilz-deal-card\.is-list\s*\{[^}]*grid-template-columns:\s*150px minmax\(0, 1fr\)/s);
-  assert.match(css, /@media \(max-width: 767px\)[\s\S]*\.dilz-feed-grid\.is-list \.dilz-deal-card\.is-list\s*\{[^}]*grid-template-columns:\s*78px minmax\(0, 1fr\)/s);
-  assert.match(css, /@media \(max-width: 767px\)[\s\S]*\.dilz-feed-grid\.is-list \.dilz-deal-card\.is-list \.dilz-deal-card__actions\s*\{[^}]*grid-template-columns:\s*minmax\(0, 1fr\) auto/s);
+  assert.match(css, /\.dilz-feed-grid\.is-list \.dilz-deal-card\.is-list\s*\{[^}]*grid-template-columns:\s*118px minmax\(0, 1fr\)/s);
+  assert.match(css, /\.dilz-feed-grid\.is-list \.dilz-deal-card\.is-list \.dilz-deal-card__actions\s*\{[^}]*position:\s*absolute/s);
+  assert.match(css, /@media \(max-width: 767px\)[\s\S]*\.dilz-feed-grid\.is-list \.dilz-deal-card\.is-list\s*\{[^}]*grid-template-columns:\s*74px minmax\(0, 1fr\)/s);
 });
 
 test('public user profiles preserve follow state and shekel price formatting', () => {
   assert.match(userPage, /aria-pressed=\{following\}/);
+  assert.match(userPage, /data-follow-state=\{following \? 'following' : 'not-following'\}/);
   assert.match(userPage, /Following ✓/);
   assert.match(userPage, /Follow user/);
   assert.match(userPage, /formatPrice\(deal\.prix\)[\s\S]*₪/);

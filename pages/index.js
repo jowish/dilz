@@ -1313,7 +1313,7 @@ export default function Home() {
           onCityClick={() => setShowCityModal(true)}
           user={user}
           unreadCount={unreadCount}
-          onNotificationsClick={() => setShowNotificationSheet(true)}
+          onNotificationsClick={() => user ? setShowNotificationSheet(true) : router.push('/auth?redirect=/alerts')}
           onProfileClick={() => setTab('profile')}
           onLogoClick={() => setTab('deals')}
           onPostDeal={() => user ? router.push('/post') : router.push('/auth?redirect=/post')}
@@ -1525,8 +1525,8 @@ export default function Home() {
                     onClick={() => changeDealLayout('card')}
                     aria-label="Card view"
                   >
-                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
-                      <rect x="5" y="5" width="14" height="14" rx="3"/>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden="true">
+                      <rect x="4" y="4" width="16" height="16" rx="3.5"/>
                     </svg>
                   </button>
                   <button

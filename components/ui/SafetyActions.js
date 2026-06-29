@@ -86,7 +86,7 @@ export function SafetyActions({ contentType, contentId, authorId, currentUserId,
   return (
     <div className="dilz-safety-actions" onClick={(event) => event.stopPropagation()}>
       <button type="button" className="dilz-safety-actions__trigger" aria-label={text.menu} aria-expanded={open} onClick={() => setOpen((value) => !value)}>
-        <span aria-hidden="true">•••</span>
+        <span aria-hidden="true">...</span>
       </button>
       {open && !reporting && (
         <div className="dilz-safety-actions__menu">

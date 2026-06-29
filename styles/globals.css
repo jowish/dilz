@@ -7692,3 +7692,272 @@ body { touch-action: pan-y; }
     padding: 0 7px;
   }
 }
+
+/* Compact row feed and clearer follow/alert states */
+.dilz-deal-card__body {
+  position: relative;
+}
+
+.dilz-deal-card__safety-menu {
+  position: absolute;
+  top: 0;
+  right: 0;
+  z-index: 4;
+}
+
+.dilz-deal-card__safety-menu .dilz-safety-actions__trigger {
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+  box-shadow: none;
+}
+
+.dilz-deal-card__store-row {
+  padding-right: 42px;
+}
+
+.dilz-deal-card__price-context {
+  display: none;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 750;
+  white-space: nowrap;
+}
+
+.dilz-deal-card__price-context > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.dilz-feed-grid.is-list .dilz-deal-card.is-list {
+  grid-template-columns: 118px minmax(0, 1fr);
+  gap: 10px;
+  padding: 9px;
+}
+
+.dilz-feed-grid.is-list .dilz-deal-card.is-list .dilz-deal-card__media {
+  width: 118px;
+  min-height: 92px;
+  aspect-ratio: 1.18 / 1;
+  border-radius: 14px;
+}
+
+.dilz-feed-grid.is-list .dilz-deal-card.is-list .dilz-deal-card__body {
+  min-width: 0;
+  padding: 0 124px 0 0;
+}
+
+.dilz-feed-grid.is-list .dilz-deal-card.is-list .dilz-deal-card__store-row {
+  margin: 0 0 3px;
+  padding-right: 0;
+  font-size: 11px;
+}
+
+.dilz-feed-grid.is-list .dilz-deal-card.is-list .dilz-deal-card__safety-menu {
+  top: auto;
+  right: 0;
+  bottom: 0;
+}
+
+.dilz-feed-grid.is-list .dilz-deal-card.is-list .dilz-deal-card__safety-menu .dilz-safety-actions__trigger {
+  width: 30px;
+  height: 30px;
+}
+
+.dilz-feed-grid.is-list .dilz-deal-card.is-list h3 {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.22;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+}
+
+.dilz-feed-grid.is-list .dilz-deal-card.is-list .dilz-deal-card__author {
+  display: none;
+}
+
+.dilz-feed-grid.is-list .dilz-deal-card.is-list .dilz-deal-card__description {
+  display: -webkit-box;
+  margin-top: 2px;
+  font-size: 11px;
+  line-height: 1.25;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 1;
+  line-clamp: 1;
+  overflow: hidden;
+}
+
+.dilz-feed-grid.is-list .dilz-deal-card.is-list .dilz-deal-card__price-row {
+  margin-top: 5px;
+  gap: 6px;
+}
+
+.dilz-feed-grid.is-list .dilz-deal-card.is-list .dilz-deal-card__price-row strong {
+  font-size: 16px;
+}
+
+.dilz-feed-grid.is-list .dilz-deal-card.is-list .dilz-deal-card__price-row > span:not(.dilz-deal-card__price-context) {
+  font-size: 11px;
+}
+
+.dilz-feed-grid.is-list .dilz-deal-card.is-list .dilz-deal-card__price-context {
+  display: inline-flex;
+}
+
+.dilz-feed-grid.is-list .dilz-deal-card.is-list .dilz-deal-card__meta {
+  display: none;
+}
+
+.dilz-feed-grid.is-list .dilz-deal-card.is-list .dilz-deal-card__actions {
+  position: absolute;
+  top: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  max-width: 118px;
+}
+
+.dilz-feed-grid.is-list .dilz-deal-card.is-list .dilz-vote-pill {
+  height: 30px;
+  gap: 4px;
+}
+
+.dilz-feed-grid.is-list .dilz-deal-card.is-list .dilz-vote-pill button {
+  min-width: 38px;
+  height: 30px;
+  padding: 0 7px;
+  font-size: 11px;
+}
+
+.dilz-feed-grid.is-list .dilz-deal-card.is-list .dilz-vote-pill button svg,
+.dilz-feed-grid.is-list .dilz-deal-card.is-list .dilz-vote-emoji {
+  width: 14px;
+  height: 14px;
+}
+
+.dilz-feed-grid.is-list .dilz-deal-card.is-list .dilz-deal-card__right-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: 0;
+}
+
+.dilz-feed-grid.is-list .dilz-deal-card.is-list .dilz-deal-card__right-actions .dilz-icon-button {
+  width: 30px;
+  height: 30px;
+}
+
+.dilz-feed-grid.is-list .dilz-deal-card.is-list .dilz-owner-delete {
+  display: none;
+}
+
+.dilz-public-profile__hero button[data-follow-state='following'],
+.dilz-public-profile__hero button.is-following {
+  border-color: var(--brand);
+  background: var(--brand);
+  color: #fff;
+}
+
+.dilz-public-profile__hero button[data-follow-state='not-following'] {
+  border-color: var(--text-primary);
+  background: var(--text-primary);
+  color: var(--bg-card);
+}
+
+.dilz-following-summary {
+  display: grid;
+  gap: 8px;
+  margin: 14px 0;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--surface-soft);
+}
+
+.dilz-following-summary strong {
+  color: var(--text-primary);
+  font-size: 13px;
+}
+
+.dilz-following-summary div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.dilz-following-summary span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 0 10px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--bg-card);
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.dilz-follow-user button[aria-pressed='true'] {
+  border-color: var(--brand);
+  background: var(--brand);
+  color: #fff;
+}
+
+@media (max-width: 767px) {
+  .dilz-feed-grid.is-list .dilz-deal-card.is-list {
+    grid-template-columns: 74px minmax(0, 1fr);
+    gap: 8px;
+    padding: 8px;
+  }
+
+  .dilz-feed-grid.is-list .dilz-deal-card.is-list .dilz-deal-card__media {
+    width: 74px;
+    min-height: 74px;
+    aspect-ratio: 1;
+  }
+
+  .dilz-feed-grid.is-list .dilz-deal-card.is-list .dilz-deal-card__body {
+    padding-right: 102px;
+  }
+
+  .dilz-feed-grid.is-list .dilz-deal-card.is-list .dilz-deal-card__store-row {
+    max-width: 100%;
+    overflow: hidden;
+    white-space: nowrap;
+  }
+
+  .dilz-feed-grid.is-list .dilz-deal-card.is-list h3 {
+    font-size: 13px;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+  }
+
+  .dilz-feed-grid.is-list .dilz-deal-card.is-list .dilz-deal-card__description {
+    display: none;
+  }
+
+  .dilz-feed-grid.is-list .dilz-deal-card.is-list .dilz-deal-card__price-context {
+    gap: 5px;
+    font-size: 10px;
+  }
+
+  .dilz-feed-grid.is-list .dilz-deal-card.is-list .dilz-deal-card__actions {
+    max-width: 98px;
+  }
+
+  .dilz-feed-grid.is-list .dilz-deal-card.is-list .dilz-vote-pill button {
+    min-width: 32px;
+    padding: 0 5px;
+  }
+}
