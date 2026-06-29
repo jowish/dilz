@@ -35,8 +35,14 @@ function DilzSplashScreen() {
   return (
     <div className="dilz-splash-screen" role="status" aria-label="Dilz is loading">
       <div className="dilz-splash-screen__card">
-        <span className="dilz-splash-screen__brand">dILz</span>
-        <span className="dilz-splash-screen__tagline">On trouve. Vous économisez.</span>
+        <img
+          className="dilz-splash-screen__logo"
+          src="/icon-512.png"
+          alt="dILz"
+          width="112"
+          height="112"
+        />
+        <span className="dilz-splash-screen__tagline">The best deals community is Israel</span>
       </div>
     </div>
   );
