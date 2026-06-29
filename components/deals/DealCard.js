@@ -40,6 +40,7 @@ export function DealCard({
   const trust = isStorePromo ? text.storePromo : text.community;
   const authorName = deal.auteur_nom || (isOwner ? text.you : text.member);
   const commentCount = Number(deal.commentaires?.[0]?.count || deal.comments_count || 0);
+  const hideShareInRow = layout === 'list';
   const city = deal.ville && !isOnline
     ? (translateCity ? translateCity(deal.ville, lang === 'he' ? 'he' : 'en') : deal.ville)
     : text.online;
@@ -197,7 +198,7 @@ export function DealCard({
               <strong>{deal.votes_froid || 0}</strong>
             </button>
           </div>
-          <div className="dilz-deal-card__right-actions">
+          <div className={['dilz-deal-card__right-actions', hideShareInRow && 'is-row-without-share'].filter(Boolean).join(' ')}>
             <IconButton
               aria-label={lang === 'he' ? 'אפשרויות שיתוף' : 'Share options'}
               aria-expanded={shareOpen}

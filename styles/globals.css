@@ -7869,6 +7869,12 @@ body { touch-action: pan-y; }
   height: 30px;
 }
 
+.dilz-feed-grid.is-list .dilz-deal-card.is-list .dilz-deal-card__right-actions.is-row-without-share > .dilz-icon-button,
+.dilz-feed-grid.is-list .dilz-deal-card.is-list .dilz-deal-card__right-actions.is-row-without-share > .dilz-share-menu,
+.dilz-feed-grid.is-list .dilz-deal-card.is-list .dilz-deal-card__right-actions.is-row-without-share > .dilz-popover-dismiss {
+  display: none !important;
+}
+
 .dilz-feed-grid.is-list .dilz-deal-card.is-list .dilz-owner-delete {
   display: none;
 }
@@ -7954,7 +7960,7 @@ body { touch-action: pan-y; }
   background: var(--bg-app);
   color: var(--text-primary);
   pointer-events: none;
-  animation: dilzSplashFade 220ms ease-out 880ms forwards;
+  animation: dilzSplashFade 260ms ease-out 1600ms forwards;
 }
 
 .dilz-splash-screen__card {

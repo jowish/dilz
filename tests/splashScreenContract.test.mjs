@@ -16,6 +16,7 @@ test('global app renders a branded startup splash before the page content', () =
   assert.match(app, /src="\/icon-512\.png"/);
   assert.match(app, /alt="dILz"/);
   assert.match(app, /The best deals community is Israel/);
+  assert.match(app, /}, 1800\)/);
   assert.match(app, /setShowSplash\(false\)/);
 });
 
@@ -23,6 +24,7 @@ test('startup splash covers the viewport and supports dark and reduced-motion mo
   assert.match(css, /\.dilz-splash-screen\s*\{[^}]*position:\s*fixed[^}]*inset:\s*0[^}]*z-index:\s*10000/s);
   assert.match(css, /\.dilz-splash-screen__logo\s*\{[^}]*object-fit:\s*cover/s);
   assert.match(css, /\.dilz-splash-screen__tagline\s*\{[^}]*text-align:\s*center/s);
+  assert.match(css, /animation:\s*dilzSplashFade 260ms ease-out 1600ms forwards/);
   assert.match(css, /\.dark \.dilz-splash-screen\s*\{/);
   assert.match(css, /@media \(prefers-reduced-motion:\s*reduce\)/);
 });

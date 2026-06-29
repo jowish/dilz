@@ -18,7 +18,7 @@ export default function App({ Component, pageProps }) {
   useEffect(() => {
     const minDelay = window.setTimeout(() => {
       window.requestAnimationFrame(() => setShowSplash(false));
-    }, 1050);
+    }, 1800);
     return () => window.clearTimeout(minDelay);
   }, []);
 

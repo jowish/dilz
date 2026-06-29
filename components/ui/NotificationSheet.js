@@ -45,7 +45,6 @@ export function NotificationSheet({ user, lang, notifications, onClose, onMarkAl
   return (
     <div className="dilz-sheet-overlay" onClick={onClose} role="dialog" aria-modal="true" aria-label={lang !== 'he' ? 'Notifications' : 'התראות'}>
       <div className="dilz-sheet dilz-notification-sheet" onClick={(e) => e.stopPropagation()}>
-        <div className="dilz-sheet__handle" aria-hidden="true" />
         <div className="dilz-sheet__header">
           <h2 className="dilz-sheet__title">
             {lang !== 'he' ? 'Notifications' : 'התראות'}

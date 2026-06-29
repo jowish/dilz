@@ -14,6 +14,7 @@ const [
   map,
   profilePage,
   bottomNav,
+  notificationSheet,
   explorePage,
   promoApi,
   shoppingPage,
@@ -33,6 +34,7 @@ const [
   read('pages', 'map.js'),
   read('pages', 'user', '[id].js'),
   read('components', 'layout', 'BottomNav.js'),
+  read('components', 'ui', 'NotificationSheet.js'),
   read('pages', 'explore.js'),
   read('pages', 'api', 'promo-codes.js'),
   read('pages', 'bons-plans-shopping.js'),
@@ -174,13 +176,21 @@ test('community promo codes are user-submittable and protected by database polic
 
 test('compact and row views remain bounded while global zoom and horizontal drift are disabled', () => {
   assert.match(home, /is-compact/);
+  assert.match(dealCard, /hideShareInRow = layout === 'list'/);
+  assert.match(dealCard, /is-row-without-share/);
   assert.match(css, /\.dilz-feed-grid\.is-compact[^}]*repeat\(4/);
   assert.match(css, /@media \(max-width: 767px\)[\s\S]*\.dilz-feed-grid\.is-compact[^}]*repeat\(2/);
   assert.match(css, /\.dilz-deal-card\.is-list \.dilz-deal-card__description[^}]*-webkit-line-clamp:\s*1/);
   assert.match(css, /\.dilz-feed-grid\.is-list \.dilz-deal-card\.is-list\s*\{[^}]*grid-template-columns:\s*118px minmax\(0, 1fr\)/s);
   assert.match(css, /\.dilz-feed-grid\.is-list \.dilz-deal-card\.is-list \.dilz-deal-card__actions\s*\{[^}]*position:\s*absolute/s);
   assert.match(css, /\.dilz-feed-grid\.is-list \.dilz-deal-card\.is-list \.dilz-deal-card__price-context span\s*\{[^}]*text-decoration:\s*none/s);
+  assert.match(css, /\.dilz-feed-grid\.is-list \.dilz-deal-card\.is-list \.dilz-deal-card__right-actions\.is-row-without-share > \.dilz-icon-button,[\s\S]*display:\s*none !important/s);
   assert.match(css, /@media \(max-width: 767px\)[\s\S]*\.dilz-feed-grid\.is-list \.dilz-deal-card\.is-list\s*\{[^}]*grid-template-columns:\s*74px minmax\(0, 1fr\)/s);
   assert.match(css, /overflow-x:\s*hidden/);
   assert.match(documentPage, /maximum-scale=1, user-scalable=no/);
+});
+
+test('notification bell opens a static panel without a draggable sheet handle', () => {
+  assert.match(notificationSheet, /dilz-notification-sheet/);
+  assert.doesNotMatch(notificationSheet, /dilz-sheet__handle/);
 });
