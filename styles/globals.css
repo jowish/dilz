@@ -7944,6 +7944,77 @@ body { touch-action: pan-y; }
   z-index: 20;
 }
 
+/* App startup splash */
+.dilz-splash-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: grid;
+  place-items: center;
+  background: var(--bg-app);
+  color: var(--text-primary);
+  pointer-events: none;
+  animation: dilzSplashFade 220ms ease-out 880ms forwards;
+}
+
+.dilz-splash-screen__card {
+  display: grid;
+  justify-items: center;
+  gap: 14px;
+  transform: translateY(0);
+  animation: dilzSplashLift 700ms cubic-bezier(.2, .8, .2, 1) both;
+}
+
+.dilz-splash-screen__brand {
+  color: var(--text-primary);
+  font-size: clamp(42px, 12vw, 76px);
+  line-height: .9;
+  font-weight: 950;
+  letter-spacing: -0.08em;
+}
+
+.dilz-splash-screen__tagline {
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: .28em;
+  text-transform: uppercase;
+}
+
+.dark .dilz-splash-screen {
+  background: var(--bg);
+  color: var(--text);
+}
+
+.dark .dilz-splash-screen__brand {
+  color: var(--text);
+}
+
+@keyframes dilzSplashLift {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes dilzSplashFade {
+  to {
+    opacity: 0;
+    visibility: hidden;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dilz-splash-screen,
+  .dilz-splash-screen__card {
+    animation: none;
+  }
+}
+
 @media (max-width: 767px) {
   .dilz-feed-grid.is-list .dilz-deal-card.is-list {
     grid-template-columns: 74px minmax(0, 1fr);
