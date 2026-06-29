@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import { supabase } from '../../lib/supabase';
 
@@ -80,6 +80,24 @@ export function SafetyActions({ contentType, contentId, authorId, currentUserId,
       setSubmitting(false);
     }
   };
+
+  useEffect(() => {
+    if (!open || reporting) return undefined;
+    const close = () => setOpen(false);
+    const closeOnEscape = (event) => {
+      if (event.key === 'Escape') close();
+    };
+    window.addEventListener('scroll', close, true);
+    window.addEventListener('wheel', close, { capture: true, passive: true });
+    window.addEventListener('touchmove', close, { capture: true, passive: true });
+    window.addEventListener('keydown', closeOnEscape, true);
+    return () => {
+      window.removeEventListener('scroll', close, true);
+      window.removeEventListener('wheel', close, true);
+      window.removeEventListener('touchmove', close, true);
+      window.removeEventListener('keydown', closeOnEscape, true);
+    };
+  }, [open, reporting]);
 
   if (authorId && authorId === currentUserId) return null;
 

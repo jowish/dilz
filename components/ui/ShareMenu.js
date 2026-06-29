@@ -1,8 +1,7 @@
+import { useEffect } from 'react';
 import { buildShareLinks } from '../../lib/shareLinks';
 
 export function ShareMenu({ id, open, title, url, lang = 'en', onCopy, onClose }) {
-  if (!open) return null;
-
   const links = buildShareLinks({ title, url });
   const text = lang === 'he'
     ? { label: 'אפשרויות שיתוף', whatsapp: 'WhatsApp', telegram: 'Telegram', sms: 'SMS', copy: 'העתקת קישור' }
@@ -10,6 +9,26 @@ export function ShareMenu({ id, open, title, url, lang = 'en', onCopy, onClose }
 
   const stop = (event) => event.stopPropagation();
   const linkAction = () => onClose?.();
+
+  useEffect(() => {
+    if (!open) return undefined;
+    const close = () => onClose?.();
+    const closeOnEscape = (event) => {
+      if (event.key === 'Escape') close();
+    };
+    window.addEventListener('scroll', close, true);
+    window.addEventListener('wheel', close, { capture: true, passive: true });
+    window.addEventListener('touchmove', close, { capture: true, passive: true });
+    window.addEventListener('keydown', closeOnEscape, true);
+    return () => {
+      window.removeEventListener('scroll', close, true);
+      window.removeEventListener('wheel', close, true);
+      window.removeEventListener('touchmove', close, true);
+      window.removeEventListener('keydown', closeOnEscape, true);
+    };
+  }, [open, onClose]);
+
+  if (!open) return null;
 
   return (
     <>
