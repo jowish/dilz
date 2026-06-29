@@ -64,7 +64,7 @@ export default function PublicUserPage() {
               onClick={toggleFollow}
               disabled={followBusy}
             >
-              {followBusy ? '...' : following ? 'Following ✓' : 'Follow user'}
+              {followBusy ? '...' : following ? '✓ Following' : 'Follow user'}
             </button>
           )}
         </section>

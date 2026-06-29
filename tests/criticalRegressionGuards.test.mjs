@@ -64,7 +64,7 @@ test('deal cards avoid duplicate comment buttons and keep compact list controls 
 test('public user profiles preserve follow state and shekel price formatting', () => {
   assert.match(userPage, /aria-pressed=\{following\}/);
   assert.match(userPage, /data-follow-state=\{following \? 'following' : 'not-following'\}/);
-  assert.match(userPage, /Following ✓/);
+  assert.match(userPage, /✓ Following/);
   assert.match(userPage, /Follow user/);
   assert.match(userPage, /formatPrice\(deal\.prix\)[\s\S]*₪/);
 });

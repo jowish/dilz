@@ -81,6 +81,9 @@ test('deal cards expose branded sharing through the share menu, author profile a
   assert.match(css, /\.is-telegram svg[^}]*#229ED9/);
   assert.match(css, /\.is-sms svg[^}]*#34C759/);
   assert.match(css, /\.dilz-card-sms-action\s*\{[^}]*display:\s*none\s*!important/s);
+  assert.match(css, /\.dilz-popover-dismiss\s*\{[^}]*position:\s*fixed/s);
+  assert.match(css, /\.dilz-deal-card__safety-menu \.dilz-safety-actions__trigger\s*\{[^}]*background:\s*transparent/s);
+  assert.match(css, /\.dilz-deal-card__safety-menu \.dilz-safety-actions__trigger\s*\{[^}]*border:\s*0/s);
 });
 
 test('posting is a standalone bottom-nav page and accepts city or exact coordinates', () => {
@@ -120,7 +123,7 @@ test('public profiles expose membership stats, deals and follow controls', () =>
   assert.match(profilePage, /formatPrice\(deal\.prix\)[\s\S]*₪/);
   assert.match(profilePage, /aria-pressed=\{following\}/);
   assert.match(profilePage, /data-follow-state=\{following \? 'following' : 'not-following'\}/);
-  assert.match(profilePage, /Following ✓/);
+  assert.match(profilePage, /✓ Following/);
 });
 
 test('shopping deals have internal detail pages, votes, comments and third-party links', () => {
@@ -176,6 +179,7 @@ test('compact and row views remain bounded while global zoom and horizontal drif
   assert.match(css, /\.dilz-deal-card\.is-list \.dilz-deal-card__description[^}]*-webkit-line-clamp:\s*1/);
   assert.match(css, /\.dilz-feed-grid\.is-list \.dilz-deal-card\.is-list\s*\{[^}]*grid-template-columns:\s*118px minmax\(0, 1fr\)/s);
   assert.match(css, /\.dilz-feed-grid\.is-list \.dilz-deal-card\.is-list \.dilz-deal-card__actions\s*\{[^}]*position:\s*absolute/s);
+  assert.match(css, /\.dilz-feed-grid\.is-list \.dilz-deal-card\.is-list \.dilz-deal-card__price-context span\s*\{[^}]*text-decoration:\s*none/s);
   assert.match(css, /@media \(max-width: 767px\)[\s\S]*\.dilz-feed-grid\.is-list \.dilz-deal-card\.is-list\s*\{[^}]*grid-template-columns:\s*74px minmax\(0, 1fr\)/s);
   assert.match(css, /overflow-x:\s*hidden/);
   assert.match(documentPage, /maximum-scale=1, user-scalable=no/);

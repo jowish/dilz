@@ -89,12 +89,15 @@ export function SafetyActions({ contentType, contentId, authorId, currentUserId,
         <span aria-hidden="true">...</span>
       </button>
       {open && !reporting && (
-        <div className="dilz-safety-actions__menu">
-          {contentType === 'deal' && <button type="button" onClick={() => reportWithReason('expired')} disabled={submitting}>{text.expired || COPY.en.expired}</button>}
-          {contentType === 'deal' && <button type="button" onClick={() => reportWithReason('rules')} disabled={submitting}>{text.rules || COPY.en.rules}</button>}
-          <button type="button" onClick={() => setReporting(true)}>{text.report}</button>
-          {canBlock && <button type="button" onClick={blockUser} disabled={submitting}>{text.block}</button>}
-        </div>
+        <>
+          <button type="button" className="dilz-popover-dismiss" aria-label={text.cancel} onClick={() => setOpen(false)} />
+          <div className="dilz-safety-actions__menu">
+            {contentType === 'deal' && <button type="button" onClick={() => reportWithReason('expired')} disabled={submitting}>{text.expired || COPY.en.expired}</button>}
+            {contentType === 'deal' && <button type="button" onClick={() => reportWithReason('rules')} disabled={submitting}>{text.rules || COPY.en.rules}</button>}
+            <button type="button" onClick={() => setReporting(true)}>{text.report}</button>
+            {canBlock && <button type="button" onClick={blockUser} disabled={submitting}>{text.block}</button>}
+          </div>
+        </>
       )}
       {reporting && (
         <div className="dilz-safety-modal" role="dialog" aria-modal="true" aria-labelledby={`report-title-${contentType}-${contentId}`}>

@@ -12,20 +12,23 @@ export function ShareMenu({ id, open, title, url, lang = 'en', onCopy, onClose }
   const linkAction = () => onClose?.();
 
   return (
-    <div id={id} className="dilz-share-menu" role="menu" aria-label={text.label} onClick={stop}>
-      <a className="is-whatsapp" href={links.whatsapp} target="_blank" rel="noopener noreferrer" role="menuitem" onClick={linkAction}>
-        <WhatsAppIcon /><span>{text.whatsapp}</span>
-      </a>
-      <a className="is-telegram" href={links.telegram} target="_blank" rel="noopener noreferrer" role="menuitem" onClick={linkAction}>
-        <TelegramIcon /><span>{text.telegram}</span>
-      </a>
-      <a className="is-sms" href={links.sms} role="menuitem" onClick={linkAction}>
-        <SmsIcon /><span>{text.sms}</span>
-      </a>
-      <button type="button" role="menuitem" onClick={() => { onCopy?.(); onClose?.(); }}>
-        <CopyIcon /><span>{text.copy}</span>
-      </button>
-    </div>
+    <>
+      <button type="button" className="dilz-popover-dismiss" aria-label="Close share menu" onClick={(event) => { event.stopPropagation(); onClose?.(); }} />
+      <div id={id} className="dilz-share-menu" role="menu" aria-label={text.label} onClick={stop}>
+        <a className="is-whatsapp" href={links.whatsapp} target="_blank" rel="noopener noreferrer" role="menuitem" onClick={linkAction}>
+          <WhatsAppIcon /><span>{text.whatsapp}</span>
+        </a>
+        <a className="is-telegram" href={links.telegram} target="_blank" rel="noopener noreferrer" role="menuitem" onClick={linkAction}>
+          <TelegramIcon /><span>{text.telegram}</span>
+        </a>
+        <a className="is-sms" href={links.sms} role="menuitem" onClick={linkAction}>
+          <SmsIcon /><span>{text.sms}</span>
+        </a>
+        <button type="button" role="menuitem" onClick={() => { onCopy?.(); onClose?.(); }}>
+          <CopyIcon /><span>{text.copy}</span>
+        </button>
+      </div>
+    </>
   );
 }
 
