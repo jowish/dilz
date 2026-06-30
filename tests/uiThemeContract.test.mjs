@@ -23,6 +23,14 @@ test('dark cards use the elevated border contrast token', () => {
   assert.match(css, /--border-strong:\s*#4A607C/);
 });
 
+test('light mode borders stay visible enough on white surfaces', () => {
+  assert.match(css, /--border-default:\s*#D9DEE6/);
+  assert.match(css, /--border-soft:\s*#E4E8EF/);
+  assert.match(css, /--border-strong:\s*#B8C1CE/);
+  assert.doesNotMatch(css, /--border-default:\s*#E8EAED/);
+  assert.doesNotMatch(css, /--border-soft:\s*#F1F3F5/);
+});
+
 test('the menu sheet ends above the visible mobile navigation', () => {
   assert.match(css, /\.dilz-main-menu__backdrop\{[^}]*inset:0 0 calc\(96px \+ env\(safe-area-inset-bottom\)\)/s);
   assert.match(css, /\.dilz-main-menu__backdrop\{[^}]*z-index:900/s);
