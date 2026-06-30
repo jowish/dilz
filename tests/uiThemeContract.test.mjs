@@ -5,6 +5,7 @@ import path from 'node:path';
 
 const css = await readFile(path.join(process.cwd(), 'styles', 'globals.css'), 'utf8');
 const bottomNav = await readFile(path.join(process.cwd(), 'components', 'layout', 'BottomNav.js'), 'utf8');
+const packageJson = JSON.parse(await readFile(path.join(process.cwd(), 'package.json'), 'utf8'));
 
 test('mobile navigation uses the larger premium bar contract', () => {
   assert.match(css, /--dilz-tabbar-height:\s*84px/);
@@ -49,6 +50,16 @@ test('bottom navigation exposes Deals Search Post Alerts Profile with route comp
   assert.match(bottomNav, /label:\s*labels\.search/);
   assert.match(bottomNav, /function SearchIcon\(\)/);
   assert.doesNotMatch(bottomNav, /function ExploreIcon\(\)/);
+});
+
+test('bottom navigation uses liquid-glass-react with a client-safe fallback', () => {
+  assert.equal(packageJson.dependencies['liquid-glass-react'], '^1.1.1');
+  assert.match(bottomNav, /import\('liquid-glass-react'\)/);
+  assert.match(bottomNav, /dilz-bottom-nav__inner--fallback/);
+  assert.match(bottomNav, /dilz-bottom-nav__liquid-glass/);
+  assert.match(bottomNav, /displacementScale=\{22\}/);
+  assert.match(css, /\.dilz-bottom-nav__liquid-glass \.glass\s*\{[^}]*backdrop-filter:\s*saturate\(180%\) blur\(22px\) !important/s);
+  assert.match(css, /\.dilz-bottom-nav__inner--liquid\s*\{[^}]*background:\s*transparent !important/s);
 });
 
 test('the menu sheet ends above the visible mobile navigation', () => {
