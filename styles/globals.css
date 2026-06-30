@@ -8366,51 +8366,6 @@ select:focus,
     pointer-events: auto;
   }
 
-  .dilz-bottom-nav__liquid-glass {
-    width: min(calc(100vw - 24px), 430px) !important;
-    height: 64px !important;
-    pointer-events: auto;
-  }
-
-  .dilz-bottom-nav__liquid-glass,
-  .dilz-bottom-nav__liquid-glass > div {
-    max-width: 430px !important;
-  }
-
-  .dilz-bottom-nav__liquid-glass .glass {
-    width: 100% !important;
-    height: 64px !important;
-    border: 1px solid var(--dilz-tabbar-border) !important;
-    background: var(--dilz-tabbar-bg) !important;
-    box-shadow: var(--dilz-tabbar-shadow) !important;
-    backdrop-filter: saturate(180%) blur(22px) !important;
-    -webkit-backdrop-filter: saturate(180%) blur(22px) !important;
-  }
-
-  .dilz-bottom-nav__liquid-glass .glass__warp {
-    background:
-      linear-gradient(135deg, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0.02) 42%, rgba(255, 255, 255, 0.10)),
-      var(--dilz-tabbar-bg) !important;
-  }
-
-  .dilz-bottom-nav__liquid-glass .glass > div {
-    width: 100% !important;
-    height: 100% !important;
-    color: inherit !important;
-    text-shadow: none !important;
-  }
-
-  .dilz-bottom-nav__inner--liquid {
-    width: 100% !important;
-    max-width: none !important;
-    height: 100% !important;
-    border: 0 !important;
-    background: transparent !important;
-    box-shadow: none !important;
-    backdrop-filter: none !important;
-    -webkit-backdrop-filter: none !important;
-  }
-
   .dilz-bottom-nav__item {
     min-width: 0;
     min-height: 52px;

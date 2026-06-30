@@ -1,4 +1,3 @@
-import { useEffect, useState } from 'react';
 import { bottomNavActiveItem } from '../../lib/navigationState';
 
 export function BottomNav({ lang = 'en', activeTab, menuOpen = false, alertsOpen = false, postOpen = false, onMenu, onTab, onPost, onAlerts, onProfile }) {
@@ -14,67 +13,30 @@ export function BottomNav({ lang = 'en', activeTab, menuOpen = false, alertsOpen
   ];
   const activeItem = bottomNavActiveItem({ activeTab, menuOpen, alertsOpen, postOpen });
 
-  const tabs = items.map((item) => {
-    const active = activeItem === item.id;
-    const Icon = item.icon;
-    return (
-      <button
-        key={item.id}
-        type="button"
-        className={['dilz-bottom-nav__item', active && 'is-active', item.post && 'is-post'].filter(Boolean).join(' ')}
-        onClick={item.action}
-        aria-label={item.label}
-        aria-current={active ? 'page' : undefined}
-      >
-        <span className="dilz-bottom-nav__icon nav-pill">
-          <Icon />
-        </span>
-        <span>{item.label}</span>
-      </button>
-    );
-  });
-
   return (
     <nav className="dilz-bottom-nav" aria-label={labels.nav}>
-      <LiquidGlassNavFrame>{tabs}</LiquidGlassNavFrame>
+      <div className="dilz-bottom-nav__inner">
+        {items.map((item) => {
+          const active = activeItem === item.id;
+          const Icon = item.icon;
+          return (
+            <button
+              key={item.id}
+              type="button"
+              className={['dilz-bottom-nav__item', active && 'is-active', item.post && 'is-post'].filter(Boolean).join(' ')}
+              onClick={item.action}
+              aria-label={item.label}
+              aria-current={active ? 'page' : undefined}
+            >
+              <span className="dilz-bottom-nav__icon nav-pill">
+                <Icon />
+              </span>
+              <span>{item.label}</span>
+            </button>
+          );
+        })}
+      </div>
     </nav>
-  );
-}
-
-function LiquidGlassNavFrame({ children }) {
-  const [LiquidGlass, setLiquidGlass] = useState(null);
-
-  useEffect(() => {
-    let mounted = true;
-    import('liquid-glass-react')
-      .then((module) => {
-        if (mounted) setLiquidGlass(() => module.default);
-      })
-      .catch(() => {
-        if (mounted) setLiquidGlass(null);
-      });
-    return () => { mounted = false; };
-  }, []);
-
-  if (!LiquidGlass) {
-    return <div className="dilz-bottom-nav__inner dilz-bottom-nav__inner--fallback">{children}</div>;
-  }
-
-  return (
-    <LiquidGlass
-      className="dilz-bottom-nav__liquid-glass"
-      displacementScale={22}
-      blurAmount={0.015}
-      saturation={150}
-      aberrationIntensity={0.8}
-      elasticity={0.08}
-      cornerRadius={28}
-      padding="0"
-      mode="standard"
-      style={{ position: 'relative', top: '50%', left: '50%' }}
-    >
-      <div className="dilz-bottom-nav__inner dilz-bottom-nav__inner--liquid">{children}</div>
-    </LiquidGlass>
   );
 }
 
