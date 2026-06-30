@@ -33,6 +33,9 @@ test('partial rollback keeps only the requested design-system changes', () => {
   assert.match(css, /--border-default:\s*rgba\(148,\s*163,\s*184,\s*0\.20\)/);
   assert.match(explore, /Find every type of deal in one place\./);
   assert.match(splash, /fill="#F97316"/);
+  assert.doesNotMatch(css, /Dilz premium polish layer:[\s\S]*\.dilz-alerts-route/);
+  assert.doesNotMatch(css, /Dilz premium polish layer:[\s\S]*\.dilz-alert-page__panel/);
+  assert.doesNotMatch(css, /Dilz premium polish layer:[\s\S]*\.dilz-alert-suggestions/);
 });
 
 test('partial rollback removes the reverted behavioral polish changes', () => {

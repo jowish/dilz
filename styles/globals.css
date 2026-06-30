@@ -8154,7 +8154,6 @@ body,
 .dilz-page-shell,
 .dilz-deal-page,
 .dilz-profil-page,
-.dilz-alerts-route,
 .dilz-explore-page,
 .dilz-post-page {
   background: var(--bg) !important;
@@ -8162,7 +8161,6 @@ body,
 }
 
 .dilz-app-header,
-.dilz-alerts-route__header,
 .dilz-discovery-header {
   background: var(--header-bg) !important;
   border-bottom: 1px solid var(--border-soft) !important;
@@ -8178,8 +8176,6 @@ body,
 .dilz-panel,
 .dilz-sheet,
 .dilz-modal__panel,
-.dilz-alert-page__panel,
-.dilz-alert-suggestions,
 .dilz-follow-section,
 .dilz-profil-card,
 .dilz-stat-card,
