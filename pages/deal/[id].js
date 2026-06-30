@@ -149,6 +149,12 @@ export default function DealPage() {
     } catch {}
   }, [id]);
 
+  useEffect(() => {
+    if (router.query.edit === '1' && deal && user && user.id === deal.auteur_id) {
+      setIsEditing(true);
+    }
+  }, [router.query.edit, deal, user]);
+
   const fetchDeal = async () => {
     setLoading(true);
     const res = await fetch(`/api/deal/${id}`);
@@ -544,6 +550,21 @@ export default function DealPage() {
                 <Link href={`/user/${deal.auteur_id}`} className="dilz-deal-author-link">{text.by} {deal.auteur_nom}</Link>
               ) : deal.auteur_nom ? `${text.by} ${deal.auteur_nom}` : ''}
             </p>
+            <div className="dilz-deal-primary-action">
+              {deal.url_source ? (
+                <a href={deal.url_source} target="_blank" rel="noopener noreferrer" className="dilz-button dilz-button--primary dilz-button--lg">
+                  Get deal
+                </a>
+              ) : deal.adresse ? (
+                <button type="button" className="dilz-button dilz-button--primary dilz-button--lg" onClick={openDealAddressInGps}>
+                  Open location
+                </button>
+              ) : (
+                <a href="#deal-details" className="dilz-button dilz-button--primary dilz-button--lg">
+                  View details
+                </a>
+              )}
+            </div>
             {deal.adresse && (
               <button
                 type="button"
@@ -586,7 +607,7 @@ export default function DealPage() {
             )}
 
             {deal.description && (
-              <div className="dilz-deal-description">
+              <div className="dilz-deal-description" id="deal-details">
                 <p>{deal.description}</p>
               </div>
             )}

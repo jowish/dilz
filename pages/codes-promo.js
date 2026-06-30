@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
 
 const merchants = [
-  { name: 'AliExpress', source: 'https://www.aliexpress.com/', color: '#FF6500', offers: [
+  { name: 'AliExpress', source: 'https://www.aliexpress.com/', color: '#F97316', offers: [
     { value: '60 EUR', minimum: '479 EUR', expiry: '2026-06-20' }, { value: '20 EUR', minimum: '149 EUR', expiry: '2026-06-20' }, { value: '10 EUR', minimum: '79 EUR', expiry: '2026-06-20' }, { value: '5 EUR', minimum: '39 EUR', expiry: '2026-06-20' }, { value: '2 EUR', minimum: '18 EUR', expiry: '2026-06-20' },
   ] },
   { name: 'Amazon', source: 'https://www.amazon.fr/gp/goldbox', color: '#0B1220', offers: [

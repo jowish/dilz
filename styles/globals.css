@@ -19,9 +19,9 @@
   --border-focus: #0B1220;
   --border-soft: #E4E8EF;
 
-  --brand: #FF6500;
-  --brand-hover: #E85B00;
-  --brand-active: #D65100;
+  --brand: #F97316;
+  --brand-hover: #EA580C;
+  --brand-active: #C2410C;
   --brand-soft: #FFF2E8;
   --brand-softer: #FFF7F0;
   --primary: #0B1220;
@@ -67,7 +67,7 @@
   --danger-soft: #FEF2F2;
   --warning: #F59E0B;
   --warning-soft: #FFFBEB;
-  --vote-up: #FF6500;
+  --vote-up: #F97316;
   --vote-down: #0B1220;
   --vote-active-bg: #FFF2E8;
   --vote-neutral-bg: #F8F9FB;
@@ -6078,9 +6078,9 @@ textarea:focus {
   --border: #D9DEE6;
   --border-strong: #B8C1CE;
   --border-focus: #0B1220;
-  --brand: #FF6500;
-  --brand-hover: #E85B00;
-  --brand-active: #D65100;
+  --brand: #F97316;
+  --brand-hover: #EA580C;
+  --brand-active: #C2410C;
   --brand-soft: #FFF2E8;
   --brand-softer: #FFF7F0;
   --primary: #0B1220;
@@ -6088,7 +6088,7 @@ textarea:focus {
   --primary-active: #050A14;
   --nav-bg: rgba(255, 255, 255, 0.92);
   --header-bg: rgba(255, 255, 255, 0.92);
-  --vote-up: #FF6500;
+  --vote-up: #F97316;
   --vote-down: #0B1220;
   --shadow-card: none;
   --shadow-card-hover: none;
@@ -6319,8 +6319,8 @@ textarea::placeholder {
 .dilz-badge--saving,
 .dilz-badge--saving-strong,
 .dilz-badge--brand {
-  background: #FF6500 !important;
-  border-color: #FF6500 !important;
+  background: #F97316 !important;
+  border-color: #F97316 !important;
   color: #FFFFFF !important;
 }
 
@@ -6334,7 +6334,7 @@ textarea::placeholder {
 .dilz-promo-card__prices strong,
 .dilz-hero-promo-card__prices strong,
 .dilz-deal-card__comment-meta {
-  color: #FF6500;
+  color: #F97316;
   font-weight: 950;
 }
 
@@ -6364,8 +6364,8 @@ textarea::placeholder {
 .dilz-vote-pill button.is-up,
 .dilz-promo-vote-btn.is-hot,
 .dilz-deal-vote-btn.is-hot {
-  background: #FF6500 !important;
-  border-color: #FF6500 !important;
+  background: #F97316 !important;
+  border-color: #F97316 !important;
   color: #FFFFFF !important;
 }
 
@@ -6430,7 +6430,7 @@ textarea::placeholder {
 }
 
 .dilz-bottom-nav__item.is-active {
-  color: #FF6500;
+  color: #F97316;
 }
 
 .dilz-bottom-nav__item.is-active .dilz-bottom-nav__icon {
@@ -6570,7 +6570,7 @@ textarea::placeholder {
 .dilz-app-message__actions a {
   padding: 7px 12px;
   border-radius: 999px;
-  background: #FF6500;
+  background: #F97316;
   color: #FFFFFF;
   font-size: 12px;
   font-weight: 800;
@@ -6620,7 +6620,7 @@ textarea::placeholder {
 .dilz-main-menu__close svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round}
 .dilz-main-menu__links{display:grid;gap:8px}
 .dilz-main-menu__item{min-height:54px;display:grid;grid-template-columns:38px minmax(0,1fr) 18px;align-items:center;gap:12px;padding:7px 12px;border:1px solid #D9DEE6;border-radius:16px;background:#fff;color:#0B1220;text-align:left;font-size:15px;font-weight:800;cursor:pointer}
-.dilz-main-menu__item:hover,.dilz-main-menu__item.is-active{border-color:#0B1220;background:#F8F9FB}.dilz-main-menu__item.is-active .dilz-main-menu__item-icon{background:#FF6500;color:#fff}
+.dilz-main-menu__item:hover,.dilz-main-menu__item.is-active{border-color:#0B1220;background:#F8F9FB}.dilz-main-menu__item.is-active .dilz-main-menu__item-icon{background:#F97316;color:#fff}
 .dilz-main-menu__item-icon{width:36px;height:36px;display:inline-grid;place-items:center;border-radius:12px;background:#F8F9FB;color:#0B1220}
 .dilz-main-menu__item-icon svg,.dilz-main-menu__item>svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}.dilz-main-menu__item>svg{color:#9CA3AF}
 .dilz-main-menu__categories{margin-top:20px;padding-top:18px;border-top:1px solid #DDE2EA}.dilz-main-menu__section-title small{color:#9CA3AF;font-size:12px}
@@ -6679,7 +6679,7 @@ textarea::placeholder {
 .dilz-discovery-section__heading span {
   display: block;
   margin-bottom: 10px;
-  color: #ff6500;
+  color: #F97316;
   font-size: 12px;
   font-weight: 800;
   letter-spacing: .12em;
@@ -6711,7 +6711,7 @@ textarea::placeholder {
 .dilz-code-merchant__header p { margin: 0; color: #6b7280; font-size: 13px; }
 .dilz-code-list { display: grid; gap: 10px; }
 .dilz-code-card { display: grid; grid-template-columns: 74px 1fr auto; align-items: center; gap: 14px; padding: 14px; border: 1px solid #e8eaed; border-radius: 16px; }
-.dilz-code-card__value { color: #ff6500; font-size: 20px; font-weight: 900; letter-spacing: -.03em; }
+.dilz-code-card__value { color: #F97316; font-size: 20px; font-weight: 900; letter-spacing: -.03em; }
 .dilz-code-card__content { display: grid; gap: 4px; min-width: 0; }
 .dilz-code-card__content strong { font-size: 13px; }
 .dilz-code-card__content span { color: #6b7280; font-size: 11px; }
@@ -6726,10 +6726,10 @@ textarea::placeholder {
 .dilz-destination-card__link svg { width: 16px; fill: none; stroke: currentColor; stroke-width: 2; }
 
 .dilz-shopping-feature { display: grid; grid-template-columns: 1.4fr .8fr; gap: 40px; padding: 38px; border-radius: 20px; color: #fff; background: #0b1220; }
-.dilz-shopping-feature__label { color: #ff6500; font-size: 12px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; }
+.dilz-shopping-feature__label { color: #F97316; font-size: 12px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; }
 .dilz-shopping-feature h2 { max-width: 580px; margin: 12px 0; font-size: clamp(28px, 4vw, 44px); line-height: 1.08; letter-spacing: -.035em; }
 .dilz-shopping-feature p { max-width: 620px; margin: 0 0 24px; color: #cbd5e1; line-height: 1.65; }
-.dilz-discovery-cta { display: inline-flex; align-items: center; gap: 8px; padding: 13px 17px; border-radius: 12px; color: #fff; background: #ff6500; font-size: 13px; font-weight: 800; }
+.dilz-discovery-cta { display: inline-flex; align-items: center; gap: 8px; padding: 13px 17px; border-radius: 12px; color: #fff; background: #F97316; font-size: 13px; font-weight: 800; }
 .dilz-shopping-feature__steps { display: grid; align-content: center; gap: 12px; }
 .dilz-shopping-feature__steps span { display: flex; align-items: center; gap: 12px; padding: 13px; border: 1px solid #263246; border-radius: 14px; color: #e5e7eb; font-size: 13px; }
 .dilz-shopping-feature__steps b { display: grid; width: 26px; height: 26px; flex: 0 0 auto; place-items: center; border-radius: 8px; color: #0b1220; background: #fff; }
@@ -6768,7 +6768,7 @@ textarea::placeholder {
 .dilz-service-card__regions { display: flex; flex-wrap: wrap; gap: 6px; }
 .dilz-service-card__regions span { padding: 6px 8px; border: 1px solid #e8eaed; border-radius: 8px; color: #4b5563; background: #f8f9fb; font-size: 10px; font-weight: 750; }
 .dilz-service-card__action { display: flex; align-items: center; justify-content: space-between; padding-top: 15px; border-top: 1px solid #f1f3f5; color: #0b1220; font-size: 12px; font-weight: 850; }
-.dilz-service-card.is-featured .dilz-service-card__action { color: #e85b00; }
+.dilz-service-card.is-featured .dilz-service-card__action { color: #EA580C; }
 .dilz-service-card__action svg { width: 16px; fill: none; stroke: currentColor; stroke-width: 2; }
 
 .dilz-free-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
@@ -6776,7 +6776,7 @@ textarea::placeholder {
 .dilz-free-card__media { position: relative; display: block; aspect-ratio: 16 / 10; overflow: hidden; background: #f3f4f6; }
 .dilz-free-card__media img { width: 100%; height: 100%; object-fit: cover; transition: transform .25s; }
 .dilz-free-card:hover .dilz-free-card__media img { transform: scale(1.025); }
-.dilz-free-card__media > span { position: absolute; top: 12px; left: 12px; padding: 7px 10px; border-radius: 10px; color: #fff; background: #ff6500; font-size: 12px; font-weight: 900; }
+.dilz-free-card__media > span { position: absolute; top: 12px; left: 12px; padding: 7px 10px; border-radius: 10px; color: #fff; background: #F97316; font-size: 12px; font-weight: 900; }
 .dilz-free-card__body { padding: 19px; }
 .dilz-free-card__store { color: #6b7280; font-size: 12px; font-weight: 700; }
 .dilz-free-card h2 { margin: 7px 0; font-size: 18px; line-height: 1.25; letter-spacing: -.02em; }
@@ -8066,5 +8066,412 @@ body { touch-action: pan-y; }
   .dilz-feed-grid.is-list .dilz-deal-card.is-list .dilz-vote-pill button {
     min-width: 32px;
     padding: 0 5px;
+  }
+}
+
+/* Dilz premium polish layer: final token and density contract. */
+:root {
+  --bg-app: #F8FAFC;
+  --surface-main: #FFFFFF;
+  --surface-soft: #F9FAFB;
+  --surface-elevated: #F9FAFB;
+  --section-bg: #F8FAFC;
+  --text-primary: #0F172A;
+  --text-secondary: #475569;
+  --text-muted: #94A3B8;
+  --text-disabled: #CBD5E1;
+  --border-default: rgba(15, 23, 42, 0.12);
+  --border-soft: rgba(15, 23, 42, 0.08);
+  --border: rgba(15, 23, 42, 0.12);
+  --border-strong: rgba(15, 23, 42, 0.22);
+  --brand: #F97316;
+  --brand-hover: #EA580C;
+  --brand-active: #C2410C;
+  --brand-soft: rgba(249, 115, 22, 0.12);
+  --brand-softer: rgba(249, 115, 22, 0.08);
+  --danger: #DC2626;
+  --danger-soft: rgba(220, 38, 38, 0.10);
+  --bg: #F8FAFC;
+  --bg-surface: #FFFFFF;
+  --bg-soft: #F9FAFB;
+  --bg-card: #FFFFFF;
+  --bg-card2: #F9FAFB;
+  --bg-input: #FFFFFF;
+  --text: #0F172A;
+  --text-sub: #475569;
+  --nav-bg: rgba(248, 250, 252, 0.94);
+  --header-bg: rgba(248, 250, 252, 0.94);
+  --vote-up: #F97316;
+  --vote-down: #0F172A;
+  --vote-active-bg: rgba(249, 115, 22, 0.12);
+  --vote-neutral-bg: #F9FAFB;
+  --shadow-card: none;
+  --shadow-card-hover: none;
+  --shadow-modal: 0 18px 50px rgba(15, 23, 42, 0.14);
+  --shadow-nav: 0 -1px 0 rgba(15, 23, 42, 0.10);
+}
+
+.dark {
+  --bg-app: #070B12;
+  --surface-main: #0D1420;
+  --surface-soft: #111A28;
+  --surface-elevated: #111A28;
+  --section-bg: #0D1420;
+  --text-primary: #F8FAFC;
+  --text-secondary: #CBD5E1;
+  --text-muted: #94A3B8;
+  --text-disabled: #64748B;
+  --border-default: rgba(148, 163, 184, 0.20);
+  --border-soft: rgba(148, 163, 184, 0.12);
+  --border: rgba(148, 163, 184, 0.20);
+  --border-strong: rgba(148, 163, 184, 0.34);
+  --brand: #F97316;
+  --brand-hover: #EA580C;
+  --brand-active: #C2410C;
+  --brand-soft: rgba(249, 115, 22, 0.14);
+  --brand-softer: rgba(249, 115, 22, 0.08);
+  --danger: #EF4444;
+  --danger-soft: rgba(239, 68, 68, 0.12);
+  --bg: #070B12;
+  --bg-surface: #0D1420;
+  --bg-soft: #111A28;
+  --bg-card: #0D1420;
+  --bg-card2: #111A28;
+  --bg-input: #0D1420;
+  --text: #F8FAFC;
+  --text-sub: #CBD5E1;
+  --nav-bg: rgba(7, 11, 18, 0.94);
+  --header-bg: rgba(7, 11, 18, 0.94);
+  --vote-down: #CBD5E1;
+  --vote-neutral-bg: #111A28;
+  --shadow-card: none;
+  --shadow-card-hover: none;
+  --shadow-modal: 0 22px 70px rgba(0, 0, 0, 0.38);
+  --shadow-nav: 0 -1px 0 rgba(148, 163, 184, 0.16);
+}
+
+body,
+.dilz-app-frame,
+.dilz-page-shell,
+.dilz-deal-page,
+.dilz-profil-page,
+.dilz-alerts-route,
+.dilz-explore-page,
+.dilz-post-page {
+  background: var(--bg) !important;
+  color: var(--text-primary);
+}
+
+.dilz-app-header,
+.dilz-alerts-route__header,
+.dilz-discovery-header {
+  background: var(--header-bg) !important;
+  border-bottom: 1px solid var(--border-soft) !important;
+  box-shadow: none !important;
+  backdrop-filter: blur(16px);
+}
+
+.dilz-card,
+.dilz-deal-card,
+.dilz-promo-card,
+.dilz-hero-promo-card,
+.dilz-auth-card,
+.dilz-panel,
+.dilz-sheet,
+.dilz-modal__panel,
+.dilz-alert-page__panel,
+.dilz-alert-suggestions,
+.dilz-follow-section,
+.dilz-profil-card,
+.dilz-stat-card,
+.dilz-account-settings,
+.dilz-profile-legal,
+.dilz-account-danger,
+.dilz-explore-card,
+.dilz-explore-categories,
+.dilz-map-results,
+.dilz-service-card,
+.dilz-code-card,
+.dilz-free-card {
+  background: var(--bg-card) !important;
+  border: 1px solid var(--border-default) !important;
+  box-shadow: none !important;
+}
+
+.dilz-card:hover,
+.dilz-deal-card:hover,
+.dilz-explore-card:hover {
+  border-color: var(--border-strong) !important;
+}
+
+input,
+textarea,
+select,
+.dilz-search-input,
+.dilz-input,
+.dilz-filter-chip,
+.dilz-layout-toggle button,
+.dilz-view-switcher__count,
+.dilz-icon-button,
+.dilz-button--secondary {
+  background: var(--bg-input) !important;
+  border-color: var(--border-default) !important;
+  color: var(--text-primary) !important;
+  box-shadow: none !important;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--text-muted) !important;
+}
+
+input:focus,
+textarea:focus,
+select:focus,
+.dilz-search-input:focus-within {
+  border-color: var(--border-strong) !important;
+  outline: 2px solid var(--brand-softer) !important;
+}
+
+.dilz-button--primary,
+.dilz-discovery-cta,
+.dilz-filter-chip.is-active,
+.dilz-layout-toggle button.is-active {
+  background: var(--brand) !important;
+  border-color: var(--brand) !important;
+  color: #FFFFFF !important;
+}
+
+.dilz-filter-chip.is-active {
+  background: var(--brand-soft) !important;
+  color: var(--brand) !important;
+}
+
+.dilz-bottom-nav {
+  min-height: calc(78px + env(safe-area-inset-bottom)) !important;
+  height: calc(78px + env(safe-area-inset-bottom)) !important;
+  padding: 7px 12px calc(9px + env(safe-area-inset-bottom)) !important;
+  background: var(--nav-bg) !important;
+  border-top: 1px solid var(--border-soft) !important;
+  box-shadow: var(--shadow-nav) !important;
+  backdrop-filter: blur(16px);
+}
+
+.dilz-bottom-nav__item {
+  min-height: 44px;
+  color: var(--text-muted) !important;
+}
+
+.dilz-bottom-nav__item::before {
+  background: transparent !important;
+  border: 0 !important;
+}
+
+.dilz-bottom-nav__item.is-active::before {
+  background: var(--brand-soft) !important;
+  border: 1px solid rgba(249, 115, 22, 0.24) !important;
+}
+
+.dilz-bottom-nav__item.is-active,
+.dilz-bottom-nav__item.is-active .dilz-bottom-nav__icon {
+  color: var(--brand) !important;
+}
+
+.dilz-bottom-nav__item.is-post .dilz-bottom-nav__icon,
+.dark .dilz-bottom-nav__item.is-post .dilz-bottom-nav__icon {
+  width: 48px !important;
+  height: 48px !important;
+  margin-top: -22px !important;
+  border: 3px solid var(--bg) !important;
+  background: var(--brand) !important;
+  color: #FFFFFF !important;
+  box-shadow: 0 8px 22px rgba(249, 115, 22, 0.22) !important;
+}
+
+.dilz-deal-card {
+  padding: 10px !important;
+  border-radius: 20px !important;
+}
+
+.dilz-deal-card h3 {
+  color: var(--text-primary);
+  font-weight: 850;
+  letter-spacing: -0.02em;
+}
+
+.dilz-deal-card__store-row,
+.dilz-deal-card__meta,
+.dilz-deal-card__author,
+.dilz-deal-card__description,
+.dilz-deal-card__price-context {
+  color: var(--text-secondary) !important;
+  font-weight: 500 !important;
+}
+
+.dilz-deal-card__price strong,
+.dilz-deal-current-price,
+.dilz-price-current {
+  color: var(--brand) !important;
+  white-space: nowrap !important;
+  font-weight: 900 !important;
+}
+
+.dilz-deal-card__price del,
+.dilz-deal-card__price-context del,
+.dilz-price-old {
+  color: var(--text-muted) !important;
+  white-space: nowrap !important;
+}
+
+.dilz-deal-card.is-compact .dilz-deal-card__description,
+.dilz-deal-card.is-compact .dilz-deal-card__author,
+.dilz-deal-card.is-compact .dilz-deal-card__price-context span:nth-child(n+3) {
+  display: none !important;
+}
+
+.dilz-feed-grid.is-list .dilz-deal-card.is-list {
+  padding: 9px !important;
+  gap: 10px !important;
+}
+
+.dilz-feed-grid.is-list .dilz-deal-card.is-list .dilz-deal-card__description {
+  -webkit-line-clamp: 1;
+  line-clamp: 1;
+}
+
+.dilz-owner-menu {
+  position: relative;
+  z-index: 2;
+}
+
+.dilz-deal-card__right-actions .dilz-owner-delete,
+.dilz-admin-controls {
+  display: none !important;
+}
+
+.dilz-safety-actions__menu .is-destructive {
+  color: var(--danger) !important;
+}
+
+.dilz-vote-pill,
+.dilz-vote-pill button,
+.dilz-service-vote {
+  background: var(--bg-soft) !important;
+  border-color: var(--border-default) !important;
+  color: var(--text-secondary) !important;
+}
+
+.dilz-vote-pill button.is-active,
+.dilz-service-vote.is-active {
+  background: var(--brand-soft) !important;
+  border-color: rgba(249, 115, 22, 0.32) !important;
+  color: var(--brand) !important;
+}
+
+.dilz-deal-primary-action {
+  margin: 16px 0 12px;
+}
+
+.dilz-deal-primary-action .dilz-button {
+  width: 100%;
+  justify-content: center;
+}
+
+.dilz-detail-share-row .dilz-button,
+.dilz-deal-share-actions .dilz-button {
+  background: var(--bg-soft) !important;
+  border-color: var(--border-default) !important;
+  color: var(--text-secondary) !important;
+}
+
+.dilz-post-stepper__step.is-current,
+.dilz-stepper__step.is-current {
+  color: var(--brand) !important;
+}
+
+.dilz-post-stepper__step.is-complete,
+.dilz-stepper__step.is-complete {
+  color: #16A34A !important;
+}
+
+.dilz-upload-dropzone,
+.dilz-post-upload-zone {
+  background: var(--bg-soft) !important;
+  border: 1.5px dashed var(--border-strong) !important;
+  color: var(--text-secondary) !important;
+}
+
+.dilz-alert-hero-copy {
+  display: grid;
+  gap: 6px;
+}
+
+.dilz-alert-hero-copy p,
+.dilz-explore-hero p {
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.dilz-alert-create-shortcut {
+  margin-left: auto;
+  white-space: nowrap;
+}
+
+.dilz-alert-item__copy {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.dilz-alert-item__copy strong {
+  color: var(--text-primary);
+  font-size: 14px;
+}
+
+.dilz-alert-item__copy span {
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+
+.dilz-explore-card {
+  min-height: 62px !important;
+  grid-template-columns: 40px minmax(0, 1fr) 18px !important;
+}
+
+.dilz-explore-card__icon {
+  background: var(--bg-soft) !important;
+  border: 1px solid var(--border-default) !important;
+  color: var(--text-primary) !important;
+}
+
+.dilz-profil-card,
+.dilz-account-settings {
+  padding: 16px !important;
+}
+
+.dilz-profile-menu-row,
+.dilz-account-option {
+  min-height: 48px !important;
+  border-color: var(--border-default) !important;
+}
+
+.dilz-profile-signout {
+  background: var(--danger-soft) !important;
+  border-color: rgba(239, 68, 68, 0.24) !important;
+  color: var(--danger) !important;
+}
+
+@media (max-width: 767px) {
+  .dilz-bottom-nav {
+    min-height: calc(76px + env(safe-area-inset-bottom)) !important;
+    height: calc(76px + env(safe-area-inset-bottom)) !important;
+  }
+
+  .dilz-deal-card {
+    padding: 9px !important;
+  }
+
+  .dilz-feed-grid.is-list .dilz-deal-card.is-list {
+    grid-template-columns: 72px minmax(0, 1fr) !important;
   }
 }

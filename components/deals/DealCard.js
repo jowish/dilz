@@ -30,6 +30,7 @@ export function DealCard({
     : { storePromo: 'Store promo', community: 'Community find', you: 'You', member: 'Dilz member', online: 'Online', myDeal: 'My deal', shared: 'Shared by', deal: 'Deal', inStore: 'In-store', voteControls: 'Vote controls', hot: 'Mark as hot', cold: 'Mark as cold', unsave: 'Unsave deal', save: 'Save deal', comments: 'comments' };
   const [copied, setCopied] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
+  const [ownerMenuOpen, setOwnerMenuOpen] = useState(false);
   const images = [...new Set([...(Array.isArray(deal.image_urls) ? deal.image_urls : []), deal.image_url].filter(Boolean))].slice(0, 3);
   const primaryImage = images[0] || null;
   const discount = getDiscount(deal);
@@ -112,6 +113,32 @@ export function DealCard({
       <div className="dilz-deal-card__body">
         <div className="dilz-deal-card__safety-menu">
           <SafetyActions contentType="deal" contentId={deal.id} authorId={deal.auteur_id} currentUserId={user?.id} lang={lang} onBlocked={onBlocked} />
+          {isOwner && onOwnerDelete && (
+            <div className="dilz-owner-menu" onClick={(event) => event.stopPropagation()}>
+              <button
+                type="button"
+                className="dilz-safety-actions__trigger"
+                aria-label={lang === 'he' ? 'Deal options' : 'Deal options'}
+                aria-expanded={ownerMenuOpen}
+                onClick={(event) => {
+                  event.preventDefault();
+                  event.stopPropagation();
+                  setOwnerMenuOpen((value) => !value);
+                }}
+              >
+                <span aria-hidden="true">...</span>
+              </button>
+              {ownerMenuOpen && (
+                <>
+                  <button type="button" className="dilz-popover-dismiss" aria-label="Close" onClick={() => setOwnerMenuOpen(false)} />
+                  <div className="dilz-safety-actions__menu">
+                    <button type="button" onClick={() => router.push(`/deal/${deal.id}?edit=1`)}>Edit</button>
+                    <button type="button" className="is-destructive" onClick={() => onOwnerDelete(deal.id)}>Delete</button>
+                  </div>
+                </>
+              )}
+            </div>
+          )}
         </div>
         {isAdmin && (
           <div className="dilz-admin-controls" onClick={(event) => event.stopPropagation()}>
@@ -220,11 +247,6 @@ export function DealCard({
               onClose={() => setShareOpen(false)}
               onCopy={() => copyDealLink().catch(() => {})}
             />
-            {isOwner && onOwnerDelete && (
-              <button type="button" className="dilz-owner-delete" onClick={(event) => { event.preventDefault(); event.stopPropagation(); onOwnerDelete(deal.id); }}>
-                {lang === 'he' ? '×ž×—×§' : 'Delete'}
-              </button>
-            )}
           </div>
         </div>
       </div>

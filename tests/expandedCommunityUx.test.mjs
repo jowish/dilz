@@ -76,7 +76,9 @@ test('deal cards expose branded sharing through the share menu, author profile a
   assert.match(dealCard, /dilz-deal-card__safety-menu/);
   assert.match(dealCard, /dilz-deal-card__price-context/);
   assert.match(dealCard, /router\.push\(`\/user\/\$\{deal\.auteur_id\}`\)/);
-  assert.match(dealCard, /dilz-owner-delete/);
+  assert.match(dealCard, /dilz-owner-menu/);
+  assert.match(dealCard, /className="is-destructive"/);
+  assert.doesNotMatch(dealCard, /className="dilz-owner-delete"/);
   assert.match(dealCard, /dilz-deal-card__comment-meta/);
   assert.doesNotMatch(dealCard, /aria-label=\{`\$\{commentCount\} \$\{text\.comments\}`\}/);
   assert.match(css, /\.is-whatsapp svg[^}]*#25D366/);
@@ -155,8 +157,8 @@ test('bottom nav uses a real Explore page and no longer opens the old menu sheet
 
 test('display toggles keep visible active icons and start with a single card icon', () => {
   assert.match(home, /aria-label="Card view"[\s\S]*<svg width="18" height="18"[\s\S]*<rect x="4" y="4" width="16" height="16" rx="3\.5"\/>/);
-  assert.match(css, /\.dilz-layout-toggle button\.is-active\s*\{[^}]*background:\s*var\(--surface-main\)\s*!important/s);
-  assert.match(css, /\.dilz-layout-toggle button\.is-active\s*\{[^}]*border:\s*1px solid var\(--text-primary\)\s*!important/s);
+  assert.match(css, /\.dilz-layout-toggle button\.is-active\s*\{[^}]*background:\s*var\(--brand\)\s*!important/s);
+  assert.match(css, /\.dilz-layout-toggle button\.is-active\s*\{[^}]*border-color:\s*var\(--brand\)\s*!important/s);
 });
 
 test('search result deal cards keep actions inside the card boundary', () => {

@@ -13,6 +13,21 @@ function alertSummary(a, lang) {
   return parts.join(' · ') || 'All new deals';
 }
 
+function alertTitle(a, lang) {
+  if (a.keyword) return a.keyword;
+  if (a.city) return cityDisplayName(a.city, lang);
+  if (a.online_only) return 'Online deals';
+  return lang !== 'he' ? 'All new deals' : 'All new deals';
+}
+
+function alertSubtitle(a, lang) {
+  const parts = [];
+  if (a.city && a.keyword) parts.push(cityDisplayName(a.city, lang));
+  if (a.online_only) parts.push('Online');
+  if (a.min_discount_percent != null) parts.push(`${a.min_discount_percent}%+ discount`);
+  return parts.join(' · ') || alertSummary(a, lang);
+}
+
 export function AlertModal({ user, lang, villes = [], onClose }) {
   const [activeTab, setActiveTab] = useState('list');
   const [alerts, setAlerts] = useState([]);
@@ -150,7 +165,13 @@ export function AlertModal({ user, lang, villes = [], onClose }) {
     <div className="dilz-alert-page" aria-label="My alerts">
       <div className="dilz-alert-page__panel">
         <div className="dilz-sheet__header">
-          <h2 className="dilz-sheet__title">{lang !== 'he' ? 'My Alerts' : 'ההתראות שלי'}</h2>
+          <div className="dilz-alert-hero-copy">
+            <h2 className="dilz-sheet__title">Never miss a deal</h2>
+            <p>Create alerts for stores, products, cities or discount levels.</p>
+          </div>
+          <button type="button" className="dilz-button dilz-button--primary dilz-button--sm dilz-alert-create-shortcut" onClick={() => setActiveTab('new')}>
+            Create alert
+          </button>
           <button type="button" className="dilz-sheet__close" onClick={onClose} aria-label="Close">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6 6 18M6 6l12 12"/></svg>
           </button>
@@ -207,7 +228,10 @@ export function AlertModal({ user, lang, villes = [], onClose }) {
               <div className="dilz-alert-list">
                 {alerts.map((a) => (
                   <div key={a.id} className={['dilz-alert-item', !a.is_active && 'is-paused'].filter(Boolean).join(' ')}>
-                    <p className="dilz-alert-item__summary">{alertSummary(a, lang)}</p>
+                    <div className="dilz-alert-item__copy">
+                      <strong>{alertTitle(a, lang)}</strong>
+                      <span>{alertSubtitle(a, lang)}</span>
+                    </div>
                     <div className="dilz-alert-item__actions">
                       <button
                         type="button"

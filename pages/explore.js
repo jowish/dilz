@@ -41,7 +41,7 @@ export default function ExplorePage() {
     }
     : {
       title: 'Explore',
-      subtitle: 'All Dilz sections in one clean place.',
+      subtitle: 'Find every type of deal in one place.',
       home: 'Home',
       homeText: 'Back to the main deals feed',
       deals: 'Shopping deals',
