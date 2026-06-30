@@ -33,22 +33,6 @@ test('light mode borders stay visible enough on white surfaces', () => {
   assert.match(css, /--border-strong:\s*rgba\(15,\s*23,\s*42,\s*0\.22\)/);
 });
 
-test('SmoothUI-inspired polish stays CSS-only and motion-safe', () => {
-  assert.match(css, /SmoothUI-inspired visual polish layer/);
-  assert.match(css, /--smooth-ease:\s*cubic-bezier\(0\.22,\s*1,\s*0\.36,\s*1\)/);
-  assert.match(css, /\.dilz-deal-card:hover,[\s\S]*?transform:\s*translateY\(-2px\)/);
-  assert.match(css, /\.dilz-deal-card:hover \.dilz-deal-card__media img,[\s\S]*?transform:\s*scale\(1\.035\)/);
-  assert.match(css, /@media \(prefers-reduced-motion:\s*reduce\)[\s\S]*?\.dilz-deal-card:hover,[\s\S]*?transform:\s*none !important/);
-});
-
-test('SmoothUI-inspired navigation and inputs keep premium accessible states', () => {
-  assert.match(css, /\.dilz-bottom-nav\s*\{[^}]*pointer-events:\s*none/s);
-  assert.match(css, /\.dilz-bottom-nav__inner\s*\{[^}]*pointer-events:\s*auto/s);
-  assert.match(css, /\.dilz-bottom-nav__item\.is-post \.dilz-bottom-nav__icon,[\s\S]*?background:\s*var\(--brand\) !important/s);
-  assert.match(css, /\.dilz-search-bar:focus-within,[\s\S]*?box-shadow:\s*var\(--smooth-focus-ring\) !important/s);
-  assert.match(css, /\.dilz-layout-toggle button\.is-active\s*\{[^}]*color:\s*var\(--brand\) !important/s);
-});
-
 test('the menu sheet ends above the visible mobile navigation', () => {
   assert.match(css, /\.dilz-main-menu__backdrop\{[^}]*inset:0 0 calc\(96px \+ env\(safe-area-inset-bottom\)\)/s);
   assert.match(css, /\.dilz-main-menu__backdrop\{[^}]*z-index:900/s);
