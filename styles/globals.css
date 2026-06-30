@@ -8366,15 +8366,41 @@ select:focus,
     pointer-events: auto;
   }
 
+  .dilz-bottom-nav__liquid-frame,
   .dilz-bottom-nav__liquid-glass {
     width: min(calc(100vw - 24px), 430px) !important;
     height: 64px !important;
     pointer-events: auto;
   }
 
-  .dilz-bottom-nav__liquid-glass,
-  .dilz-bottom-nav__liquid-glass > div {
+  .dilz-bottom-nav__liquid-frame {
+    position: relative !important;
+    display: block !important;
+    margin: 0 auto !important;
     max-width: 430px !important;
+    overflow: visible;
+  }
+
+  .dilz-bottom-nav__liquid-frame > :not(.dilz-bottom-nav__liquid-glass) {
+    display: none !important;
+  }
+
+  .dilz-bottom-nav__liquid-glass {
+    position: static !important;
+    top: auto !important;
+    left: auto !important;
+    display: block !important;
+    max-width: 430px !important;
+    transform: none !important;
+    transition: none !important;
+  }
+
+  .dilz-bottom-nav__liquid-glass > svg {
+    position: absolute !important;
+    inset: 0 auto auto 0 !important;
+    width: 100% !important;
+    height: 64px !important;
+    pointer-events: none !important;
   }
 
   .dilz-bottom-nav__liquid-glass .glass {
