@@ -33,6 +33,14 @@ test('light mode borders stay visible enough on white surfaces', () => {
   assert.match(css, /--border-strong:\s*rgba\(15,\s*23,\s*42,\s*0\.22\)/);
 });
 
+test('only the retained view switch polish remains after SmoothUI rollback', () => {
+  assert.doesNotMatch(css, /SmoothUI-inspired visual polish layer/);
+  assert.match(css, /Retained view switch polish: cards, rows and small cards only/);
+  assert.match(css, /\.dilz-layout-toggle\s*\{[^}]*border-radius:\s*18px !important/s);
+  assert.match(css, /\.dilz-layout-toggle button\s*\{[^}]*width:\s*38px !important/s);
+  assert.match(css, /\.dilz-layout-toggle button\.is-active\s*\{[^}]*border:\s*1px solid var\(--text-primary\) !important/s);
+});
+
 test('the menu sheet ends above the visible mobile navigation', () => {
   assert.match(css, /\.dilz-main-menu__backdrop\{[^}]*inset:0 0 calc\(96px \+ env\(safe-area-inset-bottom\)\)/s);
   assert.match(css, /\.dilz-main-menu__backdrop\{[^}]*z-index:900/s);

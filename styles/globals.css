@@ -8251,3 +8251,53 @@ select:focus,
   border: 1px solid var(--border-default) !important;
   color: var(--text-primary) !important;
 }
+
+/* Retained view switch polish: cards, rows and small cards only. */
+.dilz-layout-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 3px !important;
+  border: 1px solid var(--border-default) !important;
+  border-radius: 18px !important;
+  background: var(--surface-soft) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45) !important;
+}
+
+.dark .dilz-layout-toggle {
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05) !important;
+}
+
+.dilz-layout-toggle button {
+  width: 38px !important;
+  height: 38px !important;
+  min-width: 38px !important;
+  border: 1px solid transparent !important;
+  border-radius: 14px !important;
+  background: transparent !important;
+  color: var(--text-muted) !important;
+  box-shadow: none !important;
+  transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease, transform 160ms ease;
+}
+
+.dilz-layout-toggle button:hover:not(.is-active) {
+  color: var(--text-primary) !important;
+  background: var(--bg-card) !important;
+}
+
+.dilz-layout-toggle button:active {
+  transform: scale(0.96);
+}
+
+.dilz-layout-toggle button.is-active {
+  background: var(--surface-main) !important;
+  color: var(--text-primary) !important;
+  border: 1px solid var(--text-primary) !important;
+  box-shadow: inset 0 0 0 1px var(--text-primary) !important;
+}
+
+.dark .dilz-layout-toggle button.is-active {
+  background: var(--bg-card) !important;
+  color: var(--text-primary) !important;
+  border-color: var(--text-primary) !important;
+}
