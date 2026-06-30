@@ -6,17 +6,16 @@ import path from 'node:path';
 const css = await readFile(path.join(process.cwd(), 'styles', 'globals.css'), 'utf8');
 const bottomNav = await readFile(path.join(process.cwd(), 'components', 'layout', 'BottomNav.js'), 'utf8');
 
-test('mobile navigation uses the lighter premium bar contract', () => {
-  assert.match(css, /height:\s*calc\(78px \+ env\(safe-area-inset-bottom\)\)\s*!important/);
-  assert.match(css, /padding:\s*7px 12px calc\(9px \+ env\(safe-area-inset-bottom\)\)\s*!important/);
+test('mobile navigation uses the larger premium bar contract', () => {
+  assert.match(css, /height:\s*calc\(90px \+ env\(safe-area-inset-bottom\)\)/);
+  assert.match(css, /padding-bottom:\s*calc\(6px \+ env\(safe-area-inset-bottom\)\)/);
   assert.match(css, /\.dilz-bottom-nav\s*\{[^}]*bottom:\s*0/s);
-  assert.match(css, /\.dilz-bottom-nav__item\.is-active::before\s*\{[^}]*background:\s*var\(--brand-soft\)\s*!important/s);
+  assert.match(css, /\.dilz-bottom-nav__item\.is-active::before\s*\{[^}]*background:\s*var\(--brand-soft\)/s);
   assert.match(bottomNav, /aria-current=\{active \? 'page' : undefined\}/);
 });
 
 test('the Post action remains the orange primary action in dark mode', () => {
   assert.match(css, /\.dark \.dilz-bottom-nav__item\.is-post \.dilz-bottom-nav__icon\s*\{[^}]*background:\s*var\(--brand\) !important/s);
-  assert.match(css, /box-shadow:\s*0 8px 22px rgba\(249,\s*115,\s*22,\s*0\.22\)\s*!important/);
 });
 
 test('dark cards use subtle tokenized border contrast', () => {
@@ -40,7 +39,7 @@ test('the menu sheet ends above the visible mobile navigation', () => {
 });
 
 test('deal count remains legible in dark mode', () => {
-  assert.match(css, /\.dilz-view-switcher__count,[\s\S]*?background:\s*var\(--bg-input\)\s*!important/s);
+  assert.match(css, /\.dark \.dilz-view-switcher__count\s*\{[^}]*background:\s*#1A2A40[^}]*color:\s*#F8FAFC/s);
 });
 
 test('desktop pages keep the document as the only vertical scroller', () => {

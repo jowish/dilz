@@ -8068,8 +8068,7 @@ body { touch-action: pan-y; }
     padding: 0 5px;
   }
 }
-
-/* Dilz premium polish layer: final token and density contract. */
+/* Dilz premium polish layer: tokens, surfaces and subtle borders. */
 :root {
   --bg-app: #F8FAFC;
   --surface-main: #FFFFFF;
@@ -8235,8 +8234,7 @@ select:focus,
 
 .dilz-button--primary,
 .dilz-discovery-cta,
-.dilz-filter-chip.is-active,
-.dilz-layout-toggle button.is-active {
+.dilz-filter-chip.is-active {
   background: var(--brand) !important;
   border-color: var(--brand) !important;
   color: #FFFFFF !important;
@@ -8245,192 +8243,6 @@ select:focus,
 .dilz-filter-chip.is-active {
   background: var(--brand-soft) !important;
   color: var(--brand) !important;
-}
-
-.dilz-bottom-nav {
-  min-height: calc(78px + env(safe-area-inset-bottom)) !important;
-  height: calc(78px + env(safe-area-inset-bottom)) !important;
-  padding: 7px 12px calc(9px + env(safe-area-inset-bottom)) !important;
-  background: var(--nav-bg) !important;
-  border-top: 1px solid var(--border-soft) !important;
-  box-shadow: var(--shadow-nav) !important;
-  backdrop-filter: blur(16px);
-}
-
-.dilz-bottom-nav__item {
-  min-height: 44px;
-  color: var(--text-muted) !important;
-}
-
-.dilz-bottom-nav__item::before {
-  background: transparent !important;
-  border: 0 !important;
-}
-
-.dilz-bottom-nav__item.is-active::before {
-  background: var(--brand-soft) !important;
-  border: 1px solid rgba(249, 115, 22, 0.24) !important;
-}
-
-.dilz-bottom-nav__item.is-active,
-.dilz-bottom-nav__item.is-active .dilz-bottom-nav__icon {
-  color: var(--brand) !important;
-}
-
-.dilz-bottom-nav__item.is-post .dilz-bottom-nav__icon,
-.dark .dilz-bottom-nav__item.is-post .dilz-bottom-nav__icon {
-  width: 48px !important;
-  height: 48px !important;
-  margin-top: -22px !important;
-  border: 3px solid var(--bg) !important;
-  background: var(--brand) !important;
-  color: #FFFFFF !important;
-  box-shadow: 0 8px 22px rgba(249, 115, 22, 0.22) !important;
-}
-
-.dilz-deal-card {
-  padding: 10px !important;
-  border-radius: 20px !important;
-}
-
-.dilz-deal-card h3 {
-  color: var(--text-primary);
-  font-weight: 850;
-  letter-spacing: -0.02em;
-}
-
-.dilz-deal-card__store-row,
-.dilz-deal-card__meta,
-.dilz-deal-card__author,
-.dilz-deal-card__description,
-.dilz-deal-card__price-context {
-  color: var(--text-secondary) !important;
-  font-weight: 500 !important;
-}
-
-.dilz-deal-card__price strong,
-.dilz-deal-current-price,
-.dilz-price-current {
-  color: var(--brand) !important;
-  white-space: nowrap !important;
-  font-weight: 900 !important;
-}
-
-.dilz-deal-card__price del,
-.dilz-deal-card__price-context del,
-.dilz-price-old {
-  color: var(--text-muted) !important;
-  white-space: nowrap !important;
-}
-
-.dilz-deal-card.is-compact .dilz-deal-card__description,
-.dilz-deal-card.is-compact .dilz-deal-card__author,
-.dilz-deal-card.is-compact .dilz-deal-card__price-context span:nth-child(n+3) {
-  display: none !important;
-}
-
-.dilz-feed-grid.is-list .dilz-deal-card.is-list {
-  padding: 9px !important;
-  gap: 10px !important;
-}
-
-.dilz-feed-grid.is-list .dilz-deal-card.is-list .dilz-deal-card__description {
-  -webkit-line-clamp: 1;
-  line-clamp: 1;
-}
-
-.dilz-owner-menu {
-  position: relative;
-  z-index: 2;
-}
-
-.dilz-deal-card__right-actions .dilz-owner-delete,
-.dilz-admin-controls {
-  display: none !important;
-}
-
-.dilz-safety-actions__menu .is-destructive {
-  color: var(--danger) !important;
-}
-
-.dilz-vote-pill,
-.dilz-vote-pill button,
-.dilz-service-vote {
-  background: var(--bg-soft) !important;
-  border-color: var(--border-default) !important;
-  color: var(--text-secondary) !important;
-}
-
-.dilz-vote-pill button.is-active,
-.dilz-service-vote.is-active {
-  background: var(--brand-soft) !important;
-  border-color: rgba(249, 115, 22, 0.32) !important;
-  color: var(--brand) !important;
-}
-
-.dilz-deal-primary-action {
-  margin: 16px 0 12px;
-}
-
-.dilz-deal-primary-action .dilz-button {
-  width: 100%;
-  justify-content: center;
-}
-
-.dilz-detail-share-row .dilz-button,
-.dilz-deal-share-actions .dilz-button {
-  background: var(--bg-soft) !important;
-  border-color: var(--border-default) !important;
-  color: var(--text-secondary) !important;
-}
-
-.dilz-post-stepper__step.is-current,
-.dilz-stepper__step.is-current {
-  color: var(--brand) !important;
-}
-
-.dilz-post-stepper__step.is-complete,
-.dilz-stepper__step.is-complete {
-  color: #16A34A !important;
-}
-
-.dilz-upload-dropzone,
-.dilz-post-upload-zone {
-  background: var(--bg-soft) !important;
-  border: 1.5px dashed var(--border-strong) !important;
-  color: var(--text-secondary) !important;
-}
-
-.dilz-alert-hero-copy {
-  display: grid;
-  gap: 6px;
-}
-
-.dilz-alert-hero-copy p,
-.dilz-explore-hero p {
-  color: var(--text-secondary);
-  font-weight: 500;
-}
-
-.dilz-alert-create-shortcut {
-  margin-left: auto;
-  white-space: nowrap;
-}
-
-.dilz-alert-item__copy {
-  display: grid;
-  gap: 4px;
-  min-width: 0;
-}
-
-.dilz-alert-item__copy strong {
-  color: var(--text-primary);
-  font-size: 14px;
-}
-
-.dilz-alert-item__copy span {
-  color: var(--text-secondary);
-  font-size: 12px;
 }
 
 .dilz-explore-card {
@@ -8442,36 +8254,4 @@ select:focus,
   background: var(--bg-soft) !important;
   border: 1px solid var(--border-default) !important;
   color: var(--text-primary) !important;
-}
-
-.dilz-profil-card,
-.dilz-account-settings {
-  padding: 16px !important;
-}
-
-.dilz-profile-menu-row,
-.dilz-account-option {
-  min-height: 48px !important;
-  border-color: var(--border-default) !important;
-}
-
-.dilz-profile-signout {
-  background: var(--danger-soft) !important;
-  border-color: rgba(239, 68, 68, 0.24) !important;
-  color: var(--danger) !important;
-}
-
-@media (max-width: 767px) {
-  .dilz-bottom-nav {
-    min-height: calc(76px + env(safe-area-inset-bottom)) !important;
-    height: calc(76px + env(safe-area-inset-bottom)) !important;
-  }
-
-  .dilz-deal-card {
-    padding: 9px !important;
-  }
-
-  .dilz-feed-grid.is-list .dilz-deal-card.is-list {
-    grid-template-columns: 72px minmax(0, 1fr) !important;
-  }
 }

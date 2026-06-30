@@ -23,7 +23,7 @@ export default function App({ Component, pageProps }) {
   }, []);
 
   return (
-    <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false} storageKey={THEME_STORAGE_KEY}>
+    <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false} storageKey={THEME_STORAGE_KEY}>
       {showSplash && <DilzSplashScreen />}
       <AppMessages />
       <Component {...pageProps} />

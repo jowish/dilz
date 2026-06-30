@@ -19,7 +19,7 @@ const copy = {
     title: 'Post a deal', subtitle: 'Share a real deal you found with the community.', signInSubtitle: 'Sign in to share real deals with the community.',
     authText: 'Voting, posting and saving are connected to your Dilz account.', signIn: 'Sign in to post', cancel: 'Cancel', back: 'Back', continue: 'Continue', publish: 'Publish deal',
     uploading: 'Uploading photos', publishing: 'Publishing', steps: ['Photos', 'Details', 'Location', 'Preview'],
-    uploadTitle: 'Choose photos', uploadHelp: 'Upload 1-3 photos or screenshots. JPEG, PNG or WebP, max 5 MB each.', addPhoto: 'Add photo', remove: 'Remove',
+    uploadTitle: 'Add deal photos *', uploadHelp: 'Add 1 to 3 clear photos or screenshots. JPEG, PNG or WebP up to 5 MB each.', addPhoto: 'Add photo', remove: 'Remove',
     dealTitle: 'Deal title', description: 'Description', price: 'Current price', oldPrice: 'Old price', optional: 'Optional', discount: 'discount', category: 'Category', startDate: 'Start date', endDate: 'End date',
     availability: 'Deal availability', storeMode: 'In-store', onlineMode: 'Online', store: 'Store name', website: 'Website or app', city: 'City', chooseCity: 'Choose city', url: 'Deal URL',
     onlineStoreHelp: 'Optional. The website can also be identified from the URL.', onlineUrlHelp: 'Required for an online-only Dilz.', storeUrlHelp: 'Optional, but recommended for trust.',
@@ -282,7 +282,7 @@ export function PostDealModal({ user, onClose, onSuccess, cityOptions = [], lang
       <div className="dilz-post-stepper" aria-label={text.title}>
         {text.steps.map((label, index) => (
           <div key={label} className={['dilz-post-step', step === index && 'is-active', step > index && 'is-complete'].filter(Boolean).join(' ')}>
-            <span>{step > index ? '✓' : index + 1}</span><strong>{label}</strong>
+            <span>{index + 1}</span><strong>{label}</strong>
           </div>
         ))}
       </div>
@@ -321,7 +321,7 @@ export function PostDealModal({ user, onClose, onSuccess, cityOptions = [], lang
       {step === 1 && (
         <div className="dilz-form-grid">
           <Input required label={text.dealTitle} error={fieldErrors.titre} value={form.titre} onChange={(event) => set('titre', event.target.value)} placeholder={lang === 'he' ? 'לדוגמה: Apple Watch SE ב-999 ₪' : 'e.g. Apple Watch SE from 999 ₪'} />
-          <Textarea label={text.description} value={form.description} onChange={(event) => set('description', event.target.value)} placeholder={lang === 'he' ? 'מה הופך את הדיל למשתלם?' : 'Why is this a good deal?'} />
+          <Textarea label={text.description} value={form.description} onChange={(event) => set('description', event.target.value)} placeholder={lang === 'he' ? 'מה הופך את הדיל למשתלם?' : 'What makes this deal useful?'} />
           <div className="dilz-form-grid dilz-form-grid--two dilz-price-fields">
             <Input required label={text.price} error={fieldErrors.prix} type="number" inputMode="decimal" min="0" step="any" value={form.prix} onChange={(event) => set('prix', event.target.value)} placeholder="999" />
             <Input label={text.oldPrice} error={fieldErrors.prix_original} type="number" inputMode="decimal" min="0" step="any" value={form.prix_original} onChange={(event) => set('prix_original', event.target.value)} placeholder="1299" helper={discount ? `${discount}% ${text.discount}` : text.optional} />
