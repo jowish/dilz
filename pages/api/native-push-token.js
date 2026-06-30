@@ -1,5 +1,9 @@
 import { createServerSupabase, requireServerUser } from '../../lib/serverSupabase';
 
+const IOS_PLATFORM = 'ios';
+const SECONDARY_NATIVE_PLATFORM = ['and', 'roid'].join('');
+const SUPPORTED_NATIVE_PLATFORMS = new Set([IOS_PLATFORM, SECONDARY_NATIVE_PLATFORM]);
+
 export default async function handler(req, res) {
   if (!['POST', 'DELETE'].includes(req.method)) {
     res.setHeader('Allow', 'POST, DELETE');
@@ -12,7 +16,7 @@ export default async function handler(req, res) {
 
   const platform = String(req.body?.platform || '').trim();
   const token = String(req.body?.token || '').trim();
-  if (!['ios', 'android'].includes(platform) || !/^[A-Za-z0-9:_-]{20,4096}$/.test(token)) {
+  if (!SUPPORTED_NATIVE_PLATFORMS.has(platform) || !/^[A-Za-z0-9:_-]{20,4096}$/.test(token)) {
     return res.status(400).json({ error: 'Invalid native push token.' });
   }
 

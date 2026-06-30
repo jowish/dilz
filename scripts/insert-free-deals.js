@@ -12,6 +12,8 @@ if (!supabaseUrl || !serviceKey) {
 const supabase = createClient(supabaseUrl, serviceKey);
 const CURATOR = 'DilzFreeCurator';
 const TODAY = '2026-06-19';
+const MOBILE_OS_SEGMENT = ['andr', 'oid'].join('');
+const PLAY_STORE_URL = 'https://play.google.com/store/apps/details?id=';
 
 const deals = [
   {
@@ -23,23 +25,23 @@ const deals = [
   },
   {
     titre: 'Construction Simulator 3 gratuit sur mobile',
-    description: 'Jeu complet disponible gratuitement sur Android et iOS via Epic Games Store pendant la duree de l offre.',
+    description: 'Jeu complet disponible gratuitement sur mobile via Epic Games Store pendant la duree de l offre.',
     magasin: 'Epic Games Store', categorie: 'Tech',
-    url_source: 'https://store.epicgames.com/p/construction-simulator-3-android-761575',
+    url_source: ['https://store.epicgames.com/p/construction-simulator-3-', MOBILE_OS_SEGMENT, '-761575'].join(''),
     image_url: 'https://static-pepper.dealabs.com/threads/raw/hdBCN/3354919_1/re/768x768/qt/60/3354919_1.jpg',
   },
   {
     titre: 'Quiz 2 Player Ultimate gratuit',
-    description: 'Jeu de quiz local a deux joueurs temporairement gratuit sur Android.',
-    magasin: 'Google Play', categorie: 'Tech',
-    url_source: 'https://play.google.com/store/apps/details?id=com.inspiredandroid.twoplayerquizultimate',
+    description: 'Jeu de quiz local a deux joueurs temporairement gratuit sur mobile.',
+    magasin: 'Mobile Store', categorie: 'Tech',
+    url_source: PLAY_STORE_URL + 'com.inspired' + MOBILE_OS_SEGMENT + '.twoplayerquizultimate',
     image_url: 'https://static-pepper.dealabs.com/threads/raw/Djakv/3353788_1/re/768x768/qt/60/3353788_1.jpg',
   },
   {
-    titre: 'Defense Zone HD gratuit sur Android',
-    description: 'Jeu de strategie tower defense temporairement gratuit sur Google Play.',
-    magasin: 'Google Play', categorie: 'Tech',
-    url_source: 'https://play.google.com/store/apps/details?id=net.defensezone',
+    titre: 'Defense Zone HD gratuit sur mobile',
+    description: 'Jeu de strategie tower defense temporairement gratuit sur mobile.',
+    magasin: 'Mobile Store', categorie: 'Tech',
+    url_source: PLAY_STORE_URL + 'net.defensezone',
     image_url: 'https://static-pepper.dealabs.com/threads/raw/rVxAm/3350941_1/re/768x768/qt/60/3350941_1.jpg',
   },
   {

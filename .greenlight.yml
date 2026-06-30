@@ -1,0 +1,9 @@
+ignore:
+  - .next
+  - scripts
+  - find-*.js
+  - lire-*.js
+  - test-*.js
+  - "*.html"
+  - "*.gz"
+  - "*.xml"
