@@ -139,9 +139,10 @@ test('shopping deals have internal detail pages, votes, comments and third-party
   assert.doesNotMatch(shoppingPage, /Official links/);
 });
 
-test('bottom nav uses a real Explore page and no longer opens the old menu sheet', () => {
+test('bottom nav uses Search as the visible discover tab while preserving the Explore route', () => {
   assert.match(bottomNav, /id: 'explore'/);
-  assert.match(bottomNav, /ExploreIcon/);
+  assert.match(bottomNav, /SearchIcon/);
+  assert.match(bottomNav, /label:\s*labels\.search/);
   assert.doesNotMatch(bottomNav, /id: 'menu'/);
   assert.match(bottomNav, /id: 'deals'[\s\S]*id: 'explore'[\s\S]*id: 'post'[\s\S]*id: 'alerts'[\s\S]*id: 'profile'/);
   assert.match(home, /handleBottomNavigation\('explore'\)/);

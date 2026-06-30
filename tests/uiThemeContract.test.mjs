@@ -7,10 +7,12 @@ const css = await readFile(path.join(process.cwd(), 'styles', 'globals.css'), 'u
 const bottomNav = await readFile(path.join(process.cwd(), 'components', 'layout', 'BottomNav.js'), 'utf8');
 
 test('mobile navigation uses the larger premium bar contract', () => {
-  assert.match(css, /height:\s*calc\(90px \+ env\(safe-area-inset-bottom\)\)/);
-  assert.match(css, /padding-bottom:\s*calc\(6px \+ env\(safe-area-inset-bottom\)\)/);
+  assert.match(css, /--dilz-tabbar-height:\s*84px/);
+  assert.match(css, /height:\s*calc\(var\(--dilz-tabbar-height\) \+ env\(safe-area-inset-bottom\)\)/);
+  assert.match(css, /padding:\s*0 12px calc\(var\(--dilz-tabbar-gap\) \+ env\(safe-area-inset-bottom\)\)/);
   assert.match(css, /\.dilz-bottom-nav\s*\{[^}]*bottom:\s*0/s);
-  assert.match(css, /\.dilz-bottom-nav__item\.is-active::before\s*\{[^}]*background:\s*var\(--brand-soft\)/s);
+  assert.match(css, /\.dilz-bottom-nav__inner\s*\{[^}]*backdrop-filter:\s*saturate\(180%\) blur\(22px\)/s);
+  assert.match(css, /\.dilz-bottom-nav__item\.is-active::before\s*\{[^}]*background:\s*var\(--dilz-tabbar-active-bg\)/s);
   assert.match(bottomNav, /aria-current=\{active \? 'page' : undefined\}/);
 });
 
@@ -39,6 +41,14 @@ test('only the retained view switch polish remains after SmoothUI rollback', () 
   assert.match(css, /\.dilz-layout-toggle\s*\{[^}]*border-radius:\s*18px !important/s);
   assert.match(css, /\.dilz-layout-toggle button\s*\{[^}]*width:\s*38px !important/s);
   assert.match(css, /\.dilz-layout-toggle button\.is-active\s*\{[^}]*border:\s*1px solid var\(--text-primary\) !important/s);
+});
+
+test('bottom navigation exposes Deals Search Post Alerts Profile with route compatibility', () => {
+  assert.match(bottomNav, /search:\s*'Search'/);
+  assert.match(bottomNav, /id: 'deals'[\s\S]*id: 'explore'[\s\S]*id: 'post'[\s\S]*id: 'alerts'[\s\S]*id: 'profile'/);
+  assert.match(bottomNav, /label:\s*labels\.search/);
+  assert.match(bottomNav, /function SearchIcon\(\)/);
+  assert.doesNotMatch(bottomNav, /function ExploreIcon\(\)/);
 });
 
 test('the menu sheet ends above the visible mobile navigation', () => {
