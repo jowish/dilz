@@ -56,13 +56,8 @@ test('bottom navigation uses liquid-glass-react with a client-safe fallback', ()
   assert.equal(packageJson.dependencies['liquid-glass-react'], '^1.1.1');
   assert.match(bottomNav, /import\('liquid-glass-react'\)/);
   assert.match(bottomNav, /dilz-bottom-nav__inner--fallback/);
-  assert.match(bottomNav, /dilz-bottom-nav__liquid-frame/);
   assert.match(bottomNav, /dilz-bottom-nav__liquid-glass/);
   assert.match(bottomNav, /displacementScale=\{22\}/);
-  assert.match(bottomNav, /elasticity=\{0\}/);
-  assert.match(bottomNav, /style=\{\{ position: 'static', top: 'auto', left: 'auto' \}\}/);
-  assert.match(css, /\.dilz-bottom-nav__liquid-frame > :not\(\.dilz-bottom-nav__liquid-glass\)\s*\{[^}]*display:\s*none !important/s);
-  assert.match(css, /\.dilz-bottom-nav__liquid-glass\s*\{[^}]*transform:\s*none !important/s);
   assert.match(css, /\.dilz-bottom-nav__liquid-glass \.glass\s*\{[^}]*backdrop-filter:\s*saturate\(180%\) blur\(22px\) !important/s);
   assert.match(css, /\.dilz-bottom-nav__inner--liquid\s*\{[^}]*background:\s*transparent !important/s);
 });

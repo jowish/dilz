@@ -61,22 +61,20 @@ function LiquidGlassNavFrame({ children }) {
   }
 
   return (
-    <div className="dilz-bottom-nav__liquid-frame">
-      <LiquidGlass
-        className="dilz-bottom-nav__liquid-glass"
-        displacementScale={22}
-        blurAmount={0.015}
-        saturation={150}
-        aberrationIntensity={0.8}
-        elasticity={0}
-        cornerRadius={28}
-        padding="0"
-        mode="standard"
-        style={{ position: 'static', top: 'auto', left: 'auto' }}
-      >
-        <div className="dilz-bottom-nav__inner dilz-bottom-nav__inner--liquid">{children}</div>
-      </LiquidGlass>
-    </div>
+    <LiquidGlass
+      className="dilz-bottom-nav__liquid-glass"
+      displacementScale={22}
+      blurAmount={0.015}
+      saturation={150}
+      aberrationIntensity={0.8}
+      elasticity={0.08}
+      cornerRadius={28}
+      padding="0"
+      mode="standard"
+      style={{ position: 'relative', top: '50%', left: '50%' }}
+    >
+      <div className="dilz-bottom-nav__inner dilz-bottom-nav__inner--liquid">{children}</div>
+    </LiquidGlass>
   );
 }
 
