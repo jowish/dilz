@@ -8511,55 +8511,105 @@ select:focus,
 
   /* ── Loupe div (replaces ::before approach) ─────────────────────────── */
 
-  /* Neutralise all ::before overrides — the div handles the loupe now */
+  /* ── Reset ::before — loupe div handles the indicator ──────────────── */
   .dilz-bottom-nav__item::before,
   .dilz-bottom-nav__item.is-active::before,
   .dark .dilz-bottom-nav__item.is-active::before {
     display: none !important;
   }
 
-  /* Floating drop — moves with JS via left style, stays within bar */
+  /* ── Reset post button — same style as all other tabs ───────────────── */
+  .dilz-bottom-nav__item.is-post,
+  .dilz-bottom-nav__item.is-post.is-active {
+    color: inherit !important;
+  }
+
+  .dilz-bottom-nav__item.is-post .dilz-bottom-nav__icon,
+  .dark .dilz-bottom-nav__item.is-post .dilz-bottom-nav__icon {
+    width: 20px !important;
+    height: 18px !important;
+    margin-top: 0 !important;
+    border: none !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    color: inherit !important;
+    box-shadow: none !important;
+  }
+
+  .dilz-bottom-nav__item.is-post > span:last-child {
+    color: inherit !important;
+    font-weight: inherit !important;
+  }
+
+  /* ── Colors: active = orange, inactive = white ───────────────────────── */
+  .dilz-bottom-nav__item {
+    color: rgba(255, 255, 255, 0.72) !important;
+  }
+
+  .dilz-bottom-nav__item.is-active {
+    color: var(--brand) !important;
+    font-weight: 800;
+  }
+
+  /* Light mode: bar is light so icons need to be dark */
+  :root:not(.dark) .dilz-bottom-nav__item {
+    color: rgba(40, 40, 60, 0.55) !important;
+  }
+
+  :root:not(.dark) .dilz-bottom-nav__item.is-active {
+    color: var(--brand) !important;
+  }
+
+  /* ── UIGlassEffect capsule — faithful CSS reproduction of iOS 26 ─────
+     Source: LiquidGlassReference fallback recipe:
+       shape.fill(.ultraThinMaterial)                        → backdrop-filter blur + thin bg
+       .overlay(LinearGradient white.0.3→clear, topLeading→bottomTrailing) → diagonal gradient
+       .overlay(shape.stroke(.white.opacity(0.2), lineWidth:1))            → thin border
+  ────────────────────────────────────────────────────────────────────── */
   .dilz-bottom-nav__loupe {
     position: absolute;
-    /* vertically centered inside the pill */
     top: 50%;
-    margin-top: -26px;      /* half of 52px height */
-    width: 52px;
-    height: 52px;
-    /* goutte / water-drop: rounder at top, slightly flatter at bottom */
-    border-radius: 50% 50% 44% 44% / 58% 58% 42% 42%;
+    margin-top: -25px;         /* centered: half of 50px height */
+    width: 62px;
+    height: 50px;
+    border-radius: 25px;       /* full capsule */
     pointer-events: none;
     z-index: 1;
     transition: left 400ms cubic-bezier(0.34, 1.56, 0.64, 1);
-    /* Light mode glass drop */
-    backdrop-filter: blur(4px) saturate(220%) brightness(1.18);
-    -webkit-backdrop-filter: blur(4px) saturate(220%) brightness(1.18);
-    background: rgba(255, 255, 255, 0.13);
-    box-shadow:
-      inset 0 1.5px 6px rgba(255, 255, 255, 0.60),
-      inset 0 -1px 3px rgba(0, 0, 0, 0.06),
-      0 4px 16px rgba(249, 115, 22, 0.10),
-      0 0 0 1px rgba(255, 255, 255, 0.52);
+    /* ultraThinMaterial equivalent */
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    /* diagonal gradient: white.0.3 top-left → clear bottom-right */
+    background: linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.26) 0%,
+      rgba(255, 255, 255, 0.06) 100%
+    );
+    /* thin white stroke */
+    border: 0.5px solid rgba(255, 255, 255, 0.28);
+    /* subtle outer shadow */
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.12);
   }
 
-  /* During swipe: loupe follows finger without spring */
+  /* During swipe: loupe follows finger in real-time */
   .dilz-bottom-nav__loupe.is-swiping {
     transition: none !important;
   }
 
-  /* Dark mode glass drop */
+  /* Dark mode: same recipe, stronger brightness lift */
   .dark .dilz-bottom-nav__loupe {
-    backdrop-filter: blur(4px) saturate(180%) brightness(1.40);
-    -webkit-backdrop-filter: blur(4px) saturate(180%) brightness(1.40);
-    background: rgba(255, 255, 255, 0.09);
-    box-shadow:
-      inset 0 1.5px 6px rgba(255, 255, 255, 0.26),
-      inset 0 -1px 3px rgba(0, 0, 0, 0.28),
-      0 6px 22px rgba(0, 0, 0, 0.32),
-      0 0 0 1px rgba(255, 255, 255, 0.18);
+    backdrop-filter: blur(20px) saturate(180%) brightness(1.30);
+    -webkit-backdrop-filter: blur(20px) saturate(180%) brightness(1.30);
+    background: linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.18) 0%,
+      rgba(255, 255, 255, 0.04) 100%
+    );
+    border: 0.5px solid rgba(255, 255, 255, 0.20);
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.28);
   }
 
-  /* Icon and label sit above the loupe */
+  /* ── Icon and label above the loupe ────────────────────────────────── */
   .dilz-bottom-nav__icon {
     position: relative !important;
     z-index: 2 !important;
@@ -8570,38 +8620,13 @@ select:focus,
     position: relative !important;
     z-index: 2 !important;
     display: block;
+    color: inherit !important;
     transition: transform 380ms cubic-bezier(0.34, 1.56, 0.64, 1) !important;
   }
 
-  /* ── Colors: active = orange, inactive = white ─────────────────────── */
-  .dilz-bottom-nav__item {
-    color: rgba(255, 255, 255, 0.55) !important;
-  }
-
-  .dilz-bottom-nav__item.is-active {
-    color: var(--brand) !important;
-    font-weight: 800;
-  }
-
-  /* Light mode: inactive icons dark (white-on-white invisible) */
-  @media (prefers-color-scheme: light) {
-    .dilz-bottom-nav__item {
-      color: rgba(60, 60, 80, 0.55) !important;
-    }
-  }
-
-  /* Explicit light class override */
-  :root:not(.dark) .dilz-bottom-nav__item {
-    color: rgba(60, 60, 80, 0.55) !important;
-  }
-
-  :root:not(.dark) .dilz-bottom-nav__item.is-active {
-    color: var(--brand) !important;
-  }
-
-  /* Active tab: icon lifts into the loupe (JS also sets inline scale) */
+  /* Active: icon lifts slightly (JS handles scale during swipe) */
   .dilz-bottom-nav__item.is-active .dilz-bottom-nav__icon {
-    transform: translateY(-1px) scale(1.26) !important;
+    transform: translateY(-1px) scale(1.20) !important;
   }
 
   .dilz-bottom-nav__item.is-active > span:last-child {
