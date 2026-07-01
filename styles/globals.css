@@ -8304,7 +8304,7 @@ select:focus,
 
 /* iOS-style mobile bottom tab bar. Rollback anchor: 81e46d1. */
 :root {
-  --dilz-tabbar-height: 76px;
+  --dilz-tabbar-height: 86px;
   --dilz-tabbar-gap: 20px;
   --dilz-tabbar-radius: 30px;
   --dilz-tabbar-bg: rgba(255, 255, 255, 0.28);
@@ -8358,9 +8358,9 @@ select:focus,
     position: relative !important;
     width: min(100%, 430px) !important;
     max-width: 430px !important;
-    height: 54px !important;
+    height: 66px !important;
     margin: 0 auto !important;
-    padding: 5px 6px !important;
+    padding: 6px 7px !important;
     display: grid !important;
     grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
     align-items: center;
@@ -8377,11 +8377,10 @@ select:focus,
 
   .dilz-bottom-nav__item {
     min-width: 0;
-    min-height: 44px;
+    min-height: 54px;
     border: 0 !important;
     border-radius: 22px !important;
     background: transparent !important;
-    color: var(--text-muted) !important;
     display: flex !important;
     align-items: center;
     justify-content: center;
@@ -8519,25 +8518,28 @@ select:focus,
     display: none !important;
   }
 
-  /* Floating loupe div — moves with JS via left style */
+  /* Floating drop — moves with JS via left style, stays within bar */
   .dilz-bottom-nav__loupe {
     position: absolute;
-    top: -3px;
-    width: 48px;
-    height: 48px;
-    border-radius: 50%;
+    /* vertically centered inside the pill */
+    top: 50%;
+    margin-top: -26px;      /* half of 52px height */
+    width: 52px;
+    height: 52px;
+    /* goutte / water-drop: rounder at top, slightly flatter at bottom */
+    border-radius: 50% 50% 44% 44% / 58% 58% 42% 42%;
     pointer-events: none;
     z-index: 1;
-    transition: left 380ms cubic-bezier(0.34, 1.56, 0.64, 1);
-    /* Light mode glass sphere */
-    backdrop-filter: blur(4px) saturate(220%) brightness(1.20);
-    -webkit-backdrop-filter: blur(4px) saturate(220%) brightness(1.20);
-    background: rgba(255, 255, 255, 0.11);
+    transition: left 400ms cubic-bezier(0.34, 1.56, 0.64, 1);
+    /* Light mode glass drop */
+    backdrop-filter: blur(4px) saturate(220%) brightness(1.18);
+    -webkit-backdrop-filter: blur(4px) saturate(220%) brightness(1.18);
+    background: rgba(255, 255, 255, 0.13);
     box-shadow:
       inset 0 1.5px 6px rgba(255, 255, 255, 0.60),
       inset 0 -1px 3px rgba(0, 0, 0, 0.06),
-      0 6px 20px rgba(249, 115, 22, 0.12),
-      0 0 0 1px rgba(255, 255, 255, 0.55);
+      0 4px 16px rgba(249, 115, 22, 0.10),
+      0 0 0 1px rgba(255, 255, 255, 0.52);
   }
 
   /* During swipe: loupe follows finger without spring */
@@ -8545,16 +8547,16 @@ select:focus,
     transition: none !important;
   }
 
-  /* Dark mode glass sphere */
+  /* Dark mode glass drop */
   .dark .dilz-bottom-nav__loupe {
-    backdrop-filter: blur(4px) saturate(180%) brightness(1.42);
-    -webkit-backdrop-filter: blur(4px) saturate(180%) brightness(1.42);
-    background: rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(4px) saturate(180%) brightness(1.40);
+    -webkit-backdrop-filter: blur(4px) saturate(180%) brightness(1.40);
+    background: rgba(255, 255, 255, 0.09);
     box-shadow:
-      inset 0 1.5px 6px rgba(255, 255, 255, 0.28),
-      inset 0 -1px 3px rgba(0, 0, 0, 0.30),
-      0 8px 26px rgba(0, 0, 0, 0.34),
-      0 0 0 1px rgba(255, 255, 255, 0.20);
+      inset 0 1.5px 6px rgba(255, 255, 255, 0.26),
+      inset 0 -1px 3px rgba(0, 0, 0, 0.28),
+      0 6px 22px rgba(0, 0, 0, 0.32),
+      0 0 0 1px rgba(255, 255, 255, 0.18);
   }
 
   /* Icon and label sit above the loupe */
@@ -8571,12 +8573,38 @@ select:focus,
     transition: transform 380ms cubic-bezier(0.34, 1.56, 0.64, 1) !important;
   }
 
+  /* ── Colors: active = orange, inactive = white ─────────────────────── */
+  .dilz-bottom-nav__item {
+    color: rgba(255, 255, 255, 0.55) !important;
+  }
+
+  .dilz-bottom-nav__item.is-active {
+    color: var(--brand) !important;
+    font-weight: 800;
+  }
+
+  /* Light mode: inactive icons dark (white-on-white invisible) */
+  @media (prefers-color-scheme: light) {
+    .dilz-bottom-nav__item {
+      color: rgba(60, 60, 80, 0.55) !important;
+    }
+  }
+
+  /* Explicit light class override */
+  :root:not(.dark) .dilz-bottom-nav__item {
+    color: rgba(60, 60, 80, 0.55) !important;
+  }
+
+  :root:not(.dark) .dilz-bottom-nav__item.is-active {
+    color: var(--brand) !important;
+  }
+
   /* Active tab: icon lifts into the loupe (JS also sets inline scale) */
   .dilz-bottom-nav__item.is-active .dilz-bottom-nav__icon {
-    transform: translateY(-2px) scale(1.26) !important;
+    transform: translateY(-1px) scale(1.26) !important;
   }
 
   .dilz-bottom-nav__item.is-active > span:last-child {
-    transform: translateY(2px) !important;
+    transform: translateY(1px) !important;
   }
 }

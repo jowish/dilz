@@ -3,9 +3,9 @@ import { bottomNavActiveItem } from '../../lib/navigationState';
 
 const TAB_COUNT = 5;
 
-// Center of loupe as CSS left value (loupe width = 48px → half = 24px)
+// Center of loupe as CSS left value (loupe width = 52px → half = 26px)
 function loupeLeft(center) {
-  return `calc(${((center + 0.5) / TAB_COUNT) * 100}% - 24px)`;
+  return `calc(${((center + 0.5) / TAB_COUNT) * 100}% - 26px)`;
 }
 
 // Dock magnification: icons near the loupe scale up like macOS dock
