@@ -8384,8 +8384,8 @@ select:focus,
     display: flex !important;
     align-items: center;
     justify-content: center;
-    gap: 1px;
-    font-size: 9px;
+    gap: 2px;
+    font-size: 10px;
     font-weight: 700;
     letter-spacing: -0.01em;
     cursor: pointer;
@@ -8444,9 +8444,9 @@ select:focus,
   }
 
   .dilz-bottom-nav__icon svg {
-    width: 16px !important;
-    height: 16px !important;
-    stroke-width: 2.2;
+    width: 19px !important;
+    height: 19px !important;
+    stroke-width: 2.1;
   }
 
   .dilz-bottom-nav__item.is-active {
@@ -8560,35 +8560,32 @@ select:focus,
     color: var(--brand) !important;
   }
 
-  /* ── UIGlassEffect capsule — faithful CSS reproduction of iOS 26 ─────
-     Source: LiquidGlassReference fallback recipe:
-       shape.fill(.ultraThinMaterial)                        → backdrop-filter blur + thin bg
-       .overlay(LinearGradient white.0.3→clear, topLeading→bottomTrailing) → diagonal gradient
-       .overlay(shape.stroke(.white.opacity(0.2), lineWidth:1))            → thin border
+  /* ── Glass capsule — recipe from archisvaze + kevinbism repos ─────────
+     blur(40px) saturate(1.4)  →  same as iOS backdrop sample
+     rgba(255,255,255,0.25)    →  white alpha tint
+     inset 0 0 8px 2px rgba(255,255,255,0.30)  →  specular highlight
+     border 1px rgba(255,255,255,0.80)          →  crisp rim
+     easing: cubic-bezier(0.32,0.72,0,1)        →  Apple's own iOS easing
   ────────────────────────────────────────────────────────────────────── */
   .dilz-bottom-nav__loupe {
     position: absolute;
-    top: 50%;
-    margin-top: -25px;         /* centered: half of 50px height */
-    width: 62px;
-    height: 50px;
-    border-radius: 25px;       /* full capsule */
+    /* centered on the ICON area (not icon+label) */
+    top: 5px;
+    width: 52px;
+    height: 44px;
+    border-radius: 999px;      /* full capsule / pill */
     pointer-events: none;
     z-index: 1;
-    transition: left 400ms cubic-bezier(0.34, 1.56, 0.64, 1);
-    /* ultraThinMaterial equivalent */
-    backdrop-filter: blur(20px) saturate(180%);
-    -webkit-backdrop-filter: blur(20px) saturate(180%);
-    /* diagonal gradient: white.0.3 top-left → clear bottom-right */
-    background: linear-gradient(
-      135deg,
-      rgba(255, 255, 255, 0.26) 0%,
-      rgba(255, 255, 255, 0.06) 100%
-    );
-    /* thin white stroke */
-    border: 0.5px solid rgba(255, 255, 255, 0.28);
-    /* subtle outer shadow */
-    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.12);
+    /* Apple iOS easing for the slide */
+    transition: left 340ms cubic-bezier(0.32, 0.72, 0, 1);
+    /* Light mode glass */
+    backdrop-filter: blur(40px) saturate(1.4);
+    -webkit-backdrop-filter: blur(40px) saturate(1.4);
+    background: rgba(255, 255, 255, 0.25);
+    box-shadow:
+      0 4px 16px rgba(0, 0, 0, 0.18),
+      inset 0 0 8px 2px rgba(255, 255, 255, 0.30);
+    border: 1px solid rgba(255, 255, 255, 0.80);
   }
 
   /* During swipe: loupe follows finger in real-time */
@@ -8596,17 +8593,15 @@ select:focus,
     transition: none !important;
   }
 
-  /* Dark mode: same recipe, stronger brightness lift */
+  /* Dark mode glass */
   .dark .dilz-bottom-nav__loupe {
-    backdrop-filter: blur(20px) saturate(180%) brightness(1.30);
-    -webkit-backdrop-filter: blur(20px) saturate(180%) brightness(1.30);
-    background: linear-gradient(
-      135deg,
-      rgba(255, 255, 255, 0.18) 0%,
-      rgba(255, 255, 255, 0.04) 100%
-    );
-    border: 0.5px solid rgba(255, 255, 255, 0.20);
-    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.28);
+    backdrop-filter: blur(40px) saturate(1.4) brightness(1.30);
+    -webkit-backdrop-filter: blur(40px) saturate(1.4) brightness(1.30);
+    background: rgba(255, 255, 255, 0.14);
+    box-shadow:
+      0 4px 16px rgba(0, 0, 0, 0.36),
+      inset 0 0 8px 2px rgba(255, 255, 255, 0.16);
+    border: 1px solid rgba(255, 255, 255, 0.28);
   }
 
   /* ── Icon and label above the loupe ────────────────────────────────── */
@@ -8624,12 +8619,8 @@ select:focus,
     transition: transform 380ms cubic-bezier(0.34, 1.56, 0.64, 1) !important;
   }
 
-  /* Active: icon lifts slightly (JS handles scale during swipe) */
+  /* Active: scale handled by JS inline style; CSS is just the fallback */
   .dilz-bottom-nav__item.is-active .dilz-bottom-nav__icon {
-    transform: translateY(-1px) scale(1.20) !important;
-  }
-
-  .dilz-bottom-nav__item.is-active > span:last-child {
-    transform: translateY(1px) !important;
+    transform: scale(1.15) !important;
   }
 }
