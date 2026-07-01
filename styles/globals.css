@@ -8307,16 +8307,22 @@ select:focus,
   --dilz-tabbar-height: 84px;
   --dilz-tabbar-gap: 10px;
   --dilz-tabbar-radius: 28px;
-  --dilz-tabbar-bg: rgba(255, 255, 255, 0.82);
-  --dilz-tabbar-border: rgba(15, 23, 42, 0.12);
-  --dilz-tabbar-shadow: 0 12px 34px rgba(15, 23, 42, 0.12);
+  --dilz-tabbar-bg: rgba(255, 255, 255, 0.58);
+  --dilz-tabbar-border: rgba(255, 255, 255, 0.70);
+  --dilz-tabbar-shadow:
+    0 8px 28px rgba(0, 0, 0, 0.09),
+    0 2px 8px rgba(0, 0, 0, 0.05),
+    inset 0 1px 0 rgba(255, 255, 255, 0.92);
   --dilz-tabbar-active-bg: rgba(249, 115, 22, 0.12);
 }
 
 .dark {
-  --dilz-tabbar-bg: rgba(13, 20, 32, 0.78);
-  --dilz-tabbar-border: rgba(148, 163, 184, 0.18);
-  --dilz-tabbar-shadow: 0 14px 38px rgba(0, 0, 0, 0.34);
+  --dilz-tabbar-bg: rgba(13, 20, 32, 0.60);
+  --dilz-tabbar-border: rgba(255, 255, 255, 0.10);
+  --dilz-tabbar-shadow:
+    0 8px 28px rgba(0, 0, 0, 0.32),
+    0 2px 8px rgba(0, 0, 0, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.07);
   --dilz-tabbar-active-bg: rgba(249, 115, 22, 0.16);
 }
 
@@ -8361,8 +8367,8 @@ select:focus,
     border-radius: var(--dilz-tabbar-radius) !important;
     background: var(--dilz-tabbar-bg) !important;
     box-shadow: var(--dilz-tabbar-shadow) !important;
-    backdrop-filter: saturate(180%) blur(22px);
-    -webkit-backdrop-filter: saturate(180%) blur(22px);
+    backdrop-filter: blur(32px) saturate(200%) brightness(1.08);
+    -webkit-backdrop-filter: blur(32px) saturate(200%) brightness(1.08);
     pointer-events: auto;
   }
 
@@ -8484,5 +8490,10 @@ select:focus,
   .dilz-bottom-nav__item.is-post > span:last-child {
     color: var(--brand) !important;
     font-weight: 800;
+  }
+
+  .dark .dilz-bottom-nav__inner {
+    backdrop-filter: blur(32px) saturate(160%) brightness(0.94) !important;
+    -webkit-backdrop-filter: blur(32px) saturate(160%) brightness(0.94) !important;
   }
 }
