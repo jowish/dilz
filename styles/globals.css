@@ -8512,20 +8512,30 @@ select:focus,
     overflow: visible !important;
   }
 
-  /* ── WhatsApp-style glass bubble on active tab ──────────────────────── */
+  /* ── iOS 26-style glass loupe on active tab ─────────────────────────── */
+
+  /* Icon sits above the bubble (z-index: -1 on ::before blocks backdrop-filter) */
   .dilz-bottom-nav__icon {
+    position: relative !important;
+    z-index: 2 !important;
     transition:
       transform 450ms cubic-bezier(0.34, 1.56, 0.64, 1),
       color 180ms ease !important;
-    position: relative;
-    z-index: 1;
   }
 
   .dilz-bottom-nav__icon svg {
     transition: transform 450ms cubic-bezier(0.34, 1.56, 0.64, 1) !important;
   }
 
-  /* Circular glass bubble — overrides the earlier pill shape */
+  /* Label also sits above the bubble */
+  .dilz-bottom-nav__item > span:last-child {
+    position: relative !important;
+    z-index: 2 !important;
+    display: block;
+    transition: transform 450ms cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+  }
+
+  /* Circular glass bubble — z-index:1 so backdrop-filter works */
   .dilz-bottom-nav__item::before {
     top: -2px !important;
     bottom: auto !important;
@@ -8535,55 +8545,55 @@ select:focus,
     height: 52px !important;
     margin: 0 0 0 -26px !important;
     border-radius: 50% !important;
+    z-index: 1 !important;
     background: transparent !important;
     border: none !important;
     box-shadow: none !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
     transform: scale(0.45) !important;
     opacity: 0 !important;
     transition:
       opacity 280ms ease,
       transform 460ms cubic-bezier(0.34, 1.56, 0.64, 1),
-      background 220ms ease,
-      box-shadow 220ms ease !important;
+      background 240ms ease,
+      box-shadow 240ms ease !important;
   }
 
-  /* Light mode: warm glassy sphere */
+  /* Light mode: warm loupe — backdrop brightens + saturates the area */
   .dilz-bottom-nav__item.is-active::before {
-    background: rgba(249, 115, 22, 0.09) !important;
-    box-shadow:
-      inset 0 2px 10px rgba(255, 255, 255, 0.55),
-      inset 0 -1px 5px rgba(0, 0, 0, 0.07),
-      0 6px 22px rgba(249, 115, 22, 0.16),
-      0 0 0 1px rgba(255, 255, 255, 0.65),
-      0 0 0 2.5px rgba(255, 255, 255, 0.15) !important;
-    transform: scale(1) !important;
-    opacity: 1 !important;
-  }
-
-  /* Dark mode: cool frosted glass sphere */
-  .dark .dilz-bottom-nav__item.is-active::before {
+    backdrop-filter: blur(3px) saturate(220%) brightness(1.22) !important;
+    -webkit-backdrop-filter: blur(3px) saturate(220%) brightness(1.22) !important;
     background: rgba(255, 255, 255, 0.10) !important;
     box-shadow:
-      inset 0 2px 10px rgba(255, 255, 255, 0.20),
-      inset 0 -2px 5px rgba(0, 0, 0, 0.18),
-      0 8px 28px rgba(0, 0, 0, 0.30),
-      0 0 0 1px rgba(255, 255, 255, 0.22),
-      0 0 0 2.5px rgba(255, 255, 255, 0.06) !important;
+      inset 0 1.5px 6px rgba(255, 255, 255, 0.62),
+      inset 0 -1px 3px rgba(0, 0, 0, 0.06),
+      0 6px 20px rgba(249, 115, 22, 0.14),
+      0 0 0 1px rgba(255, 255, 255, 0.58) !important;
     transform: scale(1) !important;
     opacity: 1 !important;
   }
 
-  /* Icon rises into the bubble with spring */
+  /* Dark mode: cool frosted loupe — strong brightness lift like iOS glass */
+  .dark .dilz-bottom-nav__item.is-active::before {
+    backdrop-filter: blur(3px) saturate(180%) brightness(1.45) !important;
+    -webkit-backdrop-filter: blur(3px) saturate(180%) brightness(1.45) !important;
+    background: rgba(255, 255, 255, 0.08) !important;
+    box-shadow:
+      inset 0 1.5px 6px rgba(255, 255, 255, 0.30),
+      inset 0 -1px 3px rgba(0, 0, 0, 0.32),
+      0 8px 26px rgba(0, 0, 0, 0.35),
+      0 0 0 1px rgba(255, 255, 255, 0.22) !important;
+    transform: scale(1) !important;
+    opacity: 1 !important;
+  }
+
+  /* Icon springs up into the loupe */
   .dilz-bottom-nav__item.is-active .dilz-bottom-nav__icon {
-    transform: translateY(-2px) scale(1.30) !important;
+    transform: translateY(-2px) scale(1.28) !important;
   }
 
-  /* Label sinks slightly to stay balanced */
-  .dilz-bottom-nav__item > span:last-child {
-    display: block;
-    transition: transform 450ms cubic-bezier(0.34, 1.56, 0.64, 1) !important;
-  }
-
+  /* Label drops slightly to compensate */
   .dilz-bottom-nav__item.is-active > span:last-child {
     transform: translateY(3px) !important;
   }
