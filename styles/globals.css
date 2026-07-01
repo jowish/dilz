@@ -8304,24 +8304,24 @@ select:focus,
 
 /* iOS-style mobile bottom tab bar. Rollback anchor: 81e46d1. */
 :root {
-  --dilz-tabbar-height: 84px;
+  --dilz-tabbar-height: 90px;
   --dilz-tabbar-gap: 10px;
-  --dilz-tabbar-radius: 28px;
-  --dilz-tabbar-bg: rgba(255, 255, 255, 0.58);
-  --dilz-tabbar-border: rgba(255, 255, 255, 0.70);
+  --dilz-tabbar-radius: 30px;
+  --dilz-tabbar-bg: rgba(255, 255, 255, 0.28);
+  --dilz-tabbar-border: rgba(255, 255, 255, 0.72);
   --dilz-tabbar-shadow:
-    0 8px 28px rgba(0, 0, 0, 0.09),
+    0 8px 32px rgba(0, 0, 0, 0.10),
     0 2px 8px rgba(0, 0, 0, 0.05),
-    inset 0 1px 0 rgba(255, 255, 255, 0.92);
-  --dilz-tabbar-active-bg: rgba(249, 115, 22, 0.12);
+    inset 0 1px 0 rgba(255, 255, 255, 0.95);
+  --dilz-tabbar-active-bg: rgba(249, 115, 22, 0.13);
 }
 
 .dark {
-  --dilz-tabbar-bg: rgba(13, 20, 32, 0.60);
-  --dilz-tabbar-border: rgba(255, 255, 255, 0.10);
+  --dilz-tabbar-bg: rgba(13, 20, 32, 0.38);
+  --dilz-tabbar-border: rgba(255, 255, 255, 0.11);
   --dilz-tabbar-shadow:
-    0 8px 28px rgba(0, 0, 0, 0.32),
-    0 2px 8px rgba(0, 0, 0, 0.18),
+    0 8px 32px rgba(0, 0, 0, 0.36),
+    0 2px 8px rgba(0, 0, 0, 0.20),
     inset 0 1px 0 rgba(255, 255, 255, 0.07);
   --dilz-tabbar-active-bg: rgba(249, 115, 22, 0.16);
 }
@@ -8346,7 +8346,7 @@ select:focus,
     justify-content: center;
     align-items: flex-end;
     height: calc(var(--dilz-tabbar-height) + env(safe-area-inset-bottom)) !important;
-    padding: 0 12px calc(var(--dilz-tabbar-gap) + env(safe-area-inset-bottom)) !important;
+    padding: 0 20px calc(var(--dilz-tabbar-gap) + env(safe-area-inset-bottom)) !important;
     border: 0 !important;
     background: transparent !important;
     box-shadow: none !important;
@@ -8357,7 +8357,7 @@ select:focus,
   .dilz-bottom-nav__inner {
     width: min(100%, 430px) !important;
     max-width: 430px !important;
-    height: 64px !important;
+    height: 70px !important;
     margin: 0 auto !important;
     padding: 6px 7px !important;
     display: grid !important;
@@ -8367,8 +8367,8 @@ select:focus,
     border-radius: var(--dilz-tabbar-radius) !important;
     background: var(--dilz-tabbar-bg) !important;
     box-shadow: var(--dilz-tabbar-shadow) !important;
-    backdrop-filter: blur(32px) saturate(200%) brightness(1.08);
-    -webkit-backdrop-filter: blur(32px) saturate(200%) brightness(1.08);
+    backdrop-filter: blur(40px) saturate(220%) brightness(1.06);
+    -webkit-backdrop-filter: blur(40px) saturate(220%) brightness(1.06);
     pointer-events: auto;
   }
 
@@ -8493,7 +8493,56 @@ select:focus,
   }
 
   .dark .dilz-bottom-nav__inner {
-    backdrop-filter: blur(32px) saturate(160%) brightness(0.94) !important;
-    -webkit-backdrop-filter: blur(32px) saturate(160%) brightness(0.94) !important;
+    backdrop-filter: blur(40px) saturate(180%) brightness(0.94) !important;
+    -webkit-backdrop-filter: blur(40px) saturate(180%) brightness(0.94) !important;
+  }
+
+  /* Force the outer wrapper fully transparent — overrides .dark rule at lower specificity */
+  .dark .dilz-bottom-nav,
+  .dilz-bottom-nav {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+
+  /* ── Loupe / goutte : spring animation on active tab ───────────────── */
+  .dilz-bottom-nav__icon {
+    transition:
+      transform 420ms cubic-bezier(0.34, 1.56, 0.64, 1),
+      color 180ms ease !important;
+  }
+
+  .dilz-bottom-nav__icon svg {
+    transition: transform 420ms cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+  }
+
+  .dilz-bottom-nav__item.is-active .dilz-bottom-nav__icon {
+    transform: translateY(-4px) scale(1.22) !important;
+  }
+
+  .dilz-bottom-nav__item > span:last-child {
+    display: block;
+    transition: transform 420ms cubic-bezier(0.34, 1.56, 0.64, 1), opacity 200ms ease;
+  }
+
+  .dilz-bottom-nav__item.is-active > span:last-child {
+    transform: translateY(-2px);
+  }
+
+  /* The active background pill springs in */
+  .dilz-bottom-nav__item::before {
+    transition:
+      background-color 200ms ease,
+      opacity 260ms ease,
+      transform 420ms cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+    transform: scale(0.80) !important;
+    opacity: 0 !important;
+  }
+
+  .dilz-bottom-nav__item.is-active::before {
+    transform: scale(1) !important;
+    opacity: 1 !important;
   }
 }
