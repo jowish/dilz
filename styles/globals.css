@@ -8304,8 +8304,8 @@ select:focus,
 
 /* iOS-style mobile bottom tab bar. Rollback anchor: 81e46d1. */
 :root {
-  --dilz-tabbar-height: 90px;
-  --dilz-tabbar-gap: 10px;
+  --dilz-tabbar-height: 76px;
+  --dilz-tabbar-gap: 20px;
   --dilz-tabbar-radius: 30px;
   --dilz-tabbar-bg: rgba(255, 255, 255, 0.28);
   --dilz-tabbar-border: rgba(255, 255, 255, 0.72);
@@ -8355,11 +8355,12 @@ select:focus,
   }
 
   .dilz-bottom-nav__inner {
+    position: relative !important;
     width: min(100%, 430px) !important;
     max-width: 430px !important;
-    height: 70px !important;
+    height: 54px !important;
     margin: 0 auto !important;
-    padding: 6px 7px !important;
+    padding: 5px 6px !important;
     display: grid !important;
     grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
     align-items: center;
@@ -8370,11 +8371,13 @@ select:focus,
     backdrop-filter: blur(40px) saturate(220%) brightness(1.06);
     -webkit-backdrop-filter: blur(40px) saturate(220%) brightness(1.06);
     pointer-events: auto;
+    touch-action: pan-y;
+    overflow: visible !important;
   }
 
   .dilz-bottom-nav__item {
     min-width: 0;
-    min-height: 52px;
+    min-height: 44px;
     border: 0 !important;
     border-radius: 22px !important;
     background: transparent !important;
@@ -8382,8 +8385,8 @@ select:focus,
     display: flex !important;
     align-items: center;
     justify-content: center;
-    gap: 2px;
-    font-size: 10.5px;
+    gap: 1px;
+    font-size: 9px;
     font-weight: 700;
     letter-spacing: -0.01em;
     cursor: pointer;
@@ -8426,8 +8429,8 @@ select:focus,
   }
 
   .dilz-bottom-nav__icon {
-    width: 28px !important;
-    height: 26px !important;
+    width: 20px !important;
+    height: 18px !important;
     margin: 0 !important;
     border-radius: 999px !important;
     background: transparent !important;
@@ -8437,14 +8440,14 @@ select:focus,
     justify-content: center;
     transition:
       color 180ms ease,
-      transform 180ms cubic-bezier(0.22, 1, 0.36, 1),
+      transform 360ms cubic-bezier(0.34, 1.56, 0.64, 1),
       background-color 180ms ease;
   }
 
   .dilz-bottom-nav__icon svg {
-    width: 22px !important;
-    height: 22px !important;
-    stroke-width: 2.15;
+    width: 16px !important;
+    height: 16px !important;
+    stroke-width: 2.2;
   }
 
   .dilz-bottom-nav__item.is-active {
@@ -8473,9 +8476,9 @@ select:focus,
 
   .dilz-bottom-nav__item.is-post .dilz-bottom-nav__icon,
   .dark .dilz-bottom-nav__item.is-post .dilz-bottom-nav__icon {
-    width: 44px !important;
-    height: 44px !important;
-    margin-top: -18px !important;
+    width: 38px !important;
+    height: 38px !important;
+    margin-top: -10px !important;
     border: 1px solid rgba(255, 255, 255, 0.22) !important;
     border-radius: 16px !important;
     background: var(--brand) !important;
@@ -8507,94 +8510,73 @@ select:focus,
     -webkit-backdrop-filter: none !important;
   }
 
-  /* Allow the glass bubble to protrude above the pill */
-  .dilz-bottom-nav__inner {
-    overflow: visible !important;
+  /* ── Loupe div (replaces ::before approach) ─────────────────────────── */
+
+  /* Neutralise all ::before overrides — the div handles the loupe now */
+  .dilz-bottom-nav__item::before,
+  .dilz-bottom-nav__item.is-active::before,
+  .dark .dilz-bottom-nav__item.is-active::before {
+    display: none !important;
   }
 
-  /* ── iOS 26-style glass loupe on active tab ─────────────────────────── */
+  /* Floating loupe div — moves with JS via left style */
+  .dilz-bottom-nav__loupe {
+    position: absolute;
+    top: -3px;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 1;
+    transition: left 380ms cubic-bezier(0.34, 1.56, 0.64, 1);
+    /* Light mode glass sphere */
+    backdrop-filter: blur(4px) saturate(220%) brightness(1.20);
+    -webkit-backdrop-filter: blur(4px) saturate(220%) brightness(1.20);
+    background: rgba(255, 255, 255, 0.11);
+    box-shadow:
+      inset 0 1.5px 6px rgba(255, 255, 255, 0.60),
+      inset 0 -1px 3px rgba(0, 0, 0, 0.06),
+      0 6px 20px rgba(249, 115, 22, 0.12),
+      0 0 0 1px rgba(255, 255, 255, 0.55);
+  }
 
-  /* Icon sits above the bubble (z-index: -1 on ::before blocks backdrop-filter) */
+  /* During swipe: loupe follows finger without spring */
+  .dilz-bottom-nav__loupe.is-swiping {
+    transition: none !important;
+  }
+
+  /* Dark mode glass sphere */
+  .dark .dilz-bottom-nav__loupe {
+    backdrop-filter: blur(4px) saturate(180%) brightness(1.42);
+    -webkit-backdrop-filter: blur(4px) saturate(180%) brightness(1.42);
+    background: rgba(255, 255, 255, 0.08);
+    box-shadow:
+      inset 0 1.5px 6px rgba(255, 255, 255, 0.28),
+      inset 0 -1px 3px rgba(0, 0, 0, 0.30),
+      0 8px 26px rgba(0, 0, 0, 0.34),
+      0 0 0 1px rgba(255, 255, 255, 0.20);
+  }
+
+  /* Icon and label sit above the loupe */
   .dilz-bottom-nav__icon {
     position: relative !important;
     z-index: 2 !important;
-    transition:
-      transform 450ms cubic-bezier(0.34, 1.56, 0.64, 1),
-      color 180ms ease !important;
+    transition: transform 380ms cubic-bezier(0.34, 1.56, 0.64, 1), color 180ms ease !important;
   }
 
-  .dilz-bottom-nav__icon svg {
-    transition: transform 450ms cubic-bezier(0.34, 1.56, 0.64, 1) !important;
-  }
-
-  /* Label also sits above the bubble */
   .dilz-bottom-nav__item > span:last-child {
     position: relative !important;
     z-index: 2 !important;
     display: block;
-    transition: transform 450ms cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+    transition: transform 380ms cubic-bezier(0.34, 1.56, 0.64, 1) !important;
   }
 
-  /* Circular glass bubble — z-index:1 so backdrop-filter works */
-  .dilz-bottom-nav__item::before {
-    top: -2px !important;
-    bottom: auto !important;
-    left: 50% !important;
-    right: auto !important;
-    width: 52px !important;
-    height: 52px !important;
-    margin: 0 0 0 -26px !important;
-    border-radius: 50% !important;
-    z-index: 1 !important;
-    background: transparent !important;
-    border: none !important;
-    box-shadow: none !important;
-    backdrop-filter: none !important;
-    -webkit-backdrop-filter: none !important;
-    transform: scale(0.45) !important;
-    opacity: 0 !important;
-    transition:
-      opacity 280ms ease,
-      transform 460ms cubic-bezier(0.34, 1.56, 0.64, 1),
-      background 240ms ease,
-      box-shadow 240ms ease !important;
-  }
-
-  /* Light mode: warm loupe — backdrop brightens + saturates the area */
-  .dilz-bottom-nav__item.is-active::before {
-    backdrop-filter: blur(3px) saturate(220%) brightness(1.22) !important;
-    -webkit-backdrop-filter: blur(3px) saturate(220%) brightness(1.22) !important;
-    background: rgba(255, 255, 255, 0.10) !important;
-    box-shadow:
-      inset 0 1.5px 6px rgba(255, 255, 255, 0.62),
-      inset 0 -1px 3px rgba(0, 0, 0, 0.06),
-      0 6px 20px rgba(249, 115, 22, 0.14),
-      0 0 0 1px rgba(255, 255, 255, 0.58) !important;
-    transform: scale(1) !important;
-    opacity: 1 !important;
-  }
-
-  /* Dark mode: cool frosted loupe — strong brightness lift like iOS glass */
-  .dark .dilz-bottom-nav__item.is-active::before {
-    backdrop-filter: blur(3px) saturate(180%) brightness(1.45) !important;
-    -webkit-backdrop-filter: blur(3px) saturate(180%) brightness(1.45) !important;
-    background: rgba(255, 255, 255, 0.08) !important;
-    box-shadow:
-      inset 0 1.5px 6px rgba(255, 255, 255, 0.30),
-      inset 0 -1px 3px rgba(0, 0, 0, 0.32),
-      0 8px 26px rgba(0, 0, 0, 0.35),
-      0 0 0 1px rgba(255, 255, 255, 0.22) !important;
-    transform: scale(1) !important;
-    opacity: 1 !important;
-  }
-
-  /* Icon springs up into the loupe */
+  /* Active tab: icon lifts into the loupe (JS also sets inline scale) */
   .dilz-bottom-nav__item.is-active .dilz-bottom-nav__icon {
-    transform: translateY(-2px) scale(1.28) !important;
+    transform: translateY(-2px) scale(1.26) !important;
   }
 
-  /* Label drops slightly to compensate */
   .dilz-bottom-nav__item.is-active > span:last-child {
-    transform: translateY(3px) !important;
+    transform: translateY(2px) !important;
   }
 }
