@@ -168,14 +168,12 @@ export function BottomNav({ lang = 'en', activeTab, menuOpen = false, alertsOpen
   const px = loupeLeftPx(loupeCenter);
   const pos = px !== null ? `${px}px` : loupeLeftFallback(loupeCenter, isRtl);
 
-  // Distance-proportional glide: the duration scales with how many tabs the
-  // bubble travels, so a hop between neighbours feels just as light as a sweep
-  // across the whole bar (a fixed duration made short hops feel sluggish).
-  const prevActive = useRef(activeIdx);
-  useEffect(() => { prevActive.current = activeIdx; }, [activeIdx]);
-  const hop = Math.min(4, Math.abs(activeIdx - prevActive.current)) || 1;
-  const glideMs = 160 + 75 * hop;   // neighbour ≈ 235ms, extremes ≈ 460ms
+  // A fixed, generous duration for every hop. This deliberately does NOT scale
+  // with distance: a long sweep across the bar covers ground quickly (feels
+  // dynamic) while a hop to a neighbour takes the same time over less distance
+  // (slow and smooth) — exactly the calm feel wanted for adjacent menus.
   const ease = 'cubic-bezier(0.33, 0, 0.2, 1)';
+  const glideMs = 560;
 
   // Position + swell via the individual `translate`/`scale` properties — both
   // are GPU-composited (no per-frame layout like `left`), and each can carry
@@ -184,7 +182,7 @@ export function BottomNav({ lang = 'en', activeTab, menuOpen = false, alertsOpen
     translate: pos,
     scale: `${dragSwell.toFixed(3)}`,
     // Jump (no transition) until the user has touched the bar, and follow the
-    // finger 1:1 while dragging; otherwise glide with a distance-scaled duration.
+    // finger 1:1 while dragging; otherwise glide with the calm fixed duration.
     transition: (isSwiping || !armed)
       ? 'none'
       : `translate ${glideMs}ms ${ease}, scale 220ms ${ease}`,
