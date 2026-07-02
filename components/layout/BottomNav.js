@@ -57,10 +57,13 @@ export function BottomNav({ lang = 'en', activeTab, menuOpen = false, alertsOpen
       const inner = innerRef.current;
       if (!inner) return;
       const innerRect = inner.getBoundingClientRect();
+      // Absolute `left` is relative to the padding box, but getBoundingClientRect
+      // is the border box — subtract the left border so centering is exact.
+      const borderL = inner.clientLeft || 0;
       const next = itemRefs.current.map((btn) => {
         if (!btn) return 0;
         const r = btn.getBoundingClientRect();
-        return r.left - innerRect.left + r.width / 2;
+        return r.left - innerRect.left - borderL + r.width / 2;
       });
       if (next.length === TAB_COUNT) setCenters(next);
     };
@@ -191,7 +194,7 @@ export function BottomNav({ lang = 'en', activeTab, menuOpen = false, alertsOpen
   // When pressed / dragging the bubble grows UNIFORMLY (same shape and
   // proportions, just larger) so it overshoots the bar symmetrically on every
   // side and bites onto the neighbour tabs.
-  const dragSwell = (pressed || isSwiping) ? 1.28 : 1;
+  const dragSwell = (pressed || isSwiping) ? 1.4 : 1;
   const px = loupeLeftPx(loupeCenter);
   const loupeStyle = {
     left: px !== null ? `${px}px` : loupeLeftFallback(loupeCenter),

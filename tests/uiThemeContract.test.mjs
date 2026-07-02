@@ -12,7 +12,7 @@ test('mobile navigation uses the compact liquid-glass bar contract', () => {
   assert.match(css, /padding:\s*0 20px calc\(var\(--dilz-tabbar-gap\) \+ env\(safe-area-inset-bottom\)\)/);
   assert.match(css, /\.dilz-bottom-nav\s*\{[^}]*bottom:\s*0/s);
   // Liquid glass background: gradient sheen layered over the translucent base
-  assert.match(css, /\.dilz-bottom-nav__inner\s*\{[^}]*backdrop-filter:\s*blur\(18px\) saturate\(190%\) contrast\(1\.05\)/s);
+  assert.match(css, /\.dilz-bottom-nav__inner\s*\{[^}]*backdrop-filter:\s*blur\(9px\) saturate\(180%\)/s);
   // A single sliding loupe/drop is the active indicator (no per-item ::before bg)
   assert.match(css, /\.dilz-bottom-nav__loupe\s*\{[^}]*background:[\s\S]*?var\(--dilz-tabbar-active-bg\)/s);
   assert.match(bottomNav, /aria-current=\{committed \? 'page' : undefined\}/);
