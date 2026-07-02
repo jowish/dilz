@@ -8631,14 +8631,17 @@ select:focus,
   /* Icon scale is driven by JS (dock magnification); do not override here. */
 
   /* Post colour (orange default, white on the orange bubble) is set inline in
-     BottomNav.js so it always wins the cascade — no colour rules here. */
-
-  /* While pressed / dragging, the bubble swells slightly BEYOND the bar's
-     height. No blur or forced background here — that would override the orange
-     post-zone tint set inline by JS. */
-  .dilz-bottom-nav__loupe.is-pressed,
-  .dilz-bottom-nav__loupe.is-swiping {
-    top: -5px !important;
-    bottom: -5px !important;
+     BottomNav.js so it always wins the cascade. CSS safety net for the
+     selected state in case inline styles are ever stripped: */
+  .dilz-bottom-nav__item.is-post.is-active .dilz-bottom-nav__icon,
+  .dark .dilz-bottom-nav__item.is-post.is-active .dilz-bottom-nav__icon,
+  .dilz-bottom-nav__item.is-post.is-active > span:last-child,
+  .dark .dilz-bottom-nav__item.is-post.is-active > span:last-child {
+    color: #ffffff !important;
   }
+
+  /* Pressed/dragging growth is a uniform scale() set inline in JS, so the pill
+     keeps its exact shape and overshoots the bar symmetrically on every side.
+     No blur or forced background here — that would override the orange
+     post-zone tint set inline by JS. */
 }

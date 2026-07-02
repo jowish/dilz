@@ -188,13 +188,14 @@ export function BottomNav({ lang = 'en', activeTab, menuOpen = false, alertsOpen
   // white so they stay legible on the orange fill.
   const postLit = postTint > 0.4;
 
-  // When pressed / dragging the bubble swells symmetrically (much wider),
-  // overshooting the bar on every side and biting onto the neighbour tabs.
-  const dragSwell = (pressed || isSwiping) ? 1.45 : 1;
+  // When pressed / dragging the bubble grows UNIFORMLY (same shape and
+  // proportions, just larger) so it overshoots the bar symmetrically on every
+  // side and bites onto the neighbour tabs.
+  const dragSwell = (pressed || isSwiping) ? 1.28 : 1;
   const px = loupeLeftPx(loupeCenter);
   const loupeStyle = {
     left: px !== null ? `${px}px` : loupeLeftFallback(loupeCenter),
-    transform: `scaleX(${dragSwell.toFixed(3)})`,
+    transform: `scale(${dragSwell.toFixed(3)})`,
     transformOrigin: 'center center',
     transition: moving ? 'none' : undefined,
   };
