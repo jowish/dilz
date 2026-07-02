@@ -3,10 +3,12 @@ import { supabase } from '../../lib/supabase';
 import { bottomNavActiveItem } from '../../lib/navigationState';
 
 const TAB_COUNT = 5;
+const LOUPE_WIDTH = 72;
 
-// Loupe width = 64px → half = 32px offset to center on tab
-function loupeLeft(center) {
-  return `calc(${((center + 0.5) / TAB_COUNT) * 100}% - 32px)`;
+// Fallback (pre-measure): percentage-based center. Slightly off due to bar
+// padding, but only used for the very first paint before refs are measured.
+function loupeLeftFallback(center) {
+  return `calc(${((center + 0.5) / TAB_COUNT) * 100}% - ${LOUPE_WIDTH / 2}px)`;
 }
 
 // Subtle magnification near the loupe during swipe
@@ -44,8 +46,39 @@ export function BottomNav({ lang = 'en', activeTab, menuOpen = false, alertsOpen
   }, [avatarProp]);
 
   const innerRef = useRef(null);
+  const itemRefs = useRef([]);
   const swipeRef = useRef(null);
   const [swipeCenter, setSwipeCenter] = useState(null);
+
+  // Measured horizontal centers of each button (px, relative to inner padding box).
+  // This makes the loupe land dead-center on the icon regardless of bar padding.
+  const [centers, setCenters] = useState(null);
+  useEffect(() => {
+    const measure = () => {
+      const inner = innerRef.current;
+      if (!inner) return;
+      const innerRect = inner.getBoundingClientRect();
+      const next = itemRefs.current.map((btn) => {
+        if (!btn) return 0;
+        const r = btn.getBoundingClientRect();
+        return r.left - innerRect.left + r.width / 2;
+      });
+      if (next.length === TAB_COUNT) setCenters(next);
+    };
+    measure();
+    window.addEventListener('resize', measure);
+    return () => window.removeEventListener('resize', measure);
+  }, [lang]);
+
+  // Interpolate the loupe's left (px) for a fractional tab index.
+  function loupeLeftPx(fraction) {
+    if (!centers) return null;
+    const lo = Math.floor(fraction);
+    const hi = Math.min(TAB_COUNT - 1, lo + 1);
+    const t = fraction - lo;
+    const cx = centers[lo] + (centers[hi] - centers[lo]) * t;
+    return cx - LOUPE_WIDTH / 2;
+  }
 
   // Liquid travel: stretch the bubble horizontally while it moves between tabs
   const [stretch, setStretch] = useState(0); // signed: + right, - left
@@ -104,8 +137,9 @@ export function BottomNav({ lang = 'en', activeTab, menuOpen = false, alertsOpen
 
   // Stretch → scaleX + origin so the drop elongates in its travel direction
   const absStretch = Math.abs(stretch);
+  const px = loupeLeftPx(loupeCenter);
   const loupeStyle = {
-    left: loupeLeft(loupeCenter),
+    left: px !== null ? `${px}px` : loupeLeftFallback(loupeCenter),
     transform: `scaleX(${(1 + absStretch * 0.35).toFixed(3)}) scaleY(${(1 - absStretch * 0.12).toFixed(3)})`,
     transformOrigin: stretch >= 0 ? 'left center' : 'right center',
   };
@@ -139,6 +173,7 @@ export function BottomNav({ lang = 'en', activeTab, menuOpen = false, alertsOpen
             <button
               key={item.id}
               type="button"
+              ref={(el) => { itemRefs.current[idx] = el; }}
               className={['dilz-bottom-nav__item', active && 'is-active', item.post && 'is-post'].filter(Boolean).join(' ')}
               onClick={item.action}
               aria-label={item.label}

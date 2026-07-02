@@ -8567,9 +8567,9 @@ select:focus,
   ────────────────────────────────────────────────────────────────────── */
   .dilz-bottom-nav__loupe {
     position: absolute;
-    top: 4px;
-    bottom: 4px;
-    width: 64px;
+    top: 3px;
+    bottom: 3px;
+    width: 72px;
     height: auto;
     border-radius: 999px;
     pointer-events: none;
