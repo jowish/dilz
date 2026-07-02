@@ -2116,18 +2116,9 @@ textarea:focus {
   background: var(--brand-soft);
 }
 
-.dilz-bottom-nav__item.is-post {
-  color: var(--brand);
-}
-
 .dilz-bottom-nav__item.is-post .dilz-bottom-nav__icon {
-  width: 48px;
-  height: 48px;
-  margin-top: -28px;
-  border-radius: 50%;
-  background: var(--brand);
-  color: #fff;
-  box-shadow: 0 8px 18px rgba(226, 85, 45, 0.24);
+  background: transparent;
+  color: inherit;
 }
 
 @media (min-width: 768px) {
@@ -4662,6 +4653,33 @@ textarea:focus {
   letter-spacing: -0.5px;
 }
 
+.dilz-avatar--editable {
+  position: relative;
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.dilz-avatar__img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+.dilz-avatar__edit {
+  position: absolute;
+  right: -2px;
+  bottom: -2px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--brand);
+  color: #fff;
+  border: 2px solid var(--bg-card, #fff);
+}
+
 /* Dark mode */
 .dark .dilz-profil-card,
 .dark .dilz-stat-card,
@@ -7055,21 +7073,6 @@ textarea::placeholder {
     display: none;
   }
 
-  .dilz-bottom-nav__item.is-post .dilz-bottom-nav__icon,
-  .dark .dilz-bottom-nav__item.is-post .dilz-bottom-nav__icon {
-    width: 52px;
-    height: 52px;
-    margin-top: -31px;
-    border: 4px solid var(--bg);
-    background: var(--brand) !important;
-    color: #FFFFFF !important;
-    box-shadow: 0 8px 20px rgba(var(--accent-rgb), 0.28) !important;
-  }
-
-  .dilz-bottom-nav__item.is-post > span:last-child {
-    color: var(--brand);
-    font-weight: 850;
-  }
 }
 
 .dark {
@@ -8304,7 +8307,7 @@ select:focus,
 
 /* iOS-style mobile bottom tab bar. Rollback anchor: 81e46d1. */
 :root {
-  --dilz-tabbar-height: 74px;
+  --dilz-tabbar-height: 80px;
   --dilz-tabbar-gap: 20px;
   --dilz-tabbar-radius: 30px;
   /* Light: neutral frosted white, no color cast */
@@ -8358,18 +8361,30 @@ select:focus,
     position: relative !important;
     width: min(100%, 430px) !important;
     max-width: 430px !important;
-    height: 58px !important;
+    height: 64px !important;
     margin: 0 auto !important;
-    padding: 4px 6px !important;
+    padding: 5px 6px !important;
     display: grid !important;
     grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
     align-items: center;
     border: 1px solid var(--dilz-tabbar-border) !important;
     border-radius: var(--dilz-tabbar-radius) !important;
-    background: var(--dilz-tabbar-bg) !important;
+    /* Liquid glass: translucent base + diagonal light streaks + specular sheen,
+       so it reads as flowing glass rather than a flat frosted panel */
+    background:
+      linear-gradient(115deg,
+        rgba(255, 255, 255, 0.10) 0%,
+        rgba(255, 255, 255, 0.02) 22%,
+        rgba(255, 255, 255, 0.00) 45%,
+        rgba(255, 255, 255, 0.05) 72%,
+        rgba(255, 255, 255, 0.12) 100%),
+      radial-gradient(120% 160% at 20% -40%,
+        rgba(255, 255, 255, 0.16) 0%,
+        rgba(255, 255, 255, 0.00) 60%),
+      var(--dilz-tabbar-bg) !important;
     box-shadow: var(--dilz-tabbar-shadow) !important;
-    backdrop-filter: blur(40px) saturate(150%);
-    -webkit-backdrop-filter: blur(40px) saturate(150%);
+    backdrop-filter: blur(18px) saturate(190%) contrast(1.05);
+    -webkit-backdrop-filter: blur(18px) saturate(190%) contrast(1.05);
     pointer-events: auto;
     touch-action: pan-y;
     overflow: hidden !important;
@@ -8377,15 +8392,15 @@ select:focus,
 
   .dilz-bottom-nav__item {
     min-width: 0;
-    min-height: 48px;
+    min-height: 52px;
     border: 0 !important;
     border-radius: 22px !important;
     background: transparent !important;
     display: flex !important;
     align-items: center;
     justify-content: center;
-    gap: 2px;
-    font-size: 9.5px;
+    gap: 3px;
+    font-size: 11px;
     font-weight: 600;
     letter-spacing: -0.01em;
     cursor: pointer;
@@ -8428,8 +8443,8 @@ select:focus,
   }
 
   .dilz-bottom-nav__icon {
-    width: 20px !important;
-    height: 18px !important;
+    width: 26px !important;
+    height: 24px !important;
     margin: 0 !important;
     border-radius: 999px !important;
     background: transparent !important;
@@ -8444,9 +8459,21 @@ select:focus,
   }
 
   .dilz-bottom-nav__icon svg {
-    width: 18px !important;
-    height: 18px !important;
+    width: 23px !important;
+    height: 23px !important;
     stroke-width: 2;
+  }
+
+  .dilz-bottom-nav__avatar {
+    width: 24px !important;
+    height: 24px !important;
+    border-radius: 50% !important;
+    object-fit: cover !important;
+    display: block;
+  }
+
+  .dilz-bottom-nav__item.is-active .dilz-bottom-nav__avatar {
+    box-shadow: 0 0 0 2px currentColor;
   }
 
   .dilz-bottom-nav__item.is-active {
@@ -8465,38 +8492,12 @@ select:focus,
     transform: translateY(-1px);
   }
 
-  .dilz-bottom-nav__item.is-post {
-    color: var(--brand) !important;
-  }
-
   .dilz-bottom-nav__item.is-post::before {
     display: none !important;
   }
 
-  .dilz-bottom-nav__item.is-post .dilz-bottom-nav__icon,
-  .dark .dilz-bottom-nav__item.is-post .dilz-bottom-nav__icon {
-    width: 38px !important;
-    height: 38px !important;
-    margin-top: -10px !important;
-    border: 1px solid rgba(255, 255, 255, 0.22) !important;
-    border-radius: 16px !important;
-    background: var(--brand) !important;
-    color: #FFFFFF !important;
-    box-shadow: 0 8px 20px rgba(249, 115, 22, 0.24) !important;
-  }
-
   .dilz-bottom-nav__item.is-post:active .dilz-bottom-nav__icon {
     transform: scale(0.94);
-  }
-
-  .dilz-bottom-nav__item.is-post > span:last-child {
-    color: var(--brand) !important;
-    font-weight: 800;
-  }
-
-  .dark .dilz-bottom-nav__inner {
-    backdrop-filter: blur(40px) saturate(180%) brightness(0.94) !important;
-    -webkit-backdrop-filter: blur(40px) saturate(180%) brightness(0.94) !important;
   }
 
   /* Force the outer wrapper fully transparent — overrides .dark rule at lower specificity */
@@ -8522,8 +8523,8 @@ select:focus,
 
   .dilz-bottom-nav__item.is-post .dilz-bottom-nav__icon,
   .dark .dilz-bottom-nav__item.is-post .dilz-bottom-nav__icon {
-    width: 20px !important;
-    height: 18px !important;
+    width: 26px !important;
+    height: 24px !important;
     margin-top: 0 !important;
     border: none !important;
     border-radius: 0 !important;
@@ -8537,31 +8538,32 @@ select:focus,
     font-weight: inherit !important;
   }
 
-  /* ── Colors: WhatsApp-style — active = full white, inactive = muted ── */
+  /* ── Colors: white in dark mode, black in light mode ─────────────────── */
   .dilz-bottom-nav__item,
   .dilz-bottom-nav__item.is-post {
-    color: rgba(255, 255, 255, 0.60) !important;
+    color: rgba(255, 255, 255, 0.78) !important;
   }
 
   .dilz-bottom-nav__item.is-active,
   .dilz-bottom-nav__item.is-post.is-active {
-    color: rgba(255, 255, 255, 0.98) !important;
+    color: #ffffff !important;
     font-weight: 700;
   }
 
-  /* Light mode: dark icons on light glass */
+  /* Light mode: black icons/text */
   :root:not(.dark) .dilz-bottom-nav__item,
   :root:not(.dark) .dilz-bottom-nav__item.is-post {
-    color: rgba(30, 30, 36, 0.52) !important;
+    color: rgba(15, 15, 20, 0.72) !important;
   }
 
   :root:not(.dark) .dilz-bottom-nav__item.is-active,
   :root:not(.dark) .dilz-bottom-nav__item.is-post.is-active {
-    color: rgba(20, 20, 26, 0.95) !important;
+    color: #000000 !important;
   }
 
-  /* ── Soft glass pill — WhatsApp active highlight ──────────────────────
-     Very subtle: light gray translucent blob, no hard border, no glow.
+  /* ── Liquid glass drop — WhatsApp active highlight ────────────────────
+     Soft translucent blob with a specular sheen. It stretches horizontally
+     while travelling (transform set inline by JS) for a liquid feel.
   ────────────────────────────────────────────────────────────────────── */
   .dilz-bottom-nav__loupe {
     position: absolute;
@@ -8572,21 +8574,39 @@ select:focus,
     border-radius: 999px;
     pointer-events: none;
     z-index: 1;
-    transition: left 340ms cubic-bezier(0.32, 0.72, 0, 1);
-    /* Light mode: soft dark tint on light glass */
-    background: var(--dilz-tabbar-active-bg);
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35);
+    will-change: left, transform;
+    /* animate BOTH position and the liquid stretch */
+    transition:
+      left 380ms cubic-bezier(0.34, 1.2, 0.5, 1),
+      transform 380ms cubic-bezier(0.34, 1.2, 0.5, 1);
+    /* Light mode: soft tint + top highlight sheen */
+    background:
+      linear-gradient(180deg,
+        rgba(255, 255, 255, 0.45) 0%,
+        rgba(255, 255, 255, 0.12) 40%,
+        rgba(255, 255, 255, 0.00) 100%),
+      var(--dilz-tabbar-active-bg);
+    box-shadow:
+      inset 0 1px 1px rgba(255, 255, 255, 0.55),
+      inset 0 -1px 2px rgba(0, 0, 0, 0.05);
   }
 
-  /* During swipe: loupe follows finger in real-time */
+  /* During swipe: loupe follows finger in real-time (no lag) */
   .dilz-bottom-nav__loupe.is-swiping {
-    transition: none !important;
+    transition: transform 120ms ease-out !important;
   }
 
-  /* Dark mode: soft white tint, faint top reflection */
+  /* Dark mode: cool white tint, faint top reflection */
   .dark .dilz-bottom-nav__loupe {
-    background: var(--dilz-tabbar-active-bg);
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.10);
+    background:
+      linear-gradient(180deg,
+        rgba(255, 255, 255, 0.16) 0%,
+        rgba(255, 255, 255, 0.05) 45%,
+        rgba(255, 255, 255, 0.00) 100%),
+      var(--dilz-tabbar-active-bg);
+    box-shadow:
+      inset 0 1px 1px rgba(255, 255, 255, 0.16),
+      inset 0 -1px 2px rgba(0, 0, 0, 0.20);
   }
 
   /* ── Icon and label above the loupe ────────────────────────────────── */

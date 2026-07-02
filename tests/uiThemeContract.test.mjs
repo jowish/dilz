@@ -6,18 +6,27 @@ import path from 'node:path';
 const css = await readFile(path.join(process.cwd(), 'styles', 'globals.css'), 'utf8');
 const bottomNav = await readFile(path.join(process.cwd(), 'components', 'layout', 'BottomNav.js'), 'utf8');
 
-test('mobile navigation uses the larger premium bar contract', () => {
-  assert.match(css, /--dilz-tabbar-height:\s*84px/);
+test('mobile navigation uses the compact liquid-glass bar contract', () => {
+  assert.match(css, /--dilz-tabbar-height:\s*80px/);
   assert.match(css, /height:\s*calc\(var\(--dilz-tabbar-height\) \+ env\(safe-area-inset-bottom\)\)/);
-  assert.match(css, /padding:\s*0 12px calc\(var\(--dilz-tabbar-gap\) \+ env\(safe-area-inset-bottom\)\)/);
+  assert.match(css, /padding:\s*0 20px calc\(var\(--dilz-tabbar-gap\) \+ env\(safe-area-inset-bottom\)\)/);
   assert.match(css, /\.dilz-bottom-nav\s*\{[^}]*bottom:\s*0/s);
-  assert.match(css, /\.dilz-bottom-nav__inner\s*\{[^}]*backdrop-filter:\s*saturate\(180%\) blur\(22px\)/s);
-  assert.match(css, /\.dilz-bottom-nav__item\.is-active::before\s*\{[^}]*background:\s*var\(--dilz-tabbar-active-bg\)/s);
+  // Liquid glass background: gradient sheen layered over the translucent base
+  assert.match(css, /\.dilz-bottom-nav__inner\s*\{[^}]*backdrop-filter:\s*blur\(18px\) saturate\(190%\) contrast\(1\.05\)/s);
+  // A single sliding loupe/drop is the active indicator (no per-item ::before bg)
+  assert.match(css, /\.dilz-bottom-nav__loupe\s*\{[^}]*background:[\s\S]*?var\(--dilz-tabbar-active-bg\)/s);
   assert.match(bottomNav, /aria-current=\{active \? 'page' : undefined\}/);
 });
 
-test('the Post action remains the orange primary action in dark mode', () => {
-  assert.match(css, /\.dark \.dilz-bottom-nav__item\.is-post \.dilz-bottom-nav__icon\s*\{[^}]*background:\s*var\(--brand\) !important/s);
+test('the Post action shares the neutral styling of the other tabs', () => {
+  // Post icon is no longer an orange elevated FAB; it inherits colour like the rest
+  assert.match(css, /\.dilz-bottom-nav__item\.is-post \.dilz-bottom-nav__icon,[\s\S]*?background:\s*transparent !important/s);
+  assert.doesNotMatch(css, /\.dark \.dilz-bottom-nav__item\.is-post \.dilz-bottom-nav__icon\s*\{[^}]*background:\s*var\(--brand\) !important/s);
+});
+
+test('the profile tab can show an uploaded avatar in the bar', () => {
+  assert.match(bottomNav, /dilz-bottom-nav__avatar/);
+  assert.match(bottomNav, /avatar_url/);
 });
 
 test('dark cards use subtle tokenized border contrast', () => {
@@ -47,7 +56,7 @@ test('bottom navigation exposes Deals Search Post Alerts Profile with route comp
   assert.match(bottomNav, /search:\s*'Search'/);
   assert.match(bottomNav, /id: 'deals'[\s\S]*id: 'explore'[\s\S]*id: 'post'[\s\S]*id: 'alerts'[\s\S]*id: 'profile'/);
   assert.match(bottomNav, /label:\s*labels\.search/);
-  assert.match(bottomNav, /function SearchIcon\(\)/);
+  assert.match(bottomNav, /function SearchIcon\(\{ active \}\)/);
   assert.doesNotMatch(bottomNav, /function ExploreIcon\(\)/);
 });
 

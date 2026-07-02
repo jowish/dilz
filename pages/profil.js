@@ -8,6 +8,7 @@ import { VoteEmoji } from '../components/ui/VoteEmoji';
 import { readDealSortPreference, writeDealSortPreference } from '../lib/userPreferences';
 import { ThemeToggle } from '../components/ui/ThemeToggle';
 import { profileBackFallback, profileViewVisibility } from '../lib/profileNavigation';
+import { uploadAvatarImage, validateImageFile } from '../lib/uploadImage';
 
 const PROFILE_TEXT = {
   en: { profile: 'Profile', back: 'Back', signOut: 'Sign out', posted: 'Deals posted', received: 'Hot votes received', settings: 'Account settings', settingsHelp: 'Choose how Dilz should look when you return.', language: 'Language', feedOrder: 'Default feed order', english: 'English', hebrew: 'Hebrew', hot: 'Hottest first', latest: 'Newest first', comments: 'Most commented', saved: 'Preference saved', mine: 'My deals', loading: 'Loading...', empty: 'No deals yet', emptyText: 'Share a deal you spotted!', post: 'Post a deal', now: 'Just now', hour: 'h ago', day: 'd ago', legal: 'Legal and privacy', privacy: 'Privacy Policy', terms: 'Terms of Use', danger: 'Delete account', dangerHelp: 'Permanently delete your account and private data. Your public contributions will be anonymized.', delete: 'Delete my account', confirmTitle: 'This action cannot be undone', confirmHelp: 'Type DELETE to permanently delete your Dilz account.', confirmWord: 'DELETE', cancel: 'Cancel', deleting: 'Deleting...', deleteError: 'Account deletion failed. Please try again or contact support.' },
@@ -50,6 +51,9 @@ export default function Profil() {
   const [deleteConfirmation, setDeleteConfirmation] = useState('');
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState('');
+  const [avatarUrl, setAvatarUrl] = useState('');
+  const [avatarUploading, setAvatarUploading] = useState(false);
+  const [avatarError, setAvatarError] = useState('');
 
   useEffect(() => {
     setMounted(true);
@@ -58,6 +62,7 @@ export default function Profil() {
       if (!data.session) { router.replace('/auth?redirect=/profil'); return; }
       const u = data.session.user;
       setUser(u);
+      setAvatarUrl(u.user_metadata?.avatar_url || '');
       const accountLanguage = u.user_metadata?.dilz_language;
       if (accountLanguage === 'en' || accountLanguage === 'he') setLang(accountLanguage);
       const accountSort = u.user_metadata?.dilz_deal_sort;
@@ -93,6 +98,24 @@ export default function Profil() {
   const saveIndicator = () => {
     setPreferenceSaved(true);
     window.setTimeout(() => setPreferenceSaved(false), 1600);
+  };
+
+  const handleAvatarChange = async (event) => {
+    const file = event.target.files?.[0];
+    event.target.value = '';
+    if (!file || !user) return;
+    const validationError = validateImageFile(file);
+    if (validationError) { setAvatarError(validationError); return; }
+    setAvatarError('');
+    setAvatarUploading(true);
+    try {
+      const url = await uploadAvatarImage(file, user.id);
+      setAvatarUrl(url);
+    } catch (err) {
+      setAvatarError(err.message || 'Upload failed.');
+    } finally {
+      setAvatarUploading(false);
+    }
   };
 
   const changeLanguage = async (value) => {
@@ -173,10 +196,26 @@ export default function Profil() {
 
         <main className="dilz-profil-main">
           <div className="dilz-profil-card">
-            <div className="dilz-avatar" aria-hidden="true">{initials}</div>
+            <label className="dilz-avatar dilz-avatar--editable" title={lang === 'he' ? 'שינוי תמונה' : 'Change photo'}>
+              {avatarUrl
+                ? <img src={avatarUrl} alt={displayName} className="dilz-avatar__img" />
+                : <span aria-hidden="true">{initials}</span>}
+              <span className="dilz-avatar__edit" aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+              </span>
+              <input
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                onChange={handleAvatarChange}
+                disabled={avatarUploading}
+                style={{ display: 'none' }}
+              />
+            </label>
             <div>
               <p className="dilz-profil-card__name">{displayName}</p>
               <p className="dilz-profil-card__email">{user.email}</p>
+              {avatarUploading && <p className="dilz-profil-card__email">{lang === 'he' ? 'מעלה...' : 'Uploading...'}</p>}
+              {avatarError && <p className="dilz-profil-card__email" style={{ color: 'var(--danger, #e11d48)' }}>{avatarError}</p>}
             </div>
           </div>
 
