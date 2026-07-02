@@ -71,8 +71,11 @@ test('deal count remains legible in dark mode', () => {
 
 test('desktop pages keep the document as the only vertical scroller', () => {
   assert.match(css, /html\s*\{[^}]*overflow-y:\s*scroll/s);
+  assert.match(css, /html\s*\{[^}]*overscroll-behavior-y:\s*none/s);
+  assert.match(css, /body\s*\{[^}]*overscroll-behavior-y:\s*none/s);
   assert.match(css, /body\s*\{[^}]*overflow:\s*visible/s);
   assert.match(css, /#__(?:next|NEXT)\s*\{[^}]*overflow:\s*visible/s);
   assert.match(css, /body,\s*#__next\s*\{\s*overflow:\s*visible;\s*\}/s);
   assert.doesNotMatch(css, /html,\s*body,\s*#__next\s*\{[^}]*overflow-y:\s*auto/s);
+  assert.doesNotMatch(css, /overscroll-behavior-y:\s*auto/s);
 });

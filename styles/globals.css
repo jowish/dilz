@@ -132,6 +132,8 @@ html {
   height: auto;
   overflow-x: hidden;
   overflow-y: scroll;
+  overscroll-behavior-x: none;
+  overscroll-behavior-y: none;
   scroll-behavior: smooth;
 }
 
@@ -142,7 +144,7 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overscroll-behavior-x: none;
-  overscroll-behavior-y: auto;
+  overscroll-behavior-y: none;
   font-size: 14px;
   line-height: 1.5;
   min-height: 100%;
@@ -7355,7 +7357,7 @@ textarea::placeholder {
 
 /* Cross-page stability and compact discovery views */
 html, body, #__next { width: 100%; max-width: 100%; min-height: 100%; height: auto; }
-html { overflow-x: hidden; overflow-y: scroll; overscroll-behavior-x: none; overscroll-behavior-y: auto; }
+html { overflow-x: hidden; overflow-y: scroll; overscroll-behavior-x: none; overscroll-behavior-y: none; }
 body, #__next { overflow: visible; }
 body { touch-action: pan-y; }
 .dilz-bottom-nav { position: fixed !important; left: 0; right: 0; bottom: 0 !important; }
