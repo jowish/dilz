@@ -445,7 +445,7 @@ export default function DealPage() {
       </Head>
 
       <div className="dilz-deal-page" dir={dir}>
-        <header className="dilz-app-header">
+        <header className="dilz-app-header dilz-deal-header">
           <div className="dilz-app-header__inner">
             <button
               type="button"

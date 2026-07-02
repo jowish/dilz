@@ -159,6 +159,15 @@ test('shopping deals have internal detail pages, votes, comments and third-party
   assert.doesNotMatch(shoppingPage, /Official links/);
 });
 
+test('deal detail header keeps top controls aligned around the centered logo', () => {
+  assert.match(detailPage, /className="dilz-app-header dilz-deal-header"/);
+  assert.match(css, /\.dilz-deal-header \.dilz-app-header__inner\s*\{[^}]*display:\s*grid[^}]*grid-template-columns:\s*minmax\(72px,\s*1fr\) auto minmax\(72px,\s*1fr\)/s);
+  assert.match(css, /\.dilz-deal-header \.dilz-logo-button\s*\{[^}]*justify-self:\s*center/s);
+  assert.match(css, /\.dilz-deal-header \.dilz-deal-back\s*\{[^}]*justify-self:\s*start/s);
+  assert.match(css, /\.dilz-deal-header \.dilz-deal-header-actions\s*\{[^}]*justify-self:\s*end/s);
+  assert.match(css, /@media \(max-width: 767px\)[\s\S]*\.dilz-deal-header \.dilz-app-header__inner\s*\{[^}]*grid-template-columns:\s*minmax\(70px,\s*1fr\) auto minmax\(70px,\s*1fr\)/s);
+});
+
 test('bottom nav uses Explore as the visible discover tab while keeping the search icon and Explore route', () => {
   assert.match(bottomNav, /id: 'explore'/);
   assert.match(bottomNav, /search:\s*'Explore'/);
