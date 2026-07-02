@@ -89,6 +89,7 @@ export function BottomNav({ lang = 'en', activeTab, menuOpen = false, alertsOpen
   const [center, setCenter]   = useState(activeIdx);
   const [stretch, setStretch] = useState(0);   // signed horizontal stretch
   const [moving, setMoving]   = useState(false);
+  const [pressed, setPressed] = useState(false); // finger down on the bar
   const curRef    = useRef(activeIdx);
   const targetRef = useRef(activeIdx);
   const rafRef    = useRef(null);
@@ -134,6 +135,7 @@ export function BottomNav({ lang = 'en', activeTab, menuOpen = false, alertsOpen
   function handleTouchStart(e) {
     const inner = innerRef.current;
     if (!inner) return;
+    setPressed(true);   // swell immediately on touch, before any movement
     const rect = inner.getBoundingClientRect();
     swipeRef.current = { startX: e.touches[0].clientX, innerLeft: rect.left, innerWidth: rect.width, started: false, pos: null, lastX: e.touches[0].clientX };
   }
@@ -160,6 +162,7 @@ export function BottomNav({ lang = 'en', activeTab, menuOpen = false, alertsOpen
   function handleTouchEnd() {
     const state = swipeRef.current;
     swipeRef.current = null;
+    setPressed(false);
     if (state?.started && state.pos !== null) {
       const idx    = Math.round(Math.max(0, Math.min(TAB_COUNT - 1, state.pos)));
       const target = items[idx];
@@ -184,11 +187,14 @@ export function BottomNav({ lang = 'en', activeTab, menuOpen = false, alertsOpen
   // and is fully orange once centred on it (label + plus turn white via CSS).
   const POST_IDX = 2;
   const postTint = Math.max(0, Math.min(1, (0.65 - Math.abs(center - POST_IDX)) / 0.65));
+  // Once the orange bubble reaches the Post icon, invert its plus + label to
+  // white so they stay legible on the orange fill.
+  const postLit = postTint > 0.4;
 
   // Stretch → scaleX + origin so the drop elongates in its travel direction.
-  // While actively dragging, the bubble also swells to fill more of the bar.
+  // The bubble swells the instant it's pressed and while dragging.
   const absStretch = Math.abs(stretch);
-  const dragSwell  = isSwiping ? 1.14 : 1;
+  const dragSwell  = (pressed || isSwiping) ? 1.14 : 1;
   const px = loupeLeftPx(loupeCenter);
   const loupeStyle = {
     left: px !== null ? `${px}px` : loupeLeftFallback(loupeCenter),
@@ -215,7 +221,7 @@ export function BottomNav({ lang = 'en', activeTab, menuOpen = false, alertsOpen
       >
         {/* Single liquid drop that glides across the bar */}
         <div
-          className={`dilz-bottom-nav__loupe${isSwiping ? ' is-swiping' : ''}`}
+          className={`dilz-bottom-nav__loupe${isSwiping ? ' is-swiping' : ''}${pressed ? ' is-pressed' : ''}`}
           style={loupeStyle}
           aria-hidden="true"
         />
@@ -236,7 +242,7 @@ export function BottomNav({ lang = 'en', activeTab, menuOpen = false, alertsOpen
               key={item.id}
               type="button"
               ref={(el) => { itemRefs.current[idx] = el; }}
-              className={['dilz-bottom-nav__item', active && 'is-active', item.post && 'is-post'].filter(Boolean).join(' ')}
+              className={['dilz-bottom-nav__item', active && 'is-active', item.post && 'is-post', item.post && postLit && 'is-post-lit'].filter(Boolean).join(' ')}
               onClick={item.action}
               aria-label={item.label}
               aria-current={committed ? 'page' : undefined}
