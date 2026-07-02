@@ -8311,7 +8311,7 @@ select:focus,
   --dilz-tabbar-gap: 20px;
   --dilz-tabbar-radius: 30px;
   /* Light: neutral frosted white, no color cast */
-  --dilz-tabbar-bg: rgba(248, 248, 250, 0.42);
+  --dilz-tabbar-bg: rgba(248, 248, 250, 0.34);
   --dilz-tabbar-border: rgba(255, 255, 255, 0.55);
   --dilz-tabbar-shadow:
     0 6px 24px rgba(0, 0, 0, 0.10),
@@ -8321,7 +8321,7 @@ select:focus,
 
 .dark {
   /* Dark: neutral near-black translucent glass, WhatsApp-like */
-  --dilz-tabbar-bg: rgba(18, 18, 22, 0.44);
+  --dilz-tabbar-bg: rgba(18, 18, 22, 0.34);
   --dilz-tabbar-border: rgba(255, 255, 255, 0.08);
   --dilz-tabbar-shadow:
     0 6px 24px rgba(0, 0, 0, 0.40),
@@ -8383,8 +8383,8 @@ select:focus,
         rgba(255, 255, 255, 0.00) 60%),
       var(--dilz-tabbar-bg) !important;
     box-shadow: var(--dilz-tabbar-shadow) !important;
-    backdrop-filter: blur(9px) saturate(180%);
-    -webkit-backdrop-filter: blur(9px) saturate(180%);
+    backdrop-filter: blur(5px) saturate(170%);
+    -webkit-backdrop-filter: blur(5px) saturate(170%);
     pointer-events: auto;
     touch-action: none;   /* dragging the bubble must not scroll the app behind */
     overflow: visible !important;   /* let the pressed bubble spill past the bar */
@@ -8598,6 +8598,43 @@ select:focus,
     box-shadow:
       inset 0 1px 1px rgba(255, 255, 255, 0.55),
       inset 0 -1px 2px rgba(0, 0, 0, 0.05);
+  }
+
+  /* ── Water-lens refraction while the focus moves (WhatsApp-like) ───────
+     A live backdrop blur+saturate distorts the page/bar behind the drop, and
+     an iridescent rim (::after) fades in — the "looking through water" feel. */
+  .dilz-bottom-nav__loupe.is-moving {
+    backdrop-filter: blur(6px) saturate(2) brightness(1.05);
+    -webkit-backdrop-filter: blur(6px) saturate(2) brightness(1.05);
+  }
+
+  .dilz-bottom-nav__loupe::after {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    border-radius: inherit;
+    padding: 1.5px;
+    background: conic-gradient(from 0deg,
+      rgba(255, 138, 182, 0.9),
+      rgba(138, 182, 255, 0.9),
+      rgba(138, 255, 196, 0.9),
+      rgba(255, 224, 138, 0.9),
+      rgba(255, 138, 182, 0.9));
+    -webkit-mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    opacity: 0;
+    transition: opacity 220ms ease;
+    pointer-events: none;
+  }
+
+  .dilz-bottom-nav__loupe.is-moving::after {
+    opacity: 0.6;
   }
 
   /* During swipe: loupe follows finger in real-time (no lag) */

@@ -106,7 +106,7 @@ export function BottomNav({ lang = 'en', activeTab, menuOpen = false, alertsOpen
     const step = () => {
       const cur = curRef.current;
       const target = targetRef.current;
-      const next = cur + (target - cur) * 0.28;      // exponential ease
+      const next = cur + (target - cur) * 0.16;      // gentle exponential ease
       const done = Math.abs(target - next) < 0.004;
       const settled = done ? target : next;
       const velocity = settled - cur;
@@ -194,7 +194,7 @@ export function BottomNav({ lang = 'en', activeTab, menuOpen = false, alertsOpen
   // When pressed / dragging the bubble grows UNIFORMLY (same shape and
   // proportions, just larger) so it overshoots the bar symmetrically on every
   // side and bites onto the neighbour tabs.
-  const dragSwell = (pressed || isSwiping) ? 1.4 : 1;
+  const dragSwell = (pressed || isSwiping) ? 1.34 : 1;
   const px = loupeLeftPx(loupeCenter);
   const loupeStyle = {
     left: px !== null ? `${px}px` : loupeLeftFallback(loupeCenter),
@@ -221,7 +221,7 @@ export function BottomNav({ lang = 'en', activeTab, menuOpen = false, alertsOpen
       >
         {/* Single liquid drop that glides across the bar */}
         <div
-          className={`dilz-bottom-nav__loupe${isSwiping ? ' is-swiping' : ''}${pressed ? ' is-pressed' : ''}`}
+          className={`dilz-bottom-nav__loupe${isSwiping ? ' is-swiping' : ''}${pressed ? ' is-pressed' : ''}${moving ? ' is-moving' : ''}`}
           style={loupeStyle}
           aria-hidden="true"
         />
