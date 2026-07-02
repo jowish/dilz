@@ -169,9 +169,10 @@ export function BottomNav({ lang = 'en', activeTab, menuOpen = false, alertsOpen
 
   const loupeCenter = center;
 
-  // While the loupe travels, the tab nearest its center looks selected — the
-  // filled/white state jumps live from icon to icon, then commits on release.
-  const visualActiveIdx = visualActiveIndex(center, activeIdx, moving);
+  // The selected look (fill + zoom) follows the bubble only while the finger is
+  // dragging it; on a tap it jumps straight to the destination so intermediate
+  // icons on the way (e.g. Post when heading to Alerts) never react.
+  const visualActiveIdx = visualActiveIndex(center, activeIdx, isSwiping);
 
   // The bubble tints orange as the focus enters the Post zone, fully orange
   // once centred; the plus + label then invert to white so they stay legible.
@@ -223,10 +224,12 @@ export function BottomNav({ lang = 'en', activeTab, menuOpen = false, alertsOpen
           const postWhite = item.post && (active || postLit);
           const postColor = item.post ? (postWhite ? '#ffffff' : 'var(--brand)') : undefined;
 
-          // Only the icon the bubble is currently over zooms; the others never
-          // move. The scale flips at tab crossings, so unselected logos stay put.
+          // Only the selected icon zooms; the others never move. During a swipe
+          // the scale snaps (no transition) so exactly one icon is zoomed at a
+          // time — no lingering double-zoom as the bubble crosses tabs.
           const iconStyle = {
-            transform: `scale(${active ? 1.12 : 1})`,
+            transform: `scale(${active ? 1.2 : 1})`,
+            transition: isSwiping ? 'none' : undefined,
             ...(postColor ? { color: postColor } : {}),
           };
 

@@ -55,10 +55,15 @@ test('tapping snaps to the button actually under the finger (no click flicker)',
   assert.match(nav, /touchX >= r\.left && touchX <= r\.right/);
 });
 
-test('only the icon under the bubble zooms; the others stay at scale 1', () => {
-  assert.match(nav, /transform: `scale\(\$\{active \? 1\.12 : 1\}\)`/);
+test('only the selected icon zooms; the others stay at scale 1', () => {
+  assert.match(nav, /transform: `scale\(\$\{active \? 1\.2 : 1\}\)`/);
   // no distance-based dock magnification of every icon
   assert.doesNotMatch(nav, /dockScale\(idx/);
+});
+
+test('on a tap the zoom goes straight to the destination, not intermediate icons', () => {
+  // the selected look follows the finger only while swiping
+  assert.match(nav, /visualActiveIndex\(center, activeIdx, isSwiping\)/);
 });
 
 test('the selected tab commits on release, not continuously during the drag', () => {
