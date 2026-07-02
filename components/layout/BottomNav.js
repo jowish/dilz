@@ -11,11 +11,12 @@ function loupeLeftFallback(center) {
   return `calc(${((center + 0.5) / TAB_COUNT) * 100}% - ${LOUPE_WIDTH / 2}px)`;
 }
 
-// Subtle magnification near the loupe during swipe
+// Dock magnification: an icon grows as the loupe approaches, peaking when the
+// loupe is centred on it — the WhatsApp-style "pop" that follows the focus.
 function dockScale(itemIdx, center) {
   const dist = Math.abs(itemIdx - center);
-  if (dist >= 1.4) return 1;
-  return 1 + ((1.4 - dist) / 1.4) * 0.10;
+  if (dist >= 1.3) return 1;
+  return 1 + ((1.3 - dist) / 1.3) * 0.18;
 }
 
 export function BottomNav({ lang = 'en', activeTab, menuOpen = false, alertsOpen = false, postOpen = false, avatarUrl: avatarProp, onMenu, onTab, onPost, onAlerts, onProfile }) {
@@ -47,8 +48,6 @@ export function BottomNav({ lang = 'en', activeTab, menuOpen = false, alertsOpen
 
   const innerRef = useRef(null);
   const itemRefs = useRef([]);
-  const swipeRef = useRef(null);
-  const [swipeCenter, setSwipeCenter] = useState(null);
 
   // Measured horizontal centers of each button (px, relative to inner padding box).
   // This makes the loupe land dead-center on the icon regardless of bar padding.
@@ -65,9 +64,11 @@ export function BottomNav({ lang = 'en', activeTab, menuOpen = false, alertsOpen
       });
       if (next.length === TAB_COUNT) setCenters(next);
     };
+    // Measure now and again after fonts/layout settle, so centering is exact.
     measure();
+    const raf = requestAnimationFrame(measure);
     window.addEventListener('resize', measure);
-    return () => window.removeEventListener('resize', measure);
+    return () => { cancelAnimationFrame(raf); window.removeEventListener('resize', measure); };
   }, [lang]);
 
   // Interpolate the loupe's left (px) for a fractional tab index.
@@ -80,24 +81,55 @@ export function BottomNav({ lang = 'en', activeTab, menuOpen = false, alertsOpen
     return cx - LOUPE_WIDTH / 2;
   }
 
-  // Liquid travel: stretch the bubble horizontally while it moves between tabs
-  const [stretch, setStretch] = useState(0); // signed: + right, - left
-  const prevIdx = useRef(activeIdx);
-  const stretchTimer = useRef(null);
+  // ── Animated loupe center ────────────────────────────────────────────
+  // `center` is a *fractional* tab index that eases toward the target on
+  // click and follows the finger on swipe. As it passes over a tab, that
+  // tab's icon zooms (dock magnification), so the whole bar reacts like
+  // WhatsApp when the focus moves.
+  const [center, setCenter]   = useState(activeIdx);
+  const [stretch, setStretch] = useState(0);   // signed horizontal stretch
+  const [moving, setMoving]   = useState(false);
+  const curRef    = useRef(activeIdx);
+  const targetRef = useRef(activeIdx);
+  const rafRef    = useRef(null);
+  const swipeRef  = useRef(null);
 
+  const stopRaf = () => { if (rafRef.current) { cancelAnimationFrame(rafRef.current); rafRef.current = null; } };
+
+  const runRaf = () => {
+    stopRaf();
+    setMoving(true);
+    const step = () => {
+      const cur = curRef.current;
+      const target = targetRef.current;
+      const next = cur + (target - cur) * 0.28;      // exponential ease
+      const done = Math.abs(target - next) < 0.004;
+      const settled = done ? target : next;
+      const velocity = settled - cur;
+      curRef.current = settled;
+      setCenter(settled);
+      setStretch(Math.max(-1, Math.min(1, velocity * 1.6)));
+      if (done) {
+        setStretch(0);
+        setMoving(false);
+        rafRef.current = null;
+        return;
+      }
+      rafRef.current = requestAnimationFrame(step);
+    };
+    rafRef.current = requestAnimationFrame(step);
+  };
+
+  // Ease toward the newly active tab whenever it changes (click navigation)
   useEffect(() => {
-    if (prevIdx.current !== activeIdx && swipeCenter === null) {
-      const delta = activeIdx - prevIdx.current;
-      setStretch(Math.max(-1, Math.min(1, delta)));
-      clearTimeout(stretchTimer.current);
-      stretchTimer.current = setTimeout(() => setStretch(0), 260);
-    }
-    prevIdx.current = activeIdx;
-    return () => clearTimeout(stretchTimer.current);
-  }, [activeIdx, swipeCenter]);
+    if (swipeRef.current) return;   // swipe drives the center directly
+    targetRef.current = activeIdx;
+    if (Math.abs(curRef.current - activeIdx) > 0.001) runRaf();
+    return stopRaf;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeIdx]);
 
-  const isSwiping   = swipeCenter !== null;
-  const loupeCenter = isSwiping ? swipeCenter : activeIdx;
+  const isSwiping = swipeRef.current?.started === true;
 
   function handleTouchStart(e) {
     const inner = innerRef.current;
@@ -112,28 +144,35 @@ export function BottomNav({ lang = 'en', activeTab, menuOpen = false, alertsOpen
     const touchX = e.touches[0].clientX;
     if (!state.started && Math.abs(touchX - state.startX) < 10) return;
     state.started = true;
-    // liquid: stretch toward movement direction based on velocity
+    stopRaf();
     const velocity = touchX - state.lastX;
     state.lastX = touchX;
-    setStretch(Math.max(-1, Math.min(1, velocity / 14)));
     const relX    = touchX - state.innerLeft;
     const raw     = (relX / state.innerWidth) * TAB_COUNT - 0.5;
     const clamped = Math.max(0, Math.min(TAB_COUNT - 1, raw));
     state.pos = clamped;
-    setSwipeCenter(clamped);
+    curRef.current = clamped;
+    setCenter(clamped);
+    setMoving(true);
+    setStretch(Math.max(-1, Math.min(1, velocity / 12)));
   }
 
   function handleTouchEnd() {
     const state = swipeRef.current;
     swipeRef.current = null;
-    setStretch(0);
     if (state?.started && state.pos !== null) {
       const idx    = Math.round(Math.max(0, Math.min(TAB_COUNT - 1, state.pos)));
       const target = items[idx];
+      targetRef.current = idx;
+      runRaf();  // spring toward the snapped tab
       if (target && target.id !== activeItem) target.action();
+    } else {
+      setMoving(false);
+      setStretch(0);
     }
-    setSwipeCenter(null);
   }
+
+  const loupeCenter = center;
 
   // Stretch → scaleX + origin so the drop elongates in its travel direction
   const absStretch = Math.abs(stretch);
@@ -142,6 +181,7 @@ export function BottomNav({ lang = 'en', activeTab, menuOpen = false, alertsOpen
     left: px !== null ? `${px}px` : loupeLeftFallback(loupeCenter),
     transform: `scaleX(${(1 + absStretch * 0.35).toFixed(3)}) scaleY(${(1 - absStretch * 0.12).toFixed(3)})`,
     transformOrigin: stretch >= 0 ? 'left center' : 'right center',
+    transition: moving ? 'none' : undefined,
   };
 
   return (
@@ -164,10 +204,12 @@ export function BottomNav({ lang = 'en', activeTab, menuOpen = false, alertsOpen
         {items.map((item, idx) => {
           const active   = activeItem === item.id;
           const { Icon } = item;
-          const scale    = isSwiping ? dockScale(idx, loupeCenter) : (active ? 1.06 : 1);
-          const iconStyle = (isSwiping || active)
-            ? { transform: `scale(${scale.toFixed(3)})`, transition: isSwiping ? 'none' : undefined }
-            : undefined;
+          // Every icon reacts to how close the travelling loupe is to it.
+          const scale    = dockScale(idx, loupeCenter);
+          const iconStyle = {
+            transform: `scale(${scale.toFixed(3)})`,
+            transition: moving ? 'none' : undefined,
+          };
 
           return (
             <button
@@ -194,15 +236,17 @@ export function BottomNav({ lang = 'en', activeTab, menuOpen = false, alertsOpen
 }
 
 // ── Icons: outline when inactive, filled when active ─────────────────────
+// NOTE: the global rule `.dilz-bottom-nav__icon svg { fill: none }` beats the
+// SVG `fill=` attribute, so filled states MUST use inline style (which wins
+// over a non-!important stylesheet rule).
+
+// fill when active, else stroke outline
+const solid = (active) => ({ fill: active ? 'currentColor' : 'none', stroke: active ? 'none' : 'currentColor' });
 
 function HomeIcon({ active }) {
-  return active ? (
-    <svg viewBox="0 0 24 24" fill="currentColor" stroke="none">
-      <path d="M3 11.5 12 4l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1v-8.5Z" />
-    </svg>
-  ) : (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-      <path d="M3 11.5 12 4l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1v-8.5Z" />
+  return (
+    <svg viewBox="0 0 24 24" strokeWidth="2" strokeLinejoin="round">
+      <path d="M3 11.5 12 4l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1v-8.5Z" style={solid(active)} />
     </svg>
   );
 }
@@ -210,25 +254,25 @@ function HomeIcon({ active }) {
 function SearchIcon({ active }) {
   return (
     <svg viewBox="0 0 24 24" strokeWidth="2">
-      <circle cx="11" cy="11" r="7" fill={active ? 'currentColor' : 'none'} stroke={active ? 'none' : 'currentColor'} />
-      <path d="m20 20-3.4-3.4" fill="none" stroke="currentColor" strokeLinecap="round" />
+      <circle cx="11" cy="11" r="7" style={solid(active)} />
+      <path d="m20 20-3.4-3.4" style={{ fill: 'none', stroke: 'currentColor' }} strokeLinecap="round" />
     </svg>
   );
 }
 
 function PlusIcon({ active }) {
   return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={active ? 2.6 : 2} strokeLinecap="round">
-      <path d="M12 5v14M5 12h14" />
+    <svg viewBox="0 0 24 24" strokeWidth={active ? 2.7 : 2.3} strokeLinecap="round">
+      <path d="M12 5v14M5 12h14" style={{ fill: 'none', stroke: 'currentColor' }} />
     </svg>
   );
 }
 
 function BellIcon({ active }) {
   return (
-    <svg viewBox="0 0 24 24" strokeWidth="2">
-      <path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9" fill={active ? 'currentColor' : 'none'} stroke={active ? 'none' : 'currentColor'} />
-      <path d="M14 21h-4" fill="none" stroke="currentColor" strokeLinecap="round" />
+    <svg viewBox="0 0 24 24" strokeWidth="2" strokeLinejoin="round">
+      <path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9" style={solid(active)} />
+      <path d="M14 21h-4" style={{ fill: 'none', stroke: 'currentColor' }} strokeLinecap="round" />
     </svg>
   );
 }
@@ -236,10 +280,10 @@ function BellIcon({ active }) {
 // Profile: person inside a circle (like WhatsApp "Vous")
 function UserIcon({ active }) {
   return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-      <circle cx="12" cy="12" r="10" />
-      <circle cx="12" cy="10" r="3.1" fill={active ? 'currentColor' : 'none'} stroke={active ? 'none' : 'currentColor'} />
-      <path d="M6.5 18.4a5.6 5.6 0 0 1 11 0" fill={active ? 'currentColor' : 'none'} stroke={active ? 'none' : 'currentColor'} strokeLinecap="round" />
+    <svg viewBox="0 0 24 24" strokeWidth="2">
+      <circle cx="12" cy="12" r="10" style={{ fill: 'none', stroke: 'currentColor' }} />
+      <circle cx="12" cy="10" r="3.1" style={solid(active)} />
+      <path d="M6.5 18.4a5.6 5.6 0 0 1 11 0" style={solid(active)} strokeLinecap="round" />
     </svg>
   );
 }

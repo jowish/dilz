@@ -8489,7 +8489,6 @@ select:focus,
 
   .dilz-bottom-nav__item.is-active .dilz-bottom-nav__icon {
     background: transparent !important;
-    transform: translateY(-1px);
   }
 
   .dilz-bottom-nav__item.is-post::before {
@@ -8624,8 +8623,27 @@ select:focus,
     transition: transform 380ms cubic-bezier(0.34, 1.56, 0.64, 1) !important;
   }
 
-  /* Active: subtle lift only — WhatsApp barely scales */
-  .dilz-bottom-nav__item.is-active .dilz-bottom-nav__icon {
-    transform: scale(1.06) !important;
+  /* Icon scale is driven by JS (dock magnification); do not override here. */
+
+  /* ── Post: subtle brand highlight — the primary action ────────────────
+     Soft orange-tinted circle behind the plus + brand-coloured stroke, so it
+     stands out as the main CTA without dominating like a full orange FAB.
+  ────────────────────────────────────────────────────────────────────── */
+  .dilz-bottom-nav__item.is-post .dilz-bottom-nav__icon {
+    color: var(--brand) !important;
+    width: 34px !important;
+    height: 34px !important;
+    border-radius: 50% !important;
+    background: rgba(249, 115, 22, 0.14) !important;
+    box-shadow: 0 2px 10px rgba(249, 115, 22, 0.18);
+  }
+
+  .dark .dilz-bottom-nav__item.is-post .dilz-bottom-nav__icon {
+    background: rgba(249, 115, 22, 0.20) !important;
+    box-shadow: 0 2px 12px rgba(249, 115, 22, 0.24);
+  }
+
+  .dilz-bottom-nav__item.is-post > span:last-child {
+    color: var(--brand) !important;
   }
 }
