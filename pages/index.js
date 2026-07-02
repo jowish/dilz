@@ -623,8 +623,14 @@ export default function Home() {
   // deals on every navigation back to the home page).
   const [tab, setTab] = useState(() => {
     if (typeof window === 'undefined') return 'deals';
-    const t = new URLSearchParams(window.location.search).get('tab');
-    return ['deals', 'profile', 'search', 'sales'].includes(t) ? t : 'deals';
+    const valid = ['deals', 'profile', 'search', 'sales'];
+    const q = new URLSearchParams(window.location.search).get('tab');
+    if (valid.includes(q)) return q;
+    // Back-nav restore (also handled by an effect for scroll) — read it here too
+    // so the first paint already shows the right tab and the nav bubble doesn't
+    // start on deals and glide through it.
+    const rt = sessionStorage.getItem('dilzReturnTab');
+    return valid.includes(rt) ? rt : 'deals';
   });
 
   // Data

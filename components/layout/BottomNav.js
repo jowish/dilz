@@ -1,7 +1,12 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/router';
 import { supabase } from '../../lib/supabase';
 import { bottomNavActiveItem } from '../../lib/navigationState';
+
+// Measure before paint on the client so the loupe has real pixel positions from
+// the first frame (otherwise it starts at a % fallback then jumps to px, which
+// broke the cross-page glide). Falls back to useEffect during SSR.
+const useIsoLayoutEffect = typeof window !== 'undefined' ? useLayoutEffect : useEffect;
 import {
   TAB_COUNT,
   SWIPE_START_PX,
@@ -67,7 +72,7 @@ export function BottomNav({ lang = 'en', activeTab, menuOpen = false, alertsOpen
   // Measured horizontal centers of each button (px, relative to inner padding box).
   // This makes the loupe land dead-center on the icon regardless of bar padding.
   const [centers, setCenters] = useState(null);
-  useEffect(() => {
+  useIsoLayoutEffect(() => {
     const measure = () => {
       const inner = innerRef.current;
       if (!inner) return;
@@ -82,7 +87,7 @@ export function BottomNav({ lang = 'en', activeTab, menuOpen = false, alertsOpen
       });
       if (next.length === TAB_COUNT) setCenters(next);
     };
-    // Measure now and again after fonts/layout settle, so centering is exact.
+    // Measure before paint, then again after fonts/layout settle.
     measure();
     const raf = requestAnimationFrame(measure);
     window.addEventListener('resize', measure);
@@ -187,7 +192,7 @@ export function BottomNav({ lang = 'en', activeTab, menuOpen = false, alertsOpen
   // dynamic) while a hop to a neighbour takes the same time over less distance
   // (slow and smooth) — exactly the calm feel wanted for adjacent menus.
   const ease = 'cubic-bezier(0.33, 0, 0.2, 1)';
-  const glideMs = 560;
+  const glideMs = 620;
 
   // Position + swell via the individual `translate`/`scale` properties — both
   // are GPU-composited (no per-frame layout like `left`), and each can carry
@@ -195,9 +200,10 @@ export function BottomNav({ lang = 'en', activeTab, menuOpen = false, alertsOpen
   const loupeStyle = {
     translate: pos,
     scale: `${dragSwell.toFixed(3)}`,
-    // No transition for the very first paint (bubble appears at startIdx) and
-    // while dragging (1:1 follow); otherwise glide with the calm fixed duration.
-    transition: (isSwiping || !glide)
+    // No transition while dragging (1:1 follow), or before the bubble has real
+    // pixel positions / the mount-glide is armed (avoids animating from a %
+    // fallback, which jumped). Otherwise glide with the calm fixed duration.
+    transition: (isSwiping || !glide || !centers)
       ? 'none'
       : `translate ${glideMs}ms ${ease}, scale 220ms ${ease}`,
   };
