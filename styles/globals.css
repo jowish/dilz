@@ -8304,26 +8304,26 @@ select:focus,
 
 /* iOS-style mobile bottom tab bar. Rollback anchor: 81e46d1. */
 :root {
-  --dilz-tabbar-height: 86px;
+  --dilz-tabbar-height: 74px;
   --dilz-tabbar-gap: 20px;
   --dilz-tabbar-radius: 30px;
-  --dilz-tabbar-bg: rgba(255, 255, 255, 0.28);
-  --dilz-tabbar-border: rgba(255, 255, 255, 0.72);
+  /* Light: neutral frosted white, no color cast */
+  --dilz-tabbar-bg: rgba(248, 248, 250, 0.60);
+  --dilz-tabbar-border: rgba(255, 255, 255, 0.55);
   --dilz-tabbar-shadow:
-    0 8px 32px rgba(0, 0, 0, 0.10),
-    0 2px 8px rgba(0, 0, 0, 0.05),
-    inset 0 1px 0 rgba(255, 255, 255, 0.95);
-  --dilz-tabbar-active-bg: rgba(249, 115, 22, 0.13);
+    0 6px 24px rgba(0, 0, 0, 0.10),
+    inset 0 1px 0 rgba(255, 255, 255, 0.70);
+  --dilz-tabbar-active-bg: rgba(0, 0, 0, 0.06);
 }
 
 .dark {
-  --dilz-tabbar-bg: rgba(13, 20, 32, 0.38);
-  --dilz-tabbar-border: rgba(255, 255, 255, 0.11);
+  /* Dark: neutral near-black translucent glass, WhatsApp-like */
+  --dilz-tabbar-bg: rgba(18, 18, 22, 0.62);
+  --dilz-tabbar-border: rgba(255, 255, 255, 0.08);
   --dilz-tabbar-shadow:
-    0 8px 32px rgba(0, 0, 0, 0.36),
-    0 2px 8px rgba(0, 0, 0, 0.20),
-    inset 0 1px 0 rgba(255, 255, 255, 0.07);
-  --dilz-tabbar-active-bg: rgba(249, 115, 22, 0.16);
+    0 6px 24px rgba(0, 0, 0, 0.40),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  --dilz-tabbar-active-bg: rgba(255, 255, 255, 0.10);
 }
 
 @media (max-width: 767px) {
@@ -8358,9 +8358,9 @@ select:focus,
     position: relative !important;
     width: min(100%, 430px) !important;
     max-width: 430px !important;
-    height: 66px !important;
+    height: 58px !important;
     margin: 0 auto !important;
-    padding: 6px 7px !important;
+    padding: 4px 6px !important;
     display: grid !important;
     grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
     align-items: center;
@@ -8368,16 +8368,16 @@ select:focus,
     border-radius: var(--dilz-tabbar-radius) !important;
     background: var(--dilz-tabbar-bg) !important;
     box-shadow: var(--dilz-tabbar-shadow) !important;
-    backdrop-filter: blur(40px) saturate(220%) brightness(1.06);
-    -webkit-backdrop-filter: blur(40px) saturate(220%) brightness(1.06);
+    backdrop-filter: blur(40px) saturate(150%);
+    -webkit-backdrop-filter: blur(40px) saturate(150%);
     pointer-events: auto;
     touch-action: pan-y;
-    overflow: visible !important;
+    overflow: hidden !important;
   }
 
   .dilz-bottom-nav__item {
     min-width: 0;
-    min-height: 54px;
+    min-height: 48px;
     border: 0 !important;
     border-radius: 22px !important;
     background: transparent !important;
@@ -8385,8 +8385,8 @@ select:focus,
     align-items: center;
     justify-content: center;
     gap: 2px;
-    font-size: 10px;
-    font-weight: 700;
+    font-size: 9.5px;
+    font-weight: 600;
     letter-spacing: -0.01em;
     cursor: pointer;
     transform: translateZ(0);
@@ -8444,9 +8444,9 @@ select:focus,
   }
 
   .dilz-bottom-nav__icon svg {
-    width: 19px !important;
-    height: 19px !important;
-    stroke-width: 2.1;
+    width: 18px !important;
+    height: 18px !important;
+    stroke-width: 2;
   }
 
   .dilz-bottom-nav__item.is-active {
@@ -8519,10 +8519,6 @@ select:focus,
   }
 
   /* ── Reset post button — same style as all other tabs ───────────────── */
-  .dilz-bottom-nav__item.is-post,
-  .dilz-bottom-nav__item.is-post.is-active {
-    color: inherit !important;
-  }
 
   .dilz-bottom-nav__item.is-post .dilz-bottom-nav__icon,
   .dark .dilz-bottom-nav__item.is-post .dilz-bottom-nav__icon {
@@ -8541,51 +8537,45 @@ select:focus,
     font-weight: inherit !important;
   }
 
-  /* ── Colors: active = orange, inactive = white ───────────────────────── */
-  .dilz-bottom-nav__item {
-    color: rgba(255, 255, 255, 0.72) !important;
+  /* ── Colors: WhatsApp-style — active = full white, inactive = muted ── */
+  .dilz-bottom-nav__item,
+  .dilz-bottom-nav__item.is-post {
+    color: rgba(255, 255, 255, 0.60) !important;
   }
 
-  .dilz-bottom-nav__item.is-active {
-    color: var(--brand) !important;
-    font-weight: 800;
+  .dilz-bottom-nav__item.is-active,
+  .dilz-bottom-nav__item.is-post.is-active {
+    color: rgba(255, 255, 255, 0.98) !important;
+    font-weight: 700;
   }
 
-  /* Light mode: bar is light so icons need to be dark */
-  :root:not(.dark) .dilz-bottom-nav__item {
-    color: rgba(40, 40, 60, 0.55) !important;
+  /* Light mode: dark icons on light glass */
+  :root:not(.dark) .dilz-bottom-nav__item,
+  :root:not(.dark) .dilz-bottom-nav__item.is-post {
+    color: rgba(30, 30, 36, 0.52) !important;
   }
 
-  :root:not(.dark) .dilz-bottom-nav__item.is-active {
-    color: var(--brand) !important;
+  :root:not(.dark) .dilz-bottom-nav__item.is-active,
+  :root:not(.dark) .dilz-bottom-nav__item.is-post.is-active {
+    color: rgba(20, 20, 26, 0.95) !important;
   }
 
-  /* ── Glass capsule — recipe from archisvaze + kevinbism repos ─────────
-     blur(40px) saturate(1.4)  →  same as iOS backdrop sample
-     rgba(255,255,255,0.25)    →  white alpha tint
-     inset 0 0 8px 2px rgba(255,255,255,0.30)  →  specular highlight
-     border 1px rgba(255,255,255,0.80)          →  crisp rim
-     easing: cubic-bezier(0.32,0.72,0,1)        →  Apple's own iOS easing
+  /* ── Soft glass pill — WhatsApp active highlight ──────────────────────
+     Very subtle: light gray translucent blob, no hard border, no glow.
   ────────────────────────────────────────────────────────────────────── */
   .dilz-bottom-nav__loupe {
     position: absolute;
-    /* centered on the ICON area (not icon+label) */
-    top: 5px;
-    width: 52px;
-    height: 44px;
-    border-radius: 999px;      /* full capsule / pill */
+    top: 4px;
+    bottom: 4px;
+    width: 64px;
+    height: auto;
+    border-radius: 999px;
     pointer-events: none;
     z-index: 1;
-    /* Apple iOS easing for the slide */
     transition: left 340ms cubic-bezier(0.32, 0.72, 0, 1);
-    /* Light mode glass */
-    backdrop-filter: blur(40px) saturate(1.4);
-    -webkit-backdrop-filter: blur(40px) saturate(1.4);
-    background: rgba(255, 255, 255, 0.25);
-    box-shadow:
-      0 4px 16px rgba(0, 0, 0, 0.18),
-      inset 0 0 8px 2px rgba(255, 255, 255, 0.30);
-    border: 1px solid rgba(255, 255, 255, 0.80);
+    /* Light mode: soft dark tint on light glass */
+    background: var(--dilz-tabbar-active-bg);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35);
   }
 
   /* During swipe: loupe follows finger in real-time */
@@ -8593,15 +8583,10 @@ select:focus,
     transition: none !important;
   }
 
-  /* Dark mode glass */
+  /* Dark mode: soft white tint, faint top reflection */
   .dark .dilz-bottom-nav__loupe {
-    backdrop-filter: blur(40px) saturate(1.4) brightness(1.30);
-    -webkit-backdrop-filter: blur(40px) saturate(1.4) brightness(1.30);
-    background: rgba(255, 255, 255, 0.14);
-    box-shadow:
-      0 4px 16px rgba(0, 0, 0, 0.36),
-      inset 0 0 8px 2px rgba(255, 255, 255, 0.16);
-    border: 1px solid rgba(255, 255, 255, 0.28);
+    background: var(--dilz-tabbar-active-bg);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.10);
   }
 
   /* ── Icon and label above the loupe ────────────────────────────────── */
@@ -8619,8 +8604,8 @@ select:focus,
     transition: transform 380ms cubic-bezier(0.34, 1.56, 0.64, 1) !important;
   }
 
-  /* Active: scale handled by JS inline style; CSS is just the fallback */
+  /* Active: subtle lift only — WhatsApp barely scales */
   .dilz-bottom-nav__item.is-active .dilz-bottom-nav__icon {
-    transform: scale(1.15) !important;
+    transform: scale(1.06) !important;
   }
 }

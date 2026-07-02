@@ -3,16 +3,16 @@ import { bottomNavActiveItem } from '../../lib/navigationState';
 
 const TAB_COUNT = 5;
 
-// Loupe width = 52px → half = 26px offset to center on tab
+// Loupe width = 64px → half = 32px offset to center on tab
 function loupeLeft(center) {
-  return `calc(${((center + 0.5) / TAB_COUNT) * 100}% - 26px)`;
+  return `calc(${((center + 0.5) / TAB_COUNT) * 100}% - 32px)`;
 }
 
-// Dock magnification: icons near the loupe scale up during swipe
+// Subtle magnification near the loupe during swipe
 function dockScale(itemIdx, center) {
   const dist = Math.abs(itemIdx - center);
-  if (dist >= 1.6) return 1;
-  return 1 + ((1.6 - dist) / 1.6) * 0.25;
+  if (dist >= 1.4) return 1;
+  return 1 + ((1.4 - dist) / 1.4) * 0.10;
 }
 
 export function BottomNav({ lang = 'en', activeTab, menuOpen = false, alertsOpen = false, postOpen = false, onMenu, onTab, onPost, onAlerts, onProfile }) {
@@ -95,7 +95,7 @@ export function BottomNav({ lang = 'en', activeTab, menuOpen = false, alertsOpen
         {items.map((item, idx) => {
           const active   = activeItem === item.id;
           const { Icon } = item;
-          const scale    = isSwiping ? dockScale(idx, loupeCenter) : (active ? 1.15 : 1);
+          const scale    = isSwiping ? dockScale(idx, loupeCenter) : (active ? 1.06 : 1);
           const iconStyle = (isSwiping || active)
             ? { transform: `scale(${scale.toFixed(3)})`, transition: isSwiping ? 'none' : undefined }
             : undefined;
@@ -152,7 +152,7 @@ function SearchIcon({ active }) {
 function PlusIcon({ active }) {
   // Plus is stroke-based — it becomes orange when active via CSS color
   return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={active ? 2.6 : 2} strokeLinecap="round">
       <path d="M12 5v14M5 12h14" />
     </svg>
   );
