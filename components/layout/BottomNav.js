@@ -188,9 +188,9 @@ export function BottomNav({ lang = 'en', activeTab, menuOpen = false, alertsOpen
   // white so they stay legible on the orange fill.
   const postLit = postTint > 0.4;
 
-  // When pressed / dragging the bubble swells symmetrically (wider + taller),
-  // overshooting the bar a touch on every side.
-  const dragSwell = (pressed || isSwiping) ? 1.08 : 1;
+  // When pressed / dragging the bubble swells symmetrically (much wider),
+  // overshooting the bar on every side and biting onto the neighbour tabs.
+  const dragSwell = (pressed || isSwiping) ? 1.45 : 1;
   const px = loupeLeftPx(loupeCenter);
   const loupeStyle = {
     left: px !== null ? `${px}px` : loupeLeftFallback(loupeCenter),
@@ -253,7 +253,7 @@ export function BottomNav({ lang = 'en', activeTab, menuOpen = false, alertsOpen
               <span className="dilz-bottom-nav__icon nav-pill" style={iconStyle}>
                 {item.id === 'profile' && avatarUrl
                   ? <img src={avatarUrl} alt="" className="dilz-bottom-nav__avatar" />
-                  : <Icon active={active} />}
+                  : <Icon active={active} color={postColor} />}
               </span>
               <span style={postColor ? { color: postColor } : undefined}>{item.label}</span>
             </button>
@@ -289,10 +289,12 @@ function SearchIcon({ active }) {
   );
 }
 
-function PlusIcon({ active }) {
+function PlusIcon({ active, color }) {
+  // Explicit stroke colour (not currentColor) so it's bulletproof against the
+  // cascade: orange by default, white when the bubble under it turns orange.
   return (
     <svg viewBox="0 0 24 24" strokeWidth={active ? 2.7 : 2.3} strokeLinecap="round">
-      <path d="M12 5v14M5 12h14" style={{ fill: 'none', stroke: 'currentColor' }} />
+      <path d="M12 5v14M5 12h14" style={{ fill: 'none', stroke: color || 'currentColor' }} />
     </svg>
   );
 }
