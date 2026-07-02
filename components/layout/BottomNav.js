@@ -94,6 +94,7 @@ export function BottomNav({ lang = 'en', activeTab, menuOpen = false, alertsOpen
   const targetRef = useRef(activeIdx);
   const rafRef    = useRef(null);
   const swipeRef  = useRef(null);
+  const anchorRef = useRef(activeIdx);   // tab the bubble is currently "holding"
 
   const stopRaf = () => { if (rafRef.current) { cancelAnimationFrame(rafRef.current); rafRef.current = null; } };
 
@@ -136,8 +137,9 @@ export function BottomNav({ lang = 'en', activeTab, menuOpen = false, alertsOpen
     const inner = innerRef.current;
     if (!inner) return;
     setPressed(true);   // swell immediately on touch, before any movement
+    anchorRef.current = Math.round(curRef.current);
     const rect = inner.getBoundingClientRect();
-    swipeRef.current = { startX: e.touches[0].clientX, innerLeft: rect.left, innerWidth: rect.width, started: false, pos: null, lastX: e.touches[0].clientX };
+    swipeRef.current = { startX: e.touches[0].clientX, innerLeft: rect.left, innerWidth: rect.width, started: false, pos: null };
   }
 
   function handleTouchMove(e) {
@@ -147,16 +149,20 @@ export function BottomNav({ lang = 'en', activeTab, menuOpen = false, alertsOpen
     if (!state.started && Math.abs(touchX - state.startX) < 10) return;
     state.started = true;
     stopRaf();
-    const velocity = touchX - state.lastX;
-    state.lastX = touchX;
-    const relX    = touchX - state.innerLeft;
-    const raw     = (relX / state.innerWidth) * TAB_COUNT - 0.5;
-    const clamped = Math.max(0, Math.min(TAB_COUNT - 1, raw));
-    state.pos = clamped;
-    curRef.current = clamped;
-    setCenter(clamped);
+    const relX = touchX - state.innerLeft;
+    const f    = Math.max(0, Math.min(TAB_COUNT - 1, (relX / state.innerWidth) * TAB_COUNT - 0.5));
+    state.pos  = f;
+
+    // The bubble HOLDS the anchored tab and stretches toward the finger. Only
+    // when the finger crosses into a new cell does it release and grab it.
+    const newAnchor = Math.round(f);
+    if (newAnchor !== anchorRef.current) {
+      anchorRef.current = newAnchor;
+      curRef.current = newAnchor;
+      setCenter(newAnchor);   // let go of the old tab, snap onto the new one
+    }
     setMoving(true);
-    setStretch(Math.max(-1, Math.min(1, velocity / 12)));
+    setStretch(Math.max(-1, Math.min(1, (f - anchorRef.current) * 2)));
   }
 
   function handleTouchEnd() {
@@ -164,10 +170,11 @@ export function BottomNav({ lang = 'en', activeTab, menuOpen = false, alertsOpen
     swipeRef.current = null;
     setPressed(false);
     if (state?.started && state.pos !== null) {
-      const idx    = Math.round(Math.max(0, Math.min(TAB_COUNT - 1, state.pos)));
+      const idx    = anchorRef.current;
       const target = items[idx];
       targetRef.current = idx;
-      runRaf();  // spring toward the snapped tab
+      setStretch(0);
+      setMoving(false);
       if (target && target.id !== activeItem) target.action();
     } else {
       setMoving(false);
@@ -198,7 +205,7 @@ export function BottomNav({ lang = 'en', activeTab, menuOpen = false, alertsOpen
   const px = loupeLeftPx(loupeCenter);
   const loupeStyle = {
     left: px !== null ? `${px}px` : loupeLeftFallback(loupeCenter),
-    transform: `scaleX(${(dragSwell * (1 + absStretch * 0.35)).toFixed(3)}) scaleY(${(1 - absStretch * 0.12).toFixed(3)})`,
+    transform: `scaleX(${(dragSwell * (1 + absStretch * 0.55)).toFixed(3)}) scaleY(${(1 - absStretch * 0.10).toFixed(3)})`,
     transformOrigin: stretch >= 0 ? 'left center' : 'right center',
     transition: moving ? 'none' : undefined,
   };

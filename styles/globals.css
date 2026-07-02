@@ -8387,7 +8387,7 @@ select:focus,
     -webkit-backdrop-filter: blur(18px) saturate(190%) contrast(1.05);
     pointer-events: auto;
     touch-action: pan-y;
-    overflow: hidden !important;
+    overflow: visible !important;   /* let the pressed bubble spill past the bar */
     -webkit-user-select: none;
     user-select: none;
     -webkit-touch-callout: none;
@@ -8534,8 +8534,8 @@ select:focus,
     border: none !important;
     border-radius: 0 !important;
     background: transparent !important;
-    color: inherit !important;
     box-shadow: none !important;
+    /* colour is handled by the brand/lit rules below, not here */
   }
 
   .dilz-bottom-nav__item.is-post > span:last-child {
@@ -8659,12 +8659,12 @@ select:focus,
     background: transparent !important;
   }
 
-  /* While pressed / dragging, the bubble swells to the full height of the bar.
-     No blur or forced background here — that would override the orange
+  /* While pressed / dragging, the bubble swells slightly BEYOND the bar's
+     height. No blur or forced background here — that would override the orange
      post-zone tint set inline by JS. */
   .dilz-bottom-nav__loupe.is-pressed,
   .dilz-bottom-nav__loupe.is-swiping {
-    top: 0 !important;
-    bottom: 0 !important;
+    top: -5px !important;
+    bottom: -5px !important;
   }
 }
