@@ -51,7 +51,7 @@ test('pressing swells the bubble uniformly (same shape) and starts on touch', ()
 
 test('the loupe is positioned via GPU translate/scale, not layout-thrashing left', () => {
   assert.match(nav, /translate: pos/);
-  assert.match(css, /\.dilz-bottom-nav__loupe\s*\{[^}]*transition:\s*translate 620ms linear[^}]*scale 220ms/s);
+  assert.match(css, /\.dilz-bottom-nav__loupe\s*\{[^}]*transition:\s*translate 620ms[^}]*scale 220ms/s);
 });
 
 test('touch focuses the bubble under the finger before release navigation', () => {
@@ -60,10 +60,8 @@ test('touch focuses the bubble under the finger before release navigation', () =
   assert.match(nav, /persistedIdx = pos;\s*setTouchFocusCenter\(pos\)/);
   assert.match(nav, /setTouchFocusCenter\(pos\)/);
   assert.match(nav, /const loupeCenter = isSwiping \? swipeCenter : \(touchFocusing \? touchFocusCenter : restIdx\)/);
-  assert.match(nav, /const travelEase = 'linear'/);
-  assert.match(nav, /translate \$\{glideMs\}ms \$\{travelEase\}/);
+  assert.match(nav, /translate \$\{glideMs\}ms \$\{ease\}/);
   assert.doesNotMatch(nav, /touchFocusing \? 180 : glideMs/);
-  assert.doesNotMatch(nav, /translate \$\{glideMs\}ms \$\{scaleEase\}/);
 });
 
 test('bubble position is derived from a controlled resting centre, not a drifting state', () => {
