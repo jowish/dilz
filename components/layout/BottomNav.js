@@ -1,23 +1,19 @@
 import { useEffect, useRef, useState } from 'react';
 import { supabase } from '../../lib/supabase';
 import { bottomNavActiveItem } from '../../lib/navigationState';
-
-const TAB_COUNT = 5;
-const LOUPE_WIDTH = 72;
-
-// Fallback (pre-measure): percentage-based center. Slightly off due to bar
-// padding, but only used for the very first paint before refs are measured.
-function loupeLeftFallback(center) {
-  return `calc(${((center + 0.5) / TAB_COUNT) * 100}% - ${LOUPE_WIDTH / 2}px)`;
-}
-
-// Dock magnification: an icon grows as the loupe approaches, peaking when the
-// loupe is centred on it — the WhatsApp-style "pop" that follows the focus.
-function dockScale(itemIdx, center) {
-  const dist = Math.abs(itemIdx - center);
-  if (dist >= 1.3) return 1;
-  return 1 + ((1.3 - dist) / 1.3) * 0.26;
-}
+import {
+  TAB_COUNT,
+  SWIPE_START_PX,
+  loupeLeftFallback,
+  dockScale,
+  loupeLeftPx as computeLoupeLeftPx,
+  postTint as computePostTint,
+  postLit as computePostLit,
+  easeCenter,
+  touchToFraction,
+  snapIndex,
+  visualActiveIndex,
+} from '../../lib/bottomNav';
 
 export function BottomNav({ lang = 'en', activeTab, menuOpen = false, alertsOpen = false, postOpen = false, avatarUrl: avatarProp, onMenu, onTab, onPost, onAlerts, onProfile }) {
   const labels = lang === 'he'
@@ -74,15 +70,7 @@ export function BottomNav({ lang = 'en', activeTab, menuOpen = false, alertsOpen
     return () => { cancelAnimationFrame(raf); window.removeEventListener('resize', measure); };
   }, [lang]);
 
-  // Interpolate the loupe's left (px) for a fractional tab index.
-  function loupeLeftPx(fraction) {
-    if (!centers) return null;
-    const lo = Math.floor(fraction);
-    const hi = Math.min(TAB_COUNT - 1, lo + 1);
-    const t = fraction - lo;
-    const cx = centers[lo] + (centers[hi] - centers[lo]) * t;
-    return cx - LOUPE_WIDTH / 2;
-  }
+  const loupeLeftPx = (fraction) => computeLoupeLeftPx(centers, fraction);
 
   // ── Animated loupe center ────────────────────────────────────────────
   // `center` is a *fractional* tab index that eases toward the target on
@@ -105,10 +93,7 @@ export function BottomNav({ lang = 'en', activeTab, menuOpen = false, alertsOpen
     setMoving(true);
     const step = () => {
       const cur = curRef.current;
-      const target = targetRef.current;
-      const next = cur + (target - cur) * 0.16;      // gentle exponential ease
-      const done = Math.abs(target - next) < 0.004;
-      const settled = done ? target : next;
+      const { value: settled, done } = easeCenter(cur, targetRef.current);
       const velocity = settled - cur;
       curRef.current = settled;
       setCenter(settled);
@@ -138,24 +123,30 @@ export function BottomNav({ lang = 'en', activeTab, menuOpen = false, alertsOpen
   function handleTouchStart(e) {
     const inner = innerRef.current;
     if (!inner) return;
-    setPressed(true);   // swell immediately on touch, before any movement
+    setPressed(true);   // swell immediately on touch
     const rect = inner.getBoundingClientRect();
-    swipeRef.current = { startX: e.touches[0].clientX, innerLeft: rect.left, innerWidth: rect.width, started: false, pos: null };
+    const touchX = e.touches[0].clientX;
+    // Jump the bubble straight onto the tab under the finger, instead of
+    // swelling in place on the tab we came from.
+    const idx = snapIndex(touchToFraction(touchX - rect.left, rect.width));
+    stopRaf();
+    curRef.current = idx;
+    setCenter(idx);
+    swipeRef.current = { startX: touchX, innerLeft: rect.left, innerWidth: rect.width, started: false, pos: idx };
   }
 
   function handleTouchMove(e) {
     const state = swipeRef.current;
     if (!state) return;
     const touchX = e.touches[0].clientX;
-    if (!state.started && Math.abs(touchX - state.startX) < 10) return;
+    if (!state.started && Math.abs(touchX - state.startX) < SWIPE_START_PX) return;
     state.started = true;
     stopRaf();
     // The bubble follows the finger continuously.
-    const relX    = touchX - state.innerLeft;
-    const clamped = Math.max(0, Math.min(TAB_COUNT - 1, (relX / state.innerWidth) * TAB_COUNT - 0.5));
-    state.pos = clamped;
-    curRef.current = clamped;
-    setCenter(clamped);
+    const frac = touchToFraction(touchX - state.innerLeft, state.innerWidth);
+    state.pos = frac;
+    curRef.current = frac;
+    setCenter(frac);
     setMoving(true);
   }
 
@@ -164,7 +155,7 @@ export function BottomNav({ lang = 'en', activeTab, menuOpen = false, alertsOpen
     swipeRef.current = null;
     setPressed(false);
     if (state?.started && state.pos !== null) {
-      const idx    = Math.round(Math.max(0, Math.min(TAB_COUNT - 1, state.pos)));
+      const idx    = snapIndex(state.pos);
       const target = items[idx];
       targetRef.current = idx;
       runRaf();  // spring toward the snapped tab
@@ -179,17 +170,12 @@ export function BottomNav({ lang = 'en', activeTab, menuOpen = false, alertsOpen
 
   // While the loupe travels, the tab nearest its center looks selected — the
   // filled/white state jumps live from icon to icon, then commits on release.
-  const visualActiveIdx = moving
-    ? Math.max(0, Math.min(TAB_COUNT - 1, Math.round(center)))
-    : activeIdx;
+  const visualActiveIdx = visualActiveIndex(center, activeIdx, moving);
 
-  // Post index = 2. The bubble tints orange as the focus enters the Post zone,
-  // and is fully orange once centred on it.
-  const POST_IDX = 2;
-  const postTint = Math.max(0, Math.min(1, (0.65 - Math.abs(center - POST_IDX)) / 0.65));
-  // Once the orange bubble reaches the Post icon, invert its plus + label to
-  // white so they stay legible on the orange fill.
-  const postLit = postTint > 0.4;
+  // The bubble tints orange as the focus enters the Post zone, fully orange
+  // once centred; the plus + label then invert to white so they stay legible.
+  const postTint = computePostTint(center);
+  const postLit = computePostLit(center);
 
   // When pressed / dragging the bubble grows UNIFORMLY (same shape and
   // proportions, just larger) so it overshoots the bar symmetrically on every
