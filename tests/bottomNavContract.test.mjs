@@ -55,6 +55,12 @@ test('tapping snaps to the button actually under the finger (no click flicker)',
   assert.match(nav, /touchX >= r\.left && touchX <= r\.right/);
 });
 
+test('only the icon under the bubble zooms; the others stay at scale 1', () => {
+  assert.match(nav, /transform: `scale\(\$\{active \? 1\.12 : 1\}\)`/);
+  // no distance-based dock magnification of every icon
+  assert.doesNotMatch(nav, /dockScale\(idx/);
+});
+
 test('the selected tab commits on release, not continuously during the drag', () => {
   assert.match(nav, /function handleTouchEnd/);
   assert.match(nav, /if \(target && target\.id !== activeItem\) target\.action\(\)/);

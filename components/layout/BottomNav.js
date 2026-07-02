@@ -223,9 +223,12 @@ export function BottomNav({ lang = 'en', activeTab, menuOpen = false, alertsOpen
           const postWhite = item.post && (active || postLit);
           const postColor = item.post ? (postWhite ? '#ffffff' : 'var(--brand)') : undefined;
 
-          // Icons stay perfectly still while the focus moves — only the bubble
-          // travels. (No dock magnification, so the logos never shift.)
-          const iconStyle = postColor ? { color: postColor } : undefined;
+          // Only the icon the bubble is currently over zooms; the others never
+          // move. The scale flips at tab crossings, so unselected logos stay put.
+          const iconStyle = {
+            transform: `scale(${active ? 1.12 : 1})`,
+            ...(postColor ? { color: postColor } : {}),
+          };
 
           return (
             <button
