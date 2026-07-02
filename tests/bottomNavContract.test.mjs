@@ -45,9 +45,20 @@ test('button centres are measured with the border correction for exact centering
 test('pressing swells the bubble uniformly (same shape) and starts on touch', () => {
   assert.match(nav, /setPressed\(true\)/);
   // uniform scale, not scaleX (which would distort the pill)
-  assert.match(nav, /transform: `scale\(\$\{dragSwell/);
-  assert.doesNotMatch(nav, /transform: `scaleX\(\$\{dragSwell/);
+  assert.match(nav, /scale\(\$\{dragSwell\.toFixed\(3\)\}\)/);
+  assert.doesNotMatch(nav, /scaleX\(\$\{dragSwell/);
   assert.match(nav, /const dragSwell = \(pressed \|\| isSwiping\) \? 1\.34 : 1/);
+});
+
+test('the loupe is positioned with GPU transform, not layout-thrashing left', () => {
+  // transform drives position (translateX), not the `left` property per frame
+  assert.match(nav, /transform: `translateX\(\$\{pos\}\) scale\(/);
+  assert.doesNotMatch(nav, /left: px !== null/);
+});
+
+test('tapping snaps to the button actually under the finger (no click flicker)', () => {
+  assert.match(nav, /itemRefs\.current\.findIndex/);
+  assert.match(nav, /touchX >= r\.left && touchX <= r\.right/);
 });
 
 test('the selected tab commits on release, not continuously during the drag', () => {

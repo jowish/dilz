@@ -10,6 +10,11 @@ export default async function handler(req, res) {
   res.setHeader('Allow', 'GET');
   if (req.method !== 'GET') return res.status(405).end();
 
+  // The city list changes rarely — cache it on the CDN and in the browser so
+  // repeat page loads (e.g. opening Alerts) are instant instead of hitting the
+  // DB every time. Serve stale while revalidating in the background.
+  res.setHeader('Cache-Control', 'public, s-maxage=3600, stale-while-revalidate=86400');
+
   const { data, error } = await supabase
     .from('magasins')
     .select('ville_normalisee')

@@ -79,7 +79,6 @@ export function BottomNav({ lang = 'en', activeTab, menuOpen = false, alertsOpen
   // tab's icon zooms (dock magnification), so the whole bar reacts like
   // WhatsApp when the focus moves.
   const [center, setCenter]   = useState(activeIdx);
-  const [stretch, setStretch] = useState(0);   // signed horizontal stretch
   const [moving, setMoving]   = useState(false);
   const [pressed, setPressed] = useState(false); // finger down on the bar
   const curRef    = useRef(activeIdx);
@@ -93,14 +92,10 @@ export function BottomNav({ lang = 'en', activeTab, menuOpen = false, alertsOpen
     stopRaf();
     setMoving(true);
     const step = () => {
-      const cur = curRef.current;
-      const { value: settled, done } = easeCenter(cur, targetRef.current);
-      const velocity = settled - cur;
+      const { value: settled, done } = easeCenter(curRef.current, targetRef.current);
       curRef.current = settled;
       setCenter(settled);
-      setStretch(Math.max(-1, Math.min(1, velocity * 1.6)));
       if (done) {
-        setStretch(0);
         setMoving(false);
         rafRef.current = null;
         return;
@@ -127,9 +122,16 @@ export function BottomNav({ lang = 'en', activeTab, menuOpen = false, alertsOpen
     setPressed(true);   // swell immediately on touch
     const rect = inner.getBoundingClientRect();
     const touchX = e.touches[0].clientX;
-    // Jump the bubble straight onto the tab under the finger, instead of
-    // swelling in place on the tab we came from.
-    const idx = snapIndex(touchToFraction(touchX - rect.left, rect.width, isRtl));
+    // Snap to the ACTUAL button under the finger (exact hit-test) so the jump
+    // always matches the click target — otherwise a width-based estimate can
+    // land on a neighbour, causing a jump-then-return flicker on tap. Works in
+    // RTL too since it uses real element positions.
+    let idx = itemRefs.current.findIndex((b) => {
+      if (!b) return false;
+      const r = b.getBoundingClientRect();
+      return touchX >= r.left && touchX <= r.right;
+    });
+    if (idx < 0) idx = snapIndex(touchToFraction(touchX - rect.left, rect.width, isRtl));
     stopRaf();
     curRef.current = idx;
     setCenter(idx);
@@ -163,7 +165,6 @@ export function BottomNav({ lang = 'en', activeTab, menuOpen = false, alertsOpen
       if (target && target.id !== activeItem) target.action();
     } else {
       setMoving(false);
-      setStretch(0);
     }
   }
 
@@ -183,9 +184,11 @@ export function BottomNav({ lang = 'en', activeTab, menuOpen = false, alertsOpen
   // side and bites onto the neighbour tabs.
   const dragSwell = (pressed || isSwiping) ? 1.34 : 1;
   const px = loupeLeftPx(loupeCenter);
+  // Position via translateX (GPU-composited, no per-frame layout) instead of
+  // `left`, so the bubble glides without jank.
+  const pos = px !== null ? `${px}px` : loupeLeftFallback(loupeCenter, isRtl);
   const loupeStyle = {
-    left: px !== null ? `${px}px` : loupeLeftFallback(loupeCenter, isRtl),
-    transform: `scale(${dragSwell.toFixed(3)})`,
+    transform: `translateX(${pos}) scale(${dragSwell.toFixed(3)})`,
     transformOrigin: 'center center',
     transition: moving ? 'none' : undefined,
   };
