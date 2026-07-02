@@ -13,6 +13,7 @@ const [
   explore,
   alerts,
   post,
+  routeHelpers,
 ] = await Promise.all([
   read('components', 'layout', 'GlobalBottomNav.js'),
   read('components', 'layout', 'BottomNav.js'),
@@ -21,6 +22,7 @@ const [
   read('pages', 'explore.js'),
   read('pages', 'alerts.js'),
   read('pages', 'post.js'),
+  read('lib', 'globalBottomNavRoutes.mjs'),
 ]);
 
 test('bottom navigation is mounted globally exactly once, outside route pages', () => {
@@ -35,23 +37,24 @@ test('bottom navigation is mounted globally exactly once, outside route pages', 
 
 test('global bottom navigation stays visible across app routes and submenus', () => {
   for (const route of ["'/'", "'/explore'", "'/alerts'", "'/post'", "'/profil'", "'/map'", "'/bons-plans-shopping'", "'/codes-promo'", "'/gratuit'", "'/scan'"]) {
-    assert.ok(globalNav.includes(route), `missing nav route ${route}`);
+    assert.ok(routeHelpers.includes(route), `missing nav route ${route}`);
   }
-  assert.match(globalNav, /const NAV_PREFIXES = \['\/deal\/', '\/shopping-deal\/', '\/user\/'\]/);
-  assert.match(globalNav, /return NAV_ROUTES\.has\(path\) \|\| NAV_PREFIXES\.some\(\(prefix\) => path\.startsWith\(prefix\)\)/);
+  assert.match(globalNav, /import \{ activeFromPath, shouldShowNav \} from '\.\.\/\.\.\/lib\/globalBottomNavRoutes\.mjs'/);
+  assert.match(routeHelpers, /const NAV_PREFIXES = \['\/deal\/', '\/shopping-deal\/', '\/user\/'\]/);
+  assert.match(routeHelpers, /return NAV_ROUTES\.has\(path\) \|\| NAV_PREFIXES\.some\(\(prefix\) => path\.startsWith\(prefix\)\)/);
   assert.match(globalNav, /if \(!visible\) return null/);
   assert.doesNotMatch(globalNav, /loadingDeals/);
   assert.doesNotMatch(globalNav, /loadingPromos/);
 });
 
 test('global bottom navigation derives the committed active tab from the URL', () => {
-  assert.match(globalNav, /path === '\/explore' \|\| path === '\/bons-plans'[\s\S]*return 'explore'/);
-  assert.match(globalNav, /if \(path === '\/alerts'\) return 'alerts'/);
-  assert.match(globalNav, /if \(path === '\/post'\) return 'post'/);
-  assert.match(globalNav, /path === '\/profil' \|\| path\.startsWith\('\/user\/'\).*return 'profile'/);
-  assert.match(globalNav, /path === '\/map' \|\| path\.startsWith\('\/deal\/'\).*return 'deals'/);
-  assert.match(globalNav, /new URLSearchParams\(query\)\.get\('tab'\)/);
-  assert.match(globalNav, /return tab === 'profile' \? 'profile' : 'deals'/);
+  assert.match(routeHelpers, /path === '\/explore' \|\| path === '\/bons-plans'[\s\S]*return 'explore'/);
+  assert.match(routeHelpers, /if \(path === '\/alerts'\) return 'alerts'/);
+  assert.match(routeHelpers, /if \(path === '\/post'\) return 'post'/);
+  assert.match(routeHelpers, /path === '\/profil' \|\| path\.startsWith\('\/user\/'\).*return 'profile'/);
+  assert.match(routeHelpers, /path === '\/map' \|\| path\.startsWith\('\/deal\/'\).*return 'deals'/);
+  assert.match(routeHelpers, /new URLSearchParams\(query\)\.get\('tab'\)/);
+  assert.match(routeHelpers, /return tab === 'profile' \? 'profile' : 'deals'/);
 });
 
 test('global bottom navigation responds optimistically before route loading finishes', () => {

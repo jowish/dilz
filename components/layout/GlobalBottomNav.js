@@ -3,42 +3,7 @@ import { useRouter } from 'next/router';
 import { supabase } from '../../lib/supabase';
 import { useAppLanguage } from '../../lib/useAppLanguage';
 import { BottomNav } from './BottomNav';
-
-const NAV_ROUTES = new Set([
-  '/',
-  '/alerts',
-  '/bons-plans',
-  '/bons-plans-shopping',
-  '/codes-promo',
-  '/explore',
-  '/gratuit',
-  '/map',
-  '/post',
-  '/profil',
-  '/scan',
-]);
-
-const NAV_PREFIXES = ['/deal/', '/shopping-deal/', '/user/'];
-
-function activeFromPath(asPath = '', pathname = '') {
-  const path = String(asPath || pathname || '').split('?')[0] || '/';
-  if (path === '/alerts') return 'alerts';
-  if (path === '/post') return 'post';
-  if (path === '/profil' || path.startsWith('/user/')) return 'profile';
-  if (path === '/explore' || path === '/bons-plans' || path === '/bons-plans-shopping' || path === '/codes-promo' || path === '/gratuit' || path === '/scan' || path.startsWith('/shopping-deal/')) return 'explore';
-  if (path === '/map' || path.startsWith('/deal/')) return 'deals';
-  if (path === '/') {
-    const query = String(asPath || '').split('?')[1] || '';
-    const tab = new URLSearchParams(query).get('tab');
-    return tab === 'profile' ? 'profile' : 'deals';
-  }
-  return null;
-}
-
-function shouldShowNav(asPath = '', pathname = '') {
-  const path = String(asPath || pathname || '').split('?')[0] || '/';
-  return NAV_ROUTES.has(path) || NAV_PREFIXES.some((prefix) => path.startsWith(prefix));
-}
+import { activeFromPath, shouldShowNav } from '../../lib/globalBottomNavRoutes.mjs';
 
 export function GlobalBottomNav() {
   const router = useRouter();
