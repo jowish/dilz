@@ -182,12 +182,12 @@ export default function Profil() {
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
       </Head>
       <div className="dilz-profil-page" dir={dir}>
-        <header className="dilz-app-header">
+        <header className="dilz-app-header dilz-profil-header">
           <div className="dilz-app-header__inner">
             <button type="button" className="dilz-profil-back" onClick={handleBack}>
               <BackArrow /> {text.back}
             </button>
-            <span className="dilz-profil-heading">{pageTitle}</span>
+            <span className="dilz-profil-heading" dir={dir}>{pageTitle}</span>
             <div className="dilz-profil-header-actions">
               <ThemeToggle lang={lang} />
             </div>

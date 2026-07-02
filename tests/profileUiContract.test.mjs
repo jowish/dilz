@@ -53,3 +53,11 @@ test('header keeps the app logo and removes the useless profile-person shortcut'
   assert.match(index, /<img src=\{avatarUrl\} alt=\{displayName\} \/>/);
   assert.match(css, /\.dilz-profile-card__avatar img\s*\{[^}]*object-fit:\s*cover/s);
 });
+
+test('profile settings keeps the back action on the top left even in RTL', () => {
+  assert.match(profile, /className="dilz-app-header dilz-profil-header"/);
+  assert.match(profile, /className="dilz-profil-heading" dir=\{dir\}/);
+  assert.match(css, /\.dilz-profil-header \.dilz-app-header__inner\s*\{[^}]*direction:\s*ltr[^}]*display:\s*grid[^}]*grid-template-columns:\s*minmax\(72px,\s*1fr\) auto minmax\(72px,\s*1fr\)/s);
+  assert.match(css, /\.dilz-profil-header \.dilz-profil-back\s*\{[^}]*justify-self:\s*start/s);
+  assert.match(css, /\.dilz-profil-header \.dilz-profil-header-actions\s*\{[^}]*justify-self:\s*end/s);
+});
