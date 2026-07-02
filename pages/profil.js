@@ -6,7 +6,6 @@ import { supabase } from '../lib/supabase';
 import { useAppLanguage } from '../lib/useAppLanguage';
 import { VoteEmoji } from '../components/ui/VoteEmoji';
 import { readDealSortPreference, writeDealSortPreference } from '../lib/userPreferences';
-import { ThemeToggle } from '../components/ui/ThemeToggle';
 import { profileBackFallback, profileViewVisibility } from '../lib/profileNavigation';
 import { uploadAvatarImage, validateImageFile } from '../lib/uploadImage';
 
@@ -188,9 +187,7 @@ export default function Profil() {
               <BackArrow /> {text.back}
             </button>
             <span className="dilz-profil-heading" dir={dir}>{pageTitle}</span>
-            <div className="dilz-profil-header-actions">
-              <ThemeToggle lang={lang} />
-            </div>
+            <div className="dilz-profil-header-actions" aria-hidden="true" />
           </div>
         </header>
 

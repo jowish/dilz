@@ -33,18 +33,23 @@ test('bottom navigation is mounted globally exactly once, outside route pages', 
   }
 });
 
-test('global bottom navigation stays visible on every bottom-nav route only', () => {
-  assert.match(globalNav, /const NAV_ROUTES = new Set\(\['\/', '\/explore', '\/alerts', '\/post'\]\)/);
-  assert.match(globalNav, /return NAV_ROUTES\.has\(path\)/);
+test('global bottom navigation stays visible across app routes and submenus', () => {
+  for (const route of ["'/'", "'/explore'", "'/alerts'", "'/post'", "'/profil'", "'/map'", "'/bons-plans-shopping'", "'/codes-promo'", "'/gratuit'", "'/scan'"]) {
+    assert.ok(globalNav.includes(route), `missing nav route ${route}`);
+  }
+  assert.match(globalNav, /const NAV_PREFIXES = \['\/deal\/', '\/shopping-deal\/', '\/user\/'\]/);
+  assert.match(globalNav, /return NAV_ROUTES\.has\(path\) \|\| NAV_PREFIXES\.some\(\(prefix\) => path\.startsWith\(prefix\)\)/);
   assert.match(globalNav, /if \(!visible\) return null/);
   assert.doesNotMatch(globalNav, /loadingDeals/);
   assert.doesNotMatch(globalNav, /loadingPromos/);
 });
 
 test('global bottom navigation derives the committed active tab from the URL', () => {
-  assert.match(globalNav, /if \(path === '\/explore'\) return 'explore'/);
+  assert.match(globalNav, /path === '\/explore' \|\| path === '\/bons-plans'[\s\S]*return 'explore'/);
   assert.match(globalNav, /if \(path === '\/alerts'\) return 'alerts'/);
   assert.match(globalNav, /if \(path === '\/post'\) return 'post'/);
+  assert.match(globalNav, /path === '\/profil' \|\| path\.startsWith\('\/user\/'\).*return 'profile'/);
+  assert.match(globalNav, /path === '\/map' \|\| path\.startsWith\('\/deal\/'\).*return 'deals'/);
   assert.match(globalNav, /new URLSearchParams\(query\)\.get\('tab'\)/);
   assert.match(globalNav, /return tab === 'profile' \? 'profile' : 'deals'/);
 });
@@ -70,4 +75,3 @@ test('global active state is still delegated to the liquid bottom nav component'
   assert.match(globalNav, /<BottomNav[\s\S]*activeTab=\{activeTab\}[\s\S]*alertsOpen=\{activeTab === 'alerts'\}[\s\S]*postOpen=\{activeTab === 'post'\}/);
   assert.match(bottomNav, /aria-current=\{committed \? 'page' : undefined\}/);
 });
-

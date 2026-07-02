@@ -57,6 +57,8 @@ test('header keeps the app logo and removes the useless profile-person shortcut'
 test('profile settings keeps the back action on the top left even in RTL', () => {
   assert.match(profile, /className="dilz-app-header dilz-profil-header"/);
   assert.match(profile, /className="dilz-profil-heading" dir=\{dir\}/);
+  assert.doesNotMatch(profile, /ThemeToggle/);
+  assert.match(profile, /className="dilz-profil-header-actions" aria-hidden="true"/);
   assert.match(css, /\.dilz-profil-header \.dilz-app-header__inner\s*\{[^}]*direction:\s*ltr[^}]*display:\s*grid[^}]*grid-template-columns:\s*minmax\(72px,\s*1fr\) auto minmax\(72px,\s*1fr\)/s);
   assert.match(css, /\.dilz-profil-header \.dilz-profil-back\s*\{[^}]*justify-self:\s*start/s);
   assert.match(css, /\.dilz-profil-header \.dilz-profil-header-actions\s*\{[^}]*justify-self:\s*end/s);
