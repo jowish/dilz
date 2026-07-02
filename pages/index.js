@@ -460,24 +460,21 @@ function ProfileTab({ user, lang, savedItems = [], onToggleSave, onSignOut }) {
   }
 
   const displayName = user.user_metadata?.display_name || user.email?.split('@')[0] || 'User';
+  const avatarUrl = user.user_metadata?.avatar_url || user.user_metadata?.picture || '';
   const initials = displayName.slice(0, 2).toUpperCase();
 
   return (
     <div className="dilz-profile-tab">
       {/* Profile card */}
-      <div style={{
-        background: 'var(--bg-card)', borderRadius: 12, padding: '18px 16px',
-        marginBottom: 12, border: '1px solid var(--border)',
-        display: 'flex', alignItems: 'center', gap: 14,
-      }}>
-        <div style={{
-          width: 48, height: 48, borderRadius: '50%', flexShrink: 0,
-          background: ACCENT,
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-        }}>
-          <span style={{ color: '#fff', fontSize: 17, fontWeight: 700 }}>{initials}</span>
+      <div className="dilz-profile-card">
+        <div className="dilz-profile-card__avatar">
+          {avatarUrl ? (
+            <img src={avatarUrl} alt={displayName} />
+          ) : (
+            <span>{initials}</span>
+          )}
         </div>
-        <div style={{ flex: 1, minWidth: 0 }}>
+        <div className="dilz-profile-card__identity">
           <p style={{ fontSize: 16, fontWeight: 700, color: 'var(--text)', marginBottom: 2 }}>{displayName}</p>
           <p style={{ fontSize: 12, color: 'var(--text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user.email}</p>
         </div>

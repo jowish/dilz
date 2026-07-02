@@ -46,10 +46,6 @@ export function AppHeader({
   const labels = lang === 'he'
     ? { primary: 'ניווט ראשי', promos: 'מבצעים', search: 'חיפוש מוצרים, חנויות ודילז', notifications: 'התראות', alert: 'יצירת התראת מחיר', alerts: 'התראות', post: 'פרסום דיל', profile: 'פרופיל', signIn: 'התחברות', allIsrael: 'כל הארץ' }
     : { primary: 'Primary navigation', promos: 'Promotions', search: 'Search products, stores, Dilz', notifications: 'Notifications', alert: 'Create a price alert', alerts: 'Alerts', post: 'Post deal', profile: 'Profile', signIn: 'Sign in', allIsrael: 'All Israel' };
-  const initials = user
-    ? (user.user_metadata?.display_name || user.email || 'U').slice(0, 2).toUpperCase()
-    : null;
-
   return (
     <header className="dilz-app-header">
       <div className="dilz-app-header__inner">
@@ -96,14 +92,10 @@ export function AppHeader({
           </button>
           <Button className="dilz-header-post" onClick={onPostDeal}>{labels.post}</Button>
           <IconButton aria-label={user ? labels.profile : labels.signIn} onClick={onProfileClick} selected={Boolean(user)}>
-            {user ? (
-              <span className="dilz-avatar-mini">{initials}</span>
-            ) : (
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                <circle cx="12" cy="7" r="4" />
-              </svg>
-            )}
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+              <circle cx="12" cy="7" r="4" />
+            </svg>
           </IconButton>
         </div>
       </div>

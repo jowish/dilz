@@ -7,6 +7,7 @@ const index = await readFile(path.join(process.cwd(), 'pages', 'index.js'), 'utf
 const profile = await readFile(path.join(process.cwd(), 'pages', 'profil.js'), 'utf8');
 const shareMenu = await readFile(path.join(process.cwd(), 'components', 'ui', 'ShareMenu.js'), 'utf8');
 const appHeader = await readFile(path.join(process.cwd(), 'components', 'layout', 'AppHeader.js'), 'utf8');
+const css = await readFile(path.join(process.cwd(), 'styles', 'globals.css'), 'utf8');
 
 test('profile shortcuts separate owned deals from account settings', () => {
   assert.match(index, /href: '\/profil\?view=deals'/);
@@ -35,4 +36,15 @@ test('profile hides global search and keeps sign out after profile content', () 
   assert.match(appHeader, /\{showSearch && \([\s\S]*dilz-app-header__search/);
   const profileTab = index.slice(index.indexOf('function ProfileTab'), index.indexOf('function ChevronIcon'));
   assert.ok(profileTab.lastIndexOf('dilz-profile-signout--bottom') > profileTab.lastIndexOf('dilz-saved-items-content'));
+});
+
+test('header removes useless initials while profile card shows the uploaded photo', () => {
+  assert.doesNotMatch(appHeader, /dilz-avatar-mini/);
+  assert.doesNotMatch(appHeader, /slice\(0, 2\)\.toUpperCase\(\)/);
+  assert.match(appHeader, /aria-label=\{user \? labels\.profile : labels\.signIn\}/);
+  assert.match(index, /const avatarUrl = user\.user_metadata\?\.avatar_url \|\| user\.user_metadata\?\.picture \|\| ''/);
+  assert.match(index, /className="dilz-profile-card__avatar"/);
+  assert.match(index, /avatarUrl \? \(/);
+  assert.match(index, /<img src=\{avatarUrl\} alt=\{displayName\} \/>/);
+  assert.match(css, /\.dilz-profile-card__avatar img\s*\{[^}]*object-fit:\s*cover/s);
 });
