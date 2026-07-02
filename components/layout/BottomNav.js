@@ -8,7 +8,6 @@ import {
   loupeLeftPx as computeLoupeLeftPx,
   postTint as computePostTint,
   postLit as computePostLit,
-  easeCenter,
   touchToFraction,
   snapIndex,
   visualActiveIndex,
@@ -78,42 +77,18 @@ export function BottomNav({ lang = 'en', activeTab, menuOpen = false, alertsOpen
   // tab's icon zooms (dock magnification), so the whole bar reacts like
   // WhatsApp when the focus moves.
   const [center, setCenter]   = useState(activeIdx);
-  const [moving, setMoving]   = useState(false);
   const [pressed, setPressed] = useState(false); // finger down on the bar
-  const curRef    = useRef(activeIdx);
-  const targetRef = useRef(activeIdx);
-  const rafRef    = useRef(null);
   const swipeRef  = useRef(null);
 
-  const stopRaf = () => { if (rafRef.current) { cancelAnimationFrame(rafRef.current); rafRef.current = null; } };
-
-  const runRaf = () => {
-    stopRaf();
-    setMoving(true);
-    const step = () => {
-      const { value: settled, done } = easeCenter(curRef.current, targetRef.current);
-      curRef.current = settled;
-      setCenter(settled);
-      if (done) {
-        setMoving(false);
-        rafRef.current = null;
-        return;
-      }
-      rafRef.current = requestAnimationFrame(step);
-    };
-    rafRef.current = requestAnimationFrame(step);
-  };
-
-  // Ease toward the newly active tab whenever it changes (click navigation)
-  useEffect(() => {
-    if (swipeRef.current) return;   // swipe drives the center directly
-    targetRef.current = activeIdx;
-    if (Math.abs(curRef.current - activeIdx) > 0.001) runRaf();
-    return stopRaf;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeIdx]);
-
   const isSwiping = swipeRef.current?.started === true;
+
+  // Glide the bubble to the newly selected tab. The motion is a pure CSS
+  // transition (calm easing set in globals.css) — no per-frame animation, so
+  // it's smooth and light rather than fast and nervous.
+  useEffect(() => {
+    if (swipeRef.current?.started) return;   // a drag owns the position
+    setCenter(activeIdx);
+  }, [activeIdx]);
 
   function handleTouchStart(e) {
     const inner = innerRef.current;
@@ -122,17 +97,14 @@ export function BottomNav({ lang = 'en', activeTab, menuOpen = false, alertsOpen
     const rect = inner.getBoundingClientRect();
     const touchX = e.touches[0].clientX;
     // Snap to the ACTUAL button under the finger (exact hit-test) so the jump
-    // always matches the click target — otherwise a width-based estimate can
-    // land on a neighbour, causing a jump-then-return flicker on tap. Works in
-    // RTL too since it uses real element positions.
+    // always matches the click target — avoids a jump-then-return flicker. Works
+    // in RTL too since it uses real element positions.
     let idx = itemRefs.current.findIndex((b) => {
       if (!b) return false;
       const r = b.getBoundingClientRect();
       return touchX >= r.left && touchX <= r.right;
     });
     if (idx < 0) idx = snapIndex(touchToFraction(touchX - rect.left, rect.width, isRtl));
-    stopRaf();
-    curRef.current = idx;
     setCenter(idx);
     swipeRef.current = { startX: touchX, innerLeft: rect.left, innerWidth: rect.width, started: false, pos: idx };
   }
@@ -143,13 +115,10 @@ export function BottomNav({ lang = 'en', activeTab, menuOpen = false, alertsOpen
     const touchX = e.touches[0].clientX;
     if (!state.started && Math.abs(touchX - state.startX) < SWIPE_START_PX) return;
     state.started = true;
-    stopRaf();
-    // The bubble follows the finger continuously.
+    // The bubble follows the finger continuously (transition disabled while swiping).
     const frac = touchToFraction(touchX - state.innerLeft, state.innerWidth, isRtl);
     state.pos = frac;
-    curRef.current = frac;
     setCenter(frac);
-    setMoving(true);
   }
 
   function handleTouchEnd() {
@@ -158,12 +127,9 @@ export function BottomNav({ lang = 'en', activeTab, menuOpen = false, alertsOpen
     setPressed(false);
     if (state?.started && state.pos !== null) {
       const idx    = snapIndex(state.pos);
+      setCenter(idx);   // CSS transition settles smoothly onto the nearest tab
       const target = items[idx];
-      targetRef.current = idx;
-      runRaf();  // spring toward the snapped tab
       if (target && target.id !== activeItem) target.action();
-    } else {
-      setMoving(false);
     }
   }
 
@@ -188,7 +154,7 @@ export function BottomNav({ lang = 'en', activeTab, menuOpen = false, alertsOpen
     left: px !== null ? `${px}px` : loupeLeftFallback(loupeCenter, isRtl),
     transform: `scale(${dragSwell.toFixed(3)})`,
     transformOrigin: 'center center',
-    transition: moving ? 'none' : undefined,
+    transition: isSwiping ? 'none' : undefined,   // follow the finger 1:1 while dragging
   };
   if (postTint > 0) {
     // keep the top specular sheen, tint the fill orange (opaque when centred)
@@ -214,7 +180,7 @@ export function BottomNav({ lang = 'en', activeTab, menuOpen = false, alertsOpen
       >
         {/* Single liquid drop that glides across the bar */}
         <div
-          className={`dilz-bottom-nav__loupe${isSwiping ? ' is-swiping' : ''}${pressed ? ' is-pressed' : ''}${moving ? ' is-moving' : ''}`}
+          className={`dilz-bottom-nav__loupe${isSwiping ? ' is-swiping' : ''}${pressed ? ' is-pressed' : ''}`}
           style={loupeStyle}
           aria-hidden="true"
         />

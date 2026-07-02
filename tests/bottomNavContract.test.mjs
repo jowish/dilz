@@ -23,10 +23,9 @@ test('the bar uses a single sliding loupe element', () => {
   assert.equal((nav.match(/dilz-bottom-nav__loupe\$\{/g) || []).length, 1);
 });
 
-test('the loupe carries swiping, pressed and moving state classes', () => {
+test('the loupe carries swiping and pressed state classes', () => {
   assert.match(nav, /isSwiping \? ' is-swiping' : ''/);
   assert.match(nav, /pressed \? ' is-pressed' : ''/);
-  assert.match(nav, /moving \? ' is-moving' : ''/);
 });
 
 test('loupe position and size come from the pure helpers, not inline maths', () => {
