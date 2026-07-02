@@ -8603,7 +8603,8 @@ select:focus,
   /* ── Water-lens refraction while the focus moves (WhatsApp-like) ───────
      A live backdrop blur+saturate distorts the page/bar behind the drop, and
      an iridescent rim (::after) fades in — the "looking through water" feel. */
-  .dilz-bottom-nav__loupe.is-moving {
+  .dilz-bottom-nav__loupe.is-moving,
+  .dilz-bottom-nav__loupe.is-pressed {
     backdrop-filter: blur(6px) saturate(2) brightness(1.05);
     -webkit-backdrop-filter: blur(6px) saturate(2) brightness(1.05);
   }
@@ -8633,7 +8634,8 @@ select:focus,
     pointer-events: none;
   }
 
-  .dilz-bottom-nav__loupe.is-moving::after {
+  .dilz-bottom-nav__loupe.is-moving::after,
+  .dilz-bottom-nav__loupe.is-pressed::after {
     opacity: 0.6;
   }
 
