@@ -52,8 +52,8 @@ test('only the retained view switch polish remains after SmoothUI rollback', () 
   assert.match(css, /\.dilz-layout-toggle button\.is-active\s*\{[^}]*border:\s*1px solid var\(--text-primary\) !important/s);
 });
 
-test('bottom navigation exposes Deals Search Post Alerts Profile with route compatibility', () => {
-  assert.match(bottomNav, /search:\s*'Search'/);
+test('bottom navigation exposes Deals Explore Post Alerts Profile with route compatibility', () => {
+  assert.match(bottomNav, /search:\s*'Explore'/);
   assert.match(bottomNav, /id: 'deals'[\s\S]*id: 'explore'[\s\S]*id: 'post'[\s\S]*id: 'alerts'[\s\S]*id: 'profile'/);
   assert.match(bottomNav, /label:\s*labels\.search/);
   assert.match(bottomNav, /function SearchIcon\(\{ active \}\)/);

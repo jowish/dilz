@@ -8,7 +8,7 @@ const css = await readFile(path.join(process.cwd(), 'styles', 'globals.css'), 'u
 
 // ── Component structure ──────────────────────────────────────────────────
 
-test('the five tabs are declared in the fixed order Deals, Search, Post, Alerts, Profile', () => {
+test('the five tabs are declared in the fixed order Deals, Explore, Post, Alerts, Profile', () => {
   assert.match(nav, /id: 'deals'[\s\S]*id: 'explore'[\s\S]*id: 'post'[\s\S]*id: 'alerts'[\s\S]*id: 'profile'/);
 });
 

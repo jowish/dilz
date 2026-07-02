@@ -28,7 +28,7 @@ export function BottomNav({ lang = 'en', activeTab, menuOpen = false, alertsOpen
   const isRtl = lang === 'he';
   const labels = lang === 'he'
     ? { search: 'חיפוש', deals: 'דילים', post: 'פרסום', alerts: 'התראות', profile: 'פרופיל', nav: 'ניווט מובייל' }
-    : { search: 'Search', deals: 'Deals', post: 'Post', alerts: 'Alerts', profile: 'Profile', nav: 'Mobile navigation' };
+    : { search: 'Explore', deals: 'Deals', post: 'Post', alerts: 'Alerts', profile: 'Profile', nav: 'Mobile navigation' };
 
   const items = [
     { id: 'deals',   label: labels.deals,   action: () => onTab('deals'), Icon: HomeIcon },

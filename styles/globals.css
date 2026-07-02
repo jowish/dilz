@@ -1370,6 +1370,7 @@ textarea:focus {
   border-bottom: 1px solid var(--border-default);
   position: relative;
   z-index: 20;
+  direction: ltr;
 }
 
 .dilz-map-header button {
@@ -1384,11 +1385,33 @@ textarea:focus {
   cursor: pointer;
 }
 
+.dilz-map-back {
+  width: 38px;
+  min-width: 38px;
+  padding: 0 !important;
+  display: inline-grid;
+  place-items: center;
+}
+
+.dilz-map-back svg {
+  width: 21px;
+  height: 21px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
 .dilz-map-header div {
   display: flex;
   flex-direction: column;
   align-items: center;
   line-height: 1.1;
+}
+
+.dilz-map-title {
+  min-width: 0;
 }
 
 .dilz-map-header strong {
@@ -1467,7 +1490,9 @@ textarea:focus {
 
 .dilz-map-results {
   min-height: 0;
-  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
   background: var(--surface-main);
   border-left: 1px solid var(--border-default);
   padding: 16px;
@@ -1541,8 +1566,12 @@ textarea:focus {
 }
 
 .dilz-map-deal-list {
+  min-height: 0;
+  flex: 1 1 auto;
   display: grid;
+  align-content: start;
   gap: 10px;
+  overflow-y: auto;
   padding-bottom: 18px;
 }
 
@@ -2361,7 +2390,7 @@ textarea:focus {
 
   .dilz-map-header button {
     min-height: 32px;
-    padding: 0 11px;
+    padding: 0;
   }
 
   .dilz-map-body {
@@ -5995,7 +6024,7 @@ textarea:focus {
   }
 
   .dilz-map-canvas {
-    flex: 1 1 auto;
+    flex: 0 0 min(44dvh, 360px);
     min-height: 0;
     height: auto;
   }
@@ -6006,12 +6035,17 @@ textarea:focus {
   }
 
   .dilz-map-results {
-    flex: 0 0 min(42dvh, 314px);
-    max-height: min(42dvh, 314px);
-    overflow-y: auto;
+    flex: 1 1 auto;
+    max-height: none;
+    min-height: 0;
+    overflow: hidden;
     margin-top: 0;
     border-radius: 18px 18px 0 0;
     box-shadow: 0 -14px 36px rgba(15, 23, 42, 0.12);
+  }
+
+  .dilz-map-deal-list {
+    padding-bottom: calc(var(--dilz-tabbar-height) + 24px + env(safe-area-inset-bottom));
   }
 
   .dilz-map-city-strip {
@@ -8341,6 +8375,10 @@ select:focus,
   .dilz-deal-page,
   .dilz-map-page {
     padding-bottom: calc(var(--dilz-tabbar-height) + 30px + env(safe-area-inset-bottom)) !important;
+  }
+
+  .dilz-map-page {
+    padding-bottom: 0 !important;
   }
 
   .dilz-bottom-nav {

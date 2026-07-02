@@ -111,14 +111,24 @@ test('alerts are mobile-safe and include useful popular Israeli searches', () =>
   assert.match(css, /\.dilz-bottom-nav[^}]*position:\s*fixed\s*!important/s);
 });
 
-test('map loads a broad result set and preserves exact deal markers', () => {
+test('map loads a broad result set, fills the results panel and preserves exact deal markers', () => {
   assert.match(map, /limit=500/);
   assert.match(map, /mapDealHasExactCoordinates/);
   assert.match(map, /getMapFocusPoints/);
   assert.match(map, /resolveMapCityKey/);
   assert.match(map, /dilz-map-marker--exact/);
+  assert.match(map, /className="dilz-map-back"/);
+  assert.match(map, /aria-label=\{text\.back\}/);
+  assert.match(map, /<path d="M15 6 9 12l6 6"/);
+  assert.match(map, /className="dilz-map-title" dir=\{dir\}/);
   assert.match(map, /buildMapUrl\(nextCity\)/);
+  assert.match(css, /\.dilz-map-header\s*\{[^}]*direction:\s*ltr/s);
   assert.match(css, /\.dilz-map-marker,[\s\S]*background:\s*#DC2626\s*!important/s);
+  assert.match(css, /\.dilz-map-results\s*\{[^}]*display:\s*flex[^}]*flex-direction:\s*column[^}]*overflow:\s*hidden/s);
+  assert.match(css, /\.dilz-map-deal-list\s*\{[^}]*flex:\s*1 1 auto[^}]*overflow-y:\s*auto/s);
+  assert.match(css, /@media \(max-width: 767px\)[\s\S]*\.dilz-map-page\s*\{[^}]*padding-bottom:\s*0 !important/s);
+  assert.match(css, /@media \(max-width: 767px\)[\s\S]*\.dilz-map-results\s*\{[^}]*flex:\s*1 1 auto[^}]*max-height:\s*none/s);
+  assert.match(css, /@media \(max-width: 767px\)[\s\S]*\.dilz-map-deal-list\s*\{[^}]*var\(--dilz-tabbar-height\)/s);
 });
 
 test('public profiles expose membership stats, deals and follow controls', () => {
@@ -143,8 +153,9 @@ test('shopping deals have internal detail pages, votes, comments and third-party
   assert.doesNotMatch(shoppingPage, /Official links/);
 });
 
-test('bottom nav uses Search as the visible discover tab while preserving the Explore route', () => {
+test('bottom nav uses Explore as the visible discover tab while keeping the search icon and Explore route', () => {
   assert.match(bottomNav, /id: 'explore'/);
+  assert.match(bottomNav, /search:\s*'Explore'/);
   assert.match(bottomNav, /SearchIcon/);
   assert.match(bottomNav, /label:\s*labels\.search/);
   assert.doesNotMatch(bottomNav, /id: 'menu'/);

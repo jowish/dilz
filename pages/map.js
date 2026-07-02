@@ -262,8 +262,12 @@ export default function MapPage() {
       </Head>
       <div className="dilz-map-page" dir={dir}>
         <header className="dilz-map-header">
-          <button type="button" onClick={goBackToFeed}>{text.back}</button>
-          <div>
+          <button type="button" className="dilz-map-back" onClick={goBackToFeed} aria-label={text.back}>
+            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <path d="M15 6 9 12l6 6" />
+            </svg>
+          </button>
+          <div className="dilz-map-title" dir={dir}>
             <strong>{text.title}</strong>
             <span>{cityEntries.length} {text.points}</span>
           </div>
