@@ -83,6 +83,11 @@ export function BottomNav({ lang = 'en', activeTab, menuOpen = false, alertsOpen
   // is a *fractional* tab index used ONLY while the finger is dragging.
   const [swipeCenter, setSwipeCenter] = useState(activeIdx);
   const [pressed, setPressed] = useState(false); // finger down on the bar
+  // The bubble JUMPS to the active tab until the user interacts with the bar —
+  // this prevents a glide-through-deals when a page mounts on tab 0 and then
+  // corrects to the real tab (e.g. ?tab=profile). Only after a real touch do we
+  // enable the smooth glide, and only for same-page changes.
+  const [armed, setArmed] = useState(false);
   const swipeRef  = useRef(null);
 
   const isSwiping = swipeRef.current?.started === true;
@@ -91,6 +96,7 @@ export function BottomNav({ lang = 'en', activeTab, menuOpen = false, alertsOpen
     const inner = innerRef.current;
     if (!inner) return;
     setPressed(true);   // swell immediately on touch (does NOT move the bubble)
+    setArmed(true);     // enable smooth glide from now on (this instance)
     const rect = inner.getBoundingClientRect();
     const touchX = e.touches[0].clientX;
     // We do NOT move the bubble on touch. A tap either stays put (same tab) or
@@ -157,7 +163,9 @@ export function BottomNav({ lang = 'en', activeTab, menuOpen = false, alertsOpen
   const loupeStyle = {
     translate: pos,
     scale: `${dragSwell.toFixed(3)}`,
-    transition: isSwiping ? 'none' : undefined,   // follow the finger 1:1 while dragging
+    // Jump (no transition) until the user has touched the bar, and follow the
+    // finger 1:1 while dragging; otherwise glide smoothly.
+    transition: (isSwiping || !armed) ? 'none' : undefined,
   };
   if (postTint > 0) {
     // keep the top specular sheen, tint the fill orange (opaque when centred)
