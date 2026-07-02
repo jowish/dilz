@@ -224,11 +224,13 @@ export function BottomNav({ lang = 'en', activeTab, menuOpen = false, alertsOpen
           const postWhite = item.post && (active || postLit);
           const postColor = item.post ? (postWhite ? '#ffffff' : 'var(--brand)') : undefined;
 
-          // Only the selected icon zooms; the others never move. During a swipe
-          // the scale snaps (no transition) so exactly one icon is zoomed at a
-          // time — no lingering double-zoom as the bubble crosses tabs.
+          // The zoom is transient: icons rest at their normal size, and only
+          // the one under the bubble grows *while it is moving* (swipe or the
+          // click-travel). During a swipe the scale snaps (no transition) so
+          // exactly one icon is zoomed at a time.
+          const zoomed = moving && active;
           const iconStyle = {
-            transform: `scale(${active ? 1.2 : 1})`,
+            transform: `scale(${zoomed ? 1.2 : 1})`,
             transition: isSwiping ? 'none' : undefined,
             ...(postColor ? { color: postColor } : {}),
           };

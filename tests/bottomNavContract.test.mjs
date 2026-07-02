@@ -55,8 +55,9 @@ test('tapping snaps to the button actually under the finger (no click flicker)',
   assert.match(nav, /touchX >= r\.left && touchX <= r\.right/);
 });
 
-test('only the selected icon zooms; the others stay at scale 1', () => {
-  assert.match(nav, /transform: `scale\(\$\{active \? 1\.2 : 1\}\)`/);
+test('zoom is transient: only the moving-bubble icon grows, others rest at 1', () => {
+  assert.match(nav, /const zoomed = moving && active/);
+  assert.match(nav, /transform: `scale\(\$\{zoomed \? 1\.2 : 1\}\)`/);
   // no distance-based dock magnification of every icon
   assert.doesNotMatch(nav, /dockScale\(idx/);
 });
@@ -64,6 +65,11 @@ test('only the selected icon zooms; the others stay at scale 1', () => {
 test('on a tap the zoom goes straight to the destination, not intermediate icons', () => {
   // the selected look follows the finger only while swiping
   assert.match(nav, /visualActiveIndex\(center, activeIdx, isSwiping\)/);
+});
+
+test('no press-shrink on the nav buttons (would fight the zoom)', () => {
+  assert.doesNotMatch(css, /\.dilz-bottom-nav__item:active\s*\{[^}]*transform:\s*scale\(0\.95\)/s);
+  assert.doesNotMatch(css, /\.dilz-bottom-nav__item\.is-post:active[^}]*transform:\s*scale\(0\.94\)/s);
 });
 
 test('the selected tab commits on release, not continuously during the drag', () => {

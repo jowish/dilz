@@ -8438,10 +8438,6 @@ select:focus,
       background-color 180ms ease;
   }
 
-  .dilz-bottom-nav__item:active {
-    transform: scale(0.95);
-  }
-
   .dilz-bottom-nav__item:focus-visible {
     outline: 2px solid var(--brand);
     outline-offset: 2px;
@@ -8503,10 +8499,6 @@ select:focus,
 
   .dilz-bottom-nav__item.is-post::before {
     display: none !important;
-  }
-
-  .dilz-bottom-nav__item.is-post:active .dilz-bottom-nav__icon {
-    transform: scale(0.94);
   }
 
   /* Force the outer wrapper fully transparent — overrides .dark rule at lower specificity */
