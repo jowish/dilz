@@ -206,7 +206,7 @@ export function BottomNav({ lang = 'en', activeTab, menuOpen = false, alertsOpen
 
   // When pressed / dragging the bubble grows uniformly: same exact shape, just
   // larger, so the liquid drop can spill slightly beyond the compact bar.
-  const dragSwell = isSwiping ? 1.3 : (pressed ? 1.24 : 1);
+  const dragSwell = (pressed || isSwiping) ? 1.34 : 1;
   const px = loupeLeftPx(loupeCenter);
   const pos = px !== null ? `${px}px` : loupeLeftFallback(loupeCenter, isRtl);
 
