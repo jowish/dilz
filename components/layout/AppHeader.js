@@ -1,6 +1,27 @@
+import Link from 'next/link';
 import { Button, IconButton } from '../ui/Button';
 import { SearchBar } from '../ui/SearchBar';
 import { ThemeToggle } from '../ui/ThemeToggle';
+
+function Logo({ onClick }) {
+  const content = (
+    <span className="dilz-logo-lockup" aria-label="dILz">
+      <span className="dilz-logo">
+        dILz
+      </span>
+    </span>
+  );
+
+  if (onClick) {
+    return (
+      <button type="button" className="dilz-logo-button" onClick={onClick} aria-label="Go home">
+        {content}
+      </button>
+    );
+  }
+
+  return <Link href="/" className="dilz-logo-button">{content}</Link>;
+}
 
 export function AppHeader({
   lang,
@@ -11,12 +32,14 @@ export function AppHeader({
   user,
   unreadCount = 0,
   onNotificationsClick,
-  onProfileClick,
+  onLogoClick,
   onPostDeal,
   onSearch,
   searchValue,
   onSearchChange,
+  onCommunity,
   onAlerts,
+  activeTab,
   showSearch = true,
 }) {
   const labels = lang === 'he'
@@ -25,6 +48,15 @@ export function AppHeader({
   return (
     <header className="dilz-app-header">
       <div className="dilz-app-header__inner">
+        <div className="dilz-app-header__left">
+          <Logo onClick={onLogoClick} />
+          <nav className="dilz-desktop-tabs" aria-label={labels.primary}>
+            <button type="button" className={activeTab === 'deals' ? 'is-active' : ''} onClick={onCommunity}>
+              Dilz
+            </button>
+          </nav>
+        </div>
+
         {showSearch && (
           <div className="dilz-app-header__search">
             <SearchBar value={searchValue} onChange={onSearchChange} onFocus={onSearch} placeholder={labels.search} />
@@ -58,12 +90,6 @@ export function AppHeader({
             {labels.alerts}
           </button>
           <Button className="dilz-header-post" onClick={onPostDeal}>{labels.post}</Button>
-          <IconButton aria-label={user ? labels.profile : labels.signIn} onClick={onProfileClick} selected={Boolean(user)}>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-              <circle cx="12" cy="7" r="4" />
-            </svg>
-          </IconButton>
         </div>
       </div>
       {showSearch && (

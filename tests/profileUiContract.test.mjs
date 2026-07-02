@@ -38,14 +38,15 @@ test('profile hides global search and keeps sign out after profile content', () 
   assert.ok(profileTab.lastIndexOf('dilz-profile-signout--bottom') > profileTab.lastIndexOf('dilz-saved-items-content'));
 });
 
-test('header removes useless initials while profile card shows the uploaded photo', () => {
+test('header keeps the app logo and removes the useless profile-person shortcut', () => {
   assert.doesNotMatch(appHeader, /dilz-avatar-mini/);
-  assert.doesNotMatch(appHeader, /<Logo/);
-  assert.doesNotMatch(appHeader, /dilz-app-header__left/);
-  assert.doesNotMatch(appHeader, /dilz-desktop-tabs/);
-  assert.doesNotMatch(appHeader, /dILz/);
+  assert.match(appHeader, /function Logo/);
+  assert.match(appHeader, /dilz-app-header__left/);
+  assert.match(appHeader, /dilz-desktop-tabs/);
+  assert.match(appHeader, /dILz/);
   assert.doesNotMatch(appHeader, /slice\(0, 2\)\.toUpperCase\(\)/);
-  assert.match(appHeader, /aria-label=\{user \? labels\.profile : labels\.signIn\}/);
+  assert.doesNotMatch(appHeader, /aria-label=\{user \? labels\.profile : labels\.signIn\}/);
+  assert.doesNotMatch(appHeader, /onProfileClick/);
   assert.match(index, /const avatarUrl = user\.user_metadata\?\.avatar_url \|\| user\.user_metadata\?\.picture \|\| ''/);
   assert.match(index, /className="dilz-profile-card__avatar"/);
   assert.match(index, /avatarUrl \? \(/);

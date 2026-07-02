@@ -1319,7 +1319,6 @@ export default function Home() {
           user={user}
           unreadCount={unreadCount}
           onNotificationsClick={() => user ? setShowNotificationSheet(true) : router.push('/auth?redirect=/alerts')}
-          onProfileClick={() => setTab('profile')}
           onLogoClick={() => setTab('deals')}
           onPostDeal={() => user ? router.push('/post') : router.push('/auth?redirect=/post')}
           onSearch={() => setTab('search')}
