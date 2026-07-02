@@ -228,7 +228,7 @@ export function BottomNav({ lang = 'en', activeTab, menuOpen = false, alertsOpen
     // fallback, which jumped). Otherwise glide with the calm fixed duration.
     transition: (isSwiping || !glide || !centers)
       ? 'none'
-      : `translate ${glideMs}ms ${ease}, scale 300ms ${ease}`,
+      : `translate ${glideMs}ms ${ease}, scale 220ms ${ease}`,
   };
   if (postTint > 0) {
     // keep the top specular sheen, tint the fill orange (opaque when centred)

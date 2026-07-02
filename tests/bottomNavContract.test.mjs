@@ -60,7 +60,7 @@ test('touch focuses the bubble under the finger before release navigation', () =
   assert.match(nav, /persistedIdx = pos;\s*setTouchFocusCenter\(pos\)/);
   assert.match(nav, /setTouchFocusCenter\(pos\)/);
   assert.match(nav, /const loupeCenter = isSwiping \? swipeCenter : \(touchFocusing \? touchFocusCenter : restIdx\)/);
-  assert.match(nav, /translate \$\{glideMs\}ms \$\{ease\}/);
+  assert.match(nav, /translate \$\{glideMs\}ms \$\{ease\}, scale 220ms \$\{ease\}/);
   assert.doesNotMatch(nav, /touchFocusing \? 180 : glideMs/);
 });
 
