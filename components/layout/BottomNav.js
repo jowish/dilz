@@ -149,6 +149,7 @@ export function BottomNav({ lang = 'en', activeTab, menuOpen = false, alertsOpen
       return touchX >= r.left && touchX <= r.right;
     });
     const pos = hit >= 0 ? hit : snapIndex(touchToFraction(touchX - rect.left, rect.width, isRtl));
+    persistedIdx = pos;
     setTouchFocusCenter(pos);
     swipeRef.current = { startX: touchX, innerLeft: rect.left, innerWidth: rect.width, started: false, pos };
   }
@@ -174,9 +175,15 @@ export function BottomNav({ lang = 'en', activeTab, menuOpen = false, alertsOpen
       setTouchFocusCenter(null);
       const idx    = snapIndex(state.pos);
       const target = items[idx];
+      persistedIdx = idx;
       // Navigate; the bubble then rests on the active tab (loupeCenter derives
       // from activeIdx once isSwiping is false), gliding there via CSS.
       if (target && target.id !== activeItem) target.action();
+    } else if (state?.pos !== null && state?.pos !== undefined) {
+      persistedIdx = snapIndex(state.pos);
+      if (snapIndex(state.pos) === activeIdx) {
+        setTouchFocusCenter(null);
+      }
     } else if (!state || snapIndex(state.pos) === activeIdx) {
       setTouchFocusCenter(null);
     }
@@ -197,10 +204,9 @@ export function BottomNav({ lang = 'en', activeTab, menuOpen = false, alertsOpen
   const postTint = computePostTint(loupeCenter);
   const postLit = computePostLit(loupeCenter);
 
-  // When pressed / dragging the bubble grows UNIFORMLY (same shape and
-  // proportions, just larger) so it overshoots the bar symmetrically on every
-  // side and bites onto the neighbour tabs.
-  const dragSwell = (pressed || isSwiping) ? 1.34 : 1;
+  // When pressed / dragging the bubble grows uniformly, but only as a calm
+  // tactile response; a tap should feel like a soft focus, not a punchy zoom.
+  const dragSwell = isSwiping ? 1.16 : (pressed ? 1.07 : 1);
   const px = loupeLeftPx(loupeCenter);
   const pos = px !== null ? `${px}px` : loupeLeftFallback(loupeCenter, isRtl);
 
@@ -222,7 +228,7 @@ export function BottomNav({ lang = 'en', activeTab, menuOpen = false, alertsOpen
     // fallback, which jumped). Otherwise glide with the calm fixed duration.
     transition: (isSwiping || !glide || !centers)
       ? 'none'
-      : `translate ${touchFocusing ? 180 : glideMs}ms ${ease}, scale 220ms ${ease}`,
+      : `translate ${touchFocusing ? 180 : glideMs}ms ${ease}, scale 300ms ${ease}`,
   };
   if (postTint > 0) {
     // keep the top specular sheen, tint the fill orange (opaque when centred)

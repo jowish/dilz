@@ -46,7 +46,7 @@ test('pressing swells the bubble uniformly (same shape) and starts on touch', ()
   // uniform swell via the individual `scale` property (not scaleX, which distorts)
   assert.match(nav, /scale: `\$\{dragSwell\.toFixed\(3\)\}`/);
   assert.doesNotMatch(nav, /scaleX/);
-  assert.match(nav, /const dragSwell = \(pressed \|\| isSwiping\) \? 1\.34 : 1/);
+  assert.match(nav, /const dragSwell = isSwiping \? 1\.16 : \(pressed \? 1\.07 : 1\)/);
 });
 
 test('the loupe is positioned via GPU translate/scale, not layout-thrashing left', () => {
@@ -57,6 +57,7 @@ test('the loupe is positioned via GPU translate/scale, not layout-thrashing left
 test('touch focuses the bubble under the finger before release navigation', () => {
   assert.match(nav, /const \[touchFocusCenter, setTouchFocusCenter\] = useState\(null\)/);
   assert.match(nav, /setPressed\(true\);\s*\/\/ swell immediately on touch/);
+  assert.match(nav, /persistedIdx = pos;\s*setTouchFocusCenter\(pos\)/);
   assert.match(nav, /setTouchFocusCenter\(pos\)/);
   assert.match(nav, /const loupeCenter = isSwiping \? swipeCenter : \(touchFocusing \? touchFocusCenter : restIdx\)/);
 });
@@ -80,6 +81,8 @@ test('the bubble glides across page navigations from its previous position', () 
   // position persisted at module scope so the next page mount can glide from it
   assert.match(nav, /let persistedIdx = null/);
   assert.match(nav, /persistedIdx = activeIdx/);
+  assert.match(nav, /persistedIdx = pos;\s*setTouchFocusCenter\(pos\)/);
+  assert.match(nav, /persistedIdx = idx;[\s\S]*?target\.action\(\)/);
   assert.match(nav, /const startIdx = persistedIdx == null \? activeIdx : persistedIdx/);
   assert.match(nav, /const restIdx = restCenter/);
 });
@@ -89,7 +92,7 @@ test('the whole bar swells while interacted with (not individual icons)', () => 
   // page load after a tap can't keep the bar zoomed
   assert.match(nav, /const barZoom = pressed;/);
   assert.match(nav, /dilz-bottom-nav__inner\$\{barZoom \? ' is-zoomed' : ''\}/);
-  assert.match(css, /\.dilz-bottom-nav__inner\.is-zoomed\s*\{[^}]*transform:\s*scale\(1\.06\)/s);
+  assert.match(css, /\.dilz-bottom-nav__inner\.is-zoomed\s*\{[^}]*transform:\s*scale\(1\.018\)/s);
   // no per-icon dock magnification anymore
   assert.doesNotMatch(nav, /dockScale\(idx/);
 });

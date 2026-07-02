@@ -8394,11 +8394,11 @@ select:focus,
     /* The whole bar swells slightly while pressed — grows upward with a soft,
        natural ease in and out. Light and calm, not snappy. */
     transform-origin: center bottom;
-    transition: transform 240ms cubic-bezier(0.33, 1, 0.68, 1);
+    transition: transform 300ms cubic-bezier(0.33, 0, 0.2, 1);
   }
 
   .dilz-bottom-nav__inner.is-zoomed {
-    transform: scale(1.06);
+    transform: scale(1.018);
   }
 
   .dilz-bottom-nav__item {
