@@ -97,11 +97,10 @@ export function BottomNav({ lang = 'en', activeTab, menuOpen = false, alertsOpen
   const loupeLeftPx = (fraction) => computeLoupeLeftPx(centers, fraction);
 
   // ── Loupe position ───────────────────────────────────────────────────
-  // Stability first: when NOT swiping, the bubble position is derived directly
-  // from the active tab (see `loupeCenter` below) — there is no free-floating
-  // state that can drift, so the bar never changes focus on its own. `swipeCenter`
-  // is a *fractional* tab index used ONLY while the finger is dragging.
+  // Stability first: resting position is controlled, tap focus is visual only,
+  // and `swipeCenter` is a fractional tab index used while dragging.
   const [swipeCenter, setSwipeCenter] = useState(activeIdx);
+  const [touchFocusCenter, setTouchFocusCenter] = useState(null);
   const [pressed, setPressed] = useState(false); // finger down on the bar
   const swipeRef  = useRef(null);
 
@@ -126,23 +125,31 @@ export function BottomNav({ lang = 'en', activeTab, menuOpen = false, alertsOpen
   // Remember the active tab so the NEXT page mount can glide from here.
   useEffect(() => { persistedIdx = activeIdx; }, [activeIdx]);
 
+  // A tap focus is purely visual. Keep it long enough for the release/click to
+  // commit navigation, then hand control back to the resting centre once the new
+  // active tab has caught up.
+  useEffect(() => {
+    if (touchFocusCenter == null) return undefined;
+    if (snapIndex(touchFocusCenter) !== activeIdx) return undefined;
+    const raf = requestAnimationFrame(() => setTouchFocusCenter(null));
+    return () => cancelAnimationFrame(raf);
+  }, [activeIdx, touchFocusCenter]);
+
   function handleTouchStart(e) {
     const inner = innerRef.current;
     if (!inner) return;
-    setPressed(true);   // swell immediately on touch (does NOT move the bubble)
+    setPressed(true);   // swell immediately on touch
     const rect = inner.getBoundingClientRect();
     const touchX = e.touches[0].clientX;
-    // We do NOT move the bubble on touch. A tap either stays put (same tab) or
-    // navigates — the destination page shows the bubble at the right tab, and a
-    // same-page change glides via the effect. Moving here made the bubble glide
-    // from the old tab and get interrupted by navigation (the "flash" bug).
-    // Record the hit position only as the starting point for a potential drag.
+    // Move the visual focus under the finger immediately, but do not commit
+    // navigation here. The actual tab action still happens on release/click.
     const hit = itemRefs.current.findIndex((b) => {
       if (!b) return false;
       const r = b.getBoundingClientRect();
       return touchX >= r.left && touchX <= r.right;
     });
     const pos = hit >= 0 ? hit : snapIndex(touchToFraction(touchX - rect.left, rect.width, isRtl));
+    setTouchFocusCenter(pos);
     swipeRef.current = { startX: touchX, innerLeft: rect.left, innerWidth: rect.width, started: false, pos };
   }
 
@@ -152,6 +159,7 @@ export function BottomNav({ lang = 'en', activeTab, menuOpen = false, alertsOpen
     const touchX = e.touches[0].clientX;
     if (!state.started && Math.abs(touchX - state.startX) < SWIPE_START_PX) return;
     state.started = true;
+    setTouchFocusCenter(null);
     // The bubble follows the finger continuously (transition disabled while swiping).
     const frac = touchToFraction(touchX - state.innerLeft, state.innerWidth, isRtl);
     state.pos = frac;
@@ -163,23 +171,26 @@ export function BottomNav({ lang = 'en', activeTab, menuOpen = false, alertsOpen
     swipeRef.current = null;
     setPressed(false);
     if (state?.started && state.pos !== null) {
+      setTouchFocusCenter(null);
       const idx    = snapIndex(state.pos);
       const target = items[idx];
       // Navigate; the bubble then rests on the active tab (loupeCenter derives
       // from activeIdx once isSwiping is false), gliding there via CSS.
       if (target && target.id !== activeItem) target.action();
+    } else if (!state || snapIndex(state.pos) === activeIdx) {
+      setTouchFocusCenter(null);
     }
   }
 
-  // Position: while dragging -> the finger; otherwise -> the animated resting
-  // centre. It is only advanced inside requestAnimationFrame above, so every
-  // tab change exposes a previous translate and a target translate to CSS.
+  // Position: while dragging -> the finger; while tapping -> the finger's target;
+  // otherwise -> the animated resting centre.
   const restIdx = restCenter;
-  const loupeCenter = isSwiping ? swipeCenter : restIdx;
+  const touchFocusing = touchFocusCenter != null;
+  const loupeCenter = isSwiping ? swipeCenter : (touchFocusing ? touchFocusCenter : restIdx);
 
-  // The selected look (fill + colour) follows the bubble only while dragging;
+  // The selected look (fill + colour) follows the bubble while touching/dragging;
   // otherwise it's the active tab.
-  const visualActiveIdx = visualActiveIndex(loupeCenter, activeIdx, isSwiping);
+  const visualActiveIdx = visualActiveIndex(loupeCenter, activeIdx, isSwiping || touchFocusing);
 
   // The bubble tints orange as the focus enters the Post zone, fully orange
   // once centred; the plus + label then invert to white so they stay legible.
@@ -211,7 +222,7 @@ export function BottomNav({ lang = 'en', activeTab, menuOpen = false, alertsOpen
     // fallback, which jumped). Otherwise glide with the calm fixed duration.
     transition: (isSwiping || !glide || !centers)
       ? 'none'
-      : `translate ${glideMs}ms ${ease}, scale 220ms ${ease}`,
+      : `translate ${touchFocusing ? 180 : glideMs}ms ${ease}, scale 220ms ${ease}`,
   };
   if (postTint > 0) {
     // keep the top specular sheen, tint the fill orange (opaque when centred)

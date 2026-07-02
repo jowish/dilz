@@ -54,15 +54,16 @@ test('the loupe is positioned via GPU translate/scale, not layout-thrashing left
   assert.match(css, /\.dilz-bottom-nav__loupe\s*\{[^}]*transition:\s*translate 620ms[^}]*scale 220ms/s);
 });
 
-test('touch does not move the bubble (avoids the glide-then-navigate flash)', () => {
-  // touchStart records a hit position for a potential drag but must NOT setCenter
-  assert.match(nav, /setPressed\(true\);   \/\/ swell immediately on touch \(does NOT move the bubble\)/);
-  assert.doesNotMatch(nav, /if \(hit >= 0\) setCenter/);
+test('touch focuses the bubble under the finger before release navigation', () => {
+  assert.match(nav, /const \[touchFocusCenter, setTouchFocusCenter\] = useState\(null\)/);
+  assert.match(nav, /setPressed\(true\);\s*\/\/ swell immediately on touch/);
+  assert.match(nav, /setTouchFocusCenter\(pos\)/);
+  assert.match(nav, /const loupeCenter = isSwiping \? swipeCenter : \(touchFocusing \? touchFocusCenter : restIdx\)/);
 });
 
 test('bubble position is derived from a controlled resting centre, not a drifting state', () => {
   // while resting, position comes from a committed centre that only changes on rAF
-  assert.match(nav, /const loupeCenter = isSwiping \? swipeCenter : restIdx/);
+  assert.match(nav, /const loupeCenter = isSwiping \? swipeCenter : \(touchFocusing \? touchFocusCenter : restIdx\)/);
   assert.match(nav, /const \[restCenter, setRestCenter\] = useState\(startIdx\)/);
   // and unresolved active items hold the last real tab (never snap to deals=0)
   assert.match(nav, /const rawActiveIdx = items\.findIndex/);
@@ -101,6 +102,7 @@ test('no press-shrink on the nav buttons (would fight the zoom)', () => {
 test('the selected tab commits on release, not continuously during the drag', () => {
   assert.match(nav, /function handleTouchEnd/);
   assert.match(nav, /if \(target && target\.id !== activeItem\) target\.action\(\)/);
+  assert.doesNotMatch(nav, /function handleTouchStart(?:(?!function handleTouchMove)[\s\S])*target\.action\(\)/);
 });
 
 test('dragging cannot scroll the page and cannot select text', () => {
