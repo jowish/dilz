@@ -12,6 +12,7 @@ export default function AlertsPage() {
   const router = useRouter();
   const { lang } = useAppLanguage();
   const [user, setUser] = useState(null);
+  const [token, setToken] = useState('');
   const [cities, setCities] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -22,6 +23,7 @@ export default function AlertsPage() {
         return;
       }
       setUser(data.session.user);
+      setToken(data.session.access_token || '');   // reused by AlertModal (avoids a 2nd getSession)
       setLoading(false);
     });
     fetch('/api/villes').then((response) => response.json()).then((data) => setCities(data.villes || [])).catch(() => {});
@@ -39,7 +41,7 @@ export default function AlertsPage() {
         </header>
         <main className="dilz-alerts-route__main">
           {loading || !user ? <div className="dilz-empty-state"><div className="dilz-spinner" /></div> : (
-            <AlertModal user={user} lang={lang} villes={cities} onClose={() => router.back()} />
+            <AlertModal user={user} token={token} lang={lang} villes={cities} onClose={() => router.back()} />
           )}
         </main>
         <BottomNav

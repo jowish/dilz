@@ -19,7 +19,7 @@ export default async function handler(req, res) {
   if (req.method === 'GET') {
     const [{ data: follows, error: followError }, { data: deals, error: dealError }] = await Promise.all([
       admin.from('user_follows').select('followed_user_id,followed_name,created_at').eq('follower_id', user.id),
-      admin.from('bons_plans').select('auteur_id,auteur_nom,created_at').not('auteur_id', 'is', null).order('created_at', { ascending: false }).limit(250),
+      admin.from('bons_plans').select('auteur_id,auteur_nom,created_at').not('auteur_id', 'is', null).order('created_at', { ascending: false }).limit(120),
     ]);
     if (followError) return res.status(503).json({ erreur: followError.message, migration_required: true });
     if (dealError) return res.status(500).json({ erreur: dealError.message });

@@ -13,7 +13,7 @@ function alertSummary(a, lang) {
   return parts.join(' · ') || 'All new deals';
 }
 
-export function AlertModal({ user, lang, villes = [], onClose }) {
+export function AlertModal({ user, token: tokenProp, lang, villes = [], onClose }) {
   const [activeTab, setActiveTab] = useState('list');
   const [alerts, setAlerts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -33,21 +33,31 @@ export function AlertModal({ user, lang, villes = [], onClose }) {
   }, [onClose]);
 
   useEffect(() => {
-    if (!user) { setLoading(false); return; }
-    supabase.auth.getSession().then(({ data }) => {
-      if (!data.session) { setLoading(false); return; }
+    if (!user) { setLoading(false); setFollowLoading(false); return; }
+
+    let alive = true;
+    const load = (accessToken) => {
+      if (!accessToken) { setLoading(false); setFollowLoading(false); return; }
       Promise.all([
-        fetch('/api/alerts', { headers: { Authorization: `Bearer ${data.session.access_token}` } }).then((r) => r.json()),
-        fetch('/api/user-follows', { headers: { Authorization: `Bearer ${data.session.access_token}` } }).then((r) => r.json()),
+        fetch('/api/alerts', { headers: { Authorization: `Bearer ${accessToken}` } }).then((r) => r.json()),
+        fetch('/api/user-follows', { headers: { Authorization: `Bearer ${accessToken}` } }).then((r) => r.json()),
       ]).then(([alertData, followData]) => {
+        if (!alive) return;
         setAlerts(alertData.alerts || []);
         setFollowUsers(followData.users || []);
-      }).finally(() => {
+      }).catch(() => {}).finally(() => {
+        if (!alive) return;
         setLoading(false);
         setFollowLoading(false);
       });
-    });
-  }, [user]);
+    };
+
+    // Reuse the token passed from the page — no second getSession round-trip.
+    if (tokenProp) load(tokenProp);
+    else supabase.auth.getSession().then(({ data }) => alive && load(data.session?.access_token));
+
+    return () => { alive = false; };
+  }, [user, tokenProp]);
 
   const handleCreate = async () => {
     setSaving(true);
