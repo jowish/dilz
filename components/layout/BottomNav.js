@@ -5,7 +5,6 @@ import {
   TAB_COUNT,
   SWIPE_START_PX,
   loupeLeftFallback,
-  dockScale,
   loupeLeftPx as computeLoupeLeftPx,
   postTint as computePostTint,
   postLit as computePostLit,
@@ -218,19 +217,15 @@ export function BottomNav({ lang = 'en', activeTab, menuOpen = false, alertsOpen
           const active    = idx === visualActiveIdx;          // live selected look
           const committed = activeItem === item.id;           // committed route
           const { Icon }  = item;
-          // Every icon reacts to how close the travelling loupe is to it.
-          const scale    = dockScale(idx, loupeCenter);
 
           // Post colour is driven inline (bulletproof against the cascade):
           // orange by default, white once the bubble under it turns orange.
           const postWhite = item.post && (active || postLit);
           const postColor = item.post ? (postWhite ? '#ffffff' : 'var(--brand)') : undefined;
 
-          const iconStyle = {
-            transform: `scale(${scale.toFixed(3)})`,
-            transition: moving ? 'none' : undefined,
-            ...(postColor ? { color: postColor } : {}),
-          };
+          // Icons stay perfectly still while the focus moves — only the bubble
+          // travels. (No dock magnification, so the logos never shift.)
+          const iconStyle = postColor ? { color: postColor } : undefined;
 
           return (
             <button
