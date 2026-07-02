@@ -618,8 +618,14 @@ export default function Home() {
   const [mounted, setMounted] = useState(false);
   const [lang, setLang] = useState('en');
 
-  // Tab
-  const [tab, setTab] = useState('deals');
+  // Tab — initialise from ?tab= so the bar shows the right tab on first paint
+  // (otherwise it starts on deals then corrects, making the bubble glide through
+  // deals on every navigation back to the home page).
+  const [tab, setTab] = useState(() => {
+    if (typeof window === 'undefined') return 'deals';
+    const t = new URLSearchParams(window.location.search).get('tab');
+    return ['deals', 'profile', 'search', 'sales'].includes(t) ? t : 'deals';
+  });
 
   // Data
   const [promos, setPromos] = useState([]);

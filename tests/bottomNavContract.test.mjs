@@ -61,11 +61,19 @@ test('touch does not move the bubble (avoids the glide-then-navigate flash)', ()
 });
 
 test('bubble position is derived from the active tab, not a drifting state', () => {
-  // when not swiping, position comes straight from activeIdx (rock stable)
-  assert.match(nav, /const loupeCenter = isSwiping \? swipeCenter : activeIdx/);
+  // while resting, position comes from the active tab (rock stable), no state
+  assert.match(nav, /const loupeCenter = isSwiping \? swipeCenter : restIdx/);
   // and unresolved active items hold the last real tab (never snap to deals=0)
   assert.match(nav, /const rawActiveIdx = items\.findIndex/);
   assert.match(nav, /activeIdx = rawActiveIdx >= 0 \? rawActiveIdx : lastValidIdx\.current/);
+});
+
+test('the bubble glides across page navigations from its previous position', () => {
+  // position persisted at module scope so the next page mount can glide from it
+  assert.match(nav, /let persistedIdx = null/);
+  assert.match(nav, /persistedIdx = activeIdx/);
+  assert.match(nav, /const startIdx = persistedIdx == null \? activeIdx : persistedIdx/);
+  assert.match(nav, /const restIdx = glide \? activeIdx : startIdx/);
 });
 
 test('the whole bar swells while interacted with (not individual icons)', () => {
