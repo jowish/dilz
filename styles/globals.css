@@ -8625,25 +8625,28 @@ select:focus,
 
   /* Icon scale is driven by JS (dock magnification); do not override here. */
 
-  /* ── Post: subtle brand highlight — the primary action ────────────────
-     Soft orange-tinted circle behind the plus + brand-coloured stroke, so it
-     stands out as the main CTA without dominating like a full orange FAB.
+  /* ── Post: orange plus + orange label (the primary action) ─────────────
+     Default: same layout as the others but tinted brand orange.
+     Selected: white plus inside a solid orange circle (opposite of the other
+     tabs, which are white when active).
   ────────────────────────────────────────────────────────────────────── */
   .dilz-bottom-nav__item.is-post .dilz-bottom-nav__icon {
     color: var(--brand) !important;
-    width: 34px !important;
-    height: 34px !important;
-    border-radius: 50% !important;
-    background: rgba(249, 115, 22, 0.14) !important;
-    box-shadow: 0 2px 10px rgba(249, 115, 22, 0.18);
-  }
-
-  .dark .dilz-bottom-nav__item.is-post .dilz-bottom-nav__icon {
-    background: rgba(249, 115, 22, 0.20) !important;
-    box-shadow: 0 2px 12px rgba(249, 115, 22, 0.24);
+    background: transparent !important;
   }
 
   .dilz-bottom-nav__item.is-post > span:last-child {
     color: var(--brand) !important;
+  }
+
+  /* Selected Post → white plus in a solid orange disc */
+  .dilz-bottom-nav__item.is-post.is-active .dilz-bottom-nav__icon,
+  .dark .dilz-bottom-nav__item.is-post.is-active .dilz-bottom-nav__icon {
+    width: 34px !important;
+    height: 34px !important;
+    border-radius: 50% !important;
+    background: var(--brand) !important;
+    color: #ffffff !important;
+    box-shadow: 0 3px 12px rgba(249, 115, 22, 0.34);
   }
 }

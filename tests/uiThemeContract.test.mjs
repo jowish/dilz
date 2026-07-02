@@ -15,7 +15,7 @@ test('mobile navigation uses the compact liquid-glass bar contract', () => {
   assert.match(css, /\.dilz-bottom-nav__inner\s*\{[^}]*backdrop-filter:\s*blur\(18px\) saturate\(190%\) contrast\(1\.05\)/s);
   // A single sliding loupe/drop is the active indicator (no per-item ::before bg)
   assert.match(css, /\.dilz-bottom-nav__loupe\s*\{[^}]*background:[\s\S]*?var\(--dilz-tabbar-active-bg\)/s);
-  assert.match(bottomNav, /aria-current=\{active \? 'page' : undefined\}/);
+  assert.match(bottomNav, /aria-current=\{committed \? 'page' : undefined\}/);
 });
 
 test('the Post action shares the neutral styling of the other tabs', () => {

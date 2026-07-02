@@ -16,7 +16,7 @@ function loupeLeftFallback(center) {
 function dockScale(itemIdx, center) {
   const dist = Math.abs(itemIdx - center);
   if (dist >= 1.3) return 1;
-  return 1 + ((1.3 - dist) / 1.3) * 0.18;
+  return 1 + ((1.3 - dist) / 1.3) * 0.26;
 }
 
 export function BottomNav({ lang = 'en', activeTab, menuOpen = false, alertsOpen = false, postOpen = false, avatarUrl: avatarProp, onMenu, onTab, onPost, onAlerts, onProfile }) {
@@ -174,6 +174,12 @@ export function BottomNav({ lang = 'en', activeTab, menuOpen = false, alertsOpen
 
   const loupeCenter = center;
 
+  // While the loupe travels, the tab nearest its center looks selected — the
+  // filled/white state jumps live from icon to icon, then commits on release.
+  const visualActiveIdx = moving
+    ? Math.max(0, Math.min(TAB_COUNT - 1, Math.round(center)))
+    : activeIdx;
+
   // Stretch → scaleX + origin so the drop elongates in its travel direction
   const absStretch = Math.abs(stretch);
   const px = loupeLeftPx(loupeCenter);
@@ -202,8 +208,9 @@ export function BottomNav({ lang = 'en', activeTab, menuOpen = false, alertsOpen
         />
 
         {items.map((item, idx) => {
-          const active   = activeItem === item.id;
-          const { Icon } = item;
+          const active    = idx === visualActiveIdx;          // live selected look
+          const committed = activeItem === item.id;           // committed route
+          const { Icon }  = item;
           // Every icon reacts to how close the travelling loupe is to it.
           const scale    = dockScale(idx, loupeCenter);
           const iconStyle = {
@@ -219,7 +226,7 @@ export function BottomNav({ lang = 'en', activeTab, menuOpen = false, alertsOpen
               className={['dilz-bottom-nav__item', active && 'is-active', item.post && 'is-post'].filter(Boolean).join(' ')}
               onClick={item.action}
               aria-label={item.label}
-              aria-current={active ? 'page' : undefined}
+              aria-current={committed ? 'page' : undefined}
             >
               <span className="dilz-bottom-nav__icon nav-pill" style={iconStyle}>
                 {item.id === 'profile' && avatarUrl
