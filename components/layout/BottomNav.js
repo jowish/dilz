@@ -110,13 +110,19 @@ export function BottomNav({ lang = 'en', activeTab, menuOpen = false, alertsOpen
   // Where the bubble sits before the mount-glide: the previous page's position
   // (persisted) if we have one, otherwise the current tab (first ever load).
   const startIdx = persistedIdx == null ? activeIdx : persistedIdx;
-  // `glide` flips true one frame after mount: the bubble first paints at
-  // startIdx (no transition), then glides to the real active tab.
+  // `glide` flips true one frame after mount/change: the bubble first keeps
+  // its previous resting centre, then glides to the real active tab. This extra
+  // frame matters for close tabs too; otherwise React can commit the old and new
+  // `translate` in one paint and the browser has nothing to animate.
   const [glide, setGlide] = useState(false);
+  const [restCenter, setRestCenter] = useState(startIdx);
   useEffect(() => {
-    const raf = requestAnimationFrame(() => setGlide(true));
+    const raf = requestAnimationFrame(() => {
+      setGlide(true);
+      setRestCenter(activeIdx);
+    });
     return () => cancelAnimationFrame(raf);
-  }, []);
+  }, [activeIdx]);
   // Remember the active tab so the NEXT page mount can glide from here.
   useEffect(() => { persistedIdx = activeIdx; }, [activeIdx]);
 
@@ -165,10 +171,10 @@ export function BottomNav({ lang = 'en', activeTab, menuOpen = false, alertsOpen
     }
   }
 
-  // Position: while dragging → the finger; before the mount-glide → the start
-  // (previous page) position; otherwise → the active tab. No free-floating
-  // state, so the bubble can't drift on its own.
-  const restIdx = glide ? activeIdx : startIdx;
+  // Position: while dragging -> the finger; otherwise -> the animated resting
+  // centre. It is only advanced inside requestAnimationFrame above, so every
+  // tab change exposes a previous translate and a target translate to CSS.
+  const restIdx = restCenter;
   const loupeCenter = isSwiping ? swipeCenter : restIdx;
 
   // The selected look (fill + colour) follows the bubble only while dragging;

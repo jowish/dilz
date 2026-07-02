@@ -51,7 +51,7 @@ test('pressing swells the bubble uniformly (same shape) and starts on touch', ()
 
 test('the loupe is positioned via GPU translate/scale, not layout-thrashing left', () => {
   assert.match(nav, /translate: pos/);
-  assert.match(css, /\.dilz-bottom-nav__loupe\s*\{[^}]*transition:\s*translate 460ms[^}]*scale 220ms/s);
+  assert.match(css, /\.dilz-bottom-nav__loupe\s*\{[^}]*transition:\s*translate 620ms[^}]*scale 220ms/s);
 });
 
 test('touch does not move the bubble (avoids the glide-then-navigate flash)', () => {
@@ -60,12 +60,19 @@ test('touch does not move the bubble (avoids the glide-then-navigate flash)', ()
   assert.doesNotMatch(nav, /if \(hit >= 0\) setCenter/);
 });
 
-test('bubble position is derived from the active tab, not a drifting state', () => {
-  // while resting, position comes from the active tab (rock stable), no state
+test('bubble position is derived from a controlled resting centre, not a drifting state', () => {
+  // while resting, position comes from a committed centre that only changes on rAF
   assert.match(nav, /const loupeCenter = isSwiping \? swipeCenter : restIdx/);
+  assert.match(nav, /const \[restCenter, setRestCenter\] = useState\(startIdx\)/);
   // and unresolved active items hold the last real tab (never snap to deals=0)
   assert.match(nav, /const rawActiveIdx = items\.findIndex/);
   assert.match(nav, /activeIdx = rawActiveIdx >= 0 \? rawActiveIdx : lastValidIdx\.current/);
+});
+
+test('close tab changes still get a previous frame before the new translate', () => {
+  assert.match(nav, /requestAnimationFrame\(\(\) => \{\s*setGlide\(true\);\s*setRestCenter\(activeIdx\);/);
+  assert.doesNotMatch(nav, /const restIdx = glide \? activeIdx : startIdx/);
+  assert.match(nav, /transition: \(isSwiping \|\| !glide \|\| !centers\)/);
 });
 
 test('the bubble glides across page navigations from its previous position', () => {
@@ -73,7 +80,7 @@ test('the bubble glides across page navigations from its previous position', () 
   assert.match(nav, /let persistedIdx = null/);
   assert.match(nav, /persistedIdx = activeIdx/);
   assert.match(nav, /const startIdx = persistedIdx == null \? activeIdx : persistedIdx/);
-  assert.match(nav, /const restIdx = glide \? activeIdx : startIdx/);
+  assert.match(nav, /const restIdx = restCenter/);
 });
 
 test('the whole bar swells while interacted with (not individual icons)', () => {
