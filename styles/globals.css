@@ -8484,6 +8484,13 @@ select:focus,
     border-radius: 50% !important;
     object-fit: cover !important;
     display: block;
+    /* A long-press on iOS must not pop the image save/callout menu or select
+       the photo — let the tap fall through to the button instead. */
+    pointer-events: none;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-user-drag: none;
   }
 
   .dilz-bottom-nav__item.is-active .dilz-bottom-nav__avatar {
@@ -8578,16 +8585,19 @@ select:focus,
     position: absolute;
     top: 3px;
     bottom: 3px;
+    left: 0;
     width: 72px;
     height: auto;
     border-radius: 999px;
     pointer-events: none;
     z-index: 1;
-    will-change: left, transform;
-    /* Calm, smooth glide (no overshoot) for the travel; quicker for the swell. */
+    /* Position (translate) + swell (scale) are GPU-composited individual
+       properties — no per-frame layout, so the glide is perfectly smooth.
+       Calm, no-overshoot ease for the travel; quicker for the swell. */
+    will-change: translate, scale;
     transition:
-      left 460ms cubic-bezier(0.33, 0, 0.2, 1),
-      transform 220ms cubic-bezier(0.33, 0, 0.2, 1);
+      translate 460ms cubic-bezier(0.33, 0, 0.2, 1),
+      scale 220ms cubic-bezier(0.33, 0, 0.2, 1);
     /* Light mode: soft tint + top highlight sheen */
     background:
       linear-gradient(180deg,
@@ -8641,7 +8651,7 @@ select:focus,
 
   /* During swipe: loupe follows finger in real-time (no lag) */
   .dilz-bottom-nav__loupe.is-swiping {
-    transition: transform 120ms ease-out !important;
+    transition: none !important;   /* follow the finger 1:1, no easing */
   }
 
   /* Dark mode: cool white tint, faint top reflection */

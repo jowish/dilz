@@ -43,10 +43,15 @@ test('button centres are measured with the border correction for exact centering
 
 test('pressing swells the bubble uniformly (same shape) and starts on touch', () => {
   assert.match(nav, /setPressed\(true\)/);
-  // uniform scale, not scaleX (which would distort the pill)
-  assert.match(nav, /scale\(\$\{dragSwell\.toFixed\(3\)\}\)/);
-  assert.doesNotMatch(nav, /scaleX\(\$\{dragSwell/);
+  // uniform swell via the individual `scale` property (not scaleX, which distorts)
+  assert.match(nav, /scale: `\$\{dragSwell\.toFixed\(3\)\}`/);
+  assert.doesNotMatch(nav, /scaleX/);
   assert.match(nav, /const dragSwell = \(pressed \|\| isSwiping\) \? 1\.34 : 1/);
+});
+
+test('the loupe is positioned via GPU translate/scale, not layout-thrashing left', () => {
+  assert.match(nav, /translate: pos/);
+  assert.match(css, /\.dilz-bottom-nav__loupe\s*\{[^}]*transition:\s*translate 460ms[^}]*scale 220ms/s);
 });
 
 test('tapping snaps to the button actually under the finger (no click flicker)', () => {

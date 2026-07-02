@@ -150,10 +150,13 @@ export function BottomNav({ lang = 'en', activeTab, menuOpen = false, alertsOpen
   // side and bites onto the neighbour tabs.
   const dragSwell = (pressed || isSwiping) ? 1.34 : 1;
   const px = loupeLeftPx(loupeCenter);
+  const pos = px !== null ? `${px}px` : loupeLeftFallback(loupeCenter, isRtl);
+  // Position + swell via the individual `translate`/`scale` properties — both
+  // are GPU-composited (no per-frame layout like `left`), and each can carry
+  // its own transition duration, so the glide is silky-smooth.
   const loupeStyle = {
-    left: px !== null ? `${px}px` : loupeLeftFallback(loupeCenter, isRtl),
-    transform: `scale(${dragSwell.toFixed(3)})`,
-    transformOrigin: 'center center',
+    translate: pos,
+    scale: `${dragSwell.toFixed(3)}`,
     transition: isSwiping ? 'none' : undefined,   // follow the finger 1:1 while dragging
   };
   if (postTint > 0) {
@@ -211,7 +214,7 @@ export function BottomNav({ lang = 'en', activeTab, menuOpen = false, alertsOpen
             >
               <span className="dilz-bottom-nav__icon nav-pill" style={iconStyle}>
                 {item.id === 'profile' && avatarUrl
-                  ? <img src={avatarUrl} alt="" className="dilz-bottom-nav__avatar" />
+                  ? <img src={avatarUrl} alt="" className="dilz-bottom-nav__avatar" draggable={false} />
                   : <Icon active={active} color={postColor} />}
               </span>
               <span style={postColor ? { color: postColor } : undefined}>{item.label}</span>
