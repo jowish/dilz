@@ -8626,9 +8626,9 @@ select:focus,
   /* Icon scale is driven by JS (dock magnification); do not override here. */
 
   /* ── Post: orange plus + orange label (the primary action) ─────────────
-     Default: same layout as the others but tinted brand orange.
-     Selected: white plus inside a solid orange circle (opposite of the other
-     tabs, which are white when active).
+     Default: just an orange plus + orange label (no surrounding shape).
+     Selected: the whole bubble turns orange (handled in JS) and the plus +
+     label turn white — the inverse of the other tabs.
   ────────────────────────────────────────────────────────────────────── */
   .dilz-bottom-nav__item.is-post .dilz-bottom-nav__icon {
     color: var(--brand) !important;
@@ -8639,14 +8639,18 @@ select:focus,
     color: var(--brand) !important;
   }
 
-  /* Selected Post → white plus in a solid orange disc */
+  /* Selected Post → white plus + white label over the orange bubble */
   .dilz-bottom-nav__item.is-post.is-active .dilz-bottom-nav__icon,
-  .dark .dilz-bottom-nav__item.is-post.is-active .dilz-bottom-nav__icon {
-    width: 34px !important;
-    height: 34px !important;
-    border-radius: 50% !important;
-    background: var(--brand) !important;
+  .dark .dilz-bottom-nav__item.is-post.is-active .dilz-bottom-nav__icon,
+  .dilz-bottom-nav__item.is-post.is-active > span:last-child,
+  .dark .dilz-bottom-nav__item.is-post.is-active > span:last-child {
     color: #ffffff !important;
-    box-shadow: 0 3px 12px rgba(249, 115, 22, 0.34);
+    background: transparent !important;
+  }
+
+  /* While dragging, the bubble swells to fill the full height of the bar */
+  .dilz-bottom-nav__loupe.is-swiping {
+    top: 0 !important;
+    bottom: 0 !important;
   }
 }

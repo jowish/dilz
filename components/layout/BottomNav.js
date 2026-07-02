@@ -180,15 +180,28 @@ export function BottomNav({ lang = 'en', activeTab, menuOpen = false, alertsOpen
     ? Math.max(0, Math.min(TAB_COUNT - 1, Math.round(center)))
     : activeIdx;
 
-  // Stretch → scaleX + origin so the drop elongates in its travel direction
+  // Post index = 2. The bubble tints orange as the focus enters the Post zone,
+  // and is fully orange once centred on it (label + plus turn white via CSS).
+  const POST_IDX = 2;
+  const postTint = Math.max(0, Math.min(1, (0.65 - Math.abs(center - POST_IDX)) / 0.65));
+
+  // Stretch → scaleX + origin so the drop elongates in its travel direction.
+  // While actively dragging, the bubble also swells to fill more of the bar.
   const absStretch = Math.abs(stretch);
+  const dragSwell  = isSwiping ? 1.14 : 1;
   const px = loupeLeftPx(loupeCenter);
   const loupeStyle = {
     left: px !== null ? `${px}px` : loupeLeftFallback(loupeCenter),
-    transform: `scaleX(${(1 + absStretch * 0.35).toFixed(3)}) scaleY(${(1 - absStretch * 0.12).toFixed(3)})`,
+    transform: `scaleX(${(dragSwell * (1 + absStretch * 0.35)).toFixed(3)}) scaleY(${(1 - absStretch * 0.12).toFixed(3)})`,
     transformOrigin: stretch >= 0 ? 'left center' : 'right center',
     transition: moving ? 'none' : undefined,
   };
+  if (postTint > 0) {
+    // keep the top specular sheen, tint the fill orange (opaque when centred)
+    const alpha = (0.30 + 0.70 * postTint).toFixed(2);
+    loupeStyle.background =
+      `linear-gradient(180deg, rgba(255,255,255,0.30) 0%, rgba(255,255,255,0.08) 45%, rgba(255,255,255,0) 100%), rgba(249, 115, 22, ${alpha})`;
+  }
 
   return (
     <nav className="dilz-bottom-nav" aria-label={labels.nav}>
