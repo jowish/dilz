@@ -175,9 +175,13 @@ test('the bar background is translucent so content shows through', () => {
   assert.match(css, /\.dilz-bottom-nav__inner[\s\S]*?backdrop-filter:\s*blur\(5px\) saturate\(170%\)/);
 });
 
-test('the water-lens refraction fires on touch and while moving', () => {
-  assert.match(css, /\.dilz-bottom-nav__loupe\.is-moving,\s*\.dilz-bottom-nav__loupe\.is-pressed\s*\{[^}]*backdrop-filter:\s*blur/s);
-  // iridescent rim ring
+test('the loupe is a CLEAR glass lens on touch/move (no frosted blur)', () => {
+  // clear lens: saturate/brightness only, NOT a frosting blur
+  assert.match(css, /\.dilz-bottom-nav__loupe\.is-moving,\s*\.dilz-bottom-nav__loupe\.is-pressed\s*\{[^}]*backdrop-filter:\s*saturate/s);
+  assert.doesNotMatch(css, /\.dilz-bottom-nav__loupe\.is-moving,\s*\.dilz-bottom-nav__loupe\.is-pressed\s*\{[^}]*backdrop-filter:\s*blur/s);
+  // no frosted white gradient fill on the drop itself
+  assert.doesNotMatch(css, /\.dilz-bottom-nav__loupe\s*\{[^}]*linear-gradient\(180deg/s);
+  // iridescent rim ring still there
   assert.match(css, /\.dilz-bottom-nav__loupe::after\s*\{[^}]*conic-gradient/s);
   assert.match(css, /\.dilz-bottom-nav__loupe\.is-moving::after,\s*\.dilz-bottom-nav__loupe\.is-pressed::after\s*\{[^}]*opacity:\s*0\.6/s);
 });
