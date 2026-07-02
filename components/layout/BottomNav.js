@@ -184,11 +184,9 @@ export function BottomNav({ lang = 'en', activeTab, menuOpen = false, alertsOpen
   // side and bites onto the neighbour tabs.
   const dragSwell = (pressed || isSwiping) ? 1.34 : 1;
   const px = loupeLeftPx(loupeCenter);
-  // Position via translateX (GPU-composited, no per-frame layout) instead of
-  // `left`, so the bubble glides without jank.
-  const pos = px !== null ? `${px}px` : loupeLeftFallback(loupeCenter, isRtl);
   const loupeStyle = {
-    transform: `translateX(${pos}) scale(${dragSwell.toFixed(3)})`,
+    left: px !== null ? `${px}px` : loupeLeftFallback(loupeCenter, isRtl),
+    transform: `scale(${dragSwell.toFixed(3)})`,
     transformOrigin: 'center center',
     transition: moving ? 'none' : undefined,
   };
