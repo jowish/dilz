@@ -55,16 +55,12 @@ test('tapping snaps to the button actually under the finger (no click flicker)',
   assert.match(nav, /touchX >= r\.left && touchX <= r\.right/);
 });
 
-test('zoom is transient: only the moving-bubble icon grows, others rest at 1', () => {
-  assert.match(nav, /const zoomed = moving && active/);
-  assert.match(nav, /transform: `scale\(\$\{zoomed \? 1\.2 : 1\}\)`/);
-  // no distance-based dock magnification of every icon
+test('the whole bar swells while interacted with (not individual icons)', () => {
+  assert.match(nav, /const barZoom = pressed \|\| moving/);
+  assert.match(nav, /dilz-bottom-nav__inner\$\{barZoom \? ' is-zoomed' : ''\}/);
+  assert.match(css, /\.dilz-bottom-nav__inner\.is-zoomed\s*\{[^}]*transform:\s*scale\(1\.06\)/s);
+  // no per-icon dock magnification anymore
   assert.doesNotMatch(nav, /dockScale\(idx/);
-});
-
-test('on a tap the zoom goes straight to the destination, not intermediate icons', () => {
-  // the selected look follows the finger only while swiping
-  assert.match(nav, /visualActiveIndex\(center, activeIdx, isSwiping\)/);
 });
 
 test('no press-shrink on the nav buttons (would fight the zoom)', () => {

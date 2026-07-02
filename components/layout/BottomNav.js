@@ -197,10 +197,14 @@ export function BottomNav({ lang = 'en', activeTab, menuOpen = false, alertsOpen
       `linear-gradient(180deg, rgba(255,255,255,0.30) 0%, rgba(255,255,255,0.08) 45%, rgba(255,255,255,0) 100%), rgba(249, 115, 22, ${alpha})`;
   }
 
+  // The whole bar swells slightly while it's being interacted with (touch or
+  // the click-travel), so every element zooms together — like WhatsApp.
+  const barZoom = pressed || moving;
+
   return (
     <nav className="dilz-bottom-nav" aria-label={labels.nav}>
       <div
-        className="dilz-bottom-nav__inner"
+        className={`dilz-bottom-nav__inner${barZoom ? ' is-zoomed' : ''}`}
         ref={innerRef}
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
@@ -224,16 +228,9 @@ export function BottomNav({ lang = 'en', activeTab, menuOpen = false, alertsOpen
           const postWhite = item.post && (active || postLit);
           const postColor = item.post ? (postWhite ? '#ffffff' : 'var(--brand)') : undefined;
 
-          // The zoom is transient: icons rest at their normal size, and only
-          // the one under the bubble grows *while it is moving* (swipe or the
-          // click-travel). During a swipe the scale snaps (no transition) so
-          // exactly one icon is zoomed at a time.
-          const zoomed = moving && active;
-          const iconStyle = {
-            transform: `scale(${zoomed ? 1.2 : 1})`,
-            transition: isSwiping ? 'none' : undefined,
-            ...(postColor ? { color: postColor } : {}),
-          };
+          // Individual icons no longer zoom — the whole bar scales up instead
+          // (see barZoom below), so every element grows together.
+          const iconStyle = postColor ? { color: postColor } : undefined;
 
           return (
             <button
