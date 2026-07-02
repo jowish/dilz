@@ -32,7 +32,7 @@ test('the loupe carries swiping, pressed and moving state classes', () => {
 test('loupe position and size come from the pure helpers, not inline maths', () => {
   assert.match(nav, /from '\.\.\/\.\.\/lib\/bottomNav'/);
   assert.match(nav, /computeLoupeLeftPx\(centers, fraction\)/);
-  assert.match(nav, /loupeLeftFallback\(loupeCenter\)/);
+  assert.match(nav, /loupeLeftFallback\(loupeCenter, isRtl\)/);
 });
 
 test('button centres are measured with the border correction for exact centering', () => {
@@ -87,6 +87,13 @@ test('the profile tab can show the uploaded avatar photo', () => {
 
 test('accessibility marks the committed route, not the transient visual state', () => {
   assert.match(nav, /aria-current=\{committed \? 'page' : undefined\}/);
+});
+
+test('Hebrew RTL flips the touch axis and the fallback position', () => {
+  assert.match(nav, /const isRtl = lang === 'he'/);
+  // touch mapping and fallback both receive the RTL flag
+  assert.match(nav, /touchToFraction\([^)]*, isRtl\)/);
+  assert.match(nav, /loupeLeftFallback\(loupeCenter, isRtl\)/);
 });
 
 // ── CSS invariants ────────────────────────────────────────────────────────

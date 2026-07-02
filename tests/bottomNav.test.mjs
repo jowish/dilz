@@ -51,6 +51,12 @@ test('loupeLeftFallback centres the loupe on each tab as a calc() string', () =>
   assert.equal(loupeLeftFallback(4), 'calc(90% - 36px)');
 });
 
+test('loupeLeftFallback mirrors the axis in RTL (index 0 sits on the right)', () => {
+  assert.equal(loupeLeftFallback(0, true), 'calc(90% - 36px)');
+  assert.equal(loupeLeftFallback(2, true), 'calc(50% - 36px)'); // middle unchanged
+  assert.equal(loupeLeftFallback(4, true), 'calc(10% - 36px)');
+});
+
 test('loupeLeftPx returns null until the five centres are measured', () => {
   assert.equal(loupeLeftPx(null, 2), null);
   assert.equal(loupeLeftPx([], 2), null);
@@ -126,6 +132,17 @@ test('touchToFraction maps the bar width onto tab indices and clamps the ends', 
   assert.equal(touchToFraction(-30, w), 0);   // before the bar → clamp
   assert.equal(touchToFraction(9999, w), 4);  // past the bar → clamp
   assert.equal(touchToFraction(100, 0), 0);   // zero width guard
+});
+
+test('touchToFraction mirrors the axis in RTL (Hebrew) so touch lands on the right tab', () => {
+  const w = 500;
+  assert.equal(touchToFraction(50, w, true), 4);   // left edge → last tab
+  assert.equal(touchToFraction(250, w, true), 2);  // middle → Post (unchanged)
+  assert.equal(touchToFraction(450, w, true), 0);  // right edge → first tab
+  // mirror of the LTR value everywhere
+  for (let x = 0; x <= w; x += 25) {
+    assert.equal(touchToFraction(x, w, true), 4 - touchToFraction(x, w, false));
+  }
 });
 
 test('snapIndex rounds to the nearest tab and stays in range', () => {

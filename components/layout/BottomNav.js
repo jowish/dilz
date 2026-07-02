@@ -16,6 +16,7 @@ import {
 } from '../../lib/bottomNav';
 
 export function BottomNav({ lang = 'en', activeTab, menuOpen = false, alertsOpen = false, postOpen = false, avatarUrl: avatarProp, onMenu, onTab, onPost, onAlerts, onProfile }) {
+  const isRtl = lang === 'he';
   const labels = lang === 'he'
     ? { search: 'חיפוש', deals: 'דילים', post: 'פרסום', alerts: 'התראות', profile: 'פרופיל', nav: 'ניווט מובייל' }
     : { search: 'Search', deals: 'Deals', post: 'Post', alerts: 'Alerts', profile: 'Profile', nav: 'Mobile navigation' };
@@ -128,7 +129,7 @@ export function BottomNav({ lang = 'en', activeTab, menuOpen = false, alertsOpen
     const touchX = e.touches[0].clientX;
     // Jump the bubble straight onto the tab under the finger, instead of
     // swelling in place on the tab we came from.
-    const idx = snapIndex(touchToFraction(touchX - rect.left, rect.width));
+    const idx = snapIndex(touchToFraction(touchX - rect.left, rect.width, isRtl));
     stopRaf();
     curRef.current = idx;
     setCenter(idx);
@@ -143,7 +144,7 @@ export function BottomNav({ lang = 'en', activeTab, menuOpen = false, alertsOpen
     state.started = true;
     stopRaf();
     // The bubble follows the finger continuously.
-    const frac = touchToFraction(touchX - state.innerLeft, state.innerWidth);
+    const frac = touchToFraction(touchX - state.innerLeft, state.innerWidth, isRtl);
     state.pos = frac;
     curRef.current = frac;
     setCenter(frac);
@@ -183,7 +184,7 @@ export function BottomNav({ lang = 'en', activeTab, menuOpen = false, alertsOpen
   const dragSwell = (pressed || isSwiping) ? 1.34 : 1;
   const px = loupeLeftPx(loupeCenter);
   const loupeStyle = {
-    left: px !== null ? `${px}px` : loupeLeftFallback(loupeCenter),
+    left: px !== null ? `${px}px` : loupeLeftFallback(loupeCenter, isRtl),
     transform: `scale(${dragSwell.toFixed(3)})`,
     transformOrigin: 'center center',
     transition: moving ? 'none' : undefined,
