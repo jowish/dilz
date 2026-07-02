@@ -28,11 +28,12 @@ export function BottomNav({ lang = 'en', activeTab, menuOpen = false, alertsOpen
   ];
 
   const activeItem = bottomNavActiveItem({ activeTab, menuOpen, alertsOpen, postOpen });
-  // rawActiveIdx is -1 when the active item is momentarily unresolved (e.g. mid
-  // navigation). We must NOT treat that as tab 0 (deals) — doing so made the
-  // bubble flash to deals and back. Keep -1 and guard the movement effect.
+  // When the active item is momentarily unresolved (e.g. mid-navigation) we hold
+  // the last real tab instead of snapping to tab 0 (deals) — that flashed.
   const rawActiveIdx = items.findIndex((it) => it.id === activeItem);
-  const activeIdx = rawActiveIdx >= 0 ? rawActiveIdx : 0;
+  const lastValidIdx = useRef(rawActiveIdx >= 0 ? rawActiveIdx : 0);
+  if (rawActiveIdx >= 0) lastValidIdx.current = rawActiveIdx;
+  const activeIdx = rawActiveIdx >= 0 ? rawActiveIdx : lastValidIdx.current;
 
   // Avatar: use prop if provided, otherwise read from the auth session
   const [avatarUrl, setAvatarUrl] = useState(avatarProp || '');
@@ -75,26 +76,16 @@ export function BottomNav({ lang = 'en', activeTab, menuOpen = false, alertsOpen
 
   const loupeLeftPx = (fraction) => computeLoupeLeftPx(centers, fraction);
 
-  // ── Animated loupe center ────────────────────────────────────────────
-  // `center` is a *fractional* tab index that eases toward the target on
-  // click and follows the finger on swipe. As it passes over a tab, that
-  // tab's icon zooms (dock magnification), so the whole bar reacts like
-  // WhatsApp when the focus moves.
-  const [center, setCenter]   = useState(activeIdx);
+  // ── Loupe position ───────────────────────────────────────────────────
+  // Stability first: when NOT swiping, the bubble position is derived directly
+  // from the active tab (see `loupeCenter` below) — there is no free-floating
+  // state that can drift, so the bar never changes focus on its own. `swipeCenter`
+  // is a *fractional* tab index used ONLY while the finger is dragging.
+  const [swipeCenter, setSwipeCenter] = useState(activeIdx);
   const [pressed, setPressed] = useState(false); // finger down on the bar
   const swipeRef  = useRef(null);
 
   const isSwiping = swipeRef.current?.started === true;
-
-  // Glide the bubble to the newly selected tab. The motion is a pure CSS
-  // transition (calm easing set in globals.css) — no per-frame animation, so
-  // it's smooth and light rather than fast and nervous. Only move to a REAL
-  // resolved tab; when the active item is transiently unresolved (rawActiveIdx
-  // < 0) we hold position instead of snapping to deals.
-  useEffect(() => {
-    if (swipeRef.current?.started) return;   // a drag owns the position
-    if (rawActiveIdx >= 0) setCenter(rawActiveIdx);
-  }, [rawActiveIdx]);
 
   function handleTouchStart(e) {
     const inner = innerRef.current;
@@ -125,7 +116,7 @@ export function BottomNav({ lang = 'en', activeTab, menuOpen = false, alertsOpen
     // The bubble follows the finger continuously (transition disabled while swiping).
     const frac = touchToFraction(touchX - state.innerLeft, state.innerWidth, isRtl);
     state.pos = frac;
-    setCenter(frac);
+    setSwipeCenter(frac);
   }
 
   function handleTouchEnd() {
@@ -134,23 +125,25 @@ export function BottomNav({ lang = 'en', activeTab, menuOpen = false, alertsOpen
     setPressed(false);
     if (state?.started && state.pos !== null) {
       const idx    = snapIndex(state.pos);
-      setCenter(idx);   // CSS transition settles smoothly onto the nearest tab
       const target = items[idx];
+      // Navigate; the bubble then rests on the active tab (loupeCenter derives
+      // from activeIdx once isSwiping is false), gliding there via CSS.
       if (target && target.id !== activeItem) target.action();
     }
   }
 
-  const loupeCenter = center;
+  // Position derives DIRECTLY from the active tab unless a drag is in progress.
+  // No standalone position state → the bubble cannot drift on its own.
+  const loupeCenter = isSwiping ? swipeCenter : activeIdx;
 
-  // The selected look (fill + zoom) follows the bubble only while the finger is
-  // dragging it; on a tap it jumps straight to the destination so intermediate
-  // icons on the way (e.g. Post when heading to Alerts) never react.
-  const visualActiveIdx = visualActiveIndex(center, activeIdx, isSwiping);
+  // The selected look (fill + colour) follows the bubble only while dragging;
+  // otherwise it's the active tab.
+  const visualActiveIdx = visualActiveIndex(loupeCenter, activeIdx, isSwiping);
 
   // The bubble tints orange as the focus enters the Post zone, fully orange
   // once centred; the plus + label then invert to white so they stay legible.
-  const postTint = computePostTint(center);
-  const postLit = computePostLit(center);
+  const postTint = computePostTint(loupeCenter);
+  const postLit = computePostLit(loupeCenter);
 
   // When pressed / dragging the bubble grows UNIFORMLY (same shape and
   // proportions, just larger) so it overshoots the bar symmetrically on every

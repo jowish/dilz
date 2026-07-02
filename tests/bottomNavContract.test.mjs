@@ -60,9 +60,12 @@ test('touch does not move the bubble (avoids the glide-then-navigate flash)', ()
   assert.doesNotMatch(nav, /if \(hit >= 0\) setCenter/);
 });
 
-test('the movement effect only targets a resolved tab, never the 0 fallback', () => {
+test('bubble position is derived from the active tab, not a drifting state', () => {
+  // when not swiping, position comes straight from activeIdx (rock stable)
+  assert.match(nav, /const loupeCenter = isSwiping \? swipeCenter : activeIdx/);
+  // and unresolved active items hold the last real tab (never snap to deals=0)
   assert.match(nav, /const rawActiveIdx = items\.findIndex/);
-  assert.match(nav, /if \(rawActiveIdx >= 0\) setCenter\(rawActiveIdx\)/);
+  assert.match(nav, /activeIdx = rawActiveIdx >= 0 \? rawActiveIdx : lastValidIdx\.current/);
 });
 
 test('the whole bar swells while interacted with (not individual icons)', () => {
