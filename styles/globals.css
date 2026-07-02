@@ -8407,6 +8407,10 @@ select:focus,
     font-weight: 600;
     letter-spacing: -0.01em;
     cursor: pointer;
+    /* Sit ABOVE the loupe (z-index:1) so the icon + label are never masked
+       by the orange bubble — the loupe is a background highlight only. */
+    position: relative;
+    z-index: 2;
     transform: translateZ(0);
     transition:
       color 180ms ease,
