@@ -46,7 +46,7 @@ test('pressing swells the bubble uniformly (same shape) and starts on touch', ()
   // uniform swell via the individual `scale` property (not scaleX, which distorts)
   assert.match(nav, /scale: `\$\{dragSwell\.toFixed\(3\)\}`/);
   assert.doesNotMatch(nav, /scaleX/);
-  assert.match(nav, /const dragSwell = isSwiping \? 1\.16 : \(pressed \? 1\.07 : 1\)/);
+  assert.match(nav, /const dragSwell = isSwiping \? 1\.3 : \(pressed \? 1\.24 : 1\)/);
 });
 
 test('the loupe is positioned via GPU translate/scale, not layout-thrashing left', () => {

@@ -204,9 +204,9 @@ export function BottomNav({ lang = 'en', activeTab, menuOpen = false, alertsOpen
   const postTint = computePostTint(loupeCenter);
   const postLit = computePostLit(loupeCenter);
 
-  // When pressed / dragging the bubble grows uniformly, but only as a calm
-  // tactile response; a tap should feel like a soft focus, not a punchy zoom.
-  const dragSwell = isSwiping ? 1.16 : (pressed ? 1.07 : 1);
+  // When pressed / dragging the bubble grows uniformly: same exact shape, just
+  // larger, so the liquid drop can spill slightly beyond the compact bar.
+  const dragSwell = isSwiping ? 1.3 : (pressed ? 1.24 : 1);
   const px = loupeLeftPx(loupeCenter);
   const pos = px !== null ? `${px}px` : loupeLeftFallback(loupeCenter, isRtl);
 
