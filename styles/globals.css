@@ -8386,7 +8386,7 @@ select:focus,
     backdrop-filter: blur(18px) saturate(190%) contrast(1.05);
     -webkit-backdrop-filter: blur(18px) saturate(190%) contrast(1.05);
     pointer-events: auto;
-    touch-action: pan-y;
+    touch-action: none;   /* dragging the bubble must not scroll the app behind */
     overflow: visible !important;   /* let the pressed bubble spill past the bar */
     -webkit-user-select: none;
     user-select: none;
@@ -8539,8 +8539,8 @@ select:focus,
   }
 
   .dilz-bottom-nav__item.is-post > span:last-child {
-    color: inherit !important;
     font-weight: inherit !important;
+    /* colour is set inline in BottomNav.js (orange / white) */
   }
 
   /* ── Colors: white in dark mode, black in light mode ─────────────────── */
@@ -8625,39 +8625,13 @@ select:focus,
     position: relative !important;
     z-index: 2 !important;
     display: block;
-    color: inherit !important;
     transition: transform 380ms cubic-bezier(0.34, 1.56, 0.64, 1) !important;
   }
 
   /* Icon scale is driven by JS (dock magnification); do not override here. */
 
-  /* ── Post: orange plus + orange label (the primary action) ─────────────
-     Default: just an orange plus + orange label (no surrounding shape).
-     Selected: the whole bubble turns orange (handled in JS) and the plus +
-     label turn white — the inverse of the other tabs.
-  ────────────────────────────────────────────────────────────────────── */
-  .dilz-bottom-nav__item.is-post .dilz-bottom-nav__icon {
-    color: var(--brand) !important;
-    background: transparent !important;
-  }
-
-  .dilz-bottom-nav__item.is-post > span:last-child {
-    color: var(--brand) !important;
-  }
-
-  /* Post plus + label turn white as soon as the orange bubble reaches it
-     (is-post-lit), and while selected — so they stay legible on orange. */
-  .dilz-bottom-nav__item.is-post.is-post-lit .dilz-bottom-nav__icon,
-  .dark .dilz-bottom-nav__item.is-post.is-post-lit .dilz-bottom-nav__icon,
-  .dilz-bottom-nav__item.is-post.is-post-lit > span:last-child,
-  .dark .dilz-bottom-nav__item.is-post.is-post-lit > span:last-child,
-  .dilz-bottom-nav__item.is-post.is-active .dilz-bottom-nav__icon,
-  .dark .dilz-bottom-nav__item.is-post.is-active .dilz-bottom-nav__icon,
-  .dilz-bottom-nav__item.is-post.is-active > span:last-child,
-  .dark .dilz-bottom-nav__item.is-post.is-active > span:last-child {
-    color: #ffffff !important;
-    background: transparent !important;
-  }
+  /* Post colour (orange default, white on the orange bubble) is set inline in
+     BottomNav.js so it always wins the cascade — no colour rules here. */
 
   /* While pressed / dragging, the bubble swells slightly BEYOND the bar's
      height. No blur or forced background here — that would override the orange

@@ -94,7 +94,6 @@ export function BottomNav({ lang = 'en', activeTab, menuOpen = false, alertsOpen
   const targetRef = useRef(activeIdx);
   const rafRef    = useRef(null);
   const swipeRef  = useRef(null);
-  const anchorRef = useRef(activeIdx);   // tab the bubble is currently "holding"
 
   const stopRaf = () => { if (rafRef.current) { cancelAnimationFrame(rafRef.current); rafRef.current = null; } };
 
@@ -137,7 +136,6 @@ export function BottomNav({ lang = 'en', activeTab, menuOpen = false, alertsOpen
     const inner = innerRef.current;
     if (!inner) return;
     setPressed(true);   // swell immediately on touch, before any movement
-    anchorRef.current = Math.round(curRef.current);
     const rect = inner.getBoundingClientRect();
     swipeRef.current = { startX: e.touches[0].clientX, innerLeft: rect.left, innerWidth: rect.width, started: false, pos: null };
   }
@@ -149,20 +147,13 @@ export function BottomNav({ lang = 'en', activeTab, menuOpen = false, alertsOpen
     if (!state.started && Math.abs(touchX - state.startX) < 10) return;
     state.started = true;
     stopRaf();
-    const relX = touchX - state.innerLeft;
-    const f    = Math.max(0, Math.min(TAB_COUNT - 1, (relX / state.innerWidth) * TAB_COUNT - 0.5));
-    state.pos  = f;
-
-    // The bubble HOLDS the anchored tab and stretches toward the finger. Only
-    // when the finger crosses into a new cell does it release and grab it.
-    const newAnchor = Math.round(f);
-    if (newAnchor !== anchorRef.current) {
-      anchorRef.current = newAnchor;
-      curRef.current = newAnchor;
-      setCenter(newAnchor);   // let go of the old tab, snap onto the new one
-    }
+    // The bubble follows the finger continuously.
+    const relX    = touchX - state.innerLeft;
+    const clamped = Math.max(0, Math.min(TAB_COUNT - 1, (relX / state.innerWidth) * TAB_COUNT - 0.5));
+    state.pos = clamped;
+    curRef.current = clamped;
+    setCenter(clamped);
     setMoving(true);
-    setStretch(Math.max(-1, Math.min(1, (f - anchorRef.current) * 2)));
   }
 
   function handleTouchEnd() {
@@ -170,11 +161,10 @@ export function BottomNav({ lang = 'en', activeTab, menuOpen = false, alertsOpen
     swipeRef.current = null;
     setPressed(false);
     if (state?.started && state.pos !== null) {
-      const idx    = anchorRef.current;
+      const idx    = Math.round(Math.max(0, Math.min(TAB_COUNT - 1, state.pos)));
       const target = items[idx];
       targetRef.current = idx;
-      setStretch(0);
-      setMoving(false);
+      runRaf();  // spring toward the snapped tab
       if (target && target.id !== activeItem) target.action();
     } else {
       setMoving(false);
@@ -191,22 +181,21 @@ export function BottomNav({ lang = 'en', activeTab, menuOpen = false, alertsOpen
     : activeIdx;
 
   // Post index = 2. The bubble tints orange as the focus enters the Post zone,
-  // and is fully orange once centred on it (label + plus turn white via CSS).
+  // and is fully orange once centred on it.
   const POST_IDX = 2;
   const postTint = Math.max(0, Math.min(1, (0.65 - Math.abs(center - POST_IDX)) / 0.65));
   // Once the orange bubble reaches the Post icon, invert its plus + label to
   // white so they stay legible on the orange fill.
   const postLit = postTint > 0.4;
 
-  // Stretch → scaleX + origin so the drop elongates in its travel direction.
-  // The bubble swells the instant it's pressed and while dragging.
-  const absStretch = Math.abs(stretch);
-  const dragSwell  = (pressed || isSwiping) ? 1.14 : 1;
+  // When pressed / dragging the bubble swells symmetrically (wider + taller),
+  // overshooting the bar a touch on every side.
+  const dragSwell = (pressed || isSwiping) ? 1.08 : 1;
   const px = loupeLeftPx(loupeCenter);
   const loupeStyle = {
     left: px !== null ? `${px}px` : loupeLeftFallback(loupeCenter),
-    transform: `scaleX(${(dragSwell * (1 + absStretch * 0.55)).toFixed(3)}) scaleY(${(1 - absStretch * 0.10).toFixed(3)})`,
-    transformOrigin: stretch >= 0 ? 'left center' : 'right center',
+    transform: `scaleX(${dragSwell.toFixed(3)})`,
+    transformOrigin: 'center center',
     transition: moving ? 'none' : undefined,
   };
   if (postTint > 0) {
@@ -239,9 +228,16 @@ export function BottomNav({ lang = 'en', activeTab, menuOpen = false, alertsOpen
           const { Icon }  = item;
           // Every icon reacts to how close the travelling loupe is to it.
           const scale    = dockScale(idx, loupeCenter);
+
+          // Post colour is driven inline (bulletproof against the cascade):
+          // orange by default, white once the bubble under it turns orange.
+          const postWhite = item.post && (active || postLit);
+          const postColor = item.post ? (postWhite ? '#ffffff' : 'var(--brand)') : undefined;
+
           const iconStyle = {
             transform: `scale(${scale.toFixed(3)})`,
             transition: moving ? 'none' : undefined,
+            ...(postColor ? { color: postColor } : {}),
           };
 
           return (
@@ -249,7 +245,7 @@ export function BottomNav({ lang = 'en', activeTab, menuOpen = false, alertsOpen
               key={item.id}
               type="button"
               ref={(el) => { itemRefs.current[idx] = el; }}
-              className={['dilz-bottom-nav__item', active && 'is-active', item.post && 'is-post', item.post && postLit && 'is-post-lit'].filter(Boolean).join(' ')}
+              className={['dilz-bottom-nav__item', active && 'is-active', item.post && 'is-post'].filter(Boolean).join(' ')}
               onClick={item.action}
               aria-label={item.label}
               aria-current={committed ? 'page' : undefined}
@@ -259,7 +255,7 @@ export function BottomNav({ lang = 'en', activeTab, menuOpen = false, alertsOpen
                   ? <img src={avatarUrl} alt="" className="dilz-bottom-nav__avatar" />
                   : <Icon active={active} />}
               </span>
-              <span>{item.label}</span>
+              <span style={postColor ? { color: postColor } : undefined}>{item.label}</span>
             </button>
           );
         })}
