@@ -40,6 +40,10 @@ test('profile hides global search and keeps sign out after profile content', () 
 
 test('header removes useless initials while profile card shows the uploaded photo', () => {
   assert.doesNotMatch(appHeader, /dilz-avatar-mini/);
+  assert.doesNotMatch(appHeader, /<Logo/);
+  assert.doesNotMatch(appHeader, /dilz-app-header__left/);
+  assert.doesNotMatch(appHeader, /dilz-desktop-tabs/);
+  assert.doesNotMatch(appHeader, /dILz/);
   assert.doesNotMatch(appHeader, /slice\(0, 2\)\.toUpperCase\(\)/);
   assert.match(appHeader, /aria-label=\{user \? labels\.profile : labels\.signIn\}/);
   assert.match(index, /const avatarUrl = user\.user_metadata\?\.avatar_url \|\| user\.user_metadata\?\.picture \|\| ''/);

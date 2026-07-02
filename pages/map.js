@@ -287,32 +287,34 @@ export default function MapPage() {
           </section>
 
           <aside className="dilz-map-results">
-            <div className="dilz-map-results__header">
-              <p>{selectedCity ? traduireVille(selectedCity, lang) : text.israel}</p>
-              <strong>{selectedDeals.length} Dilz</strong>
-              {!selectedCity && <span>{text.tap}</span>}
-            </div>
+            <div className="dilz-map-results__top">
+              <div className="dilz-map-results__header">
+                <p>{selectedCity ? traduireVille(selectedCity, lang) : text.israel}</p>
+                <strong>{selectedDeals.length} Dilz</strong>
+                {!selectedCity && <span>{text.tap}</span>}
+              </div>
 
-            <div className="dilz-map-city-strip" aria-label={text.mapPoints}>
-              <button
-                type="button"
-                className={!selectedCity ? 'is-active' : ''}
-                onClick={() => selectCity(null)}
-              >
-                <span>{text.israel}</span>
-                <strong>{getVisibleMapDeals(deals, null, dealsByCity, CITY_COORDS).length}</strong>
-              </button>
-              {cityEntries.slice(0, 12).map(([city, cityDeals]) => (
+              <div className="dilz-map-city-strip" aria-label={text.mapPoints}>
                 <button
-                  key={city}
                   type="button"
-                  className={city === selectedCity ? 'is-active' : ''}
-                  onClick={() => selectCity(city)}
+                  className={!selectedCity ? 'is-active' : ''}
+                  onClick={() => selectCity(null)}
                 >
-                  <span>{traduireVille(city, lang)}</span>
-                  <strong>{cityDeals.length}</strong>
+                  <span>{text.israel}</span>
+                  <strong>{getVisibleMapDeals(deals, null, dealsByCity, CITY_COORDS).length}</strong>
                 </button>
-              ))}
+                {cityEntries.slice(0, 12).map(([city, cityDeals]) => (
+                  <button
+                    key={city}
+                    type="button"
+                    className={city === selectedCity ? 'is-active' : ''}
+                    onClick={() => selectCity(city)}
+                  >
+                    <span>{traduireVille(city, lang)}</span>
+                    <strong>{cityDeals.length}</strong>
+                  </button>
+                ))}
+              </div>
             </div>
 
             <div className="dilz-map-deal-list">

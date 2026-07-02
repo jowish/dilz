@@ -126,8 +126,12 @@ test('map loads a broad result set, fills the results panel and preserves exact 
   assert.match(css, /\.dilz-map-marker,[\s\S]*background:\s*#DC2626\s*!important/s);
   assert.match(css, /\.dilz-map-results\s*\{[^}]*display:\s*flex[^}]*flex-direction:\s*column[^}]*overflow:\s*hidden/s);
   assert.match(css, /\.dilz-map-deal-list\s*\{[^}]*flex:\s*1 1 auto[^}]*overflow-y:\s*auto/s);
-  assert.match(css, /\.dilz-map-city-strip\s*\{[^}]*position:\s*sticky[^}]*z-index:\s*5/s);
+  assert.match(map, /className="dilz-map-results__top"[\s\S]*className="dilz-map-city-strip"/);
+  assert.match(css, /\.dilz-map-results__top\s*\{[^}]*z-index:\s*30[^}]*background:\s*var\(--surface-main\)/s);
+  assert.match(css, /\.dilz-map-city-strip\s*\{[^}]*position:\s*relative[^}]*z-index:\s*31/s);
   assert.match(css, /\.dilz-map-city-strip button span\s*\{[^}]*text-overflow:\s*ellipsis/s);
+  assert.match(css, /@media \(max-width: 767px\)[\s\S]*\.dilz-map-results__top\s*\{[^}]*z-index:\s*40/s);
+  assert.match(css, /@media \(max-width: 767px\)[\s\S]*\.dilz-map-city-strip\s*\{[^}]*z-index:\s*41/s);
   assert.match(css, /@media \(max-width: 767px\)[\s\S]*\.dilz-map-page\s*\{[^}]*padding-bottom:\s*0 !important/s);
   assert.match(css, /@media \(max-width: 767px\)[\s\S]*\.dilz-map-results\s*\{[^}]*flex:\s*1 1 auto[^}]*max-height:\s*none/s);
   assert.match(css, /@media \(max-width: 767px\)[\s\S]*\.dilz-map-deal-list\s*\{[^}]*var\(--dilz-tabbar-height\)/s);

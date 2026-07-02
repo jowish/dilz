@@ -1,27 +1,6 @@
-import Link from 'next/link';
 import { Button, IconButton } from '../ui/Button';
 import { SearchBar } from '../ui/SearchBar';
 import { ThemeToggle } from '../ui/ThemeToggle';
-
-function Logo({ onClick }) {
-  const content = (
-    <span className="dilz-logo-lockup" aria-label="dILz">
-      <span className="dilz-logo">
-        dILz
-      </span>
-    </span>
-  );
-
-  if (onClick) {
-    return (
-      <button type="button" className="dilz-logo-button" onClick={onClick} aria-label="Go home">
-        {content}
-      </button>
-    );
-  }
-
-  return <Link href="/" className="dilz-logo-button">{content}</Link>;
-}
 
 export function AppHeader({
   lang,
@@ -33,14 +12,11 @@ export function AppHeader({
   unreadCount = 0,
   onNotificationsClick,
   onProfileClick,
-  onLogoClick,
   onPostDeal,
   onSearch,
   searchValue,
   onSearchChange,
-  onCommunity,
   onAlerts,
-  activeTab,
   showSearch = true,
 }) {
   const labels = lang === 'he'
@@ -49,15 +25,6 @@ export function AppHeader({
   return (
     <header className="dilz-app-header">
       <div className="dilz-app-header__inner">
-        <div className="dilz-app-header__left">
-          <Logo onClick={onLogoClick} />
-          <nav className="dilz-desktop-tabs" aria-label={labels.primary}>
-            <button type="button" className={activeTab === 'deals' ? 'is-active' : ''} onClick={onCommunity}>
-              Dilz
-            </button>
-          </nav>
-        </div>
-
         {showSearch && (
           <div className="dilz-app-header__search">
             <SearchBar value={searchValue} onChange={onSearchChange} onFocus={onSearch} placeholder={labels.search} />
