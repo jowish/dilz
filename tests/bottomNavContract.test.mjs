@@ -51,7 +51,8 @@ test('pressing swells the bubble uniformly (same shape) and starts on touch', ()
 
 test('the loupe is positioned via GPU translate/scale, not layout-thrashing left', () => {
   assert.match(nav, /translate: pos/);
-  assert.match(css, /\.dilz-bottom-nav__loupe\s*\{[^}]*transition:\s*translate 620ms[^}]*scale 220ms/s);
+  assert.match(css, /\.dilz-bottom-nav__loupe\s*\{[^}]*transition:\s*translate 620ms cubic-bezier\(0\.33, 0, 0\.2, 1\),\s*scale 220ms cubic-bezier\(0\.33, 0, 0\.2, 1\)/s);
+  assert.doesNotMatch(css, /\.dilz-bottom-nav__loupe\s*\{[^}]*translate 620ms linear/s);
 });
 
 test('touch focuses the bubble under the finger before release navigation', () => {
@@ -61,6 +62,10 @@ test('touch focuses the bubble under the finger before release navigation', () =
   assert.match(nav, /setTouchFocusCenter\(pos\)/);
   assert.match(nav, /const loupeCenter = isSwiping \? swipeCenter : \(touchFocusing \? touchFocusCenter : restIdx\)/);
   assert.match(nav, /translate \$\{glideMs\}ms \$\{ease\}, scale 220ms \$\{ease\}/);
+  assert.match(nav, /const ease = 'cubic-bezier\(0\.33, 0, 0\.2, 1\)'/);
+  assert.match(nav, /const glideMs = 620/);
+  assert.doesNotMatch(nav, /const translateEase = 'linear'/);
+  assert.doesNotMatch(nav, /translate \$\{glideMs\}ms \$\{translateEase\}/);
   assert.doesNotMatch(nav, /touchFocusing \? 180 : glideMs/);
 });
 
