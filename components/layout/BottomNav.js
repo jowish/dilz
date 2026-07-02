@@ -28,7 +28,11 @@ export function BottomNav({ lang = 'en', activeTab, menuOpen = false, alertsOpen
   ];
 
   const activeItem = bottomNavActiveItem({ activeTab, menuOpen, alertsOpen, postOpen });
-  const activeIdx  = Math.max(0, items.findIndex((it) => it.id === activeItem));
+  // rawActiveIdx is -1 when the active item is momentarily unresolved (e.g. mid
+  // navigation). We must NOT treat that as tab 0 (deals) — doing so made the
+  // bubble flash to deals and back. Keep -1 and guard the movement effect.
+  const rawActiveIdx = items.findIndex((it) => it.id === activeItem);
+  const activeIdx = rawActiveIdx >= 0 ? rawActiveIdx : 0;
 
   // Avatar: use prop if provided, otherwise read from the auth session
   const [avatarUrl, setAvatarUrl] = useState(avatarProp || '');
@@ -84,29 +88,32 @@ export function BottomNav({ lang = 'en', activeTab, menuOpen = false, alertsOpen
 
   // Glide the bubble to the newly selected tab. The motion is a pure CSS
   // transition (calm easing set in globals.css) — no per-frame animation, so
-  // it's smooth and light rather than fast and nervous.
+  // it's smooth and light rather than fast and nervous. Only move to a REAL
+  // resolved tab; when the active item is transiently unresolved (rawActiveIdx
+  // < 0) we hold position instead of snapping to deals.
   useEffect(() => {
     if (swipeRef.current?.started) return;   // a drag owns the position
-    setCenter(activeIdx);
-  }, [activeIdx]);
+    if (rawActiveIdx >= 0) setCenter(rawActiveIdx);
+  }, [rawActiveIdx]);
 
   function handleTouchStart(e) {
     const inner = innerRef.current;
     if (!inner) return;
-    setPressed(true);   // swell immediately on touch
+    setPressed(true);   // swell immediately on touch (does NOT move the bubble)
     const rect = inner.getBoundingClientRect();
     const touchX = e.touches[0].clientX;
-    // Snap to the ACTUAL button under the finger (exact hit-test) so the jump
-    // always matches the click target — avoids a jump-then-return flicker. Works
-    // in RTL too since it uses real element positions.
-    let idx = itemRefs.current.findIndex((b) => {
+    // We do NOT move the bubble on touch. A tap either stays put (same tab) or
+    // navigates — the destination page shows the bubble at the right tab, and a
+    // same-page change glides via the effect. Moving here made the bubble glide
+    // from the old tab and get interrupted by navigation (the "flash" bug).
+    // Record the hit position only as the starting point for a potential drag.
+    const hit = itemRefs.current.findIndex((b) => {
       if (!b) return false;
       const r = b.getBoundingClientRect();
       return touchX >= r.left && touchX <= r.right;
     });
-    if (idx < 0) idx = snapIndex(touchToFraction(touchX - rect.left, rect.width, isRtl));
-    setCenter(idx);
-    swipeRef.current = { startX: touchX, innerLeft: rect.left, innerWidth: rect.width, started: false, pos: idx };
+    const pos = hit >= 0 ? hit : snapIndex(touchToFraction(touchX - rect.left, rect.width, isRtl));
+    swipeRef.current = { startX: touchX, innerLeft: rect.left, innerWidth: rect.width, started: false, pos };
   }
 
   function handleTouchMove(e) {

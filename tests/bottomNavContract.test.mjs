@@ -54,9 +54,15 @@ test('the loupe is positioned via GPU translate/scale, not layout-thrashing left
   assert.match(css, /\.dilz-bottom-nav__loupe\s*\{[^}]*transition:\s*translate 460ms[^}]*scale 220ms/s);
 });
 
-test('tapping snaps to the button actually under the finger (no click flicker)', () => {
-  assert.match(nav, /itemRefs\.current\.findIndex/);
-  assert.match(nav, /touchX >= r\.left && touchX <= r\.right/);
+test('touch does not move the bubble (avoids the glide-then-navigate flash)', () => {
+  // touchStart records a hit position for a potential drag but must NOT setCenter
+  assert.match(nav, /setPressed\(true\);   \/\/ swell immediately on touch \(does NOT move the bubble\)/);
+  assert.doesNotMatch(nav, /if \(hit >= 0\) setCenter/);
+});
+
+test('the movement effect only targets a resolved tab, never the 0 fallback', () => {
+  assert.match(nav, /const rawActiveIdx = items\.findIndex/);
+  assert.match(nav, /if \(rawActiveIdx >= 0\) setCenter\(rawActiveIdx\)/);
 });
 
 test('the whole bar swells while interacted with (not individual icons)', () => {
