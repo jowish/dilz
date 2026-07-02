@@ -197,9 +197,10 @@ export function BottomNav({ lang = 'en', activeTab, menuOpen = false, alertsOpen
       `linear-gradient(180deg, rgba(255,255,255,0.30) 0%, rgba(255,255,255,0.08) 45%, rgba(255,255,255,0) 100%), rgba(249, 115, 22, ${alpha})`;
   }
 
-  // The whole bar swells slightly while it's being interacted with (touch or
-  // the click-travel), so every element zooms together — like WhatsApp.
-  const barZoom = pressed || moving;
+  // The whole bar swells slightly ONLY while the finger is down — zoom in on
+  // touch, back to normal the instant it's released. Not tied to `moving` so a
+  // slow page load after a tap can never keep the bar zoomed.
+  const barZoom = pressed;
 
   return (
     <nav className="dilz-bottom-nav" aria-label={labels.nav}>

@@ -56,7 +56,9 @@ test('tapping snaps to the button actually under the finger (no click flicker)',
 });
 
 test('the whole bar swells while interacted with (not individual icons)', () => {
-  assert.match(nav, /const barZoom = pressed \|\| moving/);
+  // zoom is tied to the finger being down only — never to `moving`, so a slow
+  // page load after a tap can't keep the bar zoomed
+  assert.match(nav, /const barZoom = pressed;/);
   assert.match(nav, /dilz-bottom-nav__inner\$\{barZoom \? ' is-zoomed' : ''\}/);
   assert.match(css, /\.dilz-bottom-nav__inner\.is-zoomed\s*\{[^}]*transform:\s*scale\(1\.06\)/s);
   // no per-icon dock magnification anymore

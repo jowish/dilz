@@ -8391,9 +8391,11 @@ select:focus,
     -webkit-user-select: none;
     user-select: none;
     -webkit-touch-callout: none;
-    /* The whole bar swells slightly while interacted with — grows upward. */
+    /* The whole bar swells slightly while pressed — grows upward. Snappy
+       transition so it zooms in on touch and snaps back the instant it's
+       released, with no perceptible lag. */
     transform-origin: center bottom;
-    transition: transform 260ms cubic-bezier(0.34, 1.2, 0.5, 1);
+    transition: transform 120ms ease-out;
   }
 
   .dilz-bottom-nav__inner.is-zoomed {
