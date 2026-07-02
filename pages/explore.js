@@ -1,7 +1,5 @@
 import Head from 'next/head';
 import Link from 'next/link';
-import { useRouter } from 'next/router';
-import { BottomNav } from '../components/layout/BottomNav';
 import { ThemeToggle } from '../components/ui/ThemeToggle';
 import { useAppLanguage } from '../lib/useAppLanguage';
 
@@ -22,7 +20,6 @@ function ExploreCard({ href, title, description, icon, featured = false }) {
 }
 
 export default function ExplorePage() {
-  const router = useRouter();
   const { lang, setLang, dir } = useAppLanguage();
   const text = lang === 'he'
     ? {
@@ -102,15 +99,6 @@ export default function ExplorePage() {
           </section>
         </main>
 
-        <BottomNav
-          lang={lang}
-          activeTab="explore"
-          onMenu={() => {}}
-          onTab={() => router.push('/')}
-          onPost={() => router.push('/post')}
-          onAlerts={() => router.push('/alerts')}
-          onProfile={() => router.push('/?tab=profile')}
-        />
       </div>
     </>
   );

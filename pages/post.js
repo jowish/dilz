@@ -3,7 +3,6 @@ import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import { PostDealModal } from '../components/deals/PostDealModal';
-import { BottomNav } from '../components/layout/BottomNav';
 import { ThemeToggle } from '../components/ui/ThemeToggle';
 import { supabase } from '../lib/supabase';
 import { useAppLanguage } from '../lib/useAppLanguage';
@@ -21,8 +20,6 @@ export default function PostPage() {
     });
     fetch('/api/villes').then((response) => response.json()).then((data) => setCities(data.villes || [])).catch(() => {});
   }, [router]);
-
-  const home = (query = '') => router.push(`/${query}`);
 
   return (
     <>
@@ -44,7 +41,6 @@ export default function PostPage() {
             />
           ) : <div className="dilz-empty-state"><div className="dilz-spinner" /></div>}
         </main>
-        <BottomNav lang={lang} activeTab="post" postOpen onMenu={() => router.push('/explore')} onTab={() => home()} onPost={() => {}} onAlerts={() => router.push('/alerts')} onProfile={() => home('?tab=profile')} />
       </div>
     </>
   );

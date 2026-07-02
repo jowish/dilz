@@ -14,6 +14,8 @@ const [
   map,
   profilePage,
   bottomNav,
+  globalBottomNav,
+  appPage,
   notificationSheet,
   explorePage,
   promoApi,
@@ -34,6 +36,8 @@ const [
   read('pages', 'map.js'),
   read('pages', 'user', '[id].js'),
   read('components', 'layout', 'BottomNav.js'),
+  read('components', 'layout', 'GlobalBottomNav.js'),
+  read('pages', '_app.js'),
   read('components', 'ui', 'NotificationSheet.js'),
   read('pages', 'explore.js'),
   read('pages', 'api', 'promo-codes.js'),
@@ -145,10 +149,14 @@ test('bottom nav uses Search as the visible discover tab while preserving the Ex
   assert.match(bottomNav, /label:\s*labels\.search/);
   assert.doesNotMatch(bottomNav, /id: 'menu'/);
   assert.match(bottomNav, /id: 'deals'[\s\S]*id: 'explore'[\s\S]*id: 'post'[\s\S]*id: 'alerts'[\s\S]*id: 'profile'/);
-  assert.match(home, /handleBottomNavigation\('explore'\)/);
-  assert.match(home, /router\.push\('\/explore'\)/);
+  assert.match(appPage, /<GlobalBottomNav \/>/);
+  assert.match(globalBottomNav, /setOptimisticActive\(active\)/);
+  assert.match(globalBottomNav, /router\.push\(href, undefined, options\)\.catch/);
+  assert.match(globalBottomNav, /onMenu=\{\(\) => push\('\/explore', 'explore'\)\}/);
+  assert.doesNotMatch(home, /<BottomNav/);
+  assert.doesNotMatch(explorePage, /<BottomNav/);
+  assert.doesNotMatch(postPage, /<BottomNav/);
   assert.match(explorePage, /function ExplorePage/);
-  assert.match(explorePage, /activeTab="explore"/);
   assert.match(explorePage, /href="\/bons-plans-shopping"/);
   assert.match(explorePage, /href="\/codes-promo"/);
   assert.match(explorePage, /href="\/gratuit"/);

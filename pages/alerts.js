@@ -3,7 +3,6 @@ import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import { AlertModal } from '../components/ui/AlertModal';
-import { BottomNav } from '../components/layout/BottomNav';
 import { ThemeToggle } from '../components/ui/ThemeToggle';
 import { supabase } from '../lib/supabase';
 import { useAppLanguage } from '../lib/useAppLanguage';
@@ -29,8 +28,6 @@ export default function AlertsPage() {
     fetch('/api/villes').then((response) => response.json()).then((data) => setCities(data.villes || [])).catch(() => {});
   }, [router]);
 
-  const goHome = (query = '') => router.push(`/${query}`);
-
   return (
     <>
       <Head><title>{lang === 'he' ? 'התראות | Dilz' : 'Alerts | Dilz'}</title></Head>
@@ -44,15 +41,6 @@ export default function AlertsPage() {
             <AlertModal user={user} token={token} lang={lang} villes={cities} onClose={() => router.back()} />
           )}
         </main>
-        <BottomNav
-          lang={lang}
-          activeTab="alerts"
-          onMenu={() => router.push('/explore')}
-          onTab={() => goHome()}
-          onPost={() => router.push('/post')}
-          onAlerts={() => {}}
-          onProfile={() => goHome('?tab=profile')}
-        />
       </div>
     </>
   );

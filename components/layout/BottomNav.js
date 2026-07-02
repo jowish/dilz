@@ -210,10 +210,11 @@ export function BottomNav({ lang = 'en', activeTab, menuOpen = false, alertsOpen
   const px = loupeLeftPx(loupeCenter);
   const pos = px !== null ? `${px}px` : loupeLeftFallback(loupeCenter, isRtl);
 
-  // A fixed, generous duration for every hop. The translate itself is linear so
-  // the bubble never accelerates mid-flight; the scale keeps the soft easing.
+  // A fixed, generous duration for every hop. This deliberately does NOT scale
+  // with distance: a long sweep across the bar covers ground quickly (feels
+  // dynamic) while a hop to a neighbour takes the same time over less distance
+  // (slow and smooth) — exactly the calm feel wanted for adjacent menus.
   const ease = 'cubic-bezier(0.33, 0, 0.2, 1)';
-  const translateEase = 'linear';
   const glideMs = 620;
 
   // Position + swell via the individual `translate`/`scale` properties — both
@@ -227,7 +228,7 @@ export function BottomNav({ lang = 'en', activeTab, menuOpen = false, alertsOpen
     // fallback, which jumped). Otherwise glide with the calm fixed duration.
     transition: (isSwiping || !glide || !centers)
       ? 'none'
-      : `translate ${glideMs}ms ${translateEase}, scale 220ms ${ease}`,
+      : `translate ${glideMs}ms ${ease}, scale 220ms ${ease}`,
   };
   if (postTint > 0) {
     // keep the top specular sheen, tint the fill orange (opaque when centred)

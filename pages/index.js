@@ -6,7 +6,6 @@ import { useTheme } from 'next-themes';
 import { translations, traduireVille } from '../lib/translations';
 import { supabase } from '../lib/supabase';
 import { AppHeader } from '../components/layout/AppHeader';
-import { BottomNav } from '../components/layout/BottomNav';
 import { MainMenuSheet } from '../components/ui/MainMenuSheet';
 import { DealCard as PremiumDealCard } from '../components/deals/DealCard';
 import { PromoCard } from '../components/deals/PromoCard';
@@ -17,7 +16,7 @@ import { Button } from '../components/ui/Button';
 import { EmptyState } from '../components/ui/EmptyState';
 import { SectionHeader } from '../components/ui/SectionHeader';
 import { readDealLayoutPreference, readDealSortPreference, readSessionDealSort, writeDealLayoutPreference, writeSessionDealSort } from '../lib/userPreferences';
-import { bottomNavPanelState, dealViewState, resolveDealLayout, resolveDealSort, sortDealsForView } from '../lib/navigationState';
+import { dealViewState, resolveDealLayout, resolveDealSort, sortDealsForView } from '../lib/navigationState';
 
 const { PRODUCT_CATEGORIES, getProductCategoryLabel } = require('../lib/productCategories');
 const { DEAL_CATEGORIES, getDealCategoryLabel } = require('../lib/dealCategories');
@@ -1227,39 +1226,6 @@ export default function Home() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const handleBottomNavigation = (destination) => {
-    if (destination === 'explore') {
-      router.push('/explore');
-      return;
-    }
-    if (destination === 'alerts') {
-      if (!user) router.push('/auth?redirect=/alerts');
-      else router.push('/alerts');
-      return;
-    }
-    if (destination === 'post') {
-      if (!user) router.push('/auth?redirect=/post');
-      else router.push('/post');
-      return;
-    }
-    const panels = bottomNavPanelState(destination, { authenticated: Boolean(user) });
-    setShowMainMenu(panels.menuOpen);
-    setShowCityModal(panels.cityOpen);
-    setShowNotificationSheet(panels.notificationsOpen);
-    setSelectedPromo(null);
-    setSelectedPromoBarcode(null);
-
-    if (panels.requiresAuth) {
-      router.push('/auth?redirect=/');
-      return;
-    }
-    if (destination === 'deals') {
-      setTab('deals');
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-    if (destination === 'profile') setTab('profile');
-  };
-
   const handleSignOut = async () => {
     await supabase.auth.signOut();
     setUser(null);
@@ -1676,19 +1642,6 @@ export default function Home() {
           onFree={() => router.push('/gratuit')}
           activeCollection={dealCollection}
           activeCategory={categoryFilter}
-        />
-
-        <BottomNav
-          lang={lang}
-          activeTab={tab}
-          menuOpen={showMainMenu}
-          alertsOpen={false}
-          postOpen={false}
-          onMenu={() => handleBottomNavigation('explore')}
-          onTab={() => handleBottomNavigation('deals')}
-          onPost={() => handleBottomNavigation('post')}
-          onAlerts={() => handleBottomNavigation('alerts')}
-          onProfile={() => handleBottomNavigation('profile')}
         />
 
         {selectedPromo && (

@@ -3,6 +3,7 @@ import { ThemeProvider } from 'next-themes'
 import '../styles/globals.css'
 import { initializeNativeApp } from '../lib/nativeApp';
 import { AppMessages } from '../components/ui/AppMessages';
+import { GlobalBottomNav } from '../components/layout/GlobalBottomNav';
 import { THEME_STORAGE_KEY } from '../lib/themePreference';
 
 export default function App({ Component, pageProps }) {
@@ -27,6 +28,7 @@ export default function App({ Component, pageProps }) {
       {showSplash && <DilzSplashScreen />}
       <AppMessages />
       <Component {...pageProps} />
+      <GlobalBottomNav />
     </ThemeProvider>
   )
 }
