@@ -4058,6 +4058,10 @@ textarea:focus {
   font-size: 13px;
 }
 
+.dilz-loading-state--more {
+  padding: 20px 0 28px;
+}
+
 .dilz-city-context {
   display: flex;
   align-items: center;

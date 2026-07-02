@@ -40,9 +40,9 @@ export default async function handler(req, res) {
   try {
     // ─── GET ──────────────────────────────────────────────────────────────────
     if (req.method === 'GET') {
-      const { ville, categorie, limit = 200, tri = 'hot', auteur_id: filterAuteurId } = req.query;
-      const responseLimit = clampLimit(limit, 200, 500);
-      const fetchLimit = tri === 'comments' ? 500 : responseLimit;
+      const { ville, categorie, limit = 25, offset = 0, tri = 'hot', auteur_id: filterAuteurId } = req.query;
+      const responseLimit = clampLimit(limit, 25, 500);
+      const responseOffset = Math.max(0, Number.parseInt(String(offset), 10) || 0);
       let query = supabase
         .from('bons_plans')
         .select('*, commentaires(count)', { count: 'exact' })
@@ -60,7 +60,7 @@ export default async function handler(req, res) {
       else if (tri === 'comments') query = query.order('created_at', { ascending: false });
       else query = query.order('votes_chaud', { ascending: false });
 
-      query = query.limit(fetchLimit);
+      query = query.range(responseOffset, responseOffset + responseLimit - 1);
 
       if (ville) query = query.eq('ville', ville);
       if (categorie && categorie !== 'all') query = query.eq('categorie', categorie);
@@ -77,8 +77,11 @@ export default async function handler(req, res) {
         });
       }
       return res.status(200).json({
-        bons_plans: rows.slice(0, responseLimit),
+        bons_plans: rows,
         total: count || 0,
+        limit: responseLimit,
+        offset: responseOffset,
+        hasMore: responseOffset + rows.length < (count || 0),
       });
     }
 

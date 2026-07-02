@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
@@ -76,6 +76,7 @@ const DEAL_SORTS = ['hot', 'latest', 'nearby', 'ending', 'comments'];
 const DEAL_COLLECTIONS = ['all', 'codes', 'free'];
 const URL_ACTIONS = ['menu', 'post_deal', 'city', 'alerts', 'notifications', 'view_promo'];
 const CATEGORY_ICONS = Object.fromEntries(CATEGORIES.map((category) => [category, '']));
+const DEAL_PAGE_SIZE = 25;
 
 const POPULAR_CITIES = ['תל אביב', 'ירושלים', 'חיפה', 'ראשון לציון', 'נתניה', 'רעננה', 'הרצליה', 'כפר סבא', 'רמת גן', 'פתח תקווה'];
 
@@ -638,6 +639,8 @@ export default function Home() {
   const [deals, setDeals] = useState([]);
   const [dealTotal, setDealTotal] = useState(0);
   const [loadingDeals, setLoadingDeals] = useState(false);
+  const [loadingMoreDeals, setLoadingMoreDeals] = useState(false);
+  const [hasMoreDeals, setHasMoreDeals] = useState(false);
 
   // Filters
   const [storeFilter, setStoreFilter] = useState('all');
@@ -680,6 +683,8 @@ export default function Home() {
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [adminToken, setAdminToken] = useState('');
+  const loadMoreDealsRef = useRef(null);
+  const dealListEndRef = useRef(null);
 
   const t = translations[lang] || translations.en;
   const dir = lang === 'he' ? 'rtl' : 'ltr';
@@ -898,45 +903,69 @@ export default function Home() {
       .catch(() => setLoadingPromos(false));
   }, [tab, promoCategory, promoSort]);
 
-  // ── Deals fetch ──
-  useEffect(() => {
-    if (tab !== 'deals' && tab !== 'search') return;
-    const controller = new AbortController();
-    setLoadingDeals(true);
+  const fetchDealsPage = useCallback(async ({ offset = 0, append = false, signal } = {}) => {
     const params = new URLSearchParams();
+    params.set('limit', String(DEAL_PAGE_SIZE));
+    params.set('offset', String(offset));
     if (categoryFilter !== 'all') params.set('categorie', categoryFilter);
     if (ville && sortDeals !== 'nearby') params.set('ville', ville);
     params.set('tri', sortDeals === 'nearby' ? 'latest' : sortDeals);
     if (myDealsOnly && user?.id) params.set('auteur_id', user.id);
-    fetch(`/api/bons-plans?${params}`, { signal: controller.signal })
-      .then(r => r.json())
-      .then(d => {
-        const nextDeals = d.bons_plans || [];
-        setDeals(nextDeals);
-        setDealTotal(Number.isFinite(d.total) ? d.total : nextDeals.length);
-        setLoadingDeals(false);
-      })
+    const response = await fetch(`/api/bons-plans?${params}`, { signal });
+    const d = await response.json();
+    const nextDeals = d.bons_plans || [];
+    const nextTotal = Number.isFinite(d.total) ? d.total : offset + nextDeals.length;
+    setDeals((current) => {
+      if (!append) return nextDeals;
+      const seen = new Set(current.map((deal) => deal.id));
+      return [...current, ...nextDeals.filter((deal) => !seen.has(deal.id))];
+    });
+    setDealTotal(nextTotal);
+    setHasMoreDeals(typeof d.hasMore === 'boolean' ? d.hasMore : offset + nextDeals.length < nextTotal);
+    return nextDeals.length;
+  }, [categoryFilter, sortDeals, myDealsOnly, user?.id, ville]);
+
+  // ── Deals fetch ──
+  useEffect(() => {
+    if (tab !== 'deals' && tab !== 'search') return undefined;
+    const controller = new AbortController();
+    setLoadingDeals(true);
+    setLoadingMoreDeals(false);
+    setHasMoreDeals(false);
+    fetchDealsPage({ offset: 0, append: false, signal: controller.signal })
+      .then(() => setLoadingDeals(false))
       .catch((error) => {
-        if (error.name !== 'AbortError') setLoadingDeals(false);
+        if (error.name !== 'AbortError') {
+          setLoadingDeals(false);
+          setHasMoreDeals(false);
+        }
       });
     return () => controller.abort();
-  }, [tab, categoryFilter, sortDeals, myDealsOnly, user, ville]);
+  }, [tab, fetchDealsPage]);
 
-  // Also fetch deals when switching to search tab if empty
+  const loadMoreDeals = useCallback(() => {
+    if (loadingDeals || loadingMoreDeals || !hasMoreDeals || (tab !== 'deals' && tab !== 'search')) return;
+    const controller = new AbortController();
+    setLoadingMoreDeals(true);
+    fetchDealsPage({ offset: deals.length, append: true, signal: controller.signal })
+      .catch(() => setHasMoreDeals(false))
+      .finally(() => setLoadingMoreDeals(false));
+  }, [deals.length, fetchDealsPage, hasMoreDeals, loadingDeals, loadingMoreDeals, tab]);
+
   useEffect(() => {
-    if (tab === 'search' && deals.length === 0 && !loadingDeals) {
-      setLoadingDeals(true);
-      fetch('/api/bons-plans?tri=latest')
-        .then(r => r.json())
-        .then(d => {
-          const nextDeals = d.bons_plans || [];
-          setDeals(nextDeals);
-          setDealTotal(Number.isFinite(d.total) ? d.total : nextDeals.length);
-          setLoadingDeals(false);
-        })
-        .catch(() => setLoadingDeals(false));
-    }
-  }, [tab]);
+    loadMoreDealsRef.current = loadMoreDeals;
+  }, [loadMoreDeals]);
+
+  useEffect(() => {
+    if (tab !== 'deals' || !hasMoreDeals || loadingDeals) return undefined;
+    const sentinel = dealListEndRef.current;
+    if (!sentinel || typeof IntersectionObserver === 'undefined') return undefined;
+    const observer = new IntersectionObserver((entries) => {
+      if (entries.some((entry) => entry.isIntersecting)) loadMoreDealsRef.current?.();
+    }, { rootMargin: '480px 0px 480px 0px' });
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, [tab, hasMoreDeals, loadingDeals]);
 
   useEffect(() => {
     if (!selectedPromoBarcode) return;
@@ -1197,12 +1226,13 @@ export default function Home() {
         setPostSuccess(false);
         setTab('deals');
         setLoadingDeals(true);
-        fetch('/api/bons-plans?tri=latest')
+        fetch(`/api/bons-plans?tri=latest&limit=${DEAL_PAGE_SIZE}&offset=0`)
           .then(r => r.json())
           .then(d => {
             const nextDeals = d.bons_plans || [];
             setDeals(nextDeals);
             setDealTotal(Number.isFinite(d.total) ? d.total : nextDeals.length);
+            setHasMoreDeals(Boolean(d.hasMore));
             setLoadingDeals(false);
           })
           .catch(() => setLoadingDeals(false));
@@ -1551,7 +1581,7 @@ export default function Home() {
                   <div className="dilz-spinner" />
                   <p>{t.loading}</p>
                 </div>
-              ) : displayedDeals.length === 0 ? (
+              ) : displayedDeals.length === 0 && !hasMoreDeals ? (
                 <EmptyState
                   title={
                     sortDeals === 'ending'
@@ -1569,24 +1599,36 @@ export default function Home() {
                   onAction={() => user ? router.push('/post') : router.push('/auth?redirect=/post')}
                 />
               ) : (
-                <div className={['dilz-feed-grid', dealLayout === 'list' && 'is-list', dealLayout === 'compact' && 'is-compact'].filter(Boolean).join(' ')}>
-                {displayedDeals.map(deal => (
-                  <PremiumDealCard
-                    key={deal.id} deal={deal} lang={lang} isDark={isDark}
-                    layout={dealLayout}
-                    onVote={handleDealVote} userCoords={userCoords}
-                    votedDeal={votedDeals[deal.id] || null}
-                    user={user}
-                    isAdmin={Boolean(adminToken)}
-                    onAdminDelete={handleAdminDeleteDeal}
-                    onOwnerDelete={handleOwnerDeleteDeal}
-                    onBlocked={(userId) => setBlockedUserIds((current) => current.includes(userId) ? current : [...current, userId])}
-                    isSaved={Boolean(savedKeys[`deal:${deal.id}`])}
-                    onSave={() => handleToggleSave('deal', deal.id)}
-                    translateCity={traduireVille}
-                  />
-                ))}
-                </div>
+                <>
+                  {displayedDeals.length > 0 && (
+                    <div className={['dilz-feed-grid', dealLayout === 'list' && 'is-list', dealLayout === 'compact' && 'is-compact'].filter(Boolean).join(' ')}>
+                    {displayedDeals.map(deal => (
+                      <PremiumDealCard
+                        key={deal.id} deal={deal} lang={lang} isDark={isDark}
+                        layout={dealLayout}
+                        onVote={handleDealVote} userCoords={userCoords}
+                        votedDeal={votedDeals[deal.id] || null}
+                        user={user}
+                        isAdmin={Boolean(adminToken)}
+                        onAdminDelete={handleAdminDeleteDeal}
+                        onOwnerDelete={handleOwnerDeleteDeal}
+                        onBlocked={(userId) => setBlockedUserIds((current) => current.includes(userId) ? current : [...current, userId])}
+                        isSaved={Boolean(savedKeys[`deal:${deal.id}`])}
+                        onSave={() => handleToggleSave('deal', deal.id)}
+                        translateCity={traduireVille}
+                      />
+                    ))}
+                    </div>
+                  )}
+                  <div ref={dealListEndRef} className="dilz-feed-sentinel" aria-hidden={!loadingMoreDeals}>
+                    {loadingMoreDeals && (
+                      <div className="dilz-loading-state dilz-loading-state--more">
+                        <div className="dilz-spinner" />
+                        <p>{t.loading}</p>
+                      </div>
+                    )}
+                  </div>
+                </>
               )}
 
               {false && !loadingDeals && displayedDeals.length > 0 && (
