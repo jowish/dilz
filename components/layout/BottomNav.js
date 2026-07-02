@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { useRouter } from 'next/router';
 import { supabase } from '../../lib/supabase';
 import { bottomNavActiveItem } from '../../lib/navigationState';
 import {
@@ -48,6 +49,15 @@ export function BottomNav({ lang = 'en', activeTab, menuOpen = false, alertsOpen
 
   const innerRef = useRef(null);
   const itemRefs = useRef([]);
+
+  // Prefetch every bottom-nav destination so switching pages is instant instead
+  // of waiting for that page's bundle to code-split on demand.
+  const router = useRouter();
+  useEffect(() => {
+    ['/', '/explore', '/post', '/alerts'].forEach((r) => {
+      try { router.prefetch(r); } catch {}
+    });
+  }, [router]);
 
   // Measured horizontal centers of each button (px, relative to inner padding box).
   // This makes the loupe land dead-center on the icon regardless of bar padding.
@@ -157,6 +167,16 @@ export function BottomNav({ lang = 'en', activeTab, menuOpen = false, alertsOpen
   const dragSwell = (pressed || isSwiping) ? 1.34 : 1;
   const px = loupeLeftPx(loupeCenter);
   const pos = px !== null ? `${px}px` : loupeLeftFallback(loupeCenter, isRtl);
+
+  // Distance-proportional glide: the duration scales with how many tabs the
+  // bubble travels, so a hop between neighbours feels just as light as a sweep
+  // across the whole bar (a fixed duration made short hops feel sluggish).
+  const prevActive = useRef(activeIdx);
+  useEffect(() => { prevActive.current = activeIdx; }, [activeIdx]);
+  const hop = Math.min(4, Math.abs(activeIdx - prevActive.current)) || 1;
+  const glideMs = 160 + 75 * hop;   // neighbour ≈ 235ms, extremes ≈ 460ms
+  const ease = 'cubic-bezier(0.33, 0, 0.2, 1)';
+
   // Position + swell via the individual `translate`/`scale` properties — both
   // are GPU-composited (no per-frame layout like `left`), and each can carry
   // its own transition duration, so the glide is silky-smooth.
@@ -164,8 +184,10 @@ export function BottomNav({ lang = 'en', activeTab, menuOpen = false, alertsOpen
     translate: pos,
     scale: `${dragSwell.toFixed(3)}`,
     // Jump (no transition) until the user has touched the bar, and follow the
-    // finger 1:1 while dragging; otherwise glide smoothly.
-    transition: (isSwiping || !armed) ? 'none' : undefined,
+    // finger 1:1 while dragging; otherwise glide with a distance-scaled duration.
+    transition: (isSwiping || !armed)
+      ? 'none'
+      : `translate ${glideMs}ms ${ease}, scale 220ms ${ease}`,
   };
   if (postTint > 0) {
     // keep the top specular sheen, tint the fill orange (opaque when centred)
