@@ -103,6 +103,7 @@ export function BottomNav({ lang = 'en', activeTab, menuOpen = false, alertsOpen
   const [touchFocusCenter, setTouchFocusCenter] = useState(null);
   const [pressed, setPressed] = useState(false); // finger down on the bar
   const swipeRef  = useRef(null);
+  const tapFocusRef = useRef(null);
 
   const isSwiping = swipeRef.current?.started === true;
 
@@ -130,10 +131,21 @@ export function BottomNav({ lang = 'en', activeTab, menuOpen = false, alertsOpen
   // active tab has caught up.
   useEffect(() => {
     if (touchFocusCenter == null) return undefined;
-    if (snapIndex(touchFocusCenter) !== activeIdx) return undefined;
+    const focusedIdx = snapIndex(touchFocusCenter);
+    if (focusedIdx !== activeIdx) {
+      const pending = tapFocusRef.current;
+      if (!pressed && !isSwiping && pending && activeIdx !== pending.from) {
+        const raf = requestAnimationFrame(() => {
+          tapFocusRef.current = null;
+          setTouchFocusCenter(null);
+        });
+        return () => cancelAnimationFrame(raf);
+      }
+      return undefined;
+    }
     const raf = requestAnimationFrame(() => setTouchFocusCenter(null));
     return () => cancelAnimationFrame(raf);
-  }, [activeIdx, touchFocusCenter]);
+  }, [activeIdx, isSwiping, pressed, touchFocusCenter]);
 
   function handleTouchStart(e) {
     const inner = innerRef.current;
@@ -150,6 +162,7 @@ export function BottomNav({ lang = 'en', activeTab, menuOpen = false, alertsOpen
     });
     const pos = hit >= 0 ? hit : snapIndex(touchToFraction(touchX - rect.left, rect.width, isRtl));
     persistedIdx = pos;
+    tapFocusRef.current = { from: activeIdx, target: snapIndex(pos) };
     setTouchFocusCenter(pos);
     swipeRef.current = { startX: touchX, innerLeft: rect.left, innerWidth: rect.width, started: false, pos };
   }
@@ -172,6 +185,7 @@ export function BottomNav({ lang = 'en', activeTab, menuOpen = false, alertsOpen
     swipeRef.current = null;
     setPressed(false);
     if (state?.started && state.pos !== null) {
+      tapFocusRef.current = null;
       setTouchFocusCenter(null);
       const idx    = snapIndex(state.pos);
       const target = items[idx];
@@ -182,9 +196,11 @@ export function BottomNav({ lang = 'en', activeTab, menuOpen = false, alertsOpen
     } else if (state?.pos !== null && state?.pos !== undefined) {
       persistedIdx = snapIndex(state.pos);
       if (snapIndex(state.pos) === activeIdx) {
+        tapFocusRef.current = null;
         setTouchFocusCenter(null);
       }
     } else if (!state || snapIndex(state.pos) === activeIdx) {
+      tapFocusRef.current = null;
       setTouchFocusCenter(null);
     }
   }
@@ -215,7 +231,7 @@ export function BottomNav({ lang = 'en', activeTab, menuOpen = false, alertsOpen
   // dynamic) while a hop to a neighbour takes the same time over less distance
   // (slow and smooth) — exactly the calm feel wanted for adjacent menus.
   const ease = 'cubic-bezier(0.33, 0, 0.2, 1)';
-  const glideMs = 620;
+  const glideMs = 500;
 
   // Position + swell via a single transform. Avoid the newer individual
   // translate/scale CSS properties so Firefox and older WebViews render the app.

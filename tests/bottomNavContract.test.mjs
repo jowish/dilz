@@ -55,21 +55,29 @@ test('the loupe is positioned via GPU transform, not Firefox-risky individual tr
   assert.match(nav, /transform \$\{glideMs\}ms \$\{ease\}/);
   assert.doesNotMatch(nav, /translate: pos/);
   assert.doesNotMatch(nav, /scale: `\$\{dragSwell\.toFixed\(3\)\}`/);
-  assert.doesNotMatch(css, /\.dilz-bottom-nav__loupe\s*\{[^}]*translate 620ms linear/s);
+  assert.doesNotMatch(css, /\.dilz-bottom-nav__loupe\s*\{[^}]*translate 500ms linear/s);
 });
 
 test('touch focuses the bubble under the finger before release navigation', () => {
   assert.match(nav, /const \[touchFocusCenter, setTouchFocusCenter\] = useState\(null\)/);
   assert.match(nav, /setPressed\(true\);\s*\/\/ swell immediately on touch/);
-  assert.match(nav, /persistedIdx = pos;\s*setTouchFocusCenter\(pos\)/);
+  assert.match(nav, /persistedIdx = pos;\s*tapFocusRef\.current = \{ from: activeIdx, target: snapIndex\(pos\) \};\s*setTouchFocusCenter\(pos\)/);
   assert.match(nav, /setTouchFocusCenter\(pos\)/);
   assert.match(nav, /const loupeCenter = isSwiping \? swipeCenter : \(touchFocusing \? touchFocusCenter : restIdx\)/);
   assert.match(nav, /transform \$\{glideMs\}ms \$\{ease\}/);
   assert.match(nav, /const ease = 'cubic-bezier\(0\.33, 0, 0\.2, 1\)'/);
-  assert.match(nav, /const glideMs = 620/);
+  assert.match(nav, /const glideMs = 500/);
   assert.doesNotMatch(nav, /const translateEase = 'linear'/);
   assert.doesNotMatch(nav, /translate \$\{glideMs\}ms \$\{translateEase\}/);
   assert.doesNotMatch(nav, /touchFocusing \? 180 : glideMs/);
+});
+
+test('stale tap focus clears when navigation commits to a different tab', () => {
+  assert.match(nav, /const tapFocusRef = useRef\(null\)/);
+  assert.match(nav, /tapFocusRef\.current = \{ from: activeIdx, target: snapIndex\(pos\) \}/);
+  assert.match(nav, /const focusedIdx = snapIndex\(touchFocusCenter\)/);
+  assert.match(nav, /if \(focusedIdx !== activeIdx\) \{[\s\S]*const pending = tapFocusRef\.current[\s\S]*activeIdx !== pending\.from[\s\S]*tapFocusRef\.current = null;[\s\S]*setTouchFocusCenter\(null\)/);
+  assert.match(nav, /\}, \[activeIdx, isSwiping, pressed, touchFocusCenter\]\)/);
 });
 
 test('bubble position is derived from a controlled resting centre, not a drifting state', () => {
@@ -91,7 +99,7 @@ test('the bubble glides across page navigations from its previous position', () 
   // position persisted at module scope so the next page mount can glide from it
   assert.match(nav, /let persistedIdx = null/);
   assert.match(nav, /persistedIdx = activeIdx/);
-  assert.match(nav, /persistedIdx = pos;\s*setTouchFocusCenter\(pos\)/);
+  assert.match(nav, /persistedIdx = pos;\s*tapFocusRef\.current = \{ from: activeIdx, target: snapIndex\(pos\) \};\s*setTouchFocusCenter\(pos\)/);
   assert.match(nav, /persistedIdx = idx;[\s\S]*?target\.action\(\)/);
   assert.match(nav, /const startIdx = persistedIdx == null \? activeIdx : persistedIdx/);
   assert.match(nav, /const restIdx = restCenter/);
