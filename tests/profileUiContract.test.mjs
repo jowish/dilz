@@ -7,6 +7,8 @@ const index = await readFile(path.join(process.cwd(), 'pages', 'index.js'), 'utf
 const profile = await readFile(path.join(process.cwd(), 'pages', 'profil.js'), 'utf8');
 const shareMenu = await readFile(path.join(process.cwd(), 'components', 'ui', 'ShareMenu.js'), 'utf8');
 const appHeader = await readFile(path.join(process.cwd(), 'components', 'layout', 'AppHeader.js'), 'utf8');
+const app = await readFile(path.join(process.cwd(), 'pages', '_app.js'), 'utf8');
+const themePreference = await readFile(path.join(process.cwd(), 'lib', 'themePreference.js'), 'utf8');
 const css = await readFile(path.join(process.cwd(), 'styles', 'globals.css'), 'utf8');
 
 test('profile shortcuts separate owned deals from account settings', () => {
@@ -62,4 +64,13 @@ test('profile settings keeps the back action on the top left even in RTL', () =>
   assert.match(css, /\.dilz-profil-header \.dilz-app-header__inner\s*\{[^}]*direction:\s*ltr[^}]*display:\s*grid[^}]*grid-template-columns:\s*minmax\(72px,\s*1fr\) auto minmax\(72px,\s*1fr\)/s);
   assert.match(css, /\.dilz-profil-header \.dilz-profil-back\s*\{[^}]*justify-self:\s*start/s);
   assert.match(css, /\.dilz-profil-header \.dilz-profil-header-actions\s*\{[^}]*justify-self:\s*end/s);
+});
+
+test('theme controls live only in account settings and support system mode', () => {
+  assert.doesNotMatch(appHeader, /ThemeToggle/);
+  assert.match(app, /defaultTheme="system" enableSystem/);
+  assert.match(themePreference, /THEME_VALUES = Object\.freeze\(\['light', 'dark', 'system'\]\)/);
+  assert.match(profile, /useTheme\(\)/);
+  assert.match(profile, /THEME_VALUES\.map\(\(value\) =>/);
+  assert.match(profile, /setTheme\(nextTheme\)/);
 });

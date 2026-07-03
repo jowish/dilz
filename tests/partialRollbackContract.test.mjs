@@ -39,7 +39,7 @@ test('partial rollback keeps only the requested design-system changes', () => {
 });
 
 test('partial rollback removes the reverted behavioral polish changes', () => {
-  assert.match(app, /defaultTheme="light"/);
+  assert.match(app, /defaultTheme="system" enableSystem/);
   assert.doesNotMatch(dealCard, /dilz-owner-menu/);
   assert.match(dealCard, /dilz-owner-delete/);
   assert.doesNotMatch(postForm, /uploadTitle:\s*'Choose photos'/);

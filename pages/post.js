@@ -3,7 +3,6 @@ import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import { PostDealModal } from '../components/deals/PostDealModal';
-import { ThemeToggle } from '../components/ui/ThemeToggle';
 import { supabase } from '../lib/supabase';
 import { useAppLanguage } from '../lib/useAppLanguage';
 
@@ -27,7 +26,6 @@ export default function PostPage() {
       <div className="dilz-post-page" dir={dir}>
         <header className="dilz-alerts-route__header">
           <Link href="/" className="dilz-logo-button"><span className="dilz-logo">dILz</span></Link>
-          <ThemeToggle lang={lang} />
         </header>
         <main className="dilz-post-page__main">
           {user ? (

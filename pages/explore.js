@@ -1,6 +1,5 @@
 import Head from 'next/head';
 import Link from 'next/link';
-import { ThemeToggle } from '../components/ui/ThemeToggle';
 import { useAppLanguage } from '../lib/useAppLanguage';
 
 const { DEAL_CATEGORIES, getDealCategoryLabel } = require('../lib/dealCategories');
@@ -62,7 +61,6 @@ export default function ExplorePage() {
         <header className="dilz-alerts-route__header">
           <Link href="/" className="dilz-logo-button" aria-label="Dilz home"><span className="dilz-logo">dILz</span></Link>
           <span className="dilz-explore-header-actions">
-            <ThemeToggle lang={lang} />
             <select className="dilz-language-select" value={lang} onChange={(event) => setLang(event.target.value)} aria-label="Language">
               <option value="en">EN</option>
               <option value="he">HE</option>

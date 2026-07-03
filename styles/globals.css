@@ -919,7 +919,8 @@ textarea:focus {
   margin-bottom: 4px;
 }
 
-.dilz-view-switcher button {
+.dilz-view-switcher button,
+.dilz-view-switcher__select {
   flex: 0 0 auto;
   min-height: 38px;
   padding: 0 14px;
@@ -931,6 +932,15 @@ textarea:focus {
   font-weight: 700;
   cursor: pointer;
   transition: background-color 180ms ease, border-color 180ms ease, color 180ms ease, transform 180ms ease;
+}
+
+.dilz-view-switcher__select {
+  appearance: none;
+  padding-right: 32px;
+  background-image: linear-gradient(45deg, transparent 50%, currentColor 50%), linear-gradient(135deg, currentColor 50%, transparent 50%);
+  background-position: calc(100% - 18px) 50%, calc(100% - 13px) 50%;
+  background-size: 5px 5px, 5px 5px;
+  background-repeat: no-repeat;
 }
 
 .dilz-compact-filter-row {
@@ -2270,31 +2280,52 @@ textarea:focus {
 
   .dilz-app-header__inner {
     height: 52px;
-    padding: 0 16px;
-    gap: 10px;
+    padding: 0 10px;
+    gap: 8px;
   }
 
   .dilz-app-header__left {
+    flex: 0 0 auto;
     min-width: 0;
   }
 
   .dilz-app-header__right {
+    flex: 0 0 auto;
     gap: 6px;
     margin-left: auto;
   }
 
-  .dilz-app-header__search,
   .dilz-desktop-tabs,
   .dilz-header-post,
-  .dilz-header-alerts-btn,
   .dilz-language-select,
+  .dilz-app-header__right .dilz-icon-button,
   .dilz-app-header__right .dilz-button--secondary {
     display: none;
   }
 
-  .dilz-mobile-search {
+  .dilz-app-header__search {
     display: block;
-    padding: 0 12px 8px;
+    flex: 1 1 auto;
+    min-width: 0;
+    max-width: none;
+  }
+
+  .dilz-header-alerts-btn {
+    display: inline-flex;
+    width: 38px;
+    height: 38px;
+    padding: 0;
+    justify-content: center;
+    font-size: 0;
+  }
+
+  .dilz-header-alerts-btn svg {
+    width: 17px;
+    height: 17px;
+  }
+
+  .dilz-mobile-search {
+    display: none;
   }
 
   .dilz-logo {
@@ -4236,7 +4267,8 @@ textarea:focus {
   display: none;
 }
 
-.dilz-view-switcher button {
+.dilz-view-switcher button,
+.dilz-view-switcher__select {
   flex-shrink: 0;
   padding: 6px 14px;
   border-radius: 20px;

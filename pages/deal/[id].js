@@ -10,7 +10,6 @@ import { CopyToast } from '../../components/ui/CopyToast';
 import { VoteEmoji } from '../../components/ui/VoteEmoji';
 import { useAppLanguage } from '../../lib/useAppLanguage';
 import { SafetyActions } from '../../components/ui/SafetyActions';
-import { ThemeToggle } from '../../components/ui/ThemeToggle';
 import { buildDealGpsUrl } from '../../lib/dealLocation';
 
 const { DEAL_CATEGORIES, getDealCategoryLabel } = require('../../lib/dealCategories');
@@ -469,7 +468,6 @@ export default function DealPage() {
               </span>
             </Link>
             <div className="dilz-deal-header-actions">
-              <ThemeToggle lang={lang} />
               <select className="dilz-language-select" value={lang} onChange={(event) => setLang(event.target.value)} aria-label="Language"><option value="en">EN</option><option value="he">HE</option></select>
               {isOwner && (
                 <button

@@ -52,6 +52,16 @@ test('recent header fixes stay aligned and free of duplicate profile/theme contr
   assert.match(profile, /className="dilz-profil-header-actions" aria-hidden="true"/);
   assert.doesNotMatch(profile, /ThemeToggle/);
   assert.doesNotMatch(profile, /dilz-theme-toggle/);
+  assert.doesNotMatch(home, /ThemeToggle/);
+  assert.match(home, /className="dilz-view-switcher__select"/);
+  assert.match(home, /\{ id: 'latest', label: 'New' \}/);
+  assert.match(home, /\{ id: 'all', label: 'Hot' \}/);
+  assert.match(home, /\{ id: 'comments', label: 'Trending' \}/);
+  assert.match(home, /<option value="">Other<\/option>/);
+  assert.match(home, /<option value="all">All<\/option>/);
+  assert.match(css, /@media \(max-width: 767px\)[\s\S]*\.dilz-app-header__search\s*\{[^}]*display:\s*block[^}]*flex:\s*1 1 auto/s);
+  assert.match(css, /@media \(max-width: 767px\)[\s\S]*\.dilz-header-alerts-btn\s*\{[^}]*width:\s*38px/s);
+  assert.match(css, /@media \(max-width: 767px\)[\s\S]*\.dilz-mobile-search\s*\{[^}]*display:\s*none/s);
 });
 
 test('deal feed pagination keeps initial render small and loads more through the sentinel', () => {

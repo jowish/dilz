@@ -15,7 +15,6 @@ import {
   resolveMapCityKey,
   toggleCityFilter,
 } from '../lib/mapState';
-import { ThemeToggle } from '../components/ui/ThemeToggle';
 
 const MAP_TEXT = {
   en: { title: 'Dilz Map', back: 'Back', feed: 'Feed', points: 'active points', loading: 'Loading Dilz map...', israel: 'All Israel', tap: 'Tap a city to filter', mapPoints: 'Dilz map points', comments: 'comments' },
@@ -272,7 +271,6 @@ export default function MapPage() {
             <span>{cityEntries.length} {text.points}</span>
           </div>
           <div className="dilz-map-header__actions">
-            <ThemeToggle lang={lang} />
             <select className="dilz-language-select" value={lang} onChange={(event) => setLang(event.target.value)} aria-label="Language"><option value="en">EN</option><option value="he">HE</option></select>
           </div>
         </header>

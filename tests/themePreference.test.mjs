@@ -11,12 +11,12 @@ test('theme preference uses a browser-only storage key', () => {
   assert.equal(THEME_STORAGE_KEY, 'dilzTheme');
 });
 
-test('only light and dark are accepted themes', () => {
-  assert.deepEqual([...THEME_VALUES], ['light', 'dark']);
+test('light, dark and system are accepted themes', () => {
+  assert.deepEqual([...THEME_VALUES], ['light', 'dark', 'system']);
   assert.equal(normalizeTheme('light'), 'light');
   assert.equal(normalizeTheme('dark'), 'dark');
-  assert.equal(normalizeTheme('system'), 'light');
-  assert.equal(normalizeTheme(undefined), 'light');
+  assert.equal(normalizeTheme('system'), 'system');
+  assert.equal(normalizeTheme(undefined), 'system');
 });
 
 test('theme toggle always selects the opposite explicit theme', () => {

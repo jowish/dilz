@@ -1,6 +1,5 @@
 import Head from 'next/head';
 import Link from 'next/link';
-import { ThemeToggle } from '../ui/ThemeToggle';
 
 export function DiscoveryPage({ title, eyebrow, description, lang = 'en', onLanguageChange, children }) {
   return (
@@ -24,7 +23,6 @@ export function DiscoveryPage({ title, eyebrow, description, lang = 'en', onLang
               </span>
             </Link>
             <span className="dilz-discovery-header__spacer">
-              <ThemeToggle lang={lang} />
               {onLanguageChange && (
                 <select className="dilz-language-select" value={lang} onChange={(event) => onLanguageChange(event.target.value)} aria-label={lang === 'he' ? 'שפה' : 'Language'}>
                   <option value="en">EN</option>

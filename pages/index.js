@@ -77,6 +77,7 @@ const DEAL_COLLECTIONS = ['all', 'codes', 'free'];
 const URL_ACTIONS = ['menu', 'post_deal', 'city', 'alerts', 'notifications', 'view_promo'];
 const CATEGORY_ICONS = Object.fromEntries(CATEGORIES.map((category) => [category, '']));
 const DEAL_PAGE_SIZE = 25;
+const PRIMARY_DEAL_FILTERS = ['latest', 'all', 'comments'];
 
 const POPULAR_CITIES = ['תל אביב', 'ירושלים', 'חיפה', 'ראשון לציון', 'נתניה', 'רעננה', 'הרצליה', 'כפר סבא', 'רמת גן', 'פתח תקווה'];
 
@@ -135,6 +136,19 @@ function textFor(lang, values) {
 
 function languageUsesEnglishProductNames(lang) {
   return lang !== 'he';
+}
+
+function isPrimaryDealFilterActive(id, { sortDeals, categoryFilter, myDealsOnly }) {
+  if (myDealsOnly || categoryFilter !== 'all') return false;
+  if (id === 'all') return sortDeals === 'hot';
+  return sortDeals === id;
+}
+
+function selectedOtherDealFilter({ sortDeals, categoryFilter, myDealsOnly }) {
+  if (myDealsOnly) return 'mine';
+  if (categoryFilter !== 'all') return categoryFilter;
+  if (PRIMARY_DEAL_FILTERS.includes(sortDeals)) return '';
+  return sortDeals || '';
 }
 
 function parseDateOnly(value) {
@@ -1472,39 +1486,50 @@ export default function Home() {
           {tab === 'deals' && (
             <div>
               <div className="dilz-deal-toolbar">
-                <div className="dilz-view-switcher" aria-label={lang === 'he' ? 'תצוגות דילז' : 'Dilz views'}>
+                <div className="dilz-view-switcher" aria-label="Dilz views">
                 {[
-                  { id: 'all', label: lang === 'he' ? 'דילז מובילים' : 'Top Dilz' },
-                  { id: 'latest', label: lang === 'he' ? 'חדשים' : 'New' },
-                  { id: 'comments', label: lang === 'he' ? 'מדוברים' : 'Discussed' },
-                  ...(userCoords ? [{ id: 'nearby', label: lang === 'he' ? 'לידי' : 'Near me' }] : []),
-                  { id: 'ending', label: lang === 'he' ? 'מסתיימים בקרוב' : 'Ending soon' },
-                  ...DEAL_CATEGORIES.slice(0, 8).map((category) => ({ id: category, label: getDealCategoryLabel(category, lang) })),
-                  ...(user ? [{ id: 'mine', label: lang === 'he' ? 'הדילז שלי' : 'My Dilz' }] : []),
-                ].map(view => {
-                  const active =
-                    (view.id === 'all' && sortDeals === 'hot' && categoryFilter === 'all' && !myDealsOnly) ||
-                    (view.id === 'mine' && myDealsOnly) ||
-                    (['latest', 'nearby', 'ending', 'comments'].includes(view.id) && sortDeals === view.id && categoryFilter === 'all' && !myDealsOnly) ||
-                    (view.id !== 'all' && CATEGORIES.includes(view.id) && categoryFilter === view.id && !myDealsOnly);
-                  return (
-                    <button
-                      key={view.id}
-                      type="button"
-                      className={active ? 'is-active' : ''}
-                      onClick={() => {
-                        const nextView = dealViewState(view.id, readDealSortPreference());
-                        setMyDealsOnly(nextView.myDealsOnly);
-                        setDealCollection(nextView.collection);
-                        setCategoryFilter(nextView.category);
-                        setSortDeals(nextView.sort);
-                        writeSessionDealSort(nextView.sort);
-                      }}
-                    >
-                      {view.label}
-                    </button>
-                  );
-                })}
+                  { id: 'latest', label: 'New' },
+                  { id: 'all', label: 'Hot' },
+                  { id: 'comments', label: 'Trending' },
+                ].map(view => (
+                  <button
+                    key={view.id}
+                    type="button"
+                    className={isPrimaryDealFilterActive(view.id, { sortDeals, categoryFilter, myDealsOnly }) ? 'is-active' : ''}
+                    onClick={() => {
+                      const nextView = dealViewState(view.id, readDealSortPreference());
+                      setMyDealsOnly(nextView.myDealsOnly);
+                      setDealCollection(nextView.collection);
+                      setCategoryFilter(nextView.category);
+                      setSortDeals(nextView.sort);
+                      writeSessionDealSort(nextView.sort);
+                    }}
+                  >
+                    {view.label}
+                  </button>
+                ))}
+                <select
+                  className="dilz-view-switcher__select"
+                  value={selectedOtherDealFilter({ sortDeals, categoryFilter, myDealsOnly })}
+                  onChange={(event) => {
+                    const nextView = dealViewState(event.target.value || 'all', readDealSortPreference());
+                    setMyDealsOnly(nextView.myDealsOnly);
+                    setDealCollection(nextView.collection);
+                    setCategoryFilter(nextView.category);
+                    setSortDeals(nextView.sort);
+                    writeSessionDealSort(nextView.sort);
+                  }}
+                  aria-label="Other filters"
+                >
+                  <option value="">Other</option>
+                  <option value="all">All</option>
+                  {userCoords && <option value="nearby">Near me</option>}
+                  <option value="ending">Ending soon</option>
+                  {DEAL_CATEGORIES.map((category) => (
+                    <option key={category} value={category}>{getDealCategoryLabel(category, lang)}</option>
+                  ))}
+                  {user && <option value="mine">My Dilz</option>}
+                </select>
                 </div>
 
                 <div className="dilz-feed-controls" aria-label={lang === 'he' ? 'פקדי פיד דילז' : 'Dilz feed controls'}>

@@ -2,7 +2,6 @@ import Head from 'next/head';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
-import { ThemeToggle } from '../../components/ui/ThemeToggle';
 import { VoteEmoji } from '../../components/ui/VoteEmoji';
 import { supabase } from '../../lib/supabase';
 import { useAppLanguage } from '../../lib/useAppLanguage';
@@ -50,7 +49,7 @@ export default function PublicUserPage() {
   return (
     <div className="dilz-public-profile" dir={dir}>
       <Head><title>{profile.name} | Dilz</title></Head>
-      <header className="dilz-alerts-route__header"><Link href="/" className="dilz-logo-button"><span className="dilz-logo">dILz</span></Link><ThemeToggle lang={lang} /></header>
+      <header className="dilz-alerts-route__header"><Link href="/" className="dilz-logo-button"><span className="dilz-logo">dILz</span></Link></header>
       <main>
         <section className="dilz-public-profile__hero">
           {profile.avatar_url ? <img src={profile.avatar_url} alt="" /> : <span className="dilz-avatar">{initials}</span>}

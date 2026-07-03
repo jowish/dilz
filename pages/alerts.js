@@ -3,7 +3,6 @@ import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import { AlertModal } from '../components/ui/AlertModal';
-import { ThemeToggle } from '../components/ui/ThemeToggle';
 import { supabase } from '../lib/supabase';
 import { useAppLanguage } from '../lib/useAppLanguage';
 
@@ -34,7 +33,6 @@ export default function AlertsPage() {
       <div className="dilz-alerts-route" dir={lang === 'he' ? 'rtl' : 'ltr'}>
         <header className="dilz-alerts-route__header">
           <Link href="/" className="dilz-logo-button" aria-label="Dilz home"><span className="dilz-logo">dILz</span></Link>
-          <ThemeToggle lang={lang} />
         </header>
         <main className="dilz-alerts-route__main">
           {loading || !user ? <div className="dilz-empty-state"><div className="dilz-spinner" /></div> : (
