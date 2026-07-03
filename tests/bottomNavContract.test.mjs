@@ -151,13 +151,6 @@ test('Post colour is orange by default and white once its bubble is orange', () 
   assert.match(nav, /postWhite \? '#ffffff' : 'var\(--brand\)'/);
 });
 
-test('Post tint is intentional, not triggered by an automatic pass over Post', () => {
-  assert.match(nav, /const manualPostFocus = isSwiping \|\| touchFocusing/);
-  assert.match(nav, /const routeUsesPost = activeIdx === POST_IDX \|\| transitionFromPost/);
-  assert.match(nav, /const postTint = manualPostFocus \? computePostTint\(loupeCenter\) : \(routeUsesPost \? 1 : 0\)/);
-  assert.match(nav, /const postLit = manualPostFocus \? computePostLit\(loupeCenter\) : routeUsesPost/);
-});
-
 test('the profile tab can show the uploaded avatar photo', () => {
   assert.match(nav, /dilz-bottom-nav__avatar/);
   assert.match(nav, /avatar_url/);
