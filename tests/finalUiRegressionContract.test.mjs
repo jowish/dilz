@@ -61,7 +61,7 @@ test('recent header fixes stay aligned and free of duplicate profile/theme contr
   assert.match(home, /\{ id: 'comments', label: 'Trending' \}/);
   assert.match(home, /<option value="">Other<\/option>/);
   assert.match(home, /<option value="all">All<\/option>/);
-  assert.match(css, /\.dilz-view-switcher__select\s*\{[^}]*padding-right:\s*36px[^}]*color:\s*var\(--text-primary\)[^}]*font-weight:\s*700/s);
+  assert.match(css, /\.dilz-view-switcher__select\s*\{[^}]*padding-right:\s*36px[^}]*color:\s*var\(--text-secondary\)[^}]*font-weight:\s*700[^}]*background-image:[^}]*linear-gradient/s);
   assert.match(css, /@media \(max-width: 767px\)[\s\S]*\.dilz-app-header__search\s*\{[^}]*display:\s*block[^}]*flex:\s*1 1 auto/s);
   assert.match(css, /@media \(max-width: 767px\)[\s\S]*\.dilz-mobile-search\s*\{[^}]*display:\s*none/s);
   assert.doesNotMatch(appHeader, /dilz-header-alerts-btn/);

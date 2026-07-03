@@ -70,6 +70,10 @@ function EditIcon() {
   return <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>;
 }
 
+function BookmarkIcon({ filled = false }) {
+  return <svg width="14" height="14" viewBox="0 0 24 24" fill={filled ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M19 21 12 17 5 21V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16Z"/></svg>;
+}
+
 function CameraIcon() {
   return <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" aria-hidden="true"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>;
 }
@@ -117,6 +121,8 @@ export default function DealPage() {
   const [editImagePreview, setEditImagePreview] = useState(null);
   const [editImageError, setEditImageError] = useState('');
   const [copySuccess, setCopySuccess] = useState(false);
+  const [dealSaved, setDealSaved] = useState(false);
+  const [saveSubmitting, setSaveSubmitting] = useState(false);
   const [activeImageIndex, setActiveImageIndex] = useState(0);
   const [blockedUserIds, setBlockedUserIds] = useState([]);
   const addressPressRef = useRef({ timer: null, longPressed: false, suppressNextClick: false });
@@ -156,6 +162,24 @@ export default function DealPage() {
       setIsEditing(true);
     } catch {}
   }, [deal, id, user]);
+
+  useEffect(() => {
+    if (!id || !user) {
+      setDealSaved(false);
+      return;
+    }
+    let cancelled = false;
+    supabase.auth.getSession().then(({ data }) => {
+      if (!data.session) return null;
+      return fetch('/api/saved-items', { headers: { Authorization: `Bearer ${data.session.access_token}` } });
+    }).then((response) => response?.ok ? response.json() : null)
+      .then((payload) => {
+        if (cancelled || !payload) return;
+        setDealSaved((payload.saved_items || []).some((item) => item.item_type === 'deal' && String(item.item_id) === String(id)));
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [id, user]);
 
   const fetchDeal = async () => {
     setLoading(true);
@@ -353,6 +377,32 @@ export default function DealPage() {
     window.setTimeout(() => setCopySuccess(false), 1800);
   };
 
+  const handleToggleSaveDeal = async () => {
+    if (!user) { router.push(`/auth?redirect=/deal/${id}`); return; }
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) { router.push(`/auth?redirect=/deal/${id}`); return; }
+    const previous = dealSaved;
+    setDealSaved(!previous);
+    setSaveSubmitting(true);
+    try {
+      const response = await fetch('/api/saved-items', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({ item_type: 'deal', item_id: String(id) }),
+      });
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload.erreur || 'Save failed');
+      setDealSaved(Boolean(payload.saved));
+    } catch {
+      setDealSaved(previous);
+    } finally {
+      setSaveSubmitting(false);
+    }
+  };
+
   const showCopiedToast = () => {
     setCopySuccess(true);
     window.setTimeout(() => setCopySuccess(false), 1800);
@@ -478,6 +528,15 @@ export default function DealPage() {
             </Link>
             <div className="dilz-deal-header-actions">
               <select className="dilz-language-select" value={lang} onChange={(event) => setLang(event.target.value)} aria-label="Language"><option value="en">EN</option><option value="he">HE</option></select>
+              <button
+                type="button"
+                className={['dilz-button', 'dilz-button--outline', 'dilz-button--sm', 'dilz-deal-save-action', dealSaved && 'is-saved'].filter(Boolean).join(' ')}
+                onClick={handleToggleSaveDeal}
+                disabled={saveSubmitting}
+                aria-pressed={dealSaved}
+              >
+                <BookmarkIcon filled={dealSaved} /> {dealSaved ? 'Saved' : 'Save'}
+              </button>
               {isOwner && (
                 <button
                   type="button"

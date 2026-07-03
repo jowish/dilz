@@ -9,6 +9,13 @@ import { SafetyActions } from '../ui/SafetyActions';
 import { ShareMenu } from '../ui/ShareMenu';
 import { getDiscount, formatPrice, timeRemaining, timeAgo } from '../../lib/dealCard.js';
 
+function isExpiredDeal(dateFin) {
+  const match = String(dateFin || '').match(/^(\d{4}-\d{2}-\d{2})(?:$|[T\s])/);
+  if (!match) return false;
+  const today = new Date().toISOString().slice(0, 10);
+  return match[1] < today;
+}
+
 export function DealCard({
   deal,
   onVote,
@@ -35,6 +42,7 @@ export function DealCard({
   const discount = getDiscount(deal);
   const ending = timeRemaining(deal.date_fin, lang);
   const isOwner = user && user.id === deal.auteur_id;
+  const isExpired = isExpiredDeal(deal.date_fin);
   const isOnline = deal.ville === 'Online' || deal.categorie === 'Online' || /online/i.test(String(deal.ville || ''));
   const isStorePromo = deal.auteur_nom === 'DilzCurator' || deal.auteur_nom === 'DilzBot';
   const trust = isStorePromo ? text.storePromo : text.community;
@@ -66,9 +74,23 @@ export function DealCard({
     try { sessionStorage.setItem('dilzEditDealOnOpen', String(deal.id)); } catch {}
     router.push(`/deal/${deal.id}`);
   };
+  const renderSaveButton = () => onSave ? (
+    <IconButton
+      aria-label={isSaved ? text.unsave : text.save}
+      selected={isSaved}
+      onClick={(event) => {
+        event.stopPropagation();
+        onSave();
+      }}
+    >
+      <svg width="18" height="18" viewBox="0 0 24 24" fill={isSaved ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2">
+        <path d="M19 21 12 17 5 21V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16Z" />
+      </svg>
+    </IconButton>
+  ) : null;
 
   return (
-    <article className={['dilz-card', 'dilz-deal-card', layout === 'list' && 'is-list', layout === 'compact' && 'is-compact', layout === 'spotlight' && 'is-spotlight'].filter(Boolean).join(' ')} onClick={go}>
+    <article className={['dilz-card', 'dilz-deal-card', layout === 'list' && 'is-list', layout === 'compact' && 'is-compact', layout === 'spotlight' && 'is-spotlight', isExpired && 'is-expired'].filter(Boolean).join(' ')} onClick={go}>
       <div className="dilz-deal-card__media">
         {primaryImage ? (
           <img src={primaryImage} alt={deal.titre} onError={(event) => { event.currentTarget.style.display = 'none'; }} />
@@ -88,20 +110,7 @@ export function DealCard({
         </div>
         {images.length > 1 && <span className="dilz-deal-card__photo-count">1 / {images.length}</span>}
         <div className="dilz-deal-card__save">
-          {onSave && (
-            <IconButton
-              aria-label={isSaved ? text.unsave : text.save}
-              selected={isSaved}
-              onClick={(event) => {
-                event.stopPropagation();
-                onSave();
-              }}
-            >
-              <svg width="18" height="18" viewBox="0 0 24 24" fill={isSaved ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2">
-                <path d="M19 21 12 17 5 21V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16Z" />
-              </svg>
-            </IconButton>
-          )}
+          {renderSaveButton()}
         </div>
         {isStorePromo && (
           <div className="dilz-deal-card__trust">
@@ -148,6 +157,12 @@ export function DealCard({
           <strong>{deal.magasin}</strong>
           <span>{city}</span>
         </div>
+        {layout === 'spotlight' && (discount !== null || onSave) && (
+          <div className="dilz-deal-card__spotlight-tools">
+            {discount !== null && <Badge tone={discount >= 30 ? 'saving-strong' : 'saving'}>-{discount}%</Badge>}
+            {onSave && <span className="dilz-deal-card__spotlight-save">{renderSaveButton()}</span>}
+          </div>
+        )}
         <h3>{deal.titre}</h3>
         <p className="dilz-deal-card__author">
           {text.shared}{' '}
