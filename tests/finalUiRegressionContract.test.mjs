@@ -61,6 +61,7 @@ test('recent header fixes stay aligned and free of duplicate profile/theme contr
   assert.match(home, /\{ id: 'comments', label: 'Trending' \}/);
   assert.match(home, /<option value="">Other<\/option>/);
   assert.match(home, /<option value="all">All<\/option>/);
+  assert.match(css, /\.dilz-view-switcher__select\s*\{[^}]*padding-right:\s*36px[^}]*color:\s*var\(--text-primary\)[^}]*font-weight:\s*700/s);
   assert.match(css, /@media \(max-width: 767px\)[\s\S]*\.dilz-app-header__search\s*\{[^}]*display:\s*block[^}]*flex:\s*1 1 auto/s);
   assert.match(css, /@media \(max-width: 767px\)[\s\S]*\.dilz-mobile-search\s*\{[^}]*display:\s*none/s);
   assert.doesNotMatch(appHeader, /dilz-header-alerts-btn/);
@@ -98,6 +99,9 @@ test('liquid bottom nav keeps the calm transition and subtle press zoom contract
   assert.doesNotMatch(bottomNav, /translate: pos/);
   assert.doesNotMatch(bottomNav, /scale: `\$\{dragSwell\.toFixed\(3\)\}`/);
   assert.match(bottomNav, /activeIdx !== pending\.from[\s\S]*setTouchFocusCenter\(null\)/);
+  assert.match(bottomNav, /dy > 10 && dy > dx/);
+  assert.match(bottomNav, /state\.systemGesture = true/);
+  assert.match(bottomNav, /suppressClickRef\.current = true/);
   assert.match(bottomNav, /const dragSwell = \(pressed \|\| isSwiping\) \? 1\.34 : 1/);
   assert.match(css, /\.dilz-bottom-nav__inner\.is-zoomed\s*\{[^}]*transform:\s*scale\(1\.018\)/s);
   assert.match(css, /\.dilz-bottom-nav__loupe\s*\{[^}]*top:\s*3px[^}]*bottom:\s*3px[^}]*width:\s*72px/s);

@@ -148,6 +148,15 @@ export default function DealPage() {
     } catch {}
   }, [id]);
 
+  useEffect(() => {
+    if (!deal || !user || user.id !== deal.auteur_id) return;
+    try {
+      if (sessionStorage.getItem('dilzEditDealOnOpen') !== String(id)) return;
+      sessionStorage.removeItem('dilzEditDealOnOpen');
+      setIsEditing(true);
+    } catch {}
+  }, [deal, id, user]);
+
   const fetchDeal = async () => {
     setLoading(true);
     const res = await fetch(`/api/deal/${id}`);

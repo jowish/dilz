@@ -190,6 +190,7 @@ test('bottom nav uses Explore as the visible discover tab while keeping the sear
 
 test('display toggles keep visible active icons and start with a single card icon', () => {
   assert.match(home, /aria-label="Card view"[\s\S]*<svg width="18" height="18"[\s\S]*<rect x="4" y="4" width="16" height="16" rx="3\.5"\/>/);
+  assert.doesNotMatch(home, /aria-label="List view"/);
   assert.match(home, /aria-label="Spotlight view"/);
   assert.match(home, /aria-label=\{lang === 'he' \? 'Map view' : 'Map view'\}/);
   assert.doesNotMatch(home, /className="dilz-map-quick-btn"/);
@@ -212,14 +213,21 @@ test('community promo codes are user-submittable and protected by database polic
   assert.match(migration, /CREATE TABLE IF NOT EXISTS shopping_deal_comments/);
 });
 
-test('compact and row views remain bounded while global zoom and horizontal drift are disabled', () => {
+test('compact and spotlight views remain bounded while global zoom and horizontal drift are disabled', () => {
   assert.match(home, /is-compact/);
   assert.match(home, /is-spotlight/);
   assert.match(dealCard, /hideShareInRow = layout === 'list' \|\| layout === 'spotlight'/);
   assert.match(dealCard, /is-row-without-share/);
   assert.match(dealCard, /layout === 'spotlight' && 'is-spotlight'/);
+  assert.match(dealCard, /dilz-deal-card__ending-badge/);
+  assert.doesNotMatch(dealCard, /\{isOwner && <span>\{text\.myDeal\}<\/span>\}/);
+  assert.match(dealCard, /className="dilz-owner-edit"/);
+  assert.match(dealCard, /dilzEditDealOnOpen/);
+  assert.match(detailPage, /dilzEditDealOnOpen/);
+  assert.match(dealCard, /\{isStorePromo && \(/);
   assert.match(css, /\.dilz-feed-grid\.is-compact[^}]*repeat\(4/);
   assert.match(css, /@media \(max-width: 767px\)[\s\S]*\.dilz-feed-grid\.is-compact[^}]*repeat\(2/);
+  assert.match(css, /\.dilz-deal-card\.is-compact \.dilz-deal-card__ending-badge,[\s\S]*display:\s*none/s);
   assert.match(css, /\.dilz-deal-card\.is-list \.dilz-deal-card__description[^}]*-webkit-line-clamp:\s*1/);
   assert.match(css, /\.dilz-feed-grid\.is-list \.dilz-deal-card\.is-list\s*\{[^}]*grid-template-columns:\s*118px minmax\(0, 1fr\)/s);
   assert.match(css, /\.dilz-feed-grid\.is-list \.dilz-deal-card\.is-list \.dilz-deal-card__actions\s*\{[^}]*position:\s*absolute/s);
@@ -230,6 +238,7 @@ test('compact and row views remain bounded while global zoom and horizontal drif
   assert.match(css, /@media \(max-width: 767px\)[\s\S]*\.dilz-feed-grid\.is-list \.dilz-deal-card\.is-list\s*\{[^}]*grid-template-columns:\s*74px minmax\(0, 1fr\)/s);
   assert.match(css, /\.dilz-feed-grid\.is-spotlight \.dilz-deal-card\.is-spotlight\s*\{[^}]*grid-template-columns:\s*138px minmax\(0, 1fr\)/s);
   assert.match(css, /\.dilz-feed-grid\.is-spotlight \.dilz-deal-card\.is-spotlight \.dilz-deal-card__media\s*\{[^}]*aspect-ratio:\s*3 \/ 4/s);
+  assert.match(css, /\.dilz-feed-grid\.is-spotlight \.dilz-deal-card\.is-spotlight \.dilz-deal-card__overlay--top,[\s\S]*display:\s*none/s);
   assert.match(css, /@media \(max-width: 767px\)[\s\S]*\.dilz-feed-grid\.is-spotlight \.dilz-deal-card\.is-spotlight\s*\{[^}]*grid-template-columns:\s*108px minmax\(0, 1fr\)/s);
   assert.match(css, /overflow-x:\s*hidden/);
   assert.match(documentPage, /maximum-scale=1, user-scalable=no/);

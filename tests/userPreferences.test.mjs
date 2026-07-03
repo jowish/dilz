@@ -58,14 +58,19 @@ for (const value of DEAL_LAYOUT_PREFERENCES) {
   test(`accepts deal layout preference ${value}`, () => assert.equal(normalizeDealLayoutPreference(value), value));
 }
 
-test('persists list layout across sessions in local storage', () => {
+test('maps the removed list layout to spotlight', () => {
+  assert.equal(normalizeDealLayoutPreference('list'), 'spotlight');
+  assert.ok(!DEAL_LAYOUT_PREFERENCES.includes('list'));
+});
+
+test('persists legacy list layout as spotlight across sessions', () => {
   const originalWindow = globalThis.window;
   const values = new Map();
   globalThis.window = { localStorage: { getItem: (key) => values.get(key), setItem: (key, value) => values.set(key, value) } };
   try {
-    assert.equal(writeDealLayoutPreference('list'), 'list');
-    assert.equal(values.get('dilzDealLayout'), 'list');
-    assert.equal(readDealLayoutPreference(), 'list');
+    assert.equal(writeDealLayoutPreference('list'), 'spotlight');
+    assert.equal(values.get('dilzDealLayout'), 'spotlight');
+    assert.equal(readDealLayoutPreference(), 'spotlight');
     assert.equal(writeDealLayoutPreference('invalid'), 'card');
   } finally {
     if (originalWindow === undefined) delete globalThis.window;

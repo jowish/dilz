@@ -131,6 +131,14 @@ test('dragging cannot scroll the page and cannot select text', () => {
   assert.match(css, /\.dilz-bottom-nav__inner[\s\S]*?user-select:\s*none/);
 });
 
+test('vertical system gestures near the iPhone home indicator do not trigger navigation', () => {
+  assert.match(nav, /const suppressClickRef = useRef\(false\)/);
+  assert.match(nav, /dy > 10 && dy > dx/);
+  assert.match(nav, /state\.systemGesture = true/);
+  assert.match(nav, /window\.setTimeout\(\(\) => \{ suppressClickRef\.current = false; \}, 350\)/);
+  assert.match(nav, /onClick=\{\(event\) => handleItemClick\(event, item\.action\)\}/);
+});
+
 // ── Icons ───────────────────────────────────────────────────────────────
 
 test('active icons are filled via inline style (beating the global fill:none)', () => {

@@ -31,8 +31,8 @@ test('an explicit URL sort wins over session and account defaults', () => {
   assert.equal(resolveDealSort({ requestedSort: 'comments', sessionSort: 'ending', preferredSort: 'latest' }), 'comments');
 });
 
-test('saved list layout is used unless the URL explicitly selects cards', () => {
-  assert.equal(resolveDealLayout({ savedLayout: 'list' }), 'list');
+test('legacy saved list layout falls back to spotlight unless the URL explicitly selects cards', () => {
+  assert.equal(resolveDealLayout({ savedLayout: 'list' }), 'spotlight');
   assert.equal(resolveDealLayout({ requestedLayout: 'card', savedLayout: 'list' }), 'card');
 });
 
@@ -135,10 +135,11 @@ test('dealViewState returns all-deals state for the "all" viewId', () => {
   assert.equal(state.myDealsOnly, false);
 });
 
-test('resolveDealLayout accepts compact, list and spotlight as saved preferences', () => {
+test('resolveDealLayout accepts compact and spotlight, mapping legacy list to spotlight', () => {
   assert.equal(resolveDealLayout({ savedLayout: 'compact' }), 'compact');
-  assert.equal(resolveDealLayout({ savedLayout: 'list' }), 'list');
+  assert.equal(resolveDealLayout({ savedLayout: 'list' }), 'spotlight');
   assert.equal(resolveDealLayout({ savedLayout: 'spotlight' }), 'spotlight');
   assert.equal(resolveDealLayout({ requestedLayout: 'spotlight', savedLayout: 'list' }), 'spotlight');
+  assert.equal(resolveDealLayout({ requestedLayout: 'list', savedLayout: 'compact' }), 'spotlight');
   assert.equal(resolveDealLayout({ savedLayout: 'unknown' }), 'card');
 });

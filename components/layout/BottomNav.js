@@ -106,6 +106,7 @@ export function BottomNav({ lang = 'en', activeTab, menuOpen = false, alertsOpen
   const [pressed, setPressed] = useState(false); // finger down on the bar
   const swipeRef  = useRef(null);
   const tapFocusRef = useRef(null);
+  const suppressClickRef = useRef(false);
 
   const isSwiping = swipeRef.current?.started === true;
 
@@ -155,6 +156,7 @@ export function BottomNav({ lang = 'en', activeTab, menuOpen = false, alertsOpen
     setPressed(true);   // swell immediately on touch
     const rect = inner.getBoundingClientRect();
     const touchX = e.touches[0].clientX;
+    const touchY = e.touches[0].clientY;
     // Move the visual focus under the finger immediately, but do not commit
     // navigation here. The actual tab action still happens on release/click.
     const hit = itemRefs.current.findIndex((b) => {
@@ -166,14 +168,26 @@ export function BottomNav({ lang = 'en', activeTab, menuOpen = false, alertsOpen
     persistedIdx = pos;
     tapFocusRef.current = { from: activeIdx, target: snapIndex(pos) };
     setTouchFocusCenter(pos);
-    swipeRef.current = { startX: touchX, innerLeft: rect.left, innerWidth: rect.width, started: false, pos };
+    swipeRef.current = { startX: touchX, startY: touchY, innerLeft: rect.left, innerWidth: rect.width, started: false, systemGesture: false, pos };
   }
 
   function handleTouchMove(e) {
     const state = swipeRef.current;
     if (!state) return;
     const touchX = e.touches[0].clientX;
-    if (!state.started && Math.abs(touchX - state.startX) < SWIPE_START_PX) return;
+    const touchY = e.touches[0].clientY;
+    const dx = Math.abs(touchX - state.startX);
+    const dy = Math.abs(touchY - state.startY);
+    if (!state.started && dy > 10 && dy > dx) {
+      state.systemGesture = true;
+      suppressClickRef.current = true;
+      setPressed(false);
+      tapFocusRef.current = null;
+      setTouchFocusCenter(null);
+      return;
+    }
+    if (state.systemGesture) return;
+    if (!state.started && dx < SWIPE_START_PX) return;
     state.started = true;
     setTouchFocusCenter(null);
     // The bubble follows the finger continuously (transition disabled while swiping).
@@ -186,6 +200,12 @@ export function BottomNav({ lang = 'en', activeTab, menuOpen = false, alertsOpen
     const state = swipeRef.current;
     swipeRef.current = null;
     setPressed(false);
+    if (state?.systemGesture) {
+      tapFocusRef.current = null;
+      setTouchFocusCenter(null);
+      window.setTimeout(() => { suppressClickRef.current = false; }, 350);
+      return;
+    }
     if (state?.started && state.pos !== null) {
       tapFocusRef.current = null;
       setTouchFocusCenter(null);
@@ -256,6 +276,16 @@ export function BottomNav({ lang = 'en', activeTab, menuOpen = false, alertsOpen
   // slow page load after a tap can never keep the bar zoomed.
   const barZoom = pressed;
 
+  const handleItemClick = (event, action) => {
+    if (suppressClickRef.current) {
+      suppressClickRef.current = false;
+      event.preventDefault();
+      event.stopPropagation();
+      return;
+    }
+    action();
+  };
+
   return (
     <nav className="dilz-bottom-nav" aria-label={labels.nav}>
       <div
@@ -293,7 +323,7 @@ export function BottomNav({ lang = 'en', activeTab, menuOpen = false, alertsOpen
               type="button"
               ref={(el) => { itemRefs.current[idx] = el; }}
               className={['dilz-bottom-nav__item', active && 'is-active', item.post && 'is-post'].filter(Boolean).join(' ')}
-              onClick={item.action}
+              onClick={(event) => handleItemClick(event, item.action)}
               aria-label={item.label}
               aria-current={committed ? 'page' : undefined}
             >

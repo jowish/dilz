@@ -1535,16 +1535,6 @@ export default function Home() {
                   </button>
                   <button
                     type="button"
-                    className={dealLayout === 'list' ? 'is-active' : ''}
-                    onClick={() => changeDealLayout('list')}
-                    aria-label="List view"
-                  >
-                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
-                      <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
-                    </svg>
-                  </button>
-                  <button
-                    type="button"
                     className={dealLayout === 'compact' ? 'is-active' : ''}
                     onClick={() => changeDealLayout('compact')}
                     aria-label="Compact card view"
@@ -1618,7 +1608,7 @@ export default function Home() {
               ) : (
                 <>
                   {displayedDeals.length > 0 && (
-                    <div className={['dilz-feed-grid', dealLayout === 'list' && 'is-list', dealLayout === 'compact' && 'is-compact', dealLayout === 'spotlight' && 'is-spotlight'].filter(Boolean).join(' ')}>
+                    <div className={['dilz-feed-grid', dealLayout === 'compact' && 'is-compact', dealLayout === 'spotlight' && 'is-spotlight'].filter(Boolean).join(' ')}>
                     {displayedDeals.map(deal => (
                       <PremiumDealCard
                         key={deal.id} deal={deal} lang={lang} isDark={isDark}

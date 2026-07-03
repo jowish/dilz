@@ -62,6 +62,10 @@ export function DealCard({
 
   const shareUrl = typeof window === 'undefined' ? `/deal/${deal.id}` : `${window.location.origin}/deal/${deal.id}`;
   const shareMenuId = `deal-share-${deal.id}`;
+  const editOwnerDeal = () => {
+    try { sessionStorage.setItem('dilzEditDealOnOpen', String(deal.id)); } catch {}
+    router.push(`/deal/${deal.id}`);
+  };
 
   return (
     <article className={['dilz-card', 'dilz-deal-card', layout === 'list' && 'is-list', layout === 'compact' && 'is-compact', layout === 'spotlight' && 'is-spotlight'].filter(Boolean).join(' ')} onClick={go}>
@@ -80,7 +84,7 @@ export function DealCard({
           {discount !== null && (
             <Badge tone={discount >= 30 ? 'saving-strong' : 'saving'}>-{discount}%</Badge>
           )}
-          {ending && <Badge tone="danger">{ending}</Badge>}
+          {ending && <Badge tone="danger" className="dilz-deal-card__ending-badge">{ending}</Badge>}
         </div>
         {images.length > 1 && <span className="dilz-deal-card__photo-count">1 / {images.length}</span>}
         <div className="dilz-deal-card__save">
@@ -99,9 +103,11 @@ export function DealCard({
             </IconButton>
           )}
         </div>
-        <div className="dilz-deal-card__trust">
-          <Badge tone={isStorePromo ? 'brand' : 'neutral'}>{trust}</Badge>
-        </div>
+        {isStorePromo && (
+          <div className="dilz-deal-card__trust">
+            <Badge tone="brand">{trust}</Badge>
+          </div>
+        )}
         {isAdmin && (
           <div className="dilz-deal-card__admin-badge">
             <Badge tone="brand">Admin</Badge>
@@ -141,7 +147,6 @@ export function DealCard({
         <div className="dilz-deal-card__store-row">
           <strong>{deal.magasin}</strong>
           <span>{city}</span>
-          {isOwner && <span>{text.myDeal}</span>}
         </div>
         <h3>{deal.titre}</h3>
         <p className="dilz-deal-card__author">
@@ -221,9 +226,14 @@ export function DealCard({
               onCopy={() => copyDealLink().catch(() => {})}
             />
             {isOwner && onOwnerDelete && (
-              <button type="button" className="dilz-owner-delete" onClick={(event) => { event.preventDefault(); event.stopPropagation(); onOwnerDelete(deal.id); }}>
-                {lang === 'he' ? '×ž×—×§' : 'Delete'}
-              </button>
+              <>
+                <button type="button" className="dilz-owner-edit" onClick={(event) => { event.preventDefault(); event.stopPropagation(); editOwnerDeal(); }}>
+                  Edit
+                </button>
+                <button type="button" className="dilz-owner-delete" onClick={(event) => { event.preventDefault(); event.stopPropagation(); onOwnerDelete(deal.id); }}>
+                  Delete
+                </button>
+              </>
             )}
           </div>
         </div>

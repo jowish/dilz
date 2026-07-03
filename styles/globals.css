@@ -936,10 +936,14 @@ textarea:focus {
 
 .dilz-view-switcher__select {
   appearance: none;
-  padding-right: 32px;
-  background-image: linear-gradient(45deg, transparent 50%, currentColor 50%), linear-gradient(135deg, currentColor 50%, transparent 50%);
-  background-position: calc(100% - 18px) 50%, calc(100% - 13px) 50%;
-  background-size: 5px 5px, 5px 5px;
+  padding-right: 36px;
+  color: var(--text-primary);
+  font-weight: 700;
+  background-image:
+    linear-gradient(45deg, transparent 50%, currentColor 50%),
+    linear-gradient(135deg, currentColor 50%, transparent 50%);
+  background-position: calc(100% - 19px) 52%, calc(100% - 13px) 52%;
+  background-size: 6px 6px, 6px 6px;
   background-repeat: no-repeat;
 }
 
@@ -4285,6 +4289,12 @@ textarea:focus {
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
 }
 
+.dilz-view-switcher__select {
+  padding-right: 36px;
+  color: var(--text-primary);
+  font-weight: 700;
+}
+
 .dilz-view-switcher button:hover:not(.is-active) {
   border-color: var(--border-strong);
   color: var(--text-primary);
@@ -7457,7 +7467,10 @@ body { touch-action: pan-y; }
 .dilz-share-menu .is-sms svg { color: #34C759; fill: #34C759; stroke: #FFFFFF; }
 .dilz-card-sms-action { width: 38px; height: 38px; display: grid; place-items: center; border: 1px solid var(--border); border-radius: 12px; background: var(--bg-card); color: #34C759; }
 .dilz-card-sms-action svg { width: 18px; height: 18px; fill: #34C759; stroke: #FFFFFF; stroke-width: 1.8; }
-.dilz-owner-delete { min-height: 34px; padding: 0 10px; border: 1px solid #FCA5A5; border-radius: 10px; background: #FEF2F2; color: #DC2626; font-size: 11px; font-weight: 850; }
+.dilz-owner-edit,
+.dilz-owner-delete { min-height: 34px; padding: 0 10px; border-radius: 10px; font-size: 11px; font-weight: 850; }
+.dilz-owner-edit { border: 1px solid var(--border-default); background: var(--surface-main); color: var(--text-primary); }
+.dilz-owner-delete { border: 1px solid #FCA5A5; background: #FEF2F2; color: #DC2626; }
 .dilz-deal-card__author button { padding: 0; border: 0; background: none; color: var(--text-secondary); font: inherit; font-weight: 800; cursor: pointer; }
 
 .dilz-feed-grid.is-compact { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
@@ -7469,6 +7482,7 @@ body { touch-action: pan-y; }
 .dilz-deal-card.is-compact .dilz-deal-card__description,
 .dilz-deal-card.is-compact .dilz-deal-card__meta,
 .dilz-deal-card.is-compact .dilz-deal-card__trust,
+.dilz-deal-card.is-compact .dilz-deal-card__ending-badge,
 .dilz-deal-card.is-compact .dilz-card-sms-action,
 .dilz-deal-card.is-compact .dilz-deal-card__right-actions { display: none; }
 .dilz-deal-card.is-compact .dilz-deal-card__price-row { margin-top: 6px; }
@@ -8115,6 +8129,12 @@ body { touch-action: pan-y; }
   min-height: 178px;
   aspect-ratio: 3 / 4;
   border-radius: 16px;
+}
+
+.dilz-feed-grid.is-spotlight .dilz-deal-card.is-spotlight .dilz-deal-card__overlay--top,
+.dilz-feed-grid.is-spotlight .dilz-deal-card.is-spotlight .dilz-deal-card__trust,
+.dilz-feed-grid.is-spotlight .dilz-deal-card.is-spotlight .dilz-deal-card__photo-count {
+  display: none;
 }
 
 .dilz-feed-grid.is-spotlight .dilz-deal-card.is-spotlight .dilz-deal-card__body {
