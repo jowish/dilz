@@ -217,18 +217,17 @@ export function BottomNav({ lang = 'en', activeTab, menuOpen = false, alertsOpen
   const ease = 'cubic-bezier(0.33, 0, 0.2, 1)';
   const glideMs = 620;
 
-  // Position + swell via the individual `translate`/`scale` properties — both
-  // are GPU-composited (no per-frame layout like `left`), and each can carry
-  // its own transition duration, so the glide is silky-smooth.
+  // Position + swell via a single transform. Avoid the newer individual
+  // translate/scale CSS properties so Firefox and older WebViews render the app.
   const loupeStyle = {
-    translate: pos,
-    scale: `${dragSwell.toFixed(3)}`,
+    transform: `translateX(${pos}) scale(${dragSwell.toFixed(3)})`,
+    transformOrigin: 'center center',
     // No transition while dragging (1:1 follow), or before the bubble has real
     // pixel positions / the mount-glide is armed (avoids animating from a %
     // fallback, which jumped). Otherwise glide with the calm fixed duration.
     transition: (isSwiping || !glide || !centers)
       ? 'none'
-      : `translate ${glideMs}ms ${ease}, scale 220ms ${ease}`,
+      : `transform ${glideMs}ms ${ease}`,
   };
   if (postTint > 0) {
     // keep the top specular sheen, tint the fill orange (opaque when centred)

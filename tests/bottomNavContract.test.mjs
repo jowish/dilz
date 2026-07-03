@@ -43,15 +43,18 @@ test('button centres are measured with the border correction for exact centering
 
 test('pressing swells the bubble uniformly (same shape) and starts on touch', () => {
   assert.match(nav, /setPressed\(true\)/);
-  // uniform swell via the individual `scale` property (not scaleX, which distorts)
-  assert.match(nav, /scale: `\$\{dragSwell\.toFixed\(3\)\}`/);
+  // uniform swell via transform scale() (not scaleX, which distorts)
+  assert.match(nav, /transform: `translateX\(\$\{pos\}\) scale\(\$\{dragSwell\.toFixed\(3\)\}\)`/);
   assert.doesNotMatch(nav, /scaleX/);
   assert.match(nav, /const dragSwell = \(pressed \|\| isSwiping\) \? 1\.34 : 1/);
 });
 
-test('the loupe is positioned via GPU translate/scale, not layout-thrashing left', () => {
-  assert.match(nav, /translate: pos/);
-  assert.match(css, /\.dilz-bottom-nav__loupe\s*\{[^}]*transition:\s*translate 620ms cubic-bezier\(0\.33, 0, 0\.2, 1\),\s*scale 220ms cubic-bezier\(0\.33, 0, 0\.2, 1\)/s);
+test('the loupe is positioned via GPU transform, not Firefox-risky individual transform properties or layout-thrashing left', () => {
+  assert.match(nav, /transform: `translateX\(\$\{pos\}\) scale\(\$\{dragSwell\.toFixed\(3\)\}\)`/);
+  assert.match(nav, /transformOrigin: 'center center'/);
+  assert.match(nav, /transform \$\{glideMs\}ms \$\{ease\}/);
+  assert.doesNotMatch(nav, /translate: pos/);
+  assert.doesNotMatch(nav, /scale: `\$\{dragSwell\.toFixed\(3\)\}`/);
   assert.doesNotMatch(css, /\.dilz-bottom-nav__loupe\s*\{[^}]*translate 620ms linear/s);
 });
 
@@ -61,7 +64,7 @@ test('touch focuses the bubble under the finger before release navigation', () =
   assert.match(nav, /persistedIdx = pos;\s*setTouchFocusCenter\(pos\)/);
   assert.match(nav, /setTouchFocusCenter\(pos\)/);
   assert.match(nav, /const loupeCenter = isSwiping \? swipeCenter : \(touchFocusing \? touchFocusCenter : restIdx\)/);
-  assert.match(nav, /translate \$\{glideMs\}ms \$\{ease\}, scale 220ms \$\{ease\}/);
+  assert.match(nav, /transform \$\{glideMs\}ms \$\{ease\}/);
   assert.match(nav, /const ease = 'cubic-bezier\(0\.33, 0, 0\.2, 1\)'/);
   assert.match(nav, /const glideMs = 620/);
   assert.doesNotMatch(nav, /const translateEase = 'linear'/);
