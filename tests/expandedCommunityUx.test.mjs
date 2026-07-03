@@ -190,7 +190,7 @@ test('bottom nav uses Explore as the visible discover tab while keeping the sear
 
 test('display control is a compact dropdown and no longer consumes toolbar width', () => {
   assert.match(home, /dilz-view-switcher__select-wrap--display/);
-  assert.match(home, /<option value="card">Display<\/option>/);
+  assert.match(home, /<option value="card">Cards<\/option>/);
   assert.match(home, /<option value="compact">Compact<\/option>/);
   assert.match(home, /<option value="spotlight">Row<\/option>/);
   assert.match(home, /<option value="map">Map<\/option>/);
@@ -198,7 +198,8 @@ test('display control is a compact dropdown and no longer consumes toolbar width
   assert.doesNotMatch(home, /className="dilz-view-switcher__count"/);
   assert.doesNotMatch(home, /className="dilz-layout-toggle"/);
   assert.doesNotMatch(home, /className="dilz-map-quick-btn"/);
-  assert.match(css, /\.dilz-deal-toolbar \.dilz-view-switcher__select-wrap--display\s*\{[^}]*width:\s*72px/s);
+  // the display select now sits inside the view switcher, next to Other
+  assert.match(css, /\.dilz-deal-toolbar \.dilz-view-switcher__select-wrap,[\s\S]*?width:\s*auto/s);
 });
 
 test('search result deal cards keep actions inside the card boundary', () => {

@@ -1526,9 +1526,6 @@ export default function Home() {
                   </select>
                   <span className="dilz-view-switcher__select-chevron" aria-hidden="true" />
                 </span>
-                </div>
-
-                <div className="dilz-feed-controls" aria-label={lang === 'he' ? 'פקדי פיד דילז' : 'Dilz feed controls'}>
                 <span className="dilz-view-switcher__select-wrap dilz-view-switcher__select-wrap--display">
                   <select
                     className="dilz-view-switcher__select"
@@ -1542,7 +1539,7 @@ export default function Home() {
                     }}
                     aria-label={lang === 'he' ? 'Display options' : 'Display options'}
                   >
-                    <option value="card">Display</option>
+                    <option value="card">Cards</option>
                     <option value="compact">Compact</option>
                     <option value="spotlight">Row</option>
                     <option value="map">Map</option>

@@ -8764,38 +8764,41 @@ select:focus,
 }
 
 @media (max-width: 767px) {
+  /* Wrap to a new line instead of scrolling sideways, so no filter is ever
+     hidden off-screen and nothing clips. */
   .dilz-deal-toolbar .dilz-view-switcher {
-    gap: 4px;
+    flex-wrap: wrap;
     overflow-x: visible;
+    gap: 6px;
+    row-gap: 8px;
   }
 
   .dilz-deal-toolbar .dilz-view-switcher button {
-    min-height: 34px;
-    padding: 5px 8px;
-    font-size: 12px;
+    min-height: 38px;
+    padding: 0 13px;
+    font-size: 13px;
   }
 
-  .dilz-deal-toolbar .dilz-view-switcher__select-wrap {
-    flex: 0 0 58px;
-    width: 58px;
-    min-height: 34px;
-  }
-
+  /* Selects size to their text (Other / Compact fit fully) instead of a fixed
+     narrow width that cut the last letters off. */
+  .dilz-deal-toolbar .dilz-view-switcher__select-wrap,
   .dilz-deal-toolbar .dilz-view-switcher__select-wrap--display {
-    flex-basis: 72px;
-    width: 72px;
+    flex: 0 0 auto;
+    width: auto;
+    min-height: 38px;
   }
 
   .dilz-deal-toolbar .dilz-view-switcher__select {
-    min-height: 32px;
-    padding: 0 20px 0 8px;
-    font-size: 12px;
+    width: auto;
+    min-height: 36px;
+    padding: 0 26px 0 12px;   /* room for the chevron + full text */
+    font-size: 13px;
   }
 
   .dilz-deal-toolbar .dilz-view-switcher__select-chevron {
-    right: 9px;
-    width: 7px;
-    height: 7px;
+    right: 11px;
+    width: 8px;
+    height: 8px;
   }
 }
 

@@ -47,7 +47,6 @@ test('light mode borders stay visible enough on white surfaces', () => {
 test('only the retained view switch polish remains after SmoothUI rollback', () => {
   assert.doesNotMatch(css, /SmoothUI-inspired visual polish layer/);
   assert.match(css, /Retained view switch polish: cards, rows and small cards only/);
-  assert.match(css, /\.dilz-deal-toolbar \.dilz-view-switcher__select-wrap--display\s*\{[^}]*width:\s*72px/s);
   assert.match(css, /\.dilz-feed-grid\.is-spotlight/);
 });
 
@@ -64,8 +63,11 @@ test('the menu sheet ends above the visible mobile navigation', () => {
   assert.match(css, /\.dilz-main-menu__backdrop\{[^}]*z-index:900/s);
 });
 
-test('display dropdown remains compact in the deal toolbar', () => {
-  assert.match(css, /\.dilz-deal-toolbar \.dilz-view-switcher__select-wrap--display\s*\{[^}]*width:\s*72px/s);
+test('deal toolbar filters wrap (no side scroll) and selects size to their text', () => {
+  // wraps to a new row instead of scrolling sideways
+  assert.match(css, /\.dilz-deal-toolbar \.dilz-view-switcher\s*\{[^}]*flex-wrap:\s*wrap/s);
+  // selects are auto-width so Other / Compact are never clipped
+  assert.match(css, /\.dilz-deal-toolbar \.dilz-view-switcher__select-wrap,[\s\S]*?width:\s*auto/s);
 });
 
 test('desktop pages keep the document as the only vertical scroller', () => {
