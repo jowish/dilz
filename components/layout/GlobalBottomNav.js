@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/router';
 import { supabase } from '../../lib/supabase';
 import { useAppLanguage } from '../../lib/useAppLanguage';
@@ -10,30 +10,54 @@ export function GlobalBottomNav() {
   const { lang } = useAppLanguage();
   const [user, setUser] = useState(null);
   const [optimisticActive, setOptimisticActive] = useState(null);
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  const loadUnreadCount = useCallback((session) => {
+    if (!session?.access_token) {
+      setUnreadCount(0);
+      return;
+    }
+    fetch('/api/notifications', { headers: { Authorization: `Bearer ${session.access_token}` } })
+      .then((response) => response.ok ? response.json() : null)
+      .then((data) => {
+        if (!data) return;
+        setUnreadCount((data.notifications || []).filter((notification) => !notification.is_read).length);
+      })
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     let alive = true;
     supabase.auth.getSession().then(({ data }) => {
-      if (alive) setUser(data.session?.user || null);
+      if (!alive) return;
+      setUser(data.session?.user || null);
+      loadUnreadCount(data.session);
     });
     const { data: subscription } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user || null);
+      loadUnreadCount(session);
     });
     return () => {
       alive = false;
       subscription?.subscription?.unsubscribe?.();
     };
-  }, []);
+  }, [loadUnreadCount]);
 
   useEffect(() => {
-    const clearOptimistic = () => setOptimisticActive(null);
+    const refreshUnread = () => supabase.auth.getSession().then(({ data }) => loadUnreadCount(data.session));
+    const clearOptimistic = () => {
+      setOptimisticActive(null);
+      refreshUnread();
+    };
     router.events.on('routeChangeComplete', clearOptimistic);
     router.events.on('routeChangeError', clearOptimistic);
+    window.addEventListener('dilz:notifications-read', refreshUnread);
     return () => {
       router.events.off('routeChangeComplete', clearOptimistic);
       router.events.off('routeChangeError', clearOptimistic);
+      window.removeEventListener('dilz:notifications-read', refreshUnread);
     };
-  }, [router.events]);
+  }, [loadUnreadCount, router.events]);
 
   const routeActive = useMemo(
     () => activeFromPath(router.asPath, router.pathname),
@@ -53,6 +77,7 @@ export function GlobalBottomNav() {
     <BottomNav
       lang={lang}
       activeTab={activeTab}
+      unreadCount={unreadCount}
       alertsOpen={activeTab === 'alerts'}
       postOpen={activeTab === 'post'}
       onMenu={() => push('/explore', 'explore')}

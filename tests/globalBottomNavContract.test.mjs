@@ -75,6 +75,15 @@ test('global bottom navigation keeps auth redirects and home shallow routing exp
 });
 
 test('global active state is still delegated to the liquid bottom nav component', () => {
-  assert.match(globalNav, /<BottomNav[\s\S]*activeTab=\{activeTab\}[\s\S]*alertsOpen=\{activeTab === 'alerts'\}[\s\S]*postOpen=\{activeTab === 'post'\}/);
+  assert.match(globalNav, /<BottomNav[\s\S]*activeTab=\{activeTab\}[\s\S]*unreadCount=\{unreadCount\}[\s\S]*alertsOpen=\{activeTab === 'alerts'\}[\s\S]*postOpen=\{activeTab === 'post'\}/);
   assert.match(bottomNav, /aria-current=\{committed \? 'page' : undefined\}/);
+});
+
+test('alert notifications are surfaced only through the bottom Alerts tab', () => {
+  assert.match(globalNav, /const \[unreadCount, setUnreadCount\] = useState\(0\)/);
+  assert.match(globalNav, /fetch\('\/api\/notifications'/);
+  assert.match(globalNav, /filter\(\(notification\) => !notification\.is_read\)\.length/);
+  assert.match(globalNav, /window\.addEventListener\('dilz:notifications-read', refreshUnread\)/);
+  assert.match(bottomNav, /item\.id === 'alerts' && unreadCount > 0/);
+  assert.match(bottomNav, /className="dilz-bottom-nav__badge"/);
 });

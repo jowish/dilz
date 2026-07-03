@@ -3896,6 +3896,7 @@ textarea:focus {
 }
 
 .dilz-alert-suggestions,
+.dilz-alert-results,
 .dilz-follow-section {
   padding: 18px;
   border: 1px solid var(--border);
@@ -3911,7 +3912,7 @@ textarea:focus {
   margin-bottom: 12px;
 }
 
-.dilz-alert-section-heading h3 { margin: 0; font-size: 16px; }
+.dilz-alert-section-heading h3 { margin: 0; font-size: 16px; display: inline-flex; align-items: center; gap: 8px; }
 .dilz-alert-section-heading span { color: var(--text-muted); font-size: 12px; }
 
 .dilz-alert-suggestion-list {
@@ -3935,6 +3936,7 @@ textarea:focus {
 }
 
 .dilz-alert-suggestion-list button:hover { border-color: var(--brand); color: var(--brand); }
+.dilz-alert-results { margin-bottom: 20px; }
 .dilz-follow-section { margin-top: 20px; }
 .dilz-follow-list { display: grid; gap: 8px; }
 .dilz-follow-user { display: grid; grid-template-columns: 40px minmax(0, 1fr) auto; align-items: center; gap: 10px; }
@@ -3945,7 +3947,7 @@ textarea:focus {
   .dilz-alerts-route__header { min-height: 58px; padding: 8px 16px; }
   .dilz-alerts-route__main { width: 100%; padding: 18px 16px calc(118px + env(safe-area-inset-bottom)); }
   .dilz-alert-page .dilz-sheet__close { display: none; }
-  .dilz-alert-suggestions, .dilz-follow-section { padding: 15px; border-radius: 18px; }
+  .dilz-alert-suggestions, .dilz-alert-results, .dilz-follow-section { padding: 15px; border-radius: 18px; }
   .dilz-alert-section-heading { align-items: flex-start; flex-direction: column; gap: 3px; }
 }
 
@@ -8693,6 +8695,7 @@ select:focus,
   }
 
   .dilz-bottom-nav__icon {
+    position: relative;
     width: 26px !important;
     height: 24px !important;
     margin: 0 !important;
@@ -8706,6 +8709,25 @@ select:focus,
       color 180ms ease,
       transform 360ms cubic-bezier(0.34, 1.56, 0.64, 1),
       background-color 180ms ease;
+  }
+
+  .dilz-bottom-nav__badge {
+    position: absolute;
+    top: -7px;
+    right: -9px;
+    min-width: 17px;
+    height: 17px;
+    padding: 0 5px;
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--danger);
+    color: #fff;
+    font-size: 10px;
+    font-weight: 850;
+    line-height: 1;
+    box-shadow: 0 0 0 2px var(--header-bg);
   }
 
   .dilz-bottom-nav__icon svg {

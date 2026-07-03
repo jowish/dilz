@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/router';
 import { supabase } from '../../lib/supabase';
 import { registerNativePushToken } from '../../lib/nativeApp';
 import { CityPicker } from './CityPicker';
@@ -15,10 +16,24 @@ function alertSummary(a, lang) {
   return parts.join(' · ') || 'All new deals';
 }
 
+function timeAgoShort(date) {
+  const elapsed = Date.now() - new Date(date).getTime();
+  const minutes = Math.floor(elapsed / 60000);
+  const hours = Math.floor(elapsed / 3600000);
+  const days = Math.floor(elapsed / 86400000);
+  if (minutes < 2) return 'now';
+  if (minutes < 60) return `${minutes}m`;
+  if (hours < 24) return `${hours}h`;
+  return `${days}d`;
+}
+
 export function AlertModal({ user, token: tokenProp, lang, villes = [], onClose }) {
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState('list');
   const [alerts, setAlerts] = useState([]);
+  const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [notificationsLoading, setNotificationsLoading] = useState(true);
   const [form, setForm] = useState({ city: '', category: '', online_only: false, min_discount_percent: '', keyword: '' });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
@@ -35,21 +50,24 @@ export function AlertModal({ user, token: tokenProp, lang, villes = [], onClose 
   }, [onClose]);
 
   useEffect(() => {
-    if (!user) { setLoading(false); setFollowLoading(false); return; }
+    if (!user) { setLoading(false); setNotificationsLoading(false); setFollowLoading(false); return; }
 
     let alive = true;
     const load = (accessToken) => {
-      if (!accessToken) { setLoading(false); setFollowLoading(false); return; }
+      if (!accessToken) { setLoading(false); setNotificationsLoading(false); setFollowLoading(false); return; }
       Promise.all([
         fetch('/api/alerts', { headers: { Authorization: `Bearer ${accessToken}` } }).then((r) => r.json()),
+        fetch('/api/notifications', { headers: { Authorization: `Bearer ${accessToken}` } }).then((r) => r.json()),
         fetch('/api/user-follows', { headers: { Authorization: `Bearer ${accessToken}` } }).then((r) => r.json()),
-      ]).then(([alertData, followData]) => {
+      ]).then(([alertData, notificationData, followData]) => {
         if (!alive) return;
         setAlerts(alertData.alerts || []);
+        setNotifications(notificationData.notifications || []);
         setFollowUsers(followData.users || []);
       }).catch(() => {}).finally(() => {
         if (!alive) return;
         setLoading(false);
+        setNotificationsLoading(false);
         setFollowLoading(false);
       });
     };
@@ -139,6 +157,39 @@ export function AlertModal({ user, token: tokenProp, lang, villes = [], onClose 
   };
 
   const setField = (key, value) => setForm((f) => ({ ...f, [key]: value }));
+  const unreadNotifications = notifications.filter((notification) => !notification.is_read).length;
+
+  const notifyUnreadChanged = () => {
+    window.dispatchEvent(new Event('dilz:notifications-read'));
+  };
+
+  const markAllNotificationsRead = async () => {
+    const { data } = await supabase.auth.getSession();
+    if (!data.session) return;
+    await fetch('/api/notifications', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${data.session.access_token}` },
+      body: JSON.stringify({ markAllRead: true }),
+    }).catch(() => {});
+    setNotifications((prev) => prev.map((notification) => ({ ...notification, is_read: true })));
+    notifyUnreadChanged();
+  };
+
+  const openNotificationDeal = async (notification) => {
+    if (!notification.is_read) {
+      const { data } = await supabase.auth.getSession();
+      if (data.session) {
+        await fetch('/api/notifications', {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${data.session.access_token}` },
+          body: JSON.stringify({ id: notification.id }),
+        }).catch(() => {});
+        setNotifications((prev) => prev.map((item) => item.id === notification.id ? { ...item, is_read: true } : item));
+        notifyUnreadChanged();
+      }
+    }
+    router.push(`/deal/${notification.deal_id}`);
+  };
 
   const useSuggestion = (keyword) => {
     setField('keyword', keyword);
@@ -200,6 +251,45 @@ export function AlertModal({ user, token: tokenProp, lang, villes = [], onClose 
         <div className="dilz-alert-modal__body">
           {activeTab === 'list' && (
             <>
+            <section className="dilz-alert-results" aria-labelledby="alert-results-title">
+              <div className="dilz-alert-section-heading">
+                <h3 id="alert-results-title">
+                  Alert results
+                  {unreadNotifications > 0 && <span className="dilz-notif-badge">{unreadNotifications}</span>}
+                </h3>
+                {unreadNotifications > 0 && (
+                  <button type="button" className="dilz-button dilz-button--secondary dilz-button--sm" onClick={markAllNotificationsRead}>
+                    Mark all read
+                  </button>
+                )}
+              </div>
+              {notificationsLoading ? (
+                <div className="dilz-empty-state"><div className="dilz-spinner" /></div>
+              ) : notifications.length === 0 ? (
+                <div className="dilz-empty-state">
+                  <p className="dilz-empty-state__title">No alert results yet</p>
+                  <p className="dilz-empty-state__text">Matching deals and followed author posts will appear here.</p>
+                </div>
+              ) : (
+                <div className="dilz-notif-sheet__list">
+                  {notifications.map((notification) => (
+                    <button
+                      key={notification.id}
+                      type="button"
+                      className={['dilz-notif-item', !notification.is_read && 'is-unread'].filter(Boolean).join(' ')}
+                      onClick={() => openNotificationDeal(notification)}
+                    >
+                      <span className="dilz-notif-item__dot" aria-hidden="true" />
+                      <div className="dilz-notif-item__body">
+                        <p className="dilz-notif-item__title">{notification.title}</p>
+                        <p className="dilz-notif-item__message">{notification.message}</p>
+                      </div>
+                      <span className="dilz-notif-item__time">{timeAgoShort(notification.created_at)}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </section>
             {loading ? (
               <div className="dilz-empty-state">
                 <div className="dilz-spinner" />

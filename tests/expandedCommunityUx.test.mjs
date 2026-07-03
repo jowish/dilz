@@ -227,7 +227,7 @@ test('compact and row views remain bounded while global zoom and horizontal drif
   assert.match(documentPage, /maximum-scale=1, user-scalable=no/);
 });
 
-test('notification bell opens a static panel without a draggable sheet handle', () => {
-  assert.match(notificationSheet, /dilz-notification-sheet/);
-  assert.doesNotMatch(notificationSheet, /dilz-sheet__handle/);
+test('alert notifications render inside the Alerts page without a draggable sheet handle', () => {
+  assert.match(alerts, /dilz-alert-results/);
+  assert.doesNotMatch(alerts, /dilz-sheet__handle/);
 });

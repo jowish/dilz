@@ -11,7 +11,6 @@ import { DealCard as PremiumDealCard } from '../components/deals/DealCard';
 import { PromoCard } from '../components/deals/PromoCard';
 import { PromoModal } from '../components/deals/PromoModal';
 import { CityModal } from '../components/ui/CityModal';
-import { NotificationSheet } from '../components/ui/NotificationSheet';
 import { Button } from '../components/ui/Button';
 import { EmptyState } from '../components/ui/EmptyState';
 import { SectionHeader } from '../components/ui/SectionHeader';
@@ -74,7 +73,7 @@ const URL_TO_TAB = {
 const PROMO_SORTS = ['discount', 'liked', 'recent', 'price_asc'];
 const DEAL_SORTS = ['hot', 'latest', 'nearby', 'ending', 'comments'];
 const DEAL_COLLECTIONS = ['all', 'codes', 'free'];
-const URL_ACTIONS = ['menu', 'post_deal', 'city', 'alerts', 'notifications', 'view_promo'];
+const URL_ACTIONS = ['menu', 'post_deal', 'city', 'alerts', 'view_promo'];
 const CATEGORY_ICONS = Object.fromEntries(CATEGORIES.map((category) => [category, '']));
 const DEAL_PAGE_SIZE = 25;
 const PRIMARY_DEAL_FILTERS = ['latest', 'all', 'comments'];
@@ -689,10 +688,7 @@ export default function Home() {
   const [showMainMenu, setShowMainMenu] = useState(false);
   const [postSuccess, setPostSuccess] = useState(false);
 
-  // Alerts & Notifications
-  const [showNotificationSheet, setShowNotificationSheet] = useState(false);
-  const [notifications, setNotifications] = useState([]);
-  const [unreadCount, setUnreadCount] = useState(0);
+  // Alerts
   const [adminToken, setAdminToken] = useState('');
   const loadMoreDealsRef = useRef(null);
   const dealListEndRef = useRef(null);
@@ -775,14 +771,6 @@ export default function Home() {
               return next;
             });
           }).catch(() => {});
-        fetch('/api/notifications', { headers: { 'Authorization': `Bearer ${data.session.access_token}` } })
-          .then(r => r.ok ? r.json() : null)
-          .then(d => {
-            if (d) {
-              setNotifications(d.notifications || []);
-              setUnreadCount((d.notifications || []).filter(n => !n.is_read).length);
-            }
-          }).catch(() => {});
         fetch('/api/safety', { headers: { 'Authorization': `Bearer ${data.session.access_token}` } })
           .then(r => r.ok ? r.json() : null)
           .then(d => { if (d) setBlockedUserIds(d.blockedUserIds || []); })
@@ -825,7 +813,6 @@ export default function Home() {
     }
     setShowMainMenu(next.action === 'menu');
     setShowCityModal(next.action === 'city');
-    setShowNotificationSheet(next.action === 'notifications');
     setSelectedPromoBarcode(next.action === 'view_promo' ? next.selectedPromoBarcode : null);
     if (next.action !== 'view_promo') setSelectedPromo(null);
 
@@ -858,9 +845,7 @@ export default function Home() {
           ? 'menu'
           : showCityModal
             ? 'city'
-            : showNotificationSheet
-                ? 'notifications'
-                : null,
+            : null,
       selectedPromoBarcode,
     });
     const currentUrl = router.asPath.split('#')[0] || '/';
@@ -883,7 +868,6 @@ export default function Home() {
     searchQuery,
     showMainMenu,
     showCityModal,
-    showNotificationSheet,
     selectedPromoBarcode,
   ]);
 
@@ -1331,15 +1315,12 @@ export default function Home() {
           cityLabel={cityLabel}
           onCityClick={() => setShowCityModal(true)}
           user={user}
-          unreadCount={unreadCount}
-          onNotificationsClick={() => user ? setShowNotificationSheet(true) : router.push('/auth?redirect=/alerts')}
           onLogoClick={() => setTab('deals')}
           onPostDeal={() => user ? router.push('/post') : router.push('/auth?redirect=/post')}
           onSearch={() => setTab('search')}
           searchValue={searchQuery}
           onSearchChange={(event) => setSearchQuery(event.target.value)}
           onCommunity={() => setTab('deals')}
-          onAlerts={() => user ? router.push('/alerts') : router.push('/auth?redirect=/alerts')}
           activeTab={tab}
           showSearch={tab !== 'profile'}
         />
@@ -1717,26 +1698,6 @@ export default function Home() {
             lang={lang}
             onSelect={handleCitySelect}
             onClose={() => setShowCityModal(false)}
-          />
-        )}
-        {showNotificationSheet && user && (
-          <NotificationSheet
-            user={user}
-            lang={lang}
-            notifications={notifications}
-            onClose={() => setShowNotificationSheet(false)}
-            onMarkAllRead={async () => {
-              const { data } = await supabase.auth.getSession();
-              if (!data.session) return;
-              await fetch('/api/notifications', {
-                method: 'PATCH',
-                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${data.session.access_token}` },
-                body: JSON.stringify({ markAllRead: true }),
-              }).catch(() => {});
-              setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })));
-              setUnreadCount(0);
-            }}
-            onOpenAlerts={() => router.push('/alerts')}
           />
         )}
       </div>

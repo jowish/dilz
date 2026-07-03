@@ -31,6 +31,16 @@ test('alerts page exposes popular suggestions and author follows', () => {
   assert.match(alerts, /aria-pressed=\{candidate\.is_following\}/);
 });
 
+test('alerts page owns notification results and read state', () => {
+  assert.match(alerts, /fetch\('\/api\/notifications'/);
+  assert.match(alerts, /const \[notifications, setNotifications\] = useState\(\[\]\)/);
+  assert.match(alerts, /id="alert-results-title"/);
+  assert.match(alerts, /Alert results/);
+  assert.match(alerts, /markAllNotificationsRead/);
+  assert.match(alerts, /openNotificationDeal\(notification\)/);
+  assert.match(alerts, /window\.dispatchEvent\(new Event\('dilz:notifications-read'\)\)/);
+});
+
 test('new alerts can target a deal category', () => {
   assert.match(alerts, /DEAL_CATEGORIES, getDealCategoryLabel/);
   assert.match(alerts, /category: ''/);

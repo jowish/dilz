@@ -24,7 +24,7 @@ import {
 // where it was, instead of snapping straight to the new tab.
 let persistedIdx = null;
 
-export function BottomNav({ lang = 'en', activeTab, menuOpen = false, alertsOpen = false, postOpen = false, avatarUrl: avatarProp, onMenu, onTab, onPost, onAlerts, onProfile }) {
+export function BottomNav({ lang = 'en', activeTab, menuOpen = false, alertsOpen = false, postOpen = false, avatarUrl: avatarProp, unreadCount = 0, onMenu, onTab, onPost, onAlerts, onProfile }) {
   const isRtl = lang === 'he';
   const labels = lang === 'he'
     ? { search: 'חיפוש', deals: 'דילים', post: 'פרסום', alerts: 'התראות', profile: 'פרופיל', nav: 'ניווט מובייל' }
@@ -301,6 +301,11 @@ export function BottomNav({ lang = 'en', activeTab, menuOpen = false, alertsOpen
                 {item.id === 'profile' && avatarUrl
                   ? <img src={avatarUrl} alt="" className="dilz-bottom-nav__avatar" draggable={false} />
                   : <Icon active={active} color={postColor} />}
+                {item.id === 'alerts' && unreadCount > 0 && (
+                  <span className="dilz-bottom-nav__badge" aria-label={`${unreadCount} unread notifications`}>
+                    {unreadCount > 9 ? '9+' : unreadCount}
+                  </span>
+                )}
               </span>
               <span style={postColor ? { color: postColor } : undefined}>{item.label}</span>
             </button>
