@@ -55,7 +55,7 @@ test('the loupe is positioned via GPU transform, not Firefox-risky individual tr
   assert.match(nav, /transform \$\{glideMs\}ms \$\{ease\}/);
   assert.doesNotMatch(nav, /translate: pos/);
   assert.doesNotMatch(nav, /scale: `\$\{dragSwell\.toFixed\(3\)\}`/);
-  assert.doesNotMatch(css, /\.dilz-bottom-nav__loupe\s*\{[^}]*translate 360ms linear/s);
+  assert.doesNotMatch(css, /\.dilz-bottom-nav__loupe\s*\{[^}]*translate 320ms linear/s);
 });
 
 test('touch focuses the bubble under the finger before release navigation', () => {
@@ -66,7 +66,7 @@ test('touch focuses the bubble under the finger before release navigation', () =
   assert.match(nav, /const loupeCenter = isSwiping \? swipeCenter : \(touchFocusing \? touchFocusCenter : restIdx\)/);
   assert.match(nav, /transform \$\{glideMs\}ms \$\{ease\}/);
   assert.match(nav, /const ease = 'cubic-bezier\(0\.33, 0, 0\.2, 1\)'/);
-  assert.match(nav, /const glideMs = 360/);
+  assert.match(nav, /const glideMs = 320/);
   assert.doesNotMatch(nav, /const translateEase = 'linear'/);
   assert.doesNotMatch(nav, /translate \$\{glideMs\}ms \$\{translateEase\}/);
   assert.doesNotMatch(nav, /touchFocusing \? 180 : glideMs/);
@@ -149,6 +149,13 @@ test('the Post plus takes an explicit colour prop so it is legible on orange', (
 test('Post colour is orange by default and white once its bubble is orange', () => {
   assert.match(nav, /const postWhite = item\.post && \(active \|\| postLit\)/);
   assert.match(nav, /postWhite \? '#ffffff' : 'var\(--brand\)'/);
+});
+
+test('Post tint is intentional, not triggered by an automatic pass over Post', () => {
+  assert.match(nav, /const manualPostFocus = isSwiping \|\| touchFocusing/);
+  assert.match(nav, /const routeUsesPost = activeIdx === POST_IDX \|\| transitionFromPost/);
+  assert.match(nav, /const postTint = manualPostFocus \? computePostTint\(loupeCenter\) : \(routeUsesPost \? 1 : 0\)/);
+  assert.match(nav, /const postLit = manualPostFocus \? computePostLit\(loupeCenter\) : routeUsesPost/);
 });
 
 test('the profile tab can show the uploaded avatar photo', () => {

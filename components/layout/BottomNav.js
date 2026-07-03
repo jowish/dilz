@@ -17,6 +17,7 @@ import {
   touchToFraction,
   snapIndex,
   visualActiveIndex,
+  POST_IDX,
 } from '../../lib/bottomNav';
 
 // Persisted across page navigations (the module stays loaded for the whole SPA
@@ -45,6 +46,8 @@ export function BottomNav({ lang = 'en', activeTab, menuOpen = false, alertsOpen
   const lastValidIdx = useRef(rawActiveIdx >= 0 ? rawActiveIdx : 0);
   if (rawActiveIdx >= 0) lastValidIdx.current = rawActiveIdx;
   const activeIdx = rawActiveIdx >= 0 ? rawActiveIdx : lastValidIdx.current;
+  const ease = 'cubic-bezier(0.33, 0, 0.2, 1)';
+  const glideMs = 320;
 
   // Avatar: use prop if provided, otherwise read from the auth session
   const [avatarUrl, setAvatarUrl] = useState(avatarProp || '');
@@ -104,8 +107,23 @@ export function BottomNav({ lang = 'en', activeTab, menuOpen = false, alertsOpen
   const [pressed, setPressed] = useState(false); // finger down on the bar
   const swipeRef  = useRef(null);
   const tapFocusRef = useRef(null);
+  const previousActiveIdxRef = useRef(activeIdx);
+  const [transitionFromPost, setTransitionFromPost] = useState(false);
 
   const isSwiping = swipeRef.current?.started === true;
+
+  useEffect(() => {
+    const fromIdx = previousActiveIdxRef.current;
+    previousActiveIdxRef.current = activeIdx;
+    if (fromIdx === activeIdx) return undefined;
+
+    const startedFromPost = fromIdx === POST_IDX;
+    setTransitionFromPost(startedFromPost);
+    if (!startedFromPost) return undefined;
+
+    const timeout = window.setTimeout(() => setTransitionFromPost(false), glideMs + 80);
+    return () => window.clearTimeout(timeout);
+  }, [activeIdx, glideMs]);
 
   // Where the bubble sits before the mount-glide: the previous page's position
   // (persisted) if we have one, otherwise the current tab (first ever load).
@@ -215,10 +233,13 @@ export function BottomNav({ lang = 'en', activeTab, menuOpen = false, alertsOpen
   // otherwise it's the active tab.
   const visualActiveIdx = visualActiveIndex(loupeCenter, activeIdx, isSwiping || touchFocusing);
 
-  // The bubble tints orange as the focus enters the Post zone, fully orange
-  // once centred; the plus + label then invert to white so they stay legible.
-  const postTint = computePostTint(loupeCenter);
-  const postLit = computePostLit(loupeCenter);
+  // The Post tint only reacts to intent. Manual drag/focus may fade as the
+  // finger crosses Post; automatic glides tint only when Post is the source or
+  // destination, avoiding a visual catch while merely passing over it.
+  const manualPostFocus = isSwiping || touchFocusing;
+  const routeUsesPost = activeIdx === POST_IDX || transitionFromPost;
+  const postTint = manualPostFocus ? computePostTint(loupeCenter) : (routeUsesPost ? 1 : 0);
+  const postLit = manualPostFocus ? computePostLit(loupeCenter) : routeUsesPost;
 
   // When pressed / dragging the bubble grows uniformly: same exact shape, just
   // larger, so the liquid drop can spill slightly beyond the compact bar.
@@ -230,9 +251,6 @@ export function BottomNav({ lang = 'en', activeTab, menuOpen = false, alertsOpen
   // with distance: a long sweep across the bar covers ground quickly (feels
   // dynamic) while a hop to a neighbour takes the same time over less distance
   // (slow and smooth) — exactly the calm feel wanted for adjacent menus.
-  const ease = 'cubic-bezier(0.33, 0, 0.2, 1)';
-  const glideMs = 360;
-
   // Position + swell via a single transform. Avoid the newer individual
   // translate/scale CSS properties so Firefox and older WebViews render the app.
   const loupeStyle = {
