@@ -40,7 +40,7 @@ export function DealCard({
   const trust = isStorePromo ? text.storePromo : text.community;
   const authorName = deal.auteur_nom || (isOwner ? text.you : text.member);
   const commentCount = Number(deal.commentaires?.[0]?.count || deal.comments_count || 0);
-  const hideShareInRow = layout === 'list';
+  const hideShareInRow = layout === 'list' || layout === 'spotlight';
   const city = deal.ville && !isOnline
     ? (translateCity ? translateCity(deal.ville, lang === 'he' ? 'he' : 'en') : deal.ville)
     : text.online;
@@ -64,7 +64,7 @@ export function DealCard({
   const shareMenuId = `deal-share-${deal.id}`;
 
   return (
-    <article className={['dilz-card', 'dilz-deal-card', layout === 'list' && 'is-list', layout === 'compact' && 'is-compact'].filter(Boolean).join(' ')} onClick={go}>
+    <article className={['dilz-card', 'dilz-deal-card', layout === 'list' && 'is-list', layout === 'compact' && 'is-compact', layout === 'spotlight' && 'is-spotlight'].filter(Boolean).join(' ')} onClick={go}>
       <div className="dilz-deal-card__media">
         {primaryImage ? (
           <img src={primaryImage} alt={deal.titre} onError={(event) => { event.currentTarget.style.display = 'none'; }} />

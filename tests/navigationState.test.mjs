@@ -135,8 +135,10 @@ test('dealViewState returns all-deals state for the "all" viewId', () => {
   assert.equal(state.myDealsOnly, false);
 });
 
-test('resolveDealLayout accepts compact and list as saved preferences', () => {
+test('resolveDealLayout accepts compact, list and spotlight as saved preferences', () => {
   assert.equal(resolveDealLayout({ savedLayout: 'compact' }), 'compact');
   assert.equal(resolveDealLayout({ savedLayout: 'list' }), 'list');
+  assert.equal(resolveDealLayout({ savedLayout: 'spotlight' }), 'spotlight');
+  assert.equal(resolveDealLayout({ requestedLayout: 'spotlight', savedLayout: 'list' }), 'spotlight');
   assert.equal(resolveDealLayout({ savedLayout: 'unknown' }), 'card');
 });

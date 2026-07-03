@@ -50,6 +50,7 @@ test('only the retained view switch polish remains after SmoothUI rollback', () 
   assert.match(css, /\.dilz-layout-toggle\s*\{[^}]*border-radius:\s*18px !important/s);
   assert.match(css, /\.dilz-layout-toggle button\s*\{[^}]*width:\s*38px !important/s);
   assert.match(css, /\.dilz-layout-toggle button\.is-active\s*\{[^}]*border:\s*1px solid var\(--text-primary\) !important/s);
+  assert.match(css, /\.dilz-feed-grid\.is-spotlight/);
 });
 
 test('bottom navigation exposes Deals Explore Post Alerts Profile with route compatibility', () => {

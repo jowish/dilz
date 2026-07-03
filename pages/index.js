@@ -1522,13 +1522,7 @@ export default function Home() {
                     es: `${displayedDealCount} deals`,
                   })}
                 </span>
-                <button type="button" className="dilz-map-quick-btn" onClick={openMap} aria-label={lang === 'he' ? 'פתיחת מפת דילז' : 'Open Dilz map'}>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                    <path d="M9 18 3 21V6l6-3 6 3 6-3v15l-6 3-6-3Z" />
-                    <path d="M9 3v15M15 6v15" />
-                  </svg>
-                </button>
-                <div className="dilz-layout-toggle" aria-label={lang === 'he' ? 'אפשרויות תצוגה' : 'Dilz display options'}>
+                <div className="dilz-layout-toggle" aria-label={lang === 'he' ? 'Display options' : 'Dilz display options'}>
                   <button
                     type="button"
                     className={dealLayout === 'card' ? 'is-active' : ''}
@@ -1557,6 +1551,27 @@ export default function Home() {
                   >
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
                       <rect x="3" y="3" width="8" height="8" rx="1"/><rect x="13" y="3" width="8" height="8" rx="1"/><rect x="3" y="13" width="8" height="8" rx="1"/><rect x="13" y="13" width="8" height="8" rx="1"/>
+                    </svg>
+                  </button>
+                  <button
+                    type="button"
+                    className={dealLayout === 'spotlight' ? 'is-active' : ''}
+                    onClick={() => changeDealLayout('spotlight')}
+                    aria-label="Spotlight view"
+                  >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
+                      <rect x="3" y="4" width="7" height="16" rx="2"/>
+                      <path d="M14 7h7M14 12h6M14 17h4"/>
+                    </svg>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={openMap}
+                    aria-label={lang === 'he' ? 'Map view' : 'Map view'}
+                  >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                      <path d="M9 18 3 21V6l6-3 6 3 6-3v15l-6 3-6-3Z" />
+                      <path d="M9 3v15M15 6v15" />
                     </svg>
                   </button>
                 </div>
@@ -1603,7 +1618,7 @@ export default function Home() {
               ) : (
                 <>
                   {displayedDeals.length > 0 && (
-                    <div className={['dilz-feed-grid', dealLayout === 'list' && 'is-list', dealLayout === 'compact' && 'is-compact'].filter(Boolean).join(' ')}>
+                    <div className={['dilz-feed-grid', dealLayout === 'list' && 'is-list', dealLayout === 'compact' && 'is-compact', dealLayout === 'spotlight' && 'is-spotlight'].filter(Boolean).join(' ')}>
                     {displayedDeals.map(deal => (
                       <PremiumDealCard
                         key={deal.id} deal={deal} lang={lang} isDark={isDark}

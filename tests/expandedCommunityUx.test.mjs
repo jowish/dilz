@@ -190,6 +190,9 @@ test('bottom nav uses Explore as the visible discover tab while keeping the sear
 
 test('display toggles keep visible active icons and start with a single card icon', () => {
   assert.match(home, /aria-label="Card view"[\s\S]*<svg width="18" height="18"[\s\S]*<rect x="4" y="4" width="16" height="16" rx="3\.5"\/>/);
+  assert.match(home, /aria-label="Spotlight view"/);
+  assert.match(home, /aria-label=\{lang === 'he' \? 'Map view' : 'Map view'\}/);
+  assert.doesNotMatch(home, /className="dilz-map-quick-btn"/);
   assert.match(css, /\.dilz-layout-toggle button\.is-active\s*\{[^}]*background:\s*var\(--surface-main\)\s*!important/s);
   assert.match(css, /\.dilz-layout-toggle button\.is-active\s*\{[^}]*border:\s*1px solid var\(--text-primary\)\s*!important/s);
 });
@@ -211,8 +214,10 @@ test('community promo codes are user-submittable and protected by database polic
 
 test('compact and row views remain bounded while global zoom and horizontal drift are disabled', () => {
   assert.match(home, /is-compact/);
-  assert.match(dealCard, /hideShareInRow = layout === 'list'/);
+  assert.match(home, /is-spotlight/);
+  assert.match(dealCard, /hideShareInRow = layout === 'list' \|\| layout === 'spotlight'/);
   assert.match(dealCard, /is-row-without-share/);
+  assert.match(dealCard, /layout === 'spotlight' && 'is-spotlight'/);
   assert.match(css, /\.dilz-feed-grid\.is-compact[^}]*repeat\(4/);
   assert.match(css, /@media \(max-width: 767px\)[\s\S]*\.dilz-feed-grid\.is-compact[^}]*repeat\(2/);
   assert.match(css, /\.dilz-deal-card\.is-list \.dilz-deal-card__description[^}]*-webkit-line-clamp:\s*1/);
@@ -223,6 +228,9 @@ test('compact and row views remain bounded while global zoom and horizontal drif
   assert.match(css, /\.dilz-deal-card__price-row strong\s*\{[^}]*white-space:\s*nowrap/s);
   assert.match(css, /\.dilz-deal-card__price-row > span:not\(\.dilz-deal-card__price-context\)\s*\{[^}]*white-space:\s*nowrap/s);
   assert.match(css, /@media \(max-width: 767px\)[\s\S]*\.dilz-feed-grid\.is-list \.dilz-deal-card\.is-list\s*\{[^}]*grid-template-columns:\s*74px minmax\(0, 1fr\)/s);
+  assert.match(css, /\.dilz-feed-grid\.is-spotlight \.dilz-deal-card\.is-spotlight\s*\{[^}]*grid-template-columns:\s*138px minmax\(0, 1fr\)/s);
+  assert.match(css, /\.dilz-feed-grid\.is-spotlight \.dilz-deal-card\.is-spotlight \.dilz-deal-card__media\s*\{[^}]*aspect-ratio:\s*3 \/ 4/s);
+  assert.match(css, /@media \(max-width: 767px\)[\s\S]*\.dilz-feed-grid\.is-spotlight \.dilz-deal-card\.is-spotlight\s*\{[^}]*grid-template-columns:\s*108px minmax\(0, 1fr\)/s);
   assert.match(css, /overflow-x:\s*hidden/);
   assert.match(documentPage, /maximum-scale=1, user-scalable=no/);
 });
