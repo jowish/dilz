@@ -1167,6 +1167,20 @@ textarea:focus {
   right: 10px;
 }
 
+.dilz-deal-card__save .dilz-icon-button,
+.dilz-deal-card__spotlight-save .dilz-icon-button {
+  width: 27px;
+  height: 27px;
+  min-width: 27px;
+  min-height: 27px;
+}
+
+.dilz-deal-card__save .dilz-icon-button svg,
+.dilz-deal-card__spotlight-save .dilz-icon-button svg {
+  width: 13px;
+  height: 13px;
+}
+
 .dilz-deal-card__trust {
   position: absolute;
   left: 10px;
@@ -8757,24 +8771,29 @@ select:focus,
 
   .dilz-deal-toolbar .dilz-view-switcher button {
     min-height: 34px;
-    padding: 5px 9px;
+    padding: 5px 8px;
     font-size: 12px;
   }
 
   .dilz-deal-toolbar .dilz-view-switcher__select-wrap {
-    flex: 0 0 64px;
-    width: 64px;
+    flex: 0 0 58px;
+    width: 58px;
     min-height: 34px;
+  }
+
+  .dilz-deal-toolbar .dilz-view-switcher__select-wrap--display {
+    flex-basis: 72px;
+    width: 72px;
   }
 
   .dilz-deal-toolbar .dilz-view-switcher__select {
     min-height: 32px;
-    padding: 0 22px 0 9px;
+    padding: 0 20px 0 8px;
     font-size: 12px;
   }
 
   .dilz-deal-toolbar .dilz-view-switcher__select-chevron {
-    right: 10px;
+    right: 9px;
     width: 7px;
     height: 7px;
   }

@@ -177,18 +177,20 @@ export function DealCard({
         <div className="dilz-deal-card__price-row">
           <strong>{formatPrice(deal.prix)} ₪</strong>
           {deal.prix_original && <span>{formatPrice(deal.prix_original)} ₪</span>}
-          <span className="dilz-deal-card__price-context">
-            <span>{deal.categorie || text.deal}</span>
-            <span><CommentIcon /> {commentCount}</span>
-          </span>
+          {commentCount > 0 && (
+            <span className="dilz-deal-card__price-context">
+              <span><CommentIcon /> {commentCount}</span>
+            </span>
+          )}
         </div>
         <div className="dilz-deal-card__meta">
-          <span>{deal.categorie || text.deal}</span>
           <span>{ending || timeAgo(deal.created_at, lang)}</span>
           <span>{isOnline ? text.online : text.inStore}</span>
-          <span className="dilz-deal-card__comment-meta">
-            <CommentIcon /> {commentCount}
-          </span>
+          {commentCount > 0 && (
+            <span className="dilz-deal-card__comment-meta">
+              <CommentIcon /> {commentCount}
+            </span>
+          )}
         </div>
         <div className="dilz-deal-card__actions" onClick={(event) => event.stopPropagation()}>
           <div className="dilz-vote-pill" aria-label={text.voteControls}>

@@ -188,14 +188,17 @@ test('bottom nav uses Explore as the visible discover tab while keeping the sear
   assert.match(explorePage, /href="\/gratuit"/);
 });
 
-test('display toggles keep visible active icons and start with a single card icon', () => {
-  assert.match(home, /aria-label="Card view"[\s\S]*<svg width="18" height="18"[\s\S]*<rect x="4" y="4" width="16" height="16" rx="3\.5"\/>/);
+test('display control is a compact dropdown and no longer consumes toolbar width', () => {
+  assert.match(home, /dilz-view-switcher__select-wrap--display/);
+  assert.match(home, /<option value="card">Display<\/option>/);
+  assert.match(home, /<option value="compact">Compact<\/option>/);
+  assert.match(home, /<option value="spotlight">Row<\/option>/);
+  assert.match(home, /<option value="map">Map<\/option>/);
   assert.doesNotMatch(home, /aria-label="List view"/);
-  assert.match(home, /aria-label="Spotlight view"/);
-  assert.match(home, /aria-label=\{lang === 'he' \? 'Map view' : 'Map view'\}/);
+  assert.doesNotMatch(home, /className="dilz-view-switcher__count"/);
+  assert.doesNotMatch(home, /className="dilz-layout-toggle"/);
   assert.doesNotMatch(home, /className="dilz-map-quick-btn"/);
-  assert.match(css, /\.dilz-layout-toggle button\.is-active\s*\{[^}]*background:\s*var\(--surface-main\)\s*!important/s);
-  assert.match(css, /\.dilz-layout-toggle button\.is-active\s*\{[^}]*border:\s*1px solid var\(--text-primary\)\s*!important/s);
+  assert.match(css, /\.dilz-deal-toolbar \.dilz-view-switcher__select-wrap--display\s*\{[^}]*width:\s*72px/s);
 });
 
 test('search result deal cards keep actions inside the card boundary', () => {
@@ -225,6 +228,8 @@ test('compact and spotlight views remain bounded while global zoom and horizonta
   assert.match(dealCard, /dilz-deal-card__expired-stamp">Expired/);
   assert.match(dealCard, /dilz-deal-card__spotlight-tools/);
   assert.match(dealCard, /dilz-deal-card__spotlight-save/);
+  assert.match(dealCard, /commentCount > 0 &&/);
+  assert.doesNotMatch(dealCard, /<span>\{deal\.categorie \|\| text\.deal\}<\/span>/);
   assert.doesNotMatch(dealCard, /\{isOwner && <span>\{text\.myDeal\}<\/span>\}/);
   assert.match(dealCard, /className="dilz-owner-edit"/);
   assert.match(dealCard, /dilzEditDealOnOpen/);
@@ -242,6 +247,7 @@ test('compact and spotlight views remain bounded while global zoom and horizonta
   assert.match(css, /\.dilz-feed-grid\.is-list \.dilz-deal-card\.is-list \.dilz-deal-card__right-actions\.is-row-without-share > \.dilz-icon-button,[\s\S]*display:\s*none !important/s);
   assert.match(css, /\.dilz-deal-card__price-row strong\s*\{[^}]*background:\s*var\(--brand-soft\)/s);
   assert.match(css, /\.dilz-deal-price\s*\{[^}]*background:\s*var\(--brand-soft\)/s);
+  assert.match(css, /\.dilz-deal-card__save \.dilz-icon-button,[\s\S]*width:\s*27px/s);
   assert.match(css, /\.dilz-deal-card__price-row strong\s*\{[^}]*white-space:\s*nowrap/s);
   assert.match(css, /\.dilz-deal-card__price-row > span:not\(\.dilz-deal-card__price-context\)\s*\{[^}]*white-space:\s*nowrap/s);
   assert.match(css, /@media \(max-width: 767px\)[\s\S]*\.dilz-feed-grid\.is-list \.dilz-deal-card\.is-list\s*\{[^}]*grid-template-columns:\s*74px minmax\(0, 1fr\)/s);

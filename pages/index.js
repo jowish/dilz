@@ -147,7 +147,7 @@ function isPrimaryDealFilterActive(id, { sortDeals, categoryFilter, myDealsOnly,
 
 function selectedOtherDealFilter({ sortDeals, categoryFilter, myDealsOnly, dealCollection }) {
   if (myDealsOnly) return 'mine';
-  if (dealCollection === 'active') return '';
+  if (dealCollection === 'active') return 'active';
   if (categoryFilter !== 'all') return categoryFilter;
   if (PRIMARY_DEAL_FILTERS.includes(sortDeals)) return '';
   return sortDeals || '';
@@ -1483,7 +1483,6 @@ export default function Home() {
                   { id: 'latest', label: 'New' },
                   { id: 'all', label: 'Hot' },
                   { id: 'comments', label: 'Trending' },
-                  { id: 'active', label: 'Active' },
                 ].map(view => (
                   <button
                     key={view.id}
@@ -1516,6 +1515,7 @@ export default function Home() {
                     aria-label="Other filters"
                   >
                     <option value="">Other</option>
+                    <option value="active">Active</option>
                     <option value="all">All</option>
                     {userCoords && <option value="nearby">Near me</option>}
                     <option value="ending">Ending soon</option>
@@ -1529,57 +1529,26 @@ export default function Home() {
                 </div>
 
                 <div className="dilz-feed-controls" aria-label={lang === 'he' ? 'פקדי פיד דילז' : 'Dilz feed controls'}>
-                <span className="dilz-view-switcher__count">
-                  {textFor(lang, {
-                    en: `${displayedDealCount} deals`,
-                    he: `${displayedDealCount} דילים`,
-                    fr: `${displayedDealCount} deals`,
-                    es: `${displayedDealCount} deals`,
-                  })}
+                <span className="dilz-view-switcher__select-wrap dilz-view-switcher__select-wrap--display">
+                  <select
+                    className="dilz-view-switcher__select"
+                    value={dealLayout}
+                    onChange={(event) => {
+                      if (event.target.value === 'map') {
+                        openMap();
+                        return;
+                      }
+                      changeDealLayout(event.target.value);
+                    }}
+                    aria-label={lang === 'he' ? 'Display options' : 'Display options'}
+                  >
+                    <option value="card">Display</option>
+                    <option value="compact">Compact</option>
+                    <option value="spotlight">Row</option>
+                    <option value="map">Map</option>
+                  </select>
+                  <span className="dilz-view-switcher__select-chevron" aria-hidden="true" />
                 </span>
-                <div className="dilz-layout-toggle" aria-label={lang === 'he' ? 'Display options' : 'Dilz display options'}>
-                  <button
-                    type="button"
-                    className={dealLayout === 'card' ? 'is-active' : ''}
-                    onClick={() => changeDealLayout('card')}
-                    aria-label="Card view"
-                  >
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden="true">
-                      <rect x="4" y="4" width="16" height="16" rx="3.5"/>
-                    </svg>
-                  </button>
-                  <button
-                    type="button"
-                    className={dealLayout === 'compact' ? 'is-active' : ''}
-                    onClick={() => changeDealLayout('compact')}
-                    aria-label="Compact card view"
-                  >
-                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
-                      <rect x="3" y="3" width="8" height="8" rx="1"/><rect x="13" y="3" width="8" height="8" rx="1"/><rect x="3" y="13" width="8" height="8" rx="1"/><rect x="13" y="13" width="8" height="8" rx="1"/>
-                    </svg>
-                  </button>
-                  <button
-                    type="button"
-                    className={dealLayout === 'spotlight' ? 'is-active' : ''}
-                    onClick={() => changeDealLayout('spotlight')}
-                    aria-label="Spotlight view"
-                  >
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
-                      <rect x="3" y="4" width="7" height="16" rx="2"/>
-                      <path d="M14 7h7M14 12h6M14 17h4"/>
-                    </svg>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={openMap}
-                    aria-label={lang === 'he' ? 'Map view' : 'Map view'}
-                  >
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                      <path d="M9 18 3 21V6l6-3 6 3 6-3v15l-6 3-6-3Z" />
-                      <path d="M9 3v15M15 6v15" />
-                    </svg>
-                  </button>
-                </div>
                 </div>
               </div>
 

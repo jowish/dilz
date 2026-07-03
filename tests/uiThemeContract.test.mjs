@@ -47,9 +47,7 @@ test('light mode borders stay visible enough on white surfaces', () => {
 test('only the retained view switch polish remains after SmoothUI rollback', () => {
   assert.doesNotMatch(css, /SmoothUI-inspired visual polish layer/);
   assert.match(css, /Retained view switch polish: cards, rows and small cards only/);
-  assert.match(css, /\.dilz-layout-toggle\s*\{[^}]*border-radius:\s*18px !important/s);
-  assert.match(css, /\.dilz-layout-toggle button\s*\{[^}]*width:\s*38px !important/s);
-  assert.match(css, /\.dilz-layout-toggle button\.is-active\s*\{[^}]*border:\s*1px solid var\(--text-primary\) !important/s);
+  assert.match(css, /\.dilz-deal-toolbar \.dilz-view-switcher__select-wrap--display\s*\{[^}]*width:\s*72px/s);
   assert.match(css, /\.dilz-feed-grid\.is-spotlight/);
 });
 
@@ -66,8 +64,8 @@ test('the menu sheet ends above the visible mobile navigation', () => {
   assert.match(css, /\.dilz-main-menu__backdrop\{[^}]*z-index:900/s);
 });
 
-test('deal count remains legible in dark mode', () => {
-  assert.match(css, /\.dark \.dilz-view-switcher__count\s*\{[^}]*background:\s*#1A2A40[^}]*color:\s*#F8FAFC/s);
+test('display dropdown remains compact in the deal toolbar', () => {
+  assert.match(css, /\.dilz-deal-toolbar \.dilz-view-switcher__select-wrap--display\s*\{[^}]*width:\s*72px/s);
 });
 
 test('desktop pages keep the document as the only vertical scroller', () => {
