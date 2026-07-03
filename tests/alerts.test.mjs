@@ -17,6 +17,12 @@ test('rejects a city mismatch', () => {
   assert.equal(matchDealToAlert({ ville: 'Haifa' }, { city: 'Tel Aviv' }), false);
 });
 
+test('matches exact deal categories', () => {
+  assert.equal(matchDealToAlert({ categorie: 'Tech' }, { category: 'Tech' }), true);
+  assert.equal(matchDealToAlert({ categorie: 'Food' }, { category: 'Tech' }), false);
+  assert.equal(matchDealToAlert({ categorie: 'Other' }, { category: 'Other' }), true);
+});
+
 test('matches city case-insensitively', () => {
   assert.equal(matchDealToAlert({ ville: 'TEL AVIV' }, { city: 'tel aviv' }), true);
 });

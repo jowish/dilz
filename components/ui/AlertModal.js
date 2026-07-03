@@ -3,10 +3,12 @@ import { supabase } from '../../lib/supabase';
 import { registerNativePushToken } from '../../lib/nativeApp';
 import { CityPicker } from './CityPicker';
 import { cityDisplayName } from '../../lib/israelCities';
+import { DEAL_CATEGORIES, getDealCategoryLabel } from '../../lib/dealCategories';
 
 function alertSummary(a, lang) {
   const parts = [];
   if (a.city) parts.push(cityDisplayName(a.city, lang));
+  if (a.category) parts.push(getDealCategoryLabel(a.category, lang));
   if (a.online_only) parts.push('Online');
   if (a.min_discount_percent != null) parts.push(`-${a.min_discount_percent}%+`);
   if (a.keyword) parts.push(`"${a.keyword}"`);
@@ -17,7 +19,7 @@ export function AlertModal({ user, token: tokenProp, lang, villes = [], onClose 
   const [activeTab, setActiveTab] = useState('list');
   const [alerts, setAlerts] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [form, setForm] = useState({ city: '', online_only: false, min_discount_percent: '', keyword: '' });
+  const [form, setForm] = useState({ city: '', category: '', online_only: false, min_discount_percent: '', keyword: '' });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [followUsers, setFollowUsers] = useState([]);
@@ -67,6 +69,7 @@ export function AlertModal({ user, token: tokenProp, lang, villes = [], onClose 
 
     const body = {
       city: form.city || null,
+      category: form.category || null,
       online_only: form.online_only,
       min_discount_percent: form.min_discount_percent !== '' ? Number(form.min_discount_percent) : null,
       keyword: form.keyword.trim() || null,
@@ -109,7 +112,7 @@ export function AlertModal({ user, token: tokenProp, lang, villes = [], onClose 
     const result = await res.json();
     if (!res.ok) { setError(result.erreur || 'Could not create alert.'); setSaving(false); return; }
     setAlerts((prev) => [result.alert, ...prev]);
-    setForm({ city: '', online_only: false, min_discount_percent: '', keyword: '' });
+    setForm({ city: '', category: '', online_only: false, min_discount_percent: '', keyword: '' });
     setActiveTab('list');
     setSaving(false);
   };
@@ -282,6 +285,20 @@ export function AlertModal({ user, token: tokenProp, lang, villes = [], onClose 
                   lang={lang}
                   onChange={(city) => setField('city', city)}
                 />
+              </div>
+
+              <div className="dilz-field">
+                <label className="dilz-field__label">{lang !== 'he' ? 'Category (optional)' : 'Category (optional)'}</label>
+                <select
+                  className="dilz-input"
+                  value={form.category}
+                  onChange={(e) => setField('category', e.target.value)}
+                >
+                  <option value="">{lang !== 'he' ? 'Any category' : 'Any category'}</option>
+                  {DEAL_CATEGORIES.map((category) => (
+                    <option key={category} value={category}>{getDealCategoryLabel(category, lang)}</option>
+                  ))}
+                </select>
               </div>
 
               <label className="dilz-toggle-row">

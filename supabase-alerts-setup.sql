@@ -9,6 +9,7 @@ CREATE TABLE IF NOT EXISTS alerts (
   id                  UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   user_id             UUID NOT NULL,
   city                TEXT,
+  category            TEXT,
   online_only         BOOLEAN NOT NULL DEFAULT false,
   min_discount_percent NUMERIC(5,2),
   keyword             TEXT,
@@ -17,12 +18,16 @@ CREATE TABLE IF NOT EXISTS alerts (
   updated_at          TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
+ALTER TABLE alerts ADD COLUMN IF NOT EXISTS category TEXT;
+
 CREATE INDEX IF NOT EXISTS idx_alerts_user  ON alerts(user_id);
 CREATE INDEX IF NOT EXISTS idx_alerts_active ON alerts(is_active) WHERE is_active = true;
+DROP INDEX IF EXISTS idx_alerts_unique_criteria;
 CREATE UNIQUE INDEX IF NOT EXISTS idx_alerts_unique_criteria
   ON alerts (
     user_id,
     COALESCE(city, ''),
+    COALESCE(category, ''),
     online_only,
     COALESCE(min_discount_percent, -1),
     COALESCE(keyword, '')

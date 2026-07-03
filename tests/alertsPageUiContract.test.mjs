@@ -30,3 +30,11 @@ test('alerts page exposes popular suggestions and author follows', () => {
   assert.match(alerts, /dilz-following-summary/);
   assert.match(alerts, /aria-pressed=\{candidate\.is_following\}/);
 });
+
+test('new alerts can target a deal category', () => {
+  assert.match(alerts, /DEAL_CATEGORIES, getDealCategoryLabel/);
+  assert.match(alerts, /category: ''/);
+  assert.match(alerts, /category: form\.category \|\| null/);
+  assert.match(alerts, /DEAL_CATEGORIES\.map\(\(category\) =>/);
+  assert.match(alerts, /getDealCategoryLabel\(category, lang\)/);
+});

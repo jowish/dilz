@@ -45,7 +45,7 @@ export default async function handler(req, res) {
 
       const normalized = normalizeAlertInput(req.body);
       if (normalized.errors.length) return res.status(400).json({ erreur: normalized.errors[0] });
-      const { city, online_only, min_discount_percent, keyword } = normalized.value;
+      const { city, category, online_only, min_discount_percent, keyword } = normalized.value;
 
       // Rate limit per user
       const { count, error: countError } = await supabaseAdmin
@@ -66,6 +66,7 @@ export default async function handler(req, res) {
         .eq('online_only', online_only);
 
       duplicateQuery = city == null ? duplicateQuery.is('city', null) : duplicateQuery.eq('city', city);
+      duplicateQuery = category == null ? duplicateQuery.is('category', null) : duplicateQuery.eq('category', category);
       duplicateQuery = keyword == null ? duplicateQuery.is('keyword', null) : duplicateQuery.eq('keyword', keyword);
       duplicateQuery = min_discount_percent == null
         ? duplicateQuery.is('min_discount_percent', null)
@@ -80,7 +81,7 @@ export default async function handler(req, res) {
 
       const { data: rows, error } = await supabaseAdmin
         .from('alerts')
-        .insert([{ user_id: user.id, city, online_only, min_discount_percent, keyword }])
+        .insert([{ user_id: user.id, city, category, online_only, min_discount_percent, keyword }])
         .select('*');
 
       if (error?.code === '23505') {

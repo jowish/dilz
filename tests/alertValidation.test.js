@@ -8,14 +8,14 @@ const {
 } = require('../lib/alertValidation');
 
 test('normalizes all supported alert criteria', () => {
-  const result = normalizeAlertInput({ city: ' Tel Aviv ', online_only: 1, min_discount_percent: '25', keyword: ' shoes ' });
+  const result = normalizeAlertInput({ city: ' Tel Aviv ', category: ' Fashion ', online_only: 1, min_discount_percent: '25', keyword: ' shoes ' });
   assert.deepEqual(result.errors, []);
-  assert.deepEqual(result.value, { city: 'Tel Aviv', online_only: true, min_discount_percent: 25, keyword: 'shoes' });
+  assert.deepEqual(result.value, { city: 'Tel Aviv', category: 'Fashion', online_only: true, min_discount_percent: 25, keyword: 'shoes' });
 });
 
 for (const value of [undefined, null, '', '   ']) {
   test(`rejects an alert without criteria: ${String(value)}`, () => {
-    const result = normalizeAlertInput({ city: value, keyword: value, min_discount_percent: value });
+    const result = normalizeAlertInput({ city: value, category: value, keyword: value, min_discount_percent: value });
     assert.ok(result.errors.includes('At least one alert criterion is required.'));
   });
 }
@@ -45,6 +45,17 @@ test('online-only is a valid standalone criterion', () => {
   const result = normalizeAlertInput({ online_only: true });
   assert.deepEqual(result.errors, []);
   assert.equal(result.value.online_only, true);
+});
+
+test('category is a valid standalone alert criterion', () => {
+  const result = normalizeAlertInput({ category: 'Other' });
+  assert.deepEqual(result.errors, []);
+  assert.equal(result.value.category, 'Other');
+});
+
+test('rejects unsupported alert categories', () => {
+  const result = normalizeAlertInput({ category: 'Furniture' });
+  assert.ok(result.errors.includes('category is not supported.'));
 });
 
 test('optional text converts non-string values safely', () => {

@@ -163,11 +163,11 @@ test('normalizes blank optional fields to null', () => {
   assert.equal(result.value.url_source, null);
 });
 
-for (const category of ['Food', 'Supermarket', 'Restaurants', 'Tech', 'Home', 'Beauty', 'Health', 'Baby', 'Fashion', 'Sports', 'Travel', 'Activities', 'Services', 'Online']) {
+for (const category of ['Food', 'Supermarket', 'Restaurants', 'Tech', 'Home', 'Beauty', 'Health', 'Baby', 'Fashion', 'Sports', 'Travel', 'Activities', 'Services', 'Online', 'Other']) {
   test(`accepts category ${category}`, () => assert.equal(normalizeDealInput(validDeal({ categorie: category })).value.categorie, category));
 }
 
-for (const category of ['Other', 'food', '', null]) {
+for (const category of ['food', '', null]) {
   test(`normalizes unsupported category ${String(category)} to null`, () => assert.equal(normalizeDealInput(validDeal({ categorie: category })).value.categorie, null));
 }
 
