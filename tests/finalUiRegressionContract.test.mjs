@@ -79,7 +79,7 @@ test('map view protects visible markers, city chips and the full bottom results 
 });
 
 test('liquid bottom nav keeps the calm transition and subtle press zoom contract', () => {
-  assert.match(bottomNav, /const glideMs = 500/);
+  assert.match(bottomNav, /const glideMs = 400/);
   assert.match(bottomNav, /transform: `translateX\(\$\{pos\}\) scale\(\$\{dragSwell\.toFixed\(3\)\}\)`/);
   assert.match(bottomNav, /transform \$\{glideMs\}ms \$\{ease\}/);
   assert.doesNotMatch(bottomNav, /translate: pos/);

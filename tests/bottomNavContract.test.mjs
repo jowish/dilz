@@ -55,7 +55,7 @@ test('the loupe is positioned via GPU transform, not Firefox-risky individual tr
   assert.match(nav, /transform \$\{glideMs\}ms \$\{ease\}/);
   assert.doesNotMatch(nav, /translate: pos/);
   assert.doesNotMatch(nav, /scale: `\$\{dragSwell\.toFixed\(3\)\}`/);
-  assert.doesNotMatch(css, /\.dilz-bottom-nav__loupe\s*\{[^}]*translate 500ms linear/s);
+  assert.doesNotMatch(css, /\.dilz-bottom-nav__loupe\s*\{[^}]*translate 400ms linear/s);
 });
 
 test('touch focuses the bubble under the finger before release navigation', () => {
@@ -66,7 +66,7 @@ test('touch focuses the bubble under the finger before release navigation', () =
   assert.match(nav, /const loupeCenter = isSwiping \? swipeCenter : \(touchFocusing \? touchFocusCenter : restIdx\)/);
   assert.match(nav, /transform \$\{glideMs\}ms \$\{ease\}/);
   assert.match(nav, /const ease = 'cubic-bezier\(0\.33, 0, 0\.2, 1\)'/);
-  assert.match(nav, /const glideMs = 500/);
+  assert.match(nav, /const glideMs = 400/);
   assert.doesNotMatch(nav, /const translateEase = 'linear'/);
   assert.doesNotMatch(nav, /translate \$\{glideMs\}ms \$\{translateEase\}/);
   assert.doesNotMatch(nav, /touchFocusing \? 180 : glideMs/);

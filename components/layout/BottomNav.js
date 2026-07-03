@@ -231,7 +231,7 @@ export function BottomNav({ lang = 'en', activeTab, menuOpen = false, alertsOpen
   // dynamic) while a hop to a neighbour takes the same time over less distance
   // (slow and smooth) — exactly the calm feel wanted for adjacent menus.
   const ease = 'cubic-bezier(0.33, 0, 0.2, 1)';
-  const glideMs = 500;
+  const glideMs = 400;
 
   // Position + swell via a single transform. Avoid the newer individual
   // translate/scale CSS properties so Firefox and older WebViews render the app.
