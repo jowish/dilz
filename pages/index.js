@@ -72,7 +72,7 @@ const URL_TO_TAB = {
 
 const PROMO_SORTS = ['discount', 'liked', 'recent', 'price_asc'];
 const DEAL_SORTS = ['hot', 'latest', 'nearby', 'ending', 'comments'];
-const DEAL_COLLECTIONS = ['all', 'codes', 'free'];
+const DEAL_COLLECTIONS = ['all', 'codes', 'free', 'active'];
 const URL_ACTIONS = ['menu', 'post_deal', 'city', 'alerts', 'view_promo'];
 const CATEGORY_ICONS = Object.fromEntries(CATEGORIES.map((category) => [category, '']));
 const DEAL_PAGE_SIZE = 25;
@@ -137,17 +137,25 @@ function languageUsesEnglishProductNames(lang) {
   return lang !== 'he';
 }
 
-function isPrimaryDealFilterActive(id, { sortDeals, categoryFilter, myDealsOnly }) {
+function isPrimaryDealFilterActive(id, { sortDeals, categoryFilter, myDealsOnly, dealCollection }) {
   if (myDealsOnly || categoryFilter !== 'all') return false;
+  if (id === 'active') return dealCollection === 'active';
+  if (dealCollection !== 'all') return false;
   if (id === 'all') return sortDeals === 'hot';
   return sortDeals === id;
 }
 
-function selectedOtherDealFilter({ sortDeals, categoryFilter, myDealsOnly }) {
+function selectedOtherDealFilter({ sortDeals, categoryFilter, myDealsOnly, dealCollection }) {
   if (myDealsOnly) return 'mine';
+  if (dealCollection === 'active') return '';
   if (categoryFilter !== 'all') return categoryFilter;
   if (PRIMARY_DEAL_FILTERS.includes(sortDeals)) return '';
   return sortDeals || '';
+}
+
+function dealIsExpired(deal) {
+  const match = String(deal?.date_fin || '').match(/^(\d{4}-\d{2}-\d{2})(?:$|[T\s])/);
+  return Boolean(match && match[1] < new Date().toISOString().slice(0, 10));
 }
 
 function parseDateOnly(value) {
@@ -1284,7 +1292,10 @@ export default function Home() {
       ? sortedDeals.filter((deal) => Number(deal.prix) === 0 || /\b(gratuit|gratuito|free|cadeau)\b|חינם/i.test([deal.titre, deal.description].filter(Boolean).join(' ')))
       : sortedDeals;
 
-  const displayedDealCount = dealCollection === 'all' ? dealTotal : displayedDeals.length;
+  const visibleDeals = dealCollection === 'active'
+    ? displayedDeals.filter((deal) => !dealIsExpired(deal))
+    : displayedDeals;
+  const displayedDealCount = dealCollection === 'all' ? dealTotal : visibleDeals.length;
 
   const filteredPromos = storeFilter === 'all'
     ? promos
@@ -1472,11 +1483,12 @@ export default function Home() {
                   { id: 'latest', label: 'New' },
                   { id: 'all', label: 'Hot' },
                   { id: 'comments', label: 'Trending' },
+                  { id: 'active', label: 'Active' },
                 ].map(view => (
                   <button
                     key={view.id}
                     type="button"
-                    className={isPrimaryDealFilterActive(view.id, { sortDeals, categoryFilter, myDealsOnly }) ? 'is-active' : ''}
+                    className={isPrimaryDealFilterActive(view.id, { sortDeals, categoryFilter, myDealsOnly, dealCollection }) ? 'is-active' : ''}
                     onClick={() => {
                       const nextView = dealViewState(view.id, readDealSortPreference());
                       setMyDealsOnly(nextView.myDealsOnly);
@@ -1489,28 +1501,31 @@ export default function Home() {
                     {view.label}
                   </button>
                 ))}
-                <select
-                  className="dilz-view-switcher__select"
-                  value={selectedOtherDealFilter({ sortDeals, categoryFilter, myDealsOnly })}
-                  onChange={(event) => {
-                    const nextView = dealViewState(event.target.value || 'all', readDealSortPreference());
-                    setMyDealsOnly(nextView.myDealsOnly);
-                    setDealCollection(nextView.collection);
-                    setCategoryFilter(nextView.category);
-                    setSortDeals(nextView.sort);
-                    writeSessionDealSort(nextView.sort);
-                  }}
-                  aria-label="Other filters"
-                >
-                  <option value="">Other</option>
-                  <option value="all">All</option>
-                  {userCoords && <option value="nearby">Near me</option>}
-                  <option value="ending">Ending soon</option>
-                  {DEAL_CATEGORIES.map((category) => (
-                    <option key={category} value={category}>{getDealCategoryLabel(category, lang)}</option>
-                  ))}
-                  {user && <option value="mine">My Dilz</option>}
-                </select>
+                <span className="dilz-view-switcher__select-wrap">
+                  <select
+                    className="dilz-view-switcher__select"
+                    value={selectedOtherDealFilter({ sortDeals, categoryFilter, myDealsOnly, dealCollection })}
+                    onChange={(event) => {
+                      const nextView = dealViewState(event.target.value || 'all', readDealSortPreference());
+                      setMyDealsOnly(nextView.myDealsOnly);
+                      setDealCollection(nextView.collection);
+                      setCategoryFilter(nextView.category);
+                      setSortDeals(nextView.sort);
+                      writeSessionDealSort(nextView.sort);
+                    }}
+                    aria-label="Other filters"
+                  >
+                    <option value="">Other</option>
+                    <option value="all">All</option>
+                    {userCoords && <option value="nearby">Near me</option>}
+                    <option value="ending">Ending soon</option>
+                    {DEAL_CATEGORIES.map((category) => (
+                      <option key={category} value={category}>{getDealCategoryLabel(category, lang)}</option>
+                    ))}
+                    {user && <option value="mine">My Dilz</option>}
+                  </select>
+                  <span className="dilz-view-switcher__select-chevron" aria-hidden="true" />
+                </span>
                 </div>
 
                 <div className="dilz-feed-controls" aria-label={lang === 'he' ? 'פקדי פיד דילז' : 'Dilz feed controls'}>
@@ -1588,7 +1603,7 @@ export default function Home() {
                   <div className="dilz-spinner" />
                   <p>{t.loading}</p>
                 </div>
-              ) : displayedDeals.length === 0 && !hasMoreDeals ? (
+              ) : visibleDeals.length === 0 && !hasMoreDeals ? (
                 <EmptyState
                   title={
                     sortDeals === 'ending'
@@ -1607,9 +1622,9 @@ export default function Home() {
                 />
               ) : (
                 <>
-                  {displayedDeals.length > 0 && (
+                  {visibleDeals.length > 0 && (
                     <div className={['dilz-feed-grid', dealLayout === 'compact' && 'is-compact', dealLayout === 'spotlight' && 'is-spotlight'].filter(Boolean).join(' ')}>
-                    {displayedDeals.map(deal => (
+                    {visibleDeals.map(deal => (
                       <PremiumDealCard
                         key={deal.id} deal={deal} lang={lang} isDark={isDark}
                         layout={dealLayout}
@@ -1638,7 +1653,7 @@ export default function Home() {
                 </>
               )}
 
-              {false && !loadingDeals && displayedDeals.length > 0 && (
+              {false && !loadingDeals && visibleDeals.length > 0 && (
                 <div className="dilz-tab-footer">
                   <p>{textFor(lang, { en: 'Looking for supermarket prices?', he: 'מחפש מחירי סופרמרקט?', fr: 'Tu cherches les prix des supermarchés ?', es: '¿Buscas precios de supermercado?' })}</p>
                   <button type="button" className="dilz-button dilz-button--secondary dilz-button--sm" onClick={() => setTab('sales')}>

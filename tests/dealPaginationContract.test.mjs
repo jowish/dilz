@@ -48,6 +48,6 @@ test('home feed loads the next 25 deals from an intersection sentinel', () => {
 });
 
 test('empty state waits until the paginated API says there are no more deals', () => {
-  assert.match(home, /displayedDeals\.length === 0 && !hasMoreDeals/);
-  assert.doesNotMatch(home, /displayedDeals\.length === 0 \? \(/);
+  assert.match(home, /visibleDeals\.length === 0 && !hasMoreDeals/);
+  assert.doesNotMatch(home, /visibleDeals\.length === 0 \? \(/);
 });

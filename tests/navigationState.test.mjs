@@ -135,6 +135,14 @@ test('dealViewState returns all-deals state for the "all" viewId', () => {
   assert.equal(state.myDealsOnly, false);
 });
 
+test('dealViewState maps active deals to the active collection', () => {
+  const state = dealViewState('active');
+  assert.equal(state.collection, 'active');
+  assert.equal(state.category, 'all');
+  assert.equal(state.myDealsOnly, false);
+  assert.equal(state.sort, 'hot');
+});
+
 test('resolveDealLayout accepts compact and spotlight, mapping legacy list to spotlight', () => {
   assert.equal(resolveDealLayout({ savedLayout: 'compact' }), 'compact');
   assert.equal(resolveDealLayout({ savedLayout: 'list' }), 'spotlight');

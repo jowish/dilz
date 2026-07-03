@@ -108,6 +108,7 @@ export function DealCard({
           )}
           {ending && <Badge tone="danger" className="dilz-deal-card__ending-badge">{ending}</Badge>}
         </div>
+        {isExpired && <span className="dilz-deal-card__expired-stamp">Expired</span>}
         {images.length > 1 && <span className="dilz-deal-card__photo-count">1 / {images.length}</span>}
         <div className="dilz-deal-card__save">
           {renderSaveButton()}

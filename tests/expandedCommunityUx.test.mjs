@@ -222,6 +222,7 @@ test('compact and spotlight views remain bounded while global zoom and horizonta
   assert.match(dealCard, /dilz-deal-card__ending-badge/);
   assert.match(dealCard, /isExpiredDeal\(deal\.date_fin\)/);
   assert.match(dealCard, /isExpired && 'is-expired'/);
+  assert.match(dealCard, /dilz-deal-card__expired-stamp">Expired/);
   assert.match(dealCard, /dilz-deal-card__spotlight-tools/);
   assert.match(dealCard, /dilz-deal-card__spotlight-save/);
   assert.doesNotMatch(dealCard, /\{isOwner && <span>\{text\.myDeal\}<\/span>\}/);
@@ -250,6 +251,7 @@ test('compact and spotlight views remain bounded while global zoom and horizonta
   assert.match(css, /\.dilz-feed-grid\.is-spotlight \.dilz-deal-card\.is-spotlight \.dilz-deal-card__spotlight-tools\s*\{[^}]*display:\s*flex/s);
   assert.match(css, /\.dilz-deal-card\.is-expired \.dilz-deal-card__media img,[\s\S]*filter:\s*grayscale\(1\)/s);
   assert.match(css, /\.dilz-deal-card\.is-expired \.dilz-deal-card__body,[\s\S]*color:\s*var\(--text-muted\) !important/s);
+  assert.match(css, /\.dilz-deal-card__expired-stamp\s*\{[^}]*background:\s*#FEF2F2[^}]*color:\s*#DC2626/s);
   assert.match(css, /@media \(max-width: 767px\)[\s\S]*\.dilz-feed-grid\.is-spotlight \.dilz-deal-card\.is-spotlight\s*\{[^}]*grid-template-columns:\s*108px minmax\(0, 1fr\)/s);
   assert.match(css, /overflow-x:\s*hidden/);
   assert.match(documentPage, /maximum-scale=1, user-scalable=no/);
