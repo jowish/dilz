@@ -68,6 +68,9 @@ test('recent header fixes stay aligned and free of duplicate profile/theme contr
   assert.match(home, /className="dilz-view-switcher__select-chevron"/);
   assert.match(css, /\.dilz-view-switcher__select\s*\{[^}]*background:\s*transparent[^}]*color:\s*var\(--text-secondary\)[^}]*font:\s*inherit/s);
   assert.match(css, /\.dilz-view-switcher__select-chevron\s*\{[^}]*border-right:\s*2px solid currentColor[^}]*transform:\s*translateY\(-65%\) rotate\(45deg\)/s);
+  assert.match(css, /\.dilz-view-switcher__select,[\s\S]*\.dilz-view-switcher__select-wrap:focus-within\s*\{[^}]*color:\s*var\(--text-secondary\) !important[^}]*box-shadow:\s*none !important[^}]*outline:\s*none !important/s);
+  assert.match(css, /@media \(max-width: 767px\)[\s\S]*\.dilz-deal-toolbar \.dilz-view-switcher\s*\{[^}]*overflow-x:\s*visible/s);
+  assert.match(css, /@media \(max-width: 767px\)[\s\S]*\.dilz-deal-toolbar \.dilz-view-switcher__select-wrap\s*\{[^}]*width:\s*64px/s);
   assert.match(css, /@media \(max-width: 767px\)[\s\S]*\.dilz-app-header__search\s*\{[^}]*display:\s*block[^}]*flex:\s*1 1 auto/s);
   assert.match(css, /@media \(max-width: 767px\)[\s\S]*\.dilz-mobile-search\s*\{[^}]*display:\s*none/s);
   assert.doesNotMatch(appHeader, /dilz-header-alerts-btn/);
