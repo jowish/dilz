@@ -492,6 +492,17 @@ function ProfileTab({ user, lang, savedItems = [], onToggleSave, onSignOut }) {
   const displayName = user.user_metadata?.display_name || user.email?.split('@')[0] || 'User';
   const avatarUrl = user.user_metadata?.avatar_url || user.user_metadata?.picture || '';
   const initials = displayName.slice(0, 2).toUpperCase();
+  const profileSections = [
+    { title: 'Community', links: [
+      { label: 'FAQ', href: '/support' },
+      { label: 'Posting rules', href: '/terms' },
+      { label: 'Contact', href: '/support' },
+    ] },
+    { title: 'Legal', links: [
+      { label: 'Terms of Use', href: '/terms' },
+      { label: 'Privacy Policy', href: '/privacy' },
+    ] },
+  ];
 
   return (
     <div className="dilz-profile-tab">
@@ -625,6 +636,24 @@ function ProfileTab({ user, lang, savedItems = [], onToggleSave, onSignOut }) {
           </div>
         )}</div>}
       </div>
+      <div className="dilz-profile-directory" aria-label="Useful links">
+        {profileSections.map((section) => (
+          <section key={section.title} className="dilz-profile-directory__section">
+            <h2>{section.title}</h2>
+            <div className="dilz-profile-directory__links">
+              {section.links.map((item) => (
+                <Link key={item.label + item.href} href={item.href} className="dilz-profile-directory__link">
+                  {item.label}
+                </Link>
+              ))}
+            </div>
+          </section>
+        ))}
+        <div className="dilz-profile-security">
+          <strong>Your data is secure.</strong>
+          <span>Encrypted connection and account privacy.</span>
+        </div>
+      </div>
       <button type="button" className="dilz-profile-signout dilz-profile-signout--bottom" onClick={onSignOut}>
         {lang !== 'he' ? 'Sign out' : 'התנתקות'}
       </button>
@@ -680,6 +709,7 @@ export default function Home() {
   const [dealLayout, setDealLayout] = useState('card');
   const [dealCollection, setDealCollection] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [showDealToolbar, setShowDealToolbar] = useState(true);
 
   // City
   const [ville, setVille] = useState(null);
@@ -710,6 +740,7 @@ export default function Home() {
   const loadMoreDealsRef = useRef(null);
   const dealListEndRef = useRef(null);
   const lastTrackedSearchRef = useRef('');
+  const lastDealScrollYRef = useRef(0);
 
   const t = translations[lang] || translations.en;
   const dir = lang === 'he' ? 'rtl' : 'ltr';
@@ -860,6 +891,32 @@ export default function Home() {
     }, 900);
     return () => window.clearTimeout(timeout);
   }, [searchQuery, tab]);
+
+  useEffect(() => {
+    if (tab !== 'deals') {
+      setShowDealToolbar(false);
+      return undefined;
+    }
+
+    setShowDealToolbar(true);
+    lastDealScrollYRef.current = window.scrollY || 0;
+
+    const onScroll = () => {
+      const currentY = Math.max(0, window.scrollY || 0);
+      const previousY = lastDealScrollYRef.current;
+      const delta = currentY - previousY;
+      lastDealScrollYRef.current = currentY;
+
+      if (currentY < 36 || delta < -6) {
+        setShowDealToolbar(true);
+      } else if (delta > 8 && currentY > 120) {
+        setShowDealToolbar(false);
+      }
+    };
+
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, [tab]);
 
   useEffect(() => {
     if (!router.isReady || !initialUrlAppliedRef.current || syncingUrlRef.current) return;
@@ -1507,7 +1564,7 @@ export default function Home() {
           {/* ══ DEALS TAB ══ */}
           {tab === 'deals' && (
             <div>
-              <div className="dilz-deal-toolbar">
+              <div className={['dilz-deal-toolbar', !showDealToolbar && 'is-hidden'].filter(Boolean).join(' ')}>
                 <div className="dilz-view-switcher" aria-label="Dilz views">
                 {[
                   { id: 'latest', label: 'New' },

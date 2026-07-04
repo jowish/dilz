@@ -38,6 +38,13 @@ test('profile hides global search and keeps sign out after profile content', () 
   assert.match(appHeader, /\{showSearch && \([\s\S]*dilz-app-header__search/);
   const profileTab = index.slice(index.indexOf('function ProfileTab'), index.indexOf('function ChevronIcon'));
   assert.ok(profileTab.lastIndexOf('dilz-profile-signout--bottom') > profileTab.lastIndexOf('dilz-saved-items-content'));
+  assert.ok(profileTab.lastIndexOf('dilz-profile-signout--bottom') > profileTab.lastIndexOf('dilz-profile-directory'));
+  assert.match(profileTab, /title: 'Community'/);
+  assert.match(profileTab, /label: 'Posting rules'/);
+  assert.match(profileTab, /title: 'Legal'/);
+  assert.match(profileTab, /Your data is secure\./);
+  assert.match(css, /\.dilz-profile-directory\s*\{[^}]*display:\s*grid[^}]*gap:\s*18px/s);
+  assert.match(css, /\.dilz-profile-tab \.dilz-profile-signout--bottom\s*\{[^}]*margin-top:\s*8px/s);
 });
 
 test('header keeps the app logo and removes the useless profile-person shortcut', () => {

@@ -972,6 +972,85 @@ textarea:focus {
   transform: translateY(-65%) rotate(45deg);
 }
 
+/* Profile compact directory */
+.dilz-profile-directory {
+  display: grid;
+  gap: 18px;
+  margin: 18px 0 16px;
+  padding: 4px 8px 0;
+}
+
+.dilz-profile-directory__section {
+  display: grid;
+  gap: 10px;
+}
+
+.dilz-profile-directory__section h2 {
+  margin: 0;
+  color: var(--text-primary);
+  font-size: 16px;
+  font-weight: 850;
+}
+
+.dilz-profile-directory__links {
+  display: grid;
+  gap: 10px;
+}
+
+.dilz-profile-directory__link {
+  color: var(--text-secondary);
+  font-size: 14px;
+  font-weight: 650;
+  line-height: 1.25;
+  text-decoration: none;
+}
+
+.dilz-profile-directory__link:hover {
+  color: var(--text-primary);
+}
+
+.dilz-profile-security {
+  display: grid;
+  gap: 5px;
+  padding-top: 2px;
+}
+
+.dilz-profile-security strong {
+  color: var(--text-primary);
+  font-size: 15px;
+  font-weight: 850;
+}
+
+.dilz-profile-security span {
+  color: var(--text-muted);
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.dilz-profile-tab .dilz-profile-signout--bottom {
+  margin-top: 8px !important;
+  margin-bottom: 18px;
+}
+
+/* Deal filters hide on downward scroll and return as soon as the user scrolls up. */
+.dilz-deal-toolbar {
+  position: sticky;
+  top: 73px;
+  z-index: 110;
+  background: var(--bg);
+  padding-top: 8px;
+  transition: transform 220ms ease, opacity 180ms ease, max-height 220ms ease, margin-bottom 220ms ease;
+  will-change: transform, opacity;
+}
+
+.dilz-deal-toolbar.is-hidden {
+  margin-bottom: 0;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-12px);
+  visibility: hidden;
+}
+
 .dilz-view-switcher__select-wrap--display {
   width: 42px;
   min-width: 42px;
@@ -7654,7 +7733,7 @@ body { touch-action: pan-y; }
 .dilz-profile-card__avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .dilz-profile-card__avatar span { color: #fff; font-size: 17px; font-weight: 700; }
 .dilz-profile-card__identity { flex: 1; min-width: 0; }
-.dilz-profile-tab .dilz-profile-signout--bottom { margin-top: auto; margin-bottom: 18px; }
+.dilz-profile-tab .dilz-profile-signout--bottom { margin-top: 8px; margin-bottom: 18px; }
 .dilz-deal-address { display: grid; gap: 3px; width: 100%; border: 1px solid var(--border); border-radius: 14px; background: var(--surface-soft); padding: 10px 12px; color: var(--text-muted); font: inherit; font-style: normal; text-align: inherit; cursor: pointer; touch-action: manipulation; user-select: none; -webkit-user-select: none; }
 .dilz-deal-address span { color: var(--text-primary); font-size: 11px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; }
 .dilz-deal-address small { color: var(--text-muted); font-size: 11px; font-weight: 750; }
@@ -7900,7 +7979,7 @@ body { touch-action: pan-y; }
 }
 
 .dilz-profile-signout--bottom {
-  margin-top: clamp(42px, 8vh, 96px) !important;
+  margin-top: 8px !important;
 }
 
 @media (max-width: 767px) {
@@ -7948,7 +8027,7 @@ body { touch-action: pan-y; }
 .dilz-shopping-comments article { padding: 12px 0; border-bottom: 1px solid var(--border); }
 .dilz-map-marker--exact { min-width: 58px; justify-content: center; border-color: var(--brand); background: var(--brand); color: #fff; }
 .dilz-layout-toggle button.is-active { color: var(--text-primary); }
-.dilz-profile-signout--bottom { align-self: flex-start; margin-top: 18px; }
+.dilz-profile-signout--bottom { align-self: stretch; margin-top: 8px; }
 
 .dilz-deal-save-action.is-saved {
   border-color: var(--brand);
