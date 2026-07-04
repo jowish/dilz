@@ -1541,6 +1541,52 @@ textarea:focus {
   font-size: 12px;
 }
 
+/* ── Combined hot/cold vote block: 🔥 [net] ❄️ ──────────────────────────
+   One integrated pill: a fire button, the net score (red when hot wins, blue
+   otherwise), and a snow button. */
+.dilz-vote-pill--combined {
+  gap: 0 !important;
+  padding: 0 2px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--bg-card);
+}
+
+.dilz-deal-card .dilz-vote-pill--combined button,
+.dilz-vote-pill--combined button {
+  min-width: 0 !important;
+  height: 30px !important;
+  padding: 0 8px !important;
+  border: 0 !important;
+  border-radius: 10px !important;
+  background: transparent !important;
+  gap: 0 !important;
+}
+
+/* active states tint just the pressed side, keeping the block integrated */
+.dilz-vote-pill--combined button.is-up {
+  background: rgba(220, 38, 38, 0.12) !important;
+  color: #DC2626 !important;
+}
+
+.dilz-vote-pill--combined button.is-down {
+  background: rgba(37, 99, 235, 0.12) !important;
+  color: #2563EB !important;
+}
+
+.dilz-vote-pill__score {
+  min-width: 20px;
+  padding: 0 2px;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+.dilz-vote-pill__score.is-hot { color: #DC2626; }   /* more hot → red */
+.dilz-vote-pill__score.is-cold { color: #2563EB; }  /* more/equal cold → blue */
+
 .dilz-deal-card .dilz-vote-emoji {
   width: 15px;
   font-size: 13px;

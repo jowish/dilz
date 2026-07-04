@@ -193,7 +193,7 @@ export function DealCard({
           )}
         </div>
         <div className="dilz-deal-card__actions" onClick={(event) => event.stopPropagation()}>
-          <div className="dilz-vote-pill" aria-label={text.voteControls}>
+          <div className="dilz-vote-pill dilz-vote-pill--combined" aria-label={text.voteControls}>
             <button
               type="button"
               className={votedDeal === 'chaud' ? 'is-up' : ''}
@@ -205,8 +205,12 @@ export function DealCard({
               aria-label={text.hot}
             >
               <VoteEmoji type="chaud" />
-              <strong>{deal.votes_chaud || 0}</strong>
             </button>
+            <span
+              className={['dilz-vote-pill__score', (deal.votes_chaud || 0) > (deal.votes_froid || 0) ? 'is-hot' : 'is-cold'].join(' ')}
+            >
+              {Math.abs((deal.votes_chaud || 0) - (deal.votes_froid || 0))}
+            </span>
             <button
               type="button"
               className={votedDeal === 'froid' ? 'is-down' : ''}
@@ -218,7 +222,6 @@ export function DealCard({
               aria-label={text.cold}
             >
               <VoteEmoji type="froid" />
-              <strong>{deal.votes_froid || 0}</strong>
             </button>
           </div>
           <div className={['dilz-deal-card__right-actions', hideShareInRow && 'is-row-without-share'].filter(Boolean).join(' ')}>
