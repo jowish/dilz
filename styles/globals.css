@@ -1037,8 +1037,14 @@ textarea:focus {
   position: sticky;
   top: 68px;
   z-index: 110;
+  width: 100%;
   background: var(--bg);
   padding-top: 0;
+  /* Give the sticky bar real presence when it reappears on scroll-up: full
+     width, a little breathing room under the filters, and a soft separator so
+     the deals scrolling behind it don't make it look like a thin strip. */
+  padding-bottom: 10px;
+  box-shadow: 0 8px 12px -10px rgba(0, 0, 0, 0.22);
   transition: transform 220ms ease, opacity 180ms ease, max-height 220ms ease, margin-bottom 220ms ease;
   will-change: transform, opacity;
 }
