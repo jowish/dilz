@@ -1042,7 +1042,7 @@ textarea:focus {
      under the header, the buttons are never clipped by the header and never
      touch the deals — same full format as at the very top. */
   padding-top: 4px;
-  padding-bottom: 8px;
+  padding-bottom: 4px;
   /* Only fade — never move. The filters must stay perfectly still. */
   transition: opacity 140ms ease;
   will-change: opacity;
