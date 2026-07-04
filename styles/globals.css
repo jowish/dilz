@@ -9496,6 +9496,13 @@ select:focus,
     transition: none !important;   /* follow the finger 1:1, no easing */
   }
 
+  /* Liquid edge blur while the bubble glides between tabs (WhatsApp-like):
+     a horizontal-only gaussian smears the leading/trailing edges during motion,
+     then clears the instant it settles. */
+  .dilz-bottom-nav__loupe.is-gliding {
+    filter: url(#dilz-loupe-motion);
+  }
+
   /* Dark mode: cool white tint, faint top reflection */
   .dark .dilz-bottom-nav__loupe {
     /* Dark mode: CLEAR glass — see-through tint + faint rim, no frosted fill. */

@@ -110,6 +110,26 @@ export function BottomNav({ lang = 'en', activeTab, menuOpen = false, alertsOpen
 
   const isSwiping = swipeRef.current?.started === true;
 
+  // Liquid edge blur: while the bubble is gliding between tabs, blur its
+  // leading/trailing edges (like WhatsApp). Driven by the real transform
+  // transition so it lasts exactly as long as the motion.
+  const loupeRef = useRef(null);
+  const [gliding, setGliding] = useState(false);
+  useEffect(() => {
+    const el = loupeRef.current;
+    if (!el) return undefined;
+    const start = (e) => { if (e.propertyName === 'transform') setGliding(true); };
+    const stop = (e) => { if (e.propertyName === 'transform') setGliding(false); };
+    el.addEventListener('transitionstart', start);
+    el.addEventListener('transitionend', stop);
+    el.addEventListener('transitioncancel', stop);
+    return () => {
+      el.removeEventListener('transitionstart', start);
+      el.removeEventListener('transitionend', stop);
+      el.removeEventListener('transitioncancel', stop);
+    };
+  }, []);
+
   // Where the bubble sits before the mount-glide: the previous page's position
   // (persisted) if we have one, otherwise the current tab (first ever load).
   const startIdx = persistedIdx == null ? activeIdx : persistedIdx;
@@ -296,9 +316,17 @@ export function BottomNav({ lang = 'en', activeTab, menuOpen = false, alertsOpen
         onTouchEnd={handleTouchEnd}
         onTouchCancel={handleTouchEnd}
       >
+        {/* Horizontal motion-blur filter for the gliding bubble's edges */}
+        <svg width="0" height="0" aria-hidden="true" focusable="false" style={{ position: 'absolute' }}>
+          <filter id="dilz-loupe-motion" x="-40%" y="-10%" width="180%" height="120%" colorInterpolationFilters="sRGB">
+            <feGaussianBlur stdDeviation="5 0" />
+          </filter>
+        </svg>
+
         {/* Single liquid drop that glides across the bar */}
         <div
-          className={`dilz-bottom-nav__loupe${isSwiping ? ' is-swiping' : ''}${pressed ? ' is-pressed' : ''}`}
+          ref={loupeRef}
+          className={`dilz-bottom-nav__loupe${isSwiping ? ' is-swiping' : ''}${pressed ? ' is-pressed' : ''}${gliding ? ' is-gliding' : ''}`}
           style={loupeStyle}
           aria-hidden="true"
         />
