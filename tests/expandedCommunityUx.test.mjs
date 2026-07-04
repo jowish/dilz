@@ -198,8 +198,9 @@ test('display control is a compact dropdown and no longer consumes toolbar width
   assert.doesNotMatch(home, /className="dilz-view-switcher__count"/);
   assert.doesNotMatch(home, /className="dilz-layout-toggle"/);
   assert.doesNotMatch(home, /className="dilz-map-quick-btn"/);
-  // the display select now sits inside the view switcher, next to Other
-  assert.match(css, /\.dilz-deal-toolbar \.dilz-view-switcher__select-wrap,[\s\S]*?width:\s*auto/s);
+  // the display select now sits inside the same one-row view switcher, next to Other
+  assert.match(css, /\.dilz-deal-toolbar \.dilz-view-switcher\s*\{[^}]*display:\s*grid[^}]*grid-template-columns:\s*0\.86fr 0\.72fr 1\.24fr 1\.02fr 1\.34fr/s);
+  assert.match(css, /\.dilz-deal-toolbar \.dilz-view-switcher__select-wrap,[\s\S]*?width:\s*100%/s);
 });
 
 test('search result deal cards keep actions inside the card boundary', () => {

@@ -73,8 +73,8 @@ test('recent header fixes stay aligned and free of duplicate profile/theme contr
   assert.match(css, /\.dilz-view-switcher__select\s*\{[^}]*background:\s*transparent[^}]*color:\s*var\(--text-secondary\)[^}]*font:\s*inherit/s);
   assert.match(css, /\.dilz-view-switcher__select-chevron\s*\{[^}]*border-right:\s*2px solid currentColor[^}]*transform:\s*translateY\(-65%\) rotate\(45deg\)/s);
   assert.match(css, /\.dilz-view-switcher__select,[\s\S]*\.dilz-view-switcher__select-wrap:focus-within\s*\{[^}]*color:\s*var\(--text-secondary\) !important[^}]*box-shadow:\s*none !important[^}]*outline:\s*none !important/s);
-  assert.match(css, /@media \(max-width: 767px\)[\s\S]*\.dilz-deal-toolbar \.dilz-view-switcher\s*\{[^}]*flex-wrap:\s*wrap/s);
-  assert.match(css, /@media \(max-width: 767px\)[\s\S]*\.dilz-deal-toolbar \.dilz-view-switcher__select-wrap,[\s\S]*?width:\s*auto/s);
+  assert.match(css, /@media \(max-width: 767px\)[\s\S]*\.dilz-deal-toolbar \.dilz-view-switcher\s*\{[^}]*display:\s*grid[^}]*grid-template-columns:\s*0\.86fr 0\.72fr 1\.24fr 1\.02fr 1\.34fr[^}]*overflow-x:\s*visible/s);
+  assert.match(css, /@media \(max-width: 767px\)[\s\S]*\.dilz-deal-toolbar \.dilz-view-switcher__select-wrap,[\s\S]*?width:\s*100%/s);
   assert.match(css, /@media \(max-width: 767px\)[\s\S]*\.dilz-app-header__search\s*\{[^}]*display:\s*block[^}]*flex:\s*1 1 auto/s);
   assert.match(css, /@media \(max-width: 767px\)[\s\S]*\.dilz-mobile-search\s*\{[^}]*display:\s*none/s);
   assert.doesNotMatch(appHeader, /dilz-header-alerts-btn/);

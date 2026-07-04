@@ -63,11 +63,12 @@ test('the menu sheet ends above the visible mobile navigation', () => {
   assert.match(css, /\.dilz-main-menu__backdrop\{[^}]*z-index:900/s);
 });
 
-test('deal toolbar filters wrap (no side scroll) and selects size to their text', () => {
-  // wraps to a new row instead of scrolling sideways
-  assert.match(css, /\.dilz-deal-toolbar \.dilz-view-switcher\s*\{[^}]*flex-wrap:\s*wrap/s);
-  // selects are auto-width so Other / Compact are never clipped
-  assert.match(css, /\.dilz-deal-toolbar \.dilz-view-switcher__select-wrap,[\s\S]*?width:\s*auto/s);
+test('deal toolbar filters stay on one row without side scroll', () => {
+  assert.match(css, /\.dilz-deal-toolbar \.dilz-view-switcher\s*\{[^}]*display:\s*grid[^}]*grid-template-columns:\s*0\.86fr 0\.72fr 1\.24fr 1\.02fr 1\.34fr[^}]*overflow-x:\s*visible/s);
+  assert.match(css, /\.dilz-deal-toolbar \.dilz-view-switcher button\s*\{[^}]*min-width:\s*0/s);
+  assert.match(css, /\.dilz-deal-toolbar \.dilz-view-switcher__select-wrap,[\s\S]*?width:\s*100%/s);
+  assert.match(css, /@media \(max-width: 360px\)[\s\S]*\.dilz-deal-toolbar \.dilz-view-switcher\s*\{[^}]*gap:\s*4px/s);
+  assert.match(css, /@media \(max-width: 360px\)[\s\S]*\.dilz-deal-toolbar \.dilz-view-switcher button,[\s\S]*?font-size:\s*11\.5px/s);
 });
 
 test('desktop pages keep the document as the only vertical scroller', () => {
