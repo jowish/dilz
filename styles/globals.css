@@ -8909,19 +8909,17 @@ select:focus,
     display: grid;
     grid-template-columns: 0.96fr 0.82fr 1.32fr 1.08fr 0.62fr;
     overflow-x: visible;
-    gap: 6px;
+    gap: 5px;
     width: 100%;
     min-width: 0;
     padding-bottom: 0;
   }
 
-  /* Full-size, comfortable filter controls (same format as the initial bar) —
-     the fractional grid still keeps all five on one row without side-scroll. */
   .dilz-deal-toolbar .dilz-view-switcher button {
     min-width: 0;
-    min-height: 44px;
-    padding: 0 10px;
-    font-size: 13.5px;
+    min-height: 38px;
+    padding: 0 8px;
+    font-size: 12.5px;
     text-align: center;
   }
 
@@ -8929,18 +8927,18 @@ select:focus,
   .dilz-deal-toolbar .dilz-view-switcher__select-wrap--display {
     min-width: 0;
     width: 100%;
-    min-height: 44px;
+    min-height: 38px;
   }
 
   .dilz-deal-toolbar .dilz-view-switcher__select-wrap--display {
-    min-width: 42px;
+    min-width: 38px;
   }
 
   .dilz-deal-toolbar .dilz-view-switcher__select {
     width: 100%;
-    min-height: 42px;
-    padding: 0 22px 0 10px;
-    font-size: 13.5px;
+    min-height: 36px;
+    padding: 0 22px 0 9px;
+    font-size: 12.5px;
   }
 
   .dilz-deal-toolbar .dilz-view-switcher__select-wrap--display .dilz-view-switcher__select {
