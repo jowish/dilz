@@ -1542,43 +1542,42 @@ textarea:focus {
 }
 
 /* ── Combined hot/cold vote block: 🔥 [net] ❄️ ──────────────────────────
-   One integrated pill: a fire button, the net score (red when hot wins, blue
-   otherwise), and a snow button. */
+   Compact and borderless: a fire button, the vote margin, a snow button.
+   Voting draws a small ROUND highlight around the pressed icon (not a box). */
 .dilz-vote-pill--combined {
-  gap: 0 !important;
-  padding: 0 2px;
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  background: var(--bg-card);
+  gap: 1px !important;
+  padding: 0;
+  border: 0;
+  background: transparent;
 }
 
 .dilz-deal-card .dilz-vote-pill--combined button,
 .dilz-vote-pill--combined button {
+  width: 26px !important;
+  height: 26px !important;
   min-width: 0 !important;
-  height: 30px !important;
-  padding: 0 8px !important;
+  padding: 0 !important;
   border: 0 !important;
-  border-radius: 10px !important;
+  border-radius: 50% !important;   /* round highlight, never a square */
   background: transparent !important;
   gap: 0 !important;
 }
 
-/* active states tint just the pressed side, keeping the block integrated */
 .dilz-vote-pill--combined button.is-up {
-  background: rgba(220, 38, 38, 0.12) !important;
+  background: rgba(220, 38, 38, 0.14) !important;
   color: #DC2626 !important;
 }
 
 .dilz-vote-pill--combined button.is-down {
-  background: rgba(37, 99, 235, 0.12) !important;
+  background: rgba(37, 99, 235, 0.14) !important;
   color: #2563EB !important;
 }
 
 .dilz-vote-pill__score {
-  min-width: 20px;
-  padding: 0 2px;
+  min-width: 14px;
+  padding: 0 1px;
   text-align: center;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 800;
   font-variant-numeric: tabular-nums;
   line-height: 1;
