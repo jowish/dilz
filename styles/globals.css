@@ -1039,15 +1039,18 @@ textarea:focus {
   z-index: 110;
   background: var(--bg);
   padding-top: 0;
-  transition: transform 220ms ease, opacity 180ms ease, max-height 220ms ease, margin-bottom 220ms ease;
-  will-change: transform, opacity;
+  /* Breathing room under the filters so the reappearing bar has the same full
+     format it has at the very top (not squeezed to exactly the filter height),
+     with a solid background so deals never touch the filters. */
+  padding-bottom: 12px;
+  /* Only fade — never move. The filters must stay perfectly still. */
+  transition: opacity 140ms ease;
+  will-change: opacity;
 }
 
 .dilz-deal-toolbar.is-hidden {
-  margin-bottom: 0;
   opacity: 0;
   pointer-events: none;
-  transform: translateY(-12px);
   visibility: hidden;
 }
 

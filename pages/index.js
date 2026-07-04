@@ -907,9 +907,9 @@ export default function Home() {
       const delta = currentY - previousY;
       lastDealScrollYRef.current = currentY;
 
-      if (currentY < 36 || delta < -6) {
+      if (currentY < 30 || delta < -4) {
         setShowDealToolbar(true);
-      } else if (delta > 8 && currentY > 120) {
+      } else if (delta > 4 && currentY > 30) {
         setShowDealToolbar(false);
       }
     };

@@ -74,8 +74,8 @@ test('recent header fixes stay aligned and free of duplicate profile/theme contr
   assert.match(home, /className="dilz-view-switcher__select-chevron"/);
   assert.match(home, /const \[showDealToolbar, setShowDealToolbar\] = useState\(true\)/);
   assert.match(home, /lastDealScrollYRef/);
-  assert.match(home, /delta < -6[\s\S]*setShowDealToolbar\(true\)/);
-  assert.match(home, /delta > 8 && currentY > 120[\s\S]*setShowDealToolbar\(false\)/);
+  assert.match(home, /delta < -4[\s\S]*setShowDealToolbar\(true\)/);
+  assert.match(home, /delta > 4 && currentY > 30[\s\S]*setShowDealToolbar\(false\)/);
   assert.match(home, /className=\{\['dilz-deal-toolbar', !showDealToolbar && 'is-hidden'\]/);
   assert.match(css, /\.dilz-view-switcher__select\s*\{[^}]*background:\s*transparent[^}]*color:\s*var\(--text-secondary\)[^}]*font:\s*inherit/s);
   assert.match(css, /\.dilz-deal-toolbar\s*\{[^}]*top:\s*68px[^}]*padding-top:\s*0/s);
