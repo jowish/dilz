@@ -1041,7 +1041,10 @@ textarea:focus {
   /* Opaque padding above + below the filters so, when the bar reappears stuck
      under the header, the buttons are never clipped by the header and never
      touch the deals — same full format as at the very top. */
-  padding-top: 4px;
+  /* Flush with the header (top:58px on mobile) so no gap shows the app behind,
+     but with enough OPAQUE top padding that the buttons sit clear of the header
+     — same clearance as top:60px, without the see-through gap. */
+  padding-top: 6px;
   padding-bottom: 4px;
   /* Only fade — never move. The filters must stay perfectly still. */
   transition: opacity 140ms ease;
