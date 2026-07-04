@@ -78,7 +78,9 @@ test('recent header fixes stay aligned and free of duplicate profile/theme contr
   assert.match(home, /delta > 8 && currentY > 120[\s\S]*setShowDealToolbar\(false\)/);
   assert.match(home, /className=\{\['dilz-deal-toolbar', !showDealToolbar && 'is-hidden'\]/);
   assert.match(css, /\.dilz-view-switcher__select\s*\{[^}]*background:\s*transparent[^}]*color:\s*var\(--text-secondary\)[^}]*font:\s*inherit/s);
+  assert.match(css, /\.dilz-deal-toolbar\s*\{[^}]*top:\s*68px[^}]*padding-top:\s*0/s);
   assert.match(css, /\.dilz-deal-toolbar\.is-hidden\s*\{[^}]*opacity:\s*0[^}]*pointer-events:\s*none/s);
+  assert.match(css, /@media \(max-width: 767px\)[\s\S]*\.dilz-deal-toolbar\s*\{[^}]*top:\s*58px/s);
   assert.match(css, /\.dilz-view-switcher__select-chevron\s*\{[^}]*border-right:\s*2px solid currentColor[^}]*transform:\s*translateY\(-65%\) rotate\(45deg\)/s);
   assert.match(css, /\.dilz-view-switcher__select,[\s\S]*\.dilz-view-switcher__select-wrap:focus-within\s*\{[^}]*color:\s*var\(--text-secondary\) !important[^}]*box-shadow:\s*none !important[^}]*outline:\s*none !important/s);
   assert.match(css, /@media \(max-width: 767px\)[\s\S]*\.dilz-deal-toolbar \.dilz-view-switcher\s*\{[^}]*display:\s*grid[^}]*grid-template-columns:\s*0\.96fr 0\.82fr 1\.32fr 1\.08fr 0\.62fr[^}]*overflow-x:\s*visible/s);
