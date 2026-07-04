@@ -1546,9 +1546,10 @@ textarea:focus {
    Voting draws a small ROUND highlight around the pressed icon (not a box). */
 .dilz-vote-pill--combined {
   gap: 1px !important;
-  padding: 0;
-  border: 0;
-  background: transparent;
+  padding: 2px 5px;
+  border: 1px solid var(--border);
+  border-radius: 999px;   /* subtle pill outline around the whole block */
+  background: var(--bg-card);
 }
 
 .dilz-deal-card .dilz-vote-pill--combined button,
