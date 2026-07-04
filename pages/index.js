@@ -153,6 +153,15 @@ function selectedOtherDealFilter({ sortDeals, categoryFilter, myDealsOnly, dealC
   return sortDeals || '';
 }
 
+function ViewSettingsIcon() {
+  return (
+    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M12 15.5A3.5 3.5 0 1 0 12 8a3.5 3.5 0 0 0 0 7.5Z" />
+      <path d="M19.4 15a1.8 1.8 0 0 0 .36 1.98l.04.04a2.1 2.1 0 0 1-2.97 2.97l-.04-.04a1.8 1.8 0 0 0-1.98-.36 1.8 1.8 0 0 0-1.09 1.65V21a2.1 2.1 0 0 1-4.2 0v-.06a1.8 1.8 0 0 0-1.09-1.65 1.8 1.8 0 0 0-1.98.36l-.04.04a2.1 2.1 0 0 1-2.97-2.97l.04-.04A1.8 1.8 0 0 0 4.6 15a1.8 1.8 0 0 0-1.65-1.09H3a2.1 2.1 0 0 1 0-4.2h.06A1.8 1.8 0 0 0 4.7 8.62a1.8 1.8 0 0 0-.36-1.98l-.04-.04A2.1 2.1 0 0 1 7.27 3.6l.04.04a1.8 1.8 0 0 0 1.98.36A1.8 1.8 0 0 0 10.38 2.35V2a2.1 2.1 0 0 1 4.2 0v.35a1.8 1.8 0 0 0 1.09 1.65 1.8 1.8 0 0 0 1.98-.36l.04-.04a2.1 2.1 0 0 1 2.97 2.97l-.04.04a1.8 1.8 0 0 0-.36 1.98 1.8 1.8 0 0 0 1.65 1.09H22a2.1 2.1 0 0 1 0 4.2h-.06A1.8 1.8 0 0 0 19.4 15Z" />
+    </svg>
+  );
+}
+
 function dealIsExpired(deal) {
   const match = String(deal?.date_fin || '').match(/^(\d{4}-\d{2}-\d{2})(?:$|[T\s])/);
   return Boolean(match && match[1] < new Date().toISOString().slice(0, 10));
@@ -700,6 +709,7 @@ export default function Home() {
   const [adminToken, setAdminToken] = useState('');
   const loadMoreDealsRef = useRef(null);
   const dealListEndRef = useRef(null);
+  const lastTrackedSearchRef = useRef('');
 
   const t = translations[lang] || translations.en;
   const dir = lang === 'he' ? 'rtl' : 'ltr';
@@ -830,6 +840,26 @@ export default function Home() {
     }, 0);
     return () => window.clearTimeout(id);
   }, [router.isReady, router.asPath]);
+
+  useEffect(() => {
+    const query = searchQuery.trim();
+    if (tab !== 'search' || query.length < 2) return undefined;
+    const normalized = query.toLocaleLowerCase().replace(/\s+/g, ' ');
+    if (lastTrackedSearchRef.current === normalized) return undefined;
+    const timeout = window.setTimeout(async () => {
+      lastTrackedSearchRef.current = normalized;
+      const { data } = await supabase.auth.getSession().catch(() => ({ data: null }));
+      fetch('/api/search-analytics', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(data?.session?.access_token ? { Authorization: `Bearer ${data.session.access_token}` } : {}),
+        },
+        body: JSON.stringify({ query }),
+      }).catch(() => {});
+    }, 900);
+    return () => window.clearTimeout(timeout);
+  }, [searchQuery, tab]);
 
   useEffect(() => {
     if (!router.isReady || !initialUrlAppliedRef.current || syncingUrlRef.current) return;
@@ -1526,7 +1556,10 @@ export default function Home() {
                   </select>
                   <span className="dilz-view-switcher__select-chevron" aria-hidden="true" />
                 </span>
-                <span className="dilz-view-switcher__select-wrap dilz-view-switcher__select-wrap--display">
+                <span className="dilz-view-switcher__select-wrap dilz-view-switcher__select-wrap--display" title="Display">
+                  <span className="dilz-view-switcher__display-icon">
+                    <ViewSettingsIcon />
+                  </span>
                   <select
                     className="dilz-view-switcher__select"
                     value={dealLayout}
@@ -1544,7 +1577,6 @@ export default function Home() {
                     <option value="spotlight">Row</option>
                     <option value="map">Map</option>
                   </select>
-                  <span className="dilz-view-switcher__select-chevron" aria-hidden="true" />
                 </span>
                 </div>
               </div>

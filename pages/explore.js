@@ -70,7 +70,6 @@ export default function ExplorePage() {
 
         <main className="dilz-explore-main">
           <section className="dilz-explore-hero">
-            <span>DILZ</span>
             <h1>{text.title}</h1>
             <p>{text.subtitle}</p>
           </section>

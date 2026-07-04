@@ -972,6 +972,34 @@ textarea:focus {
   transform: translateY(-65%) rotate(45deg);
 }
 
+.dilz-view-switcher__select-wrap--display {
+  width: 42px;
+  min-width: 42px;
+  justify-content: center;
+}
+
+.dilz-view-switcher__select-wrap--display .dilz-view-switcher__select {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  padding: 0;
+}
+
+.dilz-view-switcher__display-icon {
+  display: inline-grid;
+  place-items: center;
+  color: var(--text-secondary);
+  pointer-events: none;
+}
+
+.dilz-view-switcher__select-wrap--display:focus-within .dilz-view-switcher__display-icon,
+.dilz-view-switcher__select-wrap--display:hover .dilz-view-switcher__display-icon {
+  color: var(--text-primary);
+}
+
 .dilz-view-switcher__select:focus,
 .dilz-view-switcher__select-wrap:focus-within {
   outline: none !important;
@@ -1409,6 +1437,28 @@ textarea:focus {
   background: var(--vote-down);
   border-color: var(--vote-down);
   color: #fff;
+}
+
+.dilz-deal-card .dilz-vote-pill {
+  gap: 5px;
+}
+
+.dilz-deal-card .dilz-vote-pill button {
+  min-width: 52px;
+  height: 32px;
+  padding: 0 9px;
+  border-radius: 11px;
+  gap: 4px;
+  font-size: 12px;
+}
+
+.dilz-deal-card .dilz-vote-pill button strong {
+  font-size: 12px;
+}
+
+.dilz-deal-card .dilz-vote-emoji {
+  width: 15px;
+  font-size: 13px;
 }
 
 .dilz-deal-card__right-actions {
@@ -2366,7 +2416,7 @@ textarea:focus {
 
   .dilz-app-header__search {
     display: block;
-    flex: 1 1 auto;
+    flex: 1 1 0;
     min-width: 0;
     max-width: none;
   }
@@ -2390,7 +2440,7 @@ textarea:focus {
   }
 
   .dilz-logo {
-    font-size: 24px;
+    font-size: 28px;
   }
 
   .dilz-page-shell {
@@ -6411,9 +6461,9 @@ body {
 .dilz-logo-lockup .dilz-logo,
 .dilz-logo {
   color: var(--text);
-  font-size: 30px;
+  font-size: 33px;
   font-weight: 950;
-  letter-spacing: -1.3px;
+  letter-spacing: -1px;
   line-height: 1;
 }
 
@@ -6429,6 +6479,11 @@ body {
 
 .dilz-app-header__inner {
   height: 68px;
+  gap: 18px;
+}
+
+.dilz-app-header__search {
+  max-width: 380px;
 }
 
 .dilz-desktop-tabs,
@@ -6707,7 +6762,7 @@ textarea::placeholder {
 
   .dilz-logo-lockup .dilz-logo,
   .dilz-logo {
-    font-size: 25px;
+    font-size: 28px;
   }
 
   .dilz-logo-mark {
@@ -8769,7 +8824,7 @@ select:focus,
      labels while allowing narrow screens to compress cleanly. */
   .dilz-deal-toolbar .dilz-view-switcher {
     display: grid;
-    grid-template-columns: 0.86fr 0.72fr 1.24fr 1.02fr 1.34fr;
+    grid-template-columns: 0.96fr 0.82fr 1.32fr 1.08fr 0.62fr;
     overflow-x: visible;
     gap: 5px;
     width: 100%;
@@ -8792,11 +8847,20 @@ select:focus,
     min-height: 38px;
   }
 
+  .dilz-deal-toolbar .dilz-view-switcher__select-wrap--display {
+    min-width: 38px;
+  }
+
   .dilz-deal-toolbar .dilz-view-switcher__select {
     width: 100%;
     min-height: 36px;
     padding: 0 22px 0 9px;
     font-size: 12.5px;
+  }
+
+  .dilz-deal-toolbar .dilz-view-switcher__select-wrap--display .dilz-view-switcher__select {
+    min-height: 0;
+    padding: 0;
   }
 
   .dilz-deal-toolbar .dilz-view-switcher__select-chevron {

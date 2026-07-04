@@ -27,6 +27,8 @@ const [
   dealApi,
   detailPage,
   nativeApp,
+  searchAnalyticsApi,
+  searchAnalyticsSql,
 ] = await Promise.all([
   read('components', 'deals', 'DealCard.js'),
   read('components', 'deals', 'PostDealModal.js'),
@@ -49,6 +51,8 @@ const [
   read('pages', 'api', 'bons-plans.js'),
   read('pages', 'deal', '[id].js'),
   read('lib', 'nativeApp.js'),
+  read('pages', 'api', 'search-analytics.js'),
+  read('supabase-search-analytics-setup.sql'),
 ]);
 
 test('exact deal location is preserved and shown in deal details', () => {
@@ -102,11 +106,18 @@ test('posting is a standalone bottom-nav page and accepts city or exact coordina
   assert.doesNotMatch(home, /setShowPostModal\(/);
 });
 
-test('alerts are mobile-safe and include useful popular Israeli searches', () => {
+test('alerts are mobile-safe and use real popular search data', () => {
   assert.match(alerts, /inputMode="numeric"/);
-  assert.match(alerts, /KSP/);
-  assert.match(alerts, /Rami Levy/);
-  assert.match(alerts, /Shufersal/);
+  assert.match(alerts, /fetch\('\/api\/search-analytics\?min=20&limit=8'/);
+  assert.match(alerts, /popularSearches\.map/);
+  assert.match(alerts, /Popular alerts appear after at least 20 real searches/);
+  assert.doesNotMatch(alerts, /PS5|Nintendo Switch 2|Rami Levy|Shufersal/);
+  assert.match(searchAnalyticsApi, /DEFAULT_MIN_POPULAR_SEARCHES/);
+  assert.match(searchAnalyticsApi, /\.from\('search_events'\)/);
+  assert.match(searchAnalyticsApi, /error\?\.code === '42P01'/);
+  assert.match(searchAnalyticsSql, /CREATE TABLE IF NOT EXISTS search_events/);
+  assert.match(searchAnalyticsSql, /ALTER TABLE search_events ENABLE ROW LEVEL SECURITY/);
+  assert.match(searchAnalyticsSql, /TO service_role/);
   assert.match(css, /\.dilz-alert-page input[^}]*font-size:\s*16px/s);
   assert.match(css, /\.dilz-bottom-nav[^}]*position:\s*fixed\s*!important/s);
 });
@@ -186,10 +197,12 @@ test('bottom nav uses Explore as the visible discover tab while keeping the sear
   assert.match(explorePage, /href="\/bons-plans-shopping"/);
   assert.match(explorePage, /href="\/codes-promo"/);
   assert.match(explorePage, /href="\/gratuit"/);
+  assert.doesNotMatch(explorePage, /<span>DILZ<\/span>/);
 });
 
 test('display control is a compact dropdown and no longer consumes toolbar width', () => {
   assert.match(home, /dilz-view-switcher__select-wrap--display/);
+  assert.match(home, /ViewSettingsIcon/);
   assert.match(home, /<option value="card">Cards<\/option>/);
   assert.match(home, /<option value="compact">Compact<\/option>/);
   assert.match(home, /<option value="spotlight">Row<\/option>/);
@@ -198,8 +211,9 @@ test('display control is a compact dropdown and no longer consumes toolbar width
   assert.doesNotMatch(home, /className="dilz-view-switcher__count"/);
   assert.doesNotMatch(home, /className="dilz-layout-toggle"/);
   assert.doesNotMatch(home, /className="dilz-map-quick-btn"/);
-  // the display select now sits inside the same one-row view switcher, next to Other
-  assert.match(css, /\.dilz-deal-toolbar \.dilz-view-switcher\s*\{[^}]*display:\s*grid[^}]*grid-template-columns:\s*0\.86fr 0\.72fr 1\.24fr 1\.02fr 1\.34fr/s);
+  // the display select now sits inside the same one-row view switcher, next to Other, but renders as an icon.
+  assert.match(css, /\.dilz-deal-toolbar \.dilz-view-switcher\s*\{[^}]*display:\s*grid[^}]*grid-template-columns:\s*0\.96fr 0\.82fr 1\.32fr 1\.08fr 0\.62fr/s);
+  assert.match(css, /\.dilz-view-switcher__select-wrap--display \.dilz-view-switcher__select\s*\{[^}]*opacity:\s*0/s);
   assert.match(css, /\.dilz-deal-toolbar \.dilz-view-switcher__select-wrap,[\s\S]*?width:\s*100%/s);
 });
 
@@ -208,6 +222,7 @@ test('search result deal cards keep actions inside the card boundary', () => {
   assert.match(css, /\.dilz-search-deal-results \.dilz-deal-card\s*\{[^}]*overflow:\s*hidden/s);
   assert.match(css, /\.dilz-search-deal-results \.dilz-deal-card__right-actions\s*\{[^}]*justify-content:\s*flex-end/s);
   assert.match(css, /\.dilz-deal-card__actions,[\s\S]*flex-wrap:\s*wrap/s);
+  assert.match(css, /\.dilz-deal-card \.dilz-vote-pill button\s*\{[^}]*min-width:\s*52px[^}]*height:\s*32px/s);
 });
 
 test('community promo codes are user-submittable and protected by database policies', () => {

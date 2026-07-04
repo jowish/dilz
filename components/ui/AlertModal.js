@@ -39,6 +39,8 @@ export function AlertModal({ user, token: tokenProp, lang, villes = [], onClose 
   const [error, setError] = useState('');
   const [followUsers, setFollowUsers] = useState([]);
   const [followLoading, setFollowLoading] = useState(true);
+  const [popularSearches, setPopularSearches] = useState([]);
+  const [popularLoading, setPopularLoading] = useState(true);
   const followedUsers = followUsers.filter((candidate) => candidate.is_following);
 
   useEffect(() => {
@@ -78,6 +80,24 @@ export function AlertModal({ user, token: tokenProp, lang, villes = [], onClose 
 
     return () => { alive = false; };
   }, [user, tokenProp]);
+
+  useEffect(() => {
+    let alive = true;
+    setPopularLoading(true);
+    fetch('/api/search-analytics?min=20&limit=8')
+      .then((response) => response.ok ? response.json() : { keywords: [] })
+      .then((data) => {
+        if (!alive) return;
+        setPopularSearches(Array.isArray(data.keywords) ? data.keywords : []);
+      })
+      .catch(() => {
+        if (alive) setPopularSearches([]);
+      })
+      .finally(() => {
+        if (alive) setPopularLoading(false);
+      });
+    return () => { alive = false; };
+  }, []);
 
   const handleCreate = async () => {
     setSaving(true);
@@ -226,11 +246,19 @@ export function AlertModal({ user, token: tokenProp, lang, villes = [], onClose 
             <span>{lang !== 'he' ? 'Start with a common search' : 'התחילו מחיפוש נפוץ'}</span>
           </div>
           <p className="dilz-alert-value">{lang !== 'he' ? 'Tell us what you want. Dilz watches the market and lets you know when a matching deal appears.' : 'ספרו לנו מה אתם מחפשים. Dilz יעקוב ויעדכן כשיופיע דיל מתאים.'}</p>
-          <div className="dilz-alert-suggestion-list">
-            {['PS5', 'Nintendo Switch 2', 'iPhone', 'MacBook', lang !== 'he' ? 'Fan' : 'מאוורר', 'KSP', 'Rami Levy', 'Shufersal'].map((keyword) => (
-              <button type="button" key={keyword} onClick={() => useSuggestion(keyword)}>{keyword}</button>
-            ))}
-          </div>
+          {popularLoading ? (
+            <div className="dilz-alert-suggestion-list" aria-live="polite">
+              <span className="dilz-alert-suggestion-empty">Loading popular searches...</span>
+            </div>
+          ) : popularSearches.length > 0 ? (
+            <div className="dilz-alert-suggestion-list">
+              {popularSearches.map((item) => (
+                <button type="button" key={item.keyword} onClick={() => useSuggestion(item.keyword)}>{item.keyword}</button>
+              ))}
+            </div>
+          ) : (
+            <p className="dilz-alert-suggestion-empty">Popular alerts appear after at least 20 real searches for the same keyword.</p>
+          )}
         </section>
 
         <div className="dilz-segmented" role="tablist" aria-label="Alert sections">

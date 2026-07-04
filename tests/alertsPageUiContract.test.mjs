@@ -22,8 +22,10 @@ test('alerts render as a dedicated route with persistent bottom navigation', () 
   assert.match(css, /\.dilz-alerts-route\s*\{[^}]*min-height:\s*100dvh/s);
 });
 
-test('alerts page exposes popular suggestions and author follows', () => {
-  for (const keyword of ['PS5', 'Nintendo Switch 2', 'iPhone', 'MacBook', 'Fan']) assert.match(alerts, new RegExp(keyword));
+test('alerts page exposes real popular-search suggestions and author follows', () => {
+  assert.match(alerts, /fetch\('\/api\/search-analytics\?min=20&limit=8'/);
+  assert.match(alerts, /popularSearches\.map/);
+  assert.doesNotMatch(alerts, /PS5|Nintendo Switch 2|Rami Levy|Shufersal/);
   assert.match(alerts, /fetch\('\/api\/user-follows'/);
   assert.match(alerts, /toggleFollow\(candidate\)/);
   assert.match(alerts, /followedUsers = followUsers\.filter/);
