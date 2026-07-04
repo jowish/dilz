@@ -78,7 +78,7 @@ test('recent header fixes stay aligned and free of duplicate profile/theme contr
   assert.match(home, /delta > 4 && currentY > 30[\s\S]*setShowDealToolbar\(false\)/);
   assert.match(home, /className=\{\['dilz-deal-toolbar', !showDealToolbar && 'is-hidden'\]/);
   assert.match(css, /\.dilz-view-switcher__select\s*\{[^}]*background:\s*transparent[^}]*color:\s*var\(--text-secondary\)[^}]*font:\s*inherit/s);
-  assert.match(css, /\.dilz-deal-toolbar\s*\{[^}]*top:\s*68px[^}]*padding-top:\s*6px[^}]*padding-bottom:\s*12px/s);
+  assert.match(css, /\.dilz-deal-toolbar\s*\{[^}]*top:\s*68px[^}]*padding-top:\s*4px[^}]*padding-bottom:\s*8px/s);
   assert.match(css, /\.dilz-deal-toolbar\.is-hidden\s*\{[^}]*opacity:\s*0[^}]*pointer-events:\s*none/s);
   assert.match(css, /@media \(max-width: 767px\)[\s\S]*\.dilz-deal-toolbar\s*\{[^}]*top:\s*60px/s);
   assert.match(css, /\.dilz-view-switcher__select-chevron\s*\{[^}]*border-right:\s*2px solid currentColor[^}]*transform:\s*translateY\(-65%\) rotate\(45deg\)/s);
