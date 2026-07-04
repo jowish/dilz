@@ -8902,7 +8902,7 @@ select:focus,
 
 @media (max-width: 767px) {
   .dilz-deal-toolbar {
-    top: 60px;
+    top: 58px;
   }
 
   /* Keep all deal filters and the display dropdown on one row without
