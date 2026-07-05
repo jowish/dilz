@@ -194,15 +194,15 @@ test('the bar background is translucent so content shows through', () => {
   assert.match(css, /\.dilz-bottom-nav__inner[\s\S]*?backdrop-filter:\s*blur\(5px\) saturate\(170%\)/);
 });
 
-test('the loupe is a CLEAR glass lens on touch/move (no frosted blur)', () => {
-  // clear lens: saturate/brightness only, NOT a frosting blur
-  assert.match(css, /\.dilz-bottom-nav__loupe\.is-moving,\s*\.dilz-bottom-nav__loupe\.is-pressed\s*\{[^}]*backdrop-filter:\s*saturate/s);
-  assert.doesNotMatch(css, /\.dilz-bottom-nav__loupe\.is-moving,\s*\.dilz-bottom-nav__loupe\.is-pressed\s*\{[^}]*backdrop-filter:\s*blur/s);
-  // no frosted white gradient fill on the drop itself
-  assert.doesNotMatch(css, /\.dilz-bottom-nav__loupe\s*\{[^}]*linear-gradient\(180deg/s);
-  // iridescent rim ring still there
+test('the loupe is a glass lens: blurs what is behind it, with an iridescent rim', () => {
+  // Nintendo-like glass lens: a backdrop blur on the drop itself
+  assert.match(css, /\.dilz-bottom-nav__loupe\s*\{[^}]*backdrop-filter:\s*blur/s);
+  // stays UNDER the icons so the active icon/label remain sharp/readable
+  assert.match(css, /\.dilz-bottom-nav__loupe\s*\{[^}]*z-index:\s*1/s);
+  // iridescent rim ring, subtle at rest, brighter while interacting
   assert.match(css, /\.dilz-bottom-nav__loupe::after\s*\{[^}]*conic-gradient/s);
-  assert.match(css, /\.dilz-bottom-nav__loupe\.is-moving::after,\s*\.dilz-bottom-nav__loupe\.is-pressed::after\s*\{[^}]*opacity:\s*0\.6/s);
+  assert.match(css, /\.dilz-bottom-nav__loupe::after\s*\{[^}]*opacity:\s*0\.4/s);
+  assert.match(css, /\.dilz-bottom-nav__loupe\.is-moving::after,\s*\.dilz-bottom-nav__loupe\.is-pressed::after\s*\{[^}]*opacity:\s*0\.7/s);
 });
 
 test('selected Post keeps a white plus and label as a CSS safety net', () => {
