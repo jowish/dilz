@@ -177,10 +177,9 @@ test('Hebrew RTL flips the touch axis and the fallback position', () => {
 
 // ── CSS invariants ────────────────────────────────────────────────────────
 
-test('tab buttons stack above the loupe so the bubble never masks icon or label', () => {
-  // loupe sits at z-index 1
-  assert.match(css, /\.dilz-bottom-nav__loupe\s*\{[^}]*z-index:\s*1/s);
-  // buttons are positioned above it
+test('the loupe is a glass lens ABOVE the icons (Nintendo-style refraction)', () => {
+  // loupe sits above the buttons so it refracts the active icon/label
+  assert.match(css, /\.dilz-bottom-nav__loupe\s*\{[^}]*z-index:\s*3/s);
   assert.match(css, /\.dilz-bottom-nav__item\s*\{[^}]*position:\s*relative;[\s\S]*?z-index:\s*2/s);
 });
 
@@ -197,8 +196,8 @@ test('the bar background is translucent so content shows through', () => {
 test('the loupe is a glass lens: blurs what is behind it, with an iridescent rim', () => {
   // Nintendo-like glass lens: a backdrop blur on the drop itself
   assert.match(css, /\.dilz-bottom-nav__loupe\s*\{[^}]*backdrop-filter:\s*blur/s);
-  // stays UNDER the icons so the active icon/label remain sharp/readable
-  assert.match(css, /\.dilz-bottom-nav__loupe\s*\{[^}]*z-index:\s*1/s);
+  // sits ABOVE the icons so it refracts them through the glass
+  assert.match(css, /\.dilz-bottom-nav__loupe\s*\{[^}]*z-index:\s*3/s);
   // iridescent rim ring, subtle at rest, brighter while interacting
   assert.match(css, /\.dilz-bottom-nav__loupe::after\s*\{[^}]*conic-gradient/s);
   assert.match(css, /\.dilz-bottom-nav__loupe::after\s*\{[^}]*opacity:\s*0\.4/s);
