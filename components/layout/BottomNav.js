@@ -241,6 +241,7 @@ export function BottomNav({ lang = 'en', activeTab, menuOpen = false, alertsOpen
   // once centred; the plus + label then invert to white so they stay legible.
   const postTint = computePostTint(loupeCenter);
   const postLit = computePostLit(loupeCenter);
+  const liquidMoving = pressed || isSwiping || touchFocusing;
 
   // When pressed / dragging the bubble grows uniformly: same exact shape, just
   // larger, so the liquid drop can spill slightly beyond the compact bar.
@@ -263,13 +264,12 @@ export function BottomNav({ lang = 'en', activeTab, menuOpen = false, alertsOpen
     transition: (isSwiping || !glide || !centers)
       ? 'none'
       : `transform ${glideMs}ms ${ease}`,
+    '--dilz-loupe-post-alpha': postTint.toFixed(3),
+    '--dilz-loupe-glint-x': `${Math.round(24 + (loupeCenter / (TAB_COUNT - 1)) * 52)}%`,
+    '--dilz-loupe-ca-opacity': liquidMoving ? '0.58' : '0.28',
+    '--dilz-loupe-edge-alpha': liquidMoving ? '0.78' : '0.44',
+    '--dilz-loupe-lift': liquidMoving ? '1' : '0',
   };
-  if (postTint > 0) {
-    // keep the top specular sheen, tint the fill orange (opaque when centred)
-    const alpha = (0.30 + 0.70 * postTint).toFixed(2);
-    loupeStyle.background =
-      `linear-gradient(180deg, rgba(255,255,255,0.30) 0%, rgba(255,255,255,0.08) 45%, rgba(255,255,255,0) 100%), rgba(249, 115, 22, ${alpha})`;
-  }
 
   // The whole bar swells slightly ONLY while the finger is down — zoom in on
   // touch, back to normal the instant it's released. Not tied to `moving` so a

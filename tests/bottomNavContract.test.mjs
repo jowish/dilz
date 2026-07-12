@@ -53,6 +53,7 @@ test('the loupe is positioned via GPU transform, not Firefox-risky individual tr
   assert.match(nav, /transform: `translateX\(\$\{pos\}\) scale\(\$\{dragSwell\.toFixed\(3\)\}\)`/);
   assert.match(nav, /transformOrigin: 'center center'/);
   assert.match(nav, /transform \$\{glideMs\}ms \$\{ease\}/);
+  assert.match(css, /\.dilz-bottom-nav__loupe\s*\{[^}]*will-change:\s*transform/s);
   assert.doesNotMatch(nav, /translate: pos/);
   assert.doesNotMatch(nav, /scale: `\$\{dragSwell\.toFixed\(3\)\}`/);
   assert.doesNotMatch(css, /\.dilz-bottom-nav__loupe\s*\{[^}]*translate 320ms linear/s);
@@ -186,23 +187,36 @@ test('tab buttons stack above the loupe so the bubble never masks icon or label'
 
 test('the loupe overshoots the bar (inner is not clipped)', () => {
   assert.match(css, /\.dilz-bottom-nav__inner[\s\S]*?overflow:\s*visible\s*!important/);
+  assert.match(css, /\.dilz-bottom-nav__loupe\s*\{[^}]*box-sizing:\s*border-box/s);
 });
 
 test('the bar background is translucent so content shows through', () => {
-  assert.match(css, /--dilz-tabbar-bg:\s*rgba\(18,\s*18,\s*22,\s*0\.34\)/);   // dark
-  assert.match(css, /--dilz-tabbar-bg:\s*rgba\(248,\s*248,\s*250,\s*0\.34\)/); // light
-  assert.match(css, /\.dilz-bottom-nav__inner[\s\S]*?backdrop-filter:\s*blur\(5px\) saturate\(170%\)/);
+  assert.match(css, /--dilz-tabbar-bg:\s*rgba\(18,\s*18,\s*22,\s*0\.48\)/);   // dark
+  assert.match(css, /--dilz-tabbar-bg:\s*rgba\(248,\s*248,\s*250,\s*0\.46\)/); // light
+  assert.match(css, /\.dilz-bottom-nav__inner[\s\S]*?backdrop-filter:\s*blur\(10px\) saturate\(190%\) brightness\(1\.04\)/);
+  assert.match(css, /\.dilz-bottom-nav__inner::before[\s\S]*?var\(--dilz-tabbar-glint\)/);
+  assert.match(css, /\.dilz-bottom-nav__inner::after[\s\S]*?var\(--dilz-tabbar-caustic\)/);
 });
 
 test('the loupe is a CLEAR glass lens on touch/move (no frosted blur)', () => {
   // clear lens: saturate/brightness only, NOT a frosting blur
   assert.match(css, /\.dilz-bottom-nav__loupe\.is-moving,\s*\.dilz-bottom-nav__loupe\.is-pressed\s*\{[^}]*backdrop-filter:\s*saturate/s);
   assert.doesNotMatch(css, /\.dilz-bottom-nav__loupe\.is-moving,\s*\.dilz-bottom-nav__loupe\.is-pressed\s*\{[^}]*backdrop-filter:\s*blur/s);
-  // no frosted white gradient fill on the drop itself
-  assert.doesNotMatch(css, /\.dilz-bottom-nav__loupe\s*\{[^}]*linear-gradient\(180deg/s);
-  // iridescent rim ring still there
+  // Post tint is CSS-variable driven, so it does not overwrite the glass sheen
+  assert.match(nav, /'--dilz-loupe-post-alpha': postTint\.toFixed\(3\)/);
+  assert.doesNotMatch(nav, /loupeStyle\.background/);
+  assert.match(css, /rgba\(249,\s*115,\s*22,\s*var\(--dilz-loupe-post-alpha,\s*0\)\)/);
+  assert.match(css, /\.dilz-bottom-nav__loupe::before\s*\{[^}]*linear-gradient\(180deg/s);
+  // iridescent rim ring still there, but controlled by CSS variables
   assert.match(css, /\.dilz-bottom-nav__loupe::after\s*\{[^}]*conic-gradient/s);
-  assert.match(css, /\.dilz-bottom-nav__loupe\.is-moving::after,\s*\.dilz-bottom-nav__loupe\.is-pressed::after\s*\{[^}]*opacity:\s*0\.6/s);
+  assert.match(nav, /'--dilz-loupe-ca-opacity': liquidMoving \? '0\.58' : '0\.28'/);
+  assert.match(css, /\.dilz-bottom-nav__loupe\.is-moving::after,\s*\.dilz-bottom-nav__loupe\.is-pressed::after\s*\{[^}]*opacity:\s*var\(--dilz-loupe-ca-opacity,\s*0\.58\)/s);
+});
+
+test('the liquid bar has accessibility fallbacks for reduced transparency and motion', () => {
+  assert.match(css, /@media \(max-width:\s*767px\) and \(prefers-reduced-transparency:\s*reduce\)/);
+  assert.match(css, /@media \(max-width:\s*767px\) and \(prefers-reduced-motion:\s*reduce\)/);
+  assert.match(css, /prefers-reduced-transparency[\s\S]*?backdrop-filter:\s*none !important/);
 });
 
 test('selected Post keeps a white plus and label as a CSS safety net', () => {
