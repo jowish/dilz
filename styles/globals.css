@@ -1616,15 +1616,27 @@ textarea:focus {
 .dilz-map-header {
   height: 64px;
   padding: 0 18px;
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
   align-items: center;
-  justify-content: space-between;
   gap: 14px;
   background: var(--surface-main);
   border-bottom: 1px solid var(--border-default);
   position: relative;
   z-index: 20;
   direction: ltr;
+}
+
+.dilz-map-back {
+  justify-self: start;
+}
+
+.dilz-map-title {
+  justify-self: center;
+}
+
+.dilz-map-header__actions {
+  justify-self: end;
 }
 
 .dilz-map-header button {
