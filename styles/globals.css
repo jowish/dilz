@@ -4661,6 +4661,29 @@ textarea:focus {
   gap: 16px;
 }
 
+.dilz-oauth-button {
+  gap: 10px;
+}
+
+.dilz-auth-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.dilz-auth-divider::before,
+.dilz-auth-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border-default);
+}
+
 .dilz-auth-confirm {
   display: flex;
   flex-direction: column;
