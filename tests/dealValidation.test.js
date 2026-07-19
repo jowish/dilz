@@ -78,6 +78,11 @@ test('normalizes only http and https URLs', () => {
   assert.equal(normalizeHttpUrl('https://example.com/a', 100), 'https://example.com/a');
 });
 
+test('assumes https for a bare domain with no protocol', () => {
+  assert.equal(normalizeHttpUrl('example.com', 100), 'https://example.com/');
+  assert.equal(normalizeHttpUrl('www.example.com/deal', 100), 'https://www.example.com/deal');
+});
+
 test('normalizes and limits deal galleries to three unique images', () => {
   assert.deepEqual(
     normalizeDealImageUrls(

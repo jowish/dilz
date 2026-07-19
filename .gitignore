@@ -31,3 +31,6 @@ recuperer-prix.js
 .DS_Store
 Thumbs.db
 .vercel
+
+# Claude Code local settings
+.claude/settings.local.json
