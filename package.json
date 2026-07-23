@@ -18,6 +18,9 @@
     "ios:add": "npx cap add ios",
     "ios:sync": "npx cap sync ios",
     "ios:open": "npx cap open ios",
+    "android:add": "npx cap add android",
+    "android:sync": "npx cap sync android",
+    "android:open": "npx cap open android",
     "icons:generate": "node scripts/generate-app-icons.js"
   },
   "dependencies": {
@@ -40,6 +43,7 @@
     "xml2js": "^0.6.2"
   },
   "devDependencies": {
+    "@capacitor/android": "^8.4.2",
     "@capacitor/cli": "^8.4.1",
     "@capacitor/ios": "^8.4.1",
     "typescript": "^6.0.3"

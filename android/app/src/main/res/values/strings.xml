@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Dilz</string>
+    <string name="title_activity_main">Dilz</string>
+    <string name="package_name">app.dilz.mobile</string>
+    <string name="custom_url_scheme">app.dilz.mobile</string>
+</resources>
