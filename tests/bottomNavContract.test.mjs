@@ -70,7 +70,10 @@ test('the bar background is translucent and blurred (system material)', () => {
 });
 
 test('the bar clears the home-indicator safe area', () => {
-  assert.match(css, /\.dilz-tabbar\s*\{[^}]*env\(safe-area-inset-bottom\)/s);
+  // The safe-area inset is honoured with a minimum floor so the row never
+  // jams against the home-indicator gesture zone.
+  assert.match(css, /--tabbar-safe:\s*max\(env\(safe-area-inset-bottom[^)]*\), 14px\)/);
+  assert.match(css, /\.dilz-tabbar\s*\{[^}]*padding-bottom:\s*var\(--tabbar-safe\)/s);
 });
 
 test('the selected tab uses the active tint, the rest a muted grey', () => {
