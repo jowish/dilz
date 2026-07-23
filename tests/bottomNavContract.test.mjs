@@ -84,6 +84,6 @@ test('the tab bar is mobile-only; desktop keeps the header nav', () => {
 });
 
 test('dark mode redefines the tab-bar tokens for contrast', () => {
-  assert.match(css, /\.dark\s*\{[^}]*--tabbar-surface:\s*rgba\(22, 22, 24/s);
+  assert.match(css, /\.dark\s*\{[^}]*--tabbar-surface:\s*rgba\(28, 28, 30/s);
   assert.match(css, /\.dark\s*\{[^}]*--tabbar-active:\s*#FFFFFF/s);
 });

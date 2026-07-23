@@ -9711,17 +9711,17 @@ select:focus,
    icon + active tint, the rest an outline icon in muted grey. Mobile only —
    desktop keeps the header nav. */
 :root {
-  --dilz-tabbar-height: 64px;
-  --tabbar-surface: rgba(249, 249, 251, 0.82);
-  --tabbar-hairline: rgba(0, 0, 0, 0.16);
+  --dilz-tabbar-height: 49px;   /* canonical iOS UITabBar height (49pt) */
+  --tabbar-surface: rgba(249, 249, 251, 0.80);
+  --tabbar-hairline: rgba(0, 0, 0, 0.15);
   --tabbar-active: #0B1220;
-  --tabbar-inactive: #8E8E93;
+  --tabbar-inactive: #999DA3;
 }
 .dark {
-  --tabbar-surface: rgba(22, 22, 24, 0.80);
-  --tabbar-hairline: rgba(255, 255, 255, 0.16);
+  --tabbar-surface: rgba(28, 28, 30, 0.78);
+  --tabbar-hairline: rgba(255, 255, 255, 0.15);
   --tabbar-active: #FFFFFF;
-  --tabbar-inactive: #8E8E93;
+  --tabbar-inactive: #8D8D93;
 }
 
 .dilz-tabbar {
@@ -9732,13 +9732,16 @@ select:focus,
   bottom: 0;
   z-index: 1000;
   grid-template-columns: repeat(5, 1fr);
-  align-items: start;
+  align-items: center;
   height: calc(var(--dilz-tabbar-height) + env(safe-area-inset-bottom));
-  padding: 8px 0 env(safe-area-inset-bottom);
+  padding: 0 0 env(safe-area-inset-bottom);
+  /* System font so the labels render in SF Pro on iOS — the single biggest
+     "native" tell for tab-bar text. */
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
   background: var(--tabbar-surface);
   border-top: 0.5px solid var(--tabbar-hairline);
-  backdrop-filter: blur(22px) saturate(180%);
-  -webkit-backdrop-filter: blur(22px) saturate(180%);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
   transform: translateZ(0);
 }
 
@@ -9752,16 +9755,16 @@ select:focus,
   border: 0;
   background: none;
   margin: 0;
-  padding: 2px 0 0;
+  padding: 0;
   min-width: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: flex-start;
-  gap: 3px;
+  justify-content: center;
+  gap: 2px;
   cursor: pointer;
   color: var(--tabbar-inactive);
-  transition: color 150ms ease;
+  transition: color 120ms ease;
   -webkit-tap-highlight-color: transparent;
   -webkit-user-select: none;
   user-select: none;
@@ -9770,10 +9773,12 @@ select:focus,
 .dilz-tabbar__item.is-active { color: var(--tabbar-active); }
 .dilz-tabbar__item:focus-visible { outline: 2px solid var(--tabbar-active); outline-offset: -4px; border-radius: 12px; }
 
+.dilz-tabbar__item:active { opacity: 0.4; }
+
 .dilz-tabbar__icon {
   position: relative;
-  width: 28px;
-  height: 28px;
+  width: 25px;
+  height: 25px;
   display: grid;
   place-items: center;
 }
@@ -9781,8 +9786,8 @@ select:focus,
 
 .dilz-tabbar__label {
   font-size: 10px;
-  font-weight: 500;
-  letter-spacing: 0.01em;
+  font-weight: 400;
+  letter-spacing: 0.02em;
   line-height: 1;
   white-space: nowrap;
 }
