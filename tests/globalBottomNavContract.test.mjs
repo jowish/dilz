@@ -85,5 +85,5 @@ test('alert notifications are surfaced only through the bottom Alerts tab', () =
   assert.match(globalNav, /filter\(\(notification\) => !notification\.is_read\)\.length/);
   assert.match(globalNav, /window\.addEventListener\('dilz:notifications-read', refreshUnread\)/);
   assert.match(bottomNav, /item\.id === 'alerts' && unreadCount > 0/);
-  assert.match(bottomNav, /className="dilz-bottom-nav__badge"/);
+  assert.match(bottomNav, /className="dilz-tabbar__badge"/);
 });

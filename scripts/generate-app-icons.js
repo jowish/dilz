@@ -21,7 +21,7 @@ function symbol(fill) {
 }
 
 // A filled square/rounded tile with the mark centred at `scale` of the tile.
-function tileSvg(size, { bg = INK, fg = PAPER, radius = 0, scale = 0.52 } = {}) {
+function tileSvg(size, { bg = INK, fg = PAPER, radius = 0, scale = 0.64 } = {}) {
   const box = 120;
   const target = size * scale;
   const off = (size - target) / 2;
@@ -36,7 +36,7 @@ function tileSvg(size, { bg = INK, fg = PAPER, radius = 0, scale = 0.52 } = {}) 
 
 // Transparent canvas with the mark only — Android adaptive-icon foreground.
 // Smaller scale so it sits inside the launcher's safe zone after masking.
-function foregroundSvg(size, { fg = PAPER, scale = 0.4 } = {}) {
+function foregroundSvg(size, { fg = PAPER, scale = 0.5 } = {}) {
   const box = 120;
   const target = size * scale;
   const off = (size - target) / 2;
@@ -115,7 +115,7 @@ async function main() {
     fromMaster(512).toFile(path.join(assetsDir, 'play-store-icon-512.png')),
     // Maskable variant — mark pulled into the 80% safe zone so any launcher
     // mask (circle, squircle) crops only the ground.
-    png(tileSvg(512, { radius: 0, scale: 0.44 })).toFile(path.join(publicDir, 'icon-maskable-512.png')),
+    png(tileSvg(512, { radius: 0, scale: 0.54 })).toFile(path.join(publicDir, 'icon-maskable-512.png')),
   ]);
 
   // Scalable favicon + a 32px PNG fallback + legacy .ico.

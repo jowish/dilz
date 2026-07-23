@@ -9703,3 +9703,118 @@ select:focus,
   text-underline-offset: 0.12em;
   text-decoration-skip-ink: none;
 }
+
+/* ── Native iOS-style tab bar ─────────────────────────────────────────────
+   Replaces the old floating "liquid glass" pill. A fixed, full-width,
+   translucent blurred bar flush to the bottom edge with a hairline top
+   separator; five evenly spaced icon+label tabs. Selected tab uses a filled
+   icon + active tint, the rest an outline icon in muted grey. Mobile only —
+   desktop keeps the header nav. */
+:root {
+  --dilz-tabbar-height: 64px;
+  --tabbar-surface: rgba(249, 249, 251, 0.82);
+  --tabbar-hairline: rgba(0, 0, 0, 0.16);
+  --tabbar-active: #0B1220;
+  --tabbar-inactive: #8E8E93;
+}
+.dark {
+  --tabbar-surface: rgba(22, 22, 24, 0.80);
+  --tabbar-hairline: rgba(255, 255, 255, 0.16);
+  --tabbar-active: #FFFFFF;
+  --tabbar-inactive: #8E8E93;
+}
+
+.dilz-tabbar {
+  display: none;
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1000;
+  grid-template-columns: repeat(5, 1fr);
+  align-items: start;
+  height: calc(var(--dilz-tabbar-height) + env(safe-area-inset-bottom));
+  padding: 8px 0 env(safe-area-inset-bottom);
+  background: var(--tabbar-surface);
+  border-top: 0.5px solid var(--tabbar-hairline);
+  backdrop-filter: blur(22px) saturate(180%);
+  -webkit-backdrop-filter: blur(22px) saturate(180%);
+  transform: translateZ(0);
+}
+
+@media (max-width: 767px) {
+  .dilz-tabbar { display: grid; }
+}
+
+.dilz-tabbar__item {
+  -webkit-appearance: none;
+  appearance: none;
+  border: 0;
+  background: none;
+  margin: 0;
+  padding: 2px 0 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 3px;
+  cursor: pointer;
+  color: var(--tabbar-inactive);
+  transition: color 150ms ease;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.dilz-tabbar__item.is-active { color: var(--tabbar-active); }
+.dilz-tabbar__item:focus-visible { outline: 2px solid var(--tabbar-active); outline-offset: -4px; border-radius: 12px; }
+
+.dilz-tabbar__icon {
+  position: relative;
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+}
+.dilz-tabbar__icon svg { width: 100%; height: 100%; display: block; }
+
+.dilz-tabbar__label {
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.dilz-tabbar__avatar {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+.dilz-tabbar__item.is-active .dilz-tabbar__avatar {
+  box-shadow: 0 0 0 2px var(--tabbar-active);
+}
+
+.dilz-tabbar__badge {
+  position: absolute;
+  top: -3px;
+  right: -6px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  border-radius: 999px;
+  background: #FF3B30;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
+  display: grid;
+  place-items: center;
+  box-shadow: 0 0 0 2px var(--tabbar-surface);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dilz-tabbar__item { transition: none; }
+}
