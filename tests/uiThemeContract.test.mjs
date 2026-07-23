@@ -7,9 +7,9 @@ const css = await readFile(path.join(process.cwd(), 'styles', 'globals.css'), 'u
 const bottomNav = await readFile(path.join(process.cwd(), 'components', 'layout', 'BottomNav.js'), 'utf8');
 
 test('mobile navigation uses a native fixed tab bar', () => {
-  assert.match(css, /--dilz-tabbar-height:\s*49px/);
+  assert.match(css, /--dilz-tabbar-height:\s*54px/);
   assert.match(css, /\.dilz-tabbar\s*\{[^}]*position:\s*fixed/s);
-  assert.match(css, /\.dilz-tabbar\s*\{[^}]*height:\s*calc\(var\(--dilz-tabbar-height\) \+ env\(safe-area-inset-bottom\)\)/s);
+  assert.match(css, /\.dilz-tabbar\s*\{[^}]*height:\s*calc\(var\(--dilz-tabbar-height\) \+ var\(--tabbar-safe\)\)/s);
   // Translucent, blurred system material with a hairline top separator.
   assert.match(css, /\.dilz-tabbar\s*\{[^}]*background:\s*var\(--tabbar-surface\)/s);
   assert.match(css, /\.dilz-tabbar\s*\{[^}]*backdrop-filter:\s*blur\(/s);

@@ -9711,7 +9711,12 @@ select:focus,
    icon + active tint, the rest an outline icon in muted grey. Mobile only —
    desktop keeps the header nav. */
 :root {
-  --dilz-tabbar-height: 49px;   /* canonical iOS UITabBar height (49pt) */
+  --dilz-tabbar-height: 54px;   /* tappable content height (icon + label) */
+  /* Always keep the row clear of the home-indicator gesture zone: honour the
+     real safe-area inset on iPhone, but never less than 14px even when the OS
+     reports 0 (desktop, some PWAs). Without this floor the row jams against
+     the very bottom edge and is almost impossible to tap. */
+  --tabbar-safe: max(env(safe-area-inset-bottom, 0px), 14px);
   --tabbar-surface: rgba(249, 249, 251, 0.80);
   --tabbar-hairline: rgba(0, 0, 0, 0.15);
   --tabbar-active: #0B1220;
@@ -9732,9 +9737,9 @@ select:focus,
   bottom: 0;
   z-index: 1000;
   grid-template-columns: repeat(5, 1fr);
-  align-items: center;
-  height: calc(var(--dilz-tabbar-height) + env(safe-area-inset-bottom));
-  padding: 0 0 env(safe-area-inset-bottom);
+  align-items: stretch;   /* each tab fills the full row height = big tap target */
+  height: calc(var(--dilz-tabbar-height) + var(--tabbar-safe));
+  padding-bottom: var(--tabbar-safe);
   /* System font so the labels render in SF Pro on iOS — the single biggest
      "native" tell for tab-bar text. */
   font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
@@ -9757,11 +9762,12 @@ select:focus,
   margin: 0;
   padding: 0;
   min-width: 0;
+  height: 100%;               /* full tab-bar content height is tappable */
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 2px;
+  gap: 3px;
   cursor: pointer;
   color: var(--tabbar-inactive);
   transition: color 120ms ease;
