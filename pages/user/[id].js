@@ -6,6 +6,7 @@ import { VoteEmoji } from '../../components/ui/VoteEmoji';
 import { supabase } from '../../lib/supabase';
 import { useAppLanguage } from '../../lib/useAppLanguage';
 import { formatPrice } from '../../lib/dealCard.js';
+import { Wordmark } from '../../components/ui/Brand';
 
 export default function PublicUserPage() {
   const router = useRouter();
@@ -49,7 +50,7 @@ export default function PublicUserPage() {
   return (
     <div className="dilz-public-profile" dir={dir}>
       <Head><title>{profile.name} | Dilz</title></Head>
-      <header className="dilz-alerts-route__header"><Link href="/" className="dilz-logo-button"><span className="dilz-logo">dILz</span></Link></header>
+      <header className="dilz-alerts-route__header"><Link href="/" className="dilz-logo-button"><Wordmark /></Link></header>
       <main>
         <section className="dilz-public-profile__hero">
           {profile.avatar_url ? <img src={profile.avatar_url} alt="" /> : <span className="dilz-avatar">{initials}</span>}

@@ -1,6 +1,7 @@
 import Head from 'next/head';
 import Link from 'next/link';
 import { useAppLanguage } from '../lib/useAppLanguage';
+import { Wordmark } from '../components/ui/Brand';
 
 const { DEAL_CATEGORIES, getDealCategoryLabel } = require('../lib/dealCategories');
 const CATEGORIES = DEAL_CATEGORIES.map((id) => ({ id, en: getDealCategoryLabel(id, 'en'), he: getDealCategoryLabel(id, 'he') }));
@@ -59,7 +60,7 @@ export default function ExplorePage() {
       </Head>
       <div className="dilz-explore-page" dir={dir}>
         <header className="dilz-alerts-route__header">
-          <Link href="/" className="dilz-logo-button" aria-label="Dilz home"><span className="dilz-logo">dILz</span></Link>
+          <Link href="/" className="dilz-logo-button" aria-label="Dilz home"><Wordmark /></Link>
           <span className="dilz-explore-header-actions">
             <select className="dilz-language-select" value={lang} onChange={(event) => setLang(event.target.value)} aria-label="Language">
               <option value="en">EN</option>

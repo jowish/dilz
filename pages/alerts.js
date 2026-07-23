@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react';
 import { AlertModal } from '../components/ui/AlertModal';
 import { supabase } from '../lib/supabase';
 import { useAppLanguage } from '../lib/useAppLanguage';
+import { Wordmark } from '../components/ui/Brand';
 
 export default function AlertsPage() {
   const router = useRouter();
@@ -32,7 +33,7 @@ export default function AlertsPage() {
       <Head><title>{lang === 'he' ? 'התראות | Dilz' : 'Alerts | Dilz'}</title></Head>
       <div className="dilz-alerts-route" dir={lang === 'he' ? 'rtl' : 'ltr'}>
         <header className="dilz-alerts-route__header">
-          <Link href="/" className="dilz-logo-button" aria-label="Dilz home"><span className="dilz-logo">dILz</span></Link>
+          <Link href="/" className="dilz-logo-button" aria-label="Dilz home"><Wordmark /></Link>
         </header>
         <main className="dilz-alerts-route__main">
           {loading || !user ? <div className="dilz-empty-state"><div className="dilz-spinner" /></div> : (

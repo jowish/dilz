@@ -1,39 +1,84 @@
 const path = require('node:path');
+const fs = require('node:fs');
 const sharp = require('sharp');
 
 const root = path.resolve(__dirname, '..');
-const publicDirectory = path.join(root, 'public');
+const publicDir = path.join(root, 'public');
+const assetsDir = path.join(root, 'assets');
 const iosIcon = path.join(root, 'ios', 'App', 'App', 'Assets.xcassets', 'AppIcon.appiconset', 'AppIcon-512@2x.png');
-const iosSplash = path.join(root, 'ios', 'App', 'App', 'Assets.xcassets', 'Splash.imageset', 'splash-2732x2732.png');
+const iosSplashDir = path.join(root, 'ios', 'App', 'App', 'Assets.xcassets', 'Splash.imageset');
 const androidRes = path.join(root, 'android', 'app', 'src', 'main', 'res');
-const assetsDirectory = path.join(root, 'assets');
 
-const masterSize = 1024;
-const logo = Buffer.from(`
-  <svg width="${masterSize}" height="${masterSize}" viewBox="0 0 ${masterSize} ${masterSize}" xmlns="http://www.w3.org/2000/svg">
-    <rect width="1024" height="1024" fill="#FFFFFF"/>
-    <text
-      x="512"
-      y="520"
-      fill="#0B1220"
-      font-family="Arial, Helvetica, sans-serif"
-      font-size="310"
-      font-weight="900"
-      letter-spacing="-18"
-      text-anchor="middle"
-      dominant-baseline="middle"
-    >dILz</text>
-  </svg>
-`);
+const INK = '#0B1220';
+const PAPER = '#FFFFFF';
 
-// Android adaptive icons must keep artwork inside the center ~66% "safe zone"
-// of the 108dp canvas so it survives circle/squircle/rounded-square masking
-// on different launchers. We reuse the flat white master icon as the
-// foreground, scaled down and centered on a transparent canvas; since the
-// background layer is the same white, the seam is invisible.
-const ANDROID_ADAPTIVE_SAFE_ZONE = 0.62;
+// The mark: the "d" as a lens — one ring (bowl) + one stem — on a 120 grid.
+// Pure geometry, so it needs no font and redraws identically at any size.
+function symbol(fill) {
+  return `
+    <circle cx="60" cy="74" r="25" fill="none" stroke="${fill}" stroke-width="18"/>
+    <rect x="76" y="12" width="18" height="96" rx="2" fill="${fill}"/>`;
+}
 
-const MIPMAP_DENSITIES = {
+// A filled square/rounded tile with the mark centred at `scale` of the tile.
+function tileSvg(size, { bg = INK, fg = PAPER, radius = 0, scale = 0.52 } = {}) {
+  const box = 120;
+  const target = size * scale;
+  const off = (size - target) / 2;
+  const rect = radius
+    ? `<rect width="${size}" height="${size}" rx="${radius}" ry="${radius}" fill="${bg}"/>`
+    : `<rect width="${size}" height="${size}" fill="${bg}"/>`;
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
+    ${rect}
+    <g transform="translate(${off} ${off}) scale(${target / box})">${symbol(fg)}</g>
+  </svg>`;
+}
+
+// Transparent canvas with the mark only — Android adaptive-icon foreground.
+// Smaller scale so it sits inside the launcher's safe zone after masking.
+function foregroundSvg(size, { fg = PAPER, scale = 0.4 } = {}) {
+  const box = 120;
+  const target = size * scale;
+  const off = (size - target) / 2;
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
+    <g transform="translate(${off} ${off}) scale(${target / box})">${symbol(fg)}</g>
+  </svg>`;
+}
+
+// Splash: ink mark centred on a paper ground.
+function splashSvg(width, height, { bg = PAPER, fg = INK, mark = 0.22 } = {}) {
+  const box = 120;
+  const target = Math.min(width, height) * mark;
+  const offX = (width - target) / 2;
+  const offY = (height - target) / 2;
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">
+    <rect width="${width}" height="${height}" fill="${bg}"/>
+    <g transform="translate(${offX} ${offY}) scale(${target / box})">${symbol(fg)}</g>
+  </svg>`;
+}
+
+const png = (svg) => sharp(Buffer.from(svg)).png({ compressionLevel: 9 });
+
+// Wrap a PNG buffer in a single-image .ico container (ICO supports PNG
+// entries), so the legacy /favicon.ico matches the new mark too.
+function pngToIco(pngBuffer, dim) {
+  const header = Buffer.alloc(6);
+  header.writeUInt16LE(0, 0); // reserved
+  header.writeUInt16LE(1, 2); // type: icon
+  header.writeUInt16LE(1, 4); // image count
+  const entry = Buffer.alloc(16);
+  entry.writeUInt8(dim >= 256 ? 0 : dim, 0); // width (0 = 256)
+  entry.writeUInt8(dim >= 256 ? 0 : dim, 1); // height
+  entry.writeUInt8(0, 2); // palette
+  entry.writeUInt8(0, 3); // reserved
+  entry.writeUInt16LE(1, 4); // colour planes
+  entry.writeUInt16LE(32, 6); // bits per pixel
+  entry.writeUInt32LE(pngBuffer.length, 8); // data size
+  entry.writeUInt32LE(6 + 16, 12); // data offset
+  return Buffer.concat([header, entry, pngBuffer]);
+}
+
+const MIPMAP = {
   mdpi: { launcher: 48, foreground: 108 },
   hdpi: { launcher: 72, foreground: 162 },
   xhdpi: { launcher: 96, foreground: 216 },
@@ -41,9 +86,7 @@ const MIPMAP_DENSITIES = {
   xxxhdpi: { launcher: 192, foreground: 432 },
 };
 
-// (width, height) pairs matching Capacitor's default splash template so we
-// swap artwork in place without touching styles.xml or resource names.
-const ANDROID_SPLASH_SIZES = {
+const ANDROID_SPLASH = {
   'drawable/splash.png': [480, 320],
   'drawable-land-mdpi/splash.png': [480, 320],
   'drawable-land-hdpi/splash.png': [800, 480],
@@ -57,68 +100,57 @@ const ANDROID_SPLASH_SIZES = {
   'drawable-port-xxxhdpi/splash.png': [1280, 1920],
 };
 
-async function renderIcon(master, size, destination) {
-  await sharp(master)
-    .resize(size, size, { fit: 'fill' })
-    .png({ compressionLevel: 9, palette: false })
-    .toFile(destination);
-}
-
-async function renderAndroidAdaptiveForeground(master, canvasSize, destination) {
-  const glyphSize = Math.round(canvasSize * ANDROID_ADAPTIVE_SAFE_ZONE);
-  const glyph = await sharp(master).resize(glyphSize, glyphSize, { fit: 'fill' }).toBuffer();
-  await sharp({
-    create: {
-      width: canvasSize,
-      height: canvasSize,
-      channels: 4,
-      background: { r: 0, g: 0, b: 0, alpha: 0 },
-    },
-  })
-    .composite([{ input: glyph, gravity: 'center' }])
-    .png({ compressionLevel: 9 })
-    .toFile(destination);
-}
-
-async function renderAndroidSplash(source, width, height, destination) {
-  await sharp(source)
-    .resize(width, height, { fit: 'contain', background: { r: 255, g: 255, b: 255, alpha: 1 } })
-    .png({ compressionLevel: 9 })
-    .toFile(destination);
-}
-
 async function main() {
-  const master = await sharp(logo, { density: 192 })
-    .resize(masterSize, masterSize, { fit: 'fill' })
-    .png({ compressionLevel: 9, palette: false })
-    .toBuffer();
+  fs.mkdirSync(assetsDir, { recursive: true });
 
+  // ── One full-bleed master, shared by iOS and every web/PWA size so the
+  //    artwork is pixel-identical across platforms (OS applies rounding). ─
+  const master = await png(tileSvg(1024, { radius: 0 })).toBuffer();
+  const fromMaster = (size) => sharp(master).resize(size, size).png({ compressionLevel: 9 });
+  await sharp(master).toFile(iosIcon);
   await Promise.all([
-    renderIcon(master, 180, path.join(publicDirectory, 'icon-180.png')),
-    renderIcon(master, 192, path.join(publicDirectory, 'icon-192.png')),
-    renderIcon(master, 512, path.join(publicDirectory, 'icon-512.png')),
-    sharp(master).toFile(iosIcon),
-    sharp(master).resize(512, 512, { fit: 'fill' }).png({ compressionLevel: 9 }).toFile(path.join(assetsDirectory, 'play-store-icon-512.png')),
+    fromMaster(180).toFile(path.join(publicDir, 'icon-180.png')),
+    fromMaster(192).toFile(path.join(publicDir, 'icon-192.png')),
+    fromMaster(512).toFile(path.join(publicDir, 'icon-512.png')),
+    fromMaster(512).toFile(path.join(assetsDir, 'play-store-icon-512.png')),
+    // Maskable variant — mark pulled into the 80% safe zone so any launcher
+    // mask (circle, squircle) crops only the ground.
+    png(tileSvg(512, { radius: 0, scale: 0.44 })).toFile(path.join(publicDir, 'icon-maskable-512.png')),
   ]);
 
+  // Scalable favicon + a 32px PNG fallback + legacy .ico.
+  fs.writeFileSync(path.join(publicDir, 'favicon.svg'), tileSvg(120, { radius: 26 }).trim() + '\n');
+  await png(tileSvg(32, { radius: 7 })).toFile(path.join(publicDir, 'favicon-32.png'));
+  const favPng = await png(tileSvg(32, { radius: 7 })).toBuffer();
+  fs.writeFileSync(path.join(publicDir, 'favicon.ico'), pngToIco(favPng, 32));
+
+  // ── iOS splash (the icon itself was written from the shared master). ──
+  const iosSplash = splashSvg(2732, 2732, { mark: 0.18 });
+  await Promise.all([
+    png(iosSplash).toFile(path.join(iosSplashDir, 'splash-2732x2732.png')),
+    png(iosSplash).toFile(path.join(iosSplashDir, 'splash-2732x2732-1.png')),
+    png(iosSplash).toFile(path.join(iosSplashDir, 'splash-2732x2732-2.png')),
+  ]);
+
+  // ── Android — legacy square launcher + adaptive foreground. ───────────
   await Promise.all(
-    Object.entries(MIPMAP_DENSITIES).flatMap(([density, sizes]) => {
+    Object.entries(MIPMAP).flatMap(([density, s]) => {
       const dir = path.join(androidRes, `mipmap-${density}`);
       return [
-        renderIcon(master, sizes.launcher, path.join(dir, 'ic_launcher.png')),
-        renderIcon(master, sizes.launcher, path.join(dir, 'ic_launcher_round.png')),
-        renderAndroidAdaptiveForeground(master, sizes.foreground, path.join(dir, 'ic_launcher_foreground.png')),
+        png(tileSvg(s.launcher, { radius: 0 })).toFile(path.join(dir, 'ic_launcher.png')),
+        png(tileSvg(s.launcher, { radius: 0 })).toFile(path.join(dir, 'ic_launcher_round.png')),
+        png(foregroundSvg(s.foreground)).toFile(path.join(dir, 'ic_launcher_foreground.png')),
       ];
     })
   );
 
   await Promise.all(
-    Object.entries(ANDROID_SPLASH_SIZES).map(([relativePath, [width, height]]) =>
-      renderAndroidSplash(iosSplash, width, height, path.join(androidRes, relativePath))
+    Object.entries(ANDROID_SPLASH).map(([rel, [w, h]]) =>
+      png(splashSvg(w, h, { mark: 0.22 })).toFile(path.join(androidRes, rel))
     )
   );
 
-  console.log('Generated Dilz web, iOS and Android app icons and splash screens.');
+  console.log('Generated dILz symbol icons + splash screens (web, iOS, Android).');
 }
 
 main().catch((error) => {

@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react';
 import { PostDealModal } from '../components/deals/PostDealModal';
 import { supabase } from '../lib/supabase';
 import { useAppLanguage } from '../lib/useAppLanguage';
+import { Wordmark } from '../components/ui/Brand';
 
 export default function PostPage() {
   const router = useRouter();
@@ -25,7 +26,7 @@ export default function PostPage() {
       <Head><title>{lang === 'he' ? '×¤×¨×¡×•× ×“×™×œ | Dilz' : 'Post a deal | Dilz'}</title></Head>
       <div className="dilz-post-page" dir={dir}>
         <header className="dilz-alerts-route__header">
-          <Link href="/" className="dilz-logo-button"><span className="dilz-logo">dILz</span></Link>
+          <Link href="/" className="dilz-logo-button"><Wordmark /></Link>
         </header>
         <main className="dilz-post-page__main">
           {user ? (

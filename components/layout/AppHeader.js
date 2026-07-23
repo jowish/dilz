@@ -1,13 +1,12 @@
 import Link from 'next/link';
 import { Button } from '../ui/Button';
 import { SearchBar } from '../ui/SearchBar';
+import { Wordmark } from '../ui/Brand';
 
 function Logo({ onClick }) {
   const content = (
     <span className="dilz-logo-lockup" aria-label="dILz">
-      <span className="dilz-logo">
-        dILz
-      </span>
+      <Wordmark />
     </span>
   );
 
