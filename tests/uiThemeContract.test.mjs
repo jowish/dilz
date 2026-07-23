@@ -6,27 +6,25 @@ import path from 'node:path';
 const css = await readFile(path.join(process.cwd(), 'styles', 'globals.css'), 'utf8');
 const bottomNav = await readFile(path.join(process.cwd(), 'components', 'layout', 'BottomNav.js'), 'utf8');
 
-test('mobile navigation uses the compact liquid-glass bar contract', () => {
-  assert.match(css, /--dilz-tabbar-height:\s*80px/);
-  assert.match(css, /height:\s*calc\(var\(--dilz-tabbar-height\) \+ env\(safe-area-inset-bottom\)\)/);
-  assert.match(css, /padding:\s*0 20px calc\(var\(--dilz-tabbar-gap\) \+ env\(safe-area-inset-bottom\)\)/);
-  assert.match(css, /\.dilz-bottom-nav\s*\{[^}]*bottom:\s*0/s);
-  // Liquid glass background: gradient sheen layered over the translucent base
-  assert.match(css, /\.dilz-bottom-nav__inner\s*\{[^}]*backdrop-filter:\s*blur\(10px\) saturate\(190%\) brightness\(1\.04\)/s);
-  // A single sliding loupe/drop is the active indicator (no per-item ::before bg)
-  assert.match(css, /\.dilz-bottom-nav__loupe\s*\{[^}]*background:[\s\S]*?var\(--dilz-tabbar-active-bg\)/s);
-  assert.match(bottomNav, /'--dilz-loupe-post-alpha': postTint\.toFixed\(3\)/);
+test('mobile navigation uses a native fixed tab bar', () => {
+  assert.match(css, /--dilz-tabbar-height:\s*64px/);
+  assert.match(css, /\.dilz-tabbar\s*\{[^}]*position:\s*fixed/s);
+  assert.match(css, /\.dilz-tabbar\s*\{[^}]*height:\s*calc\(var\(--dilz-tabbar-height\) \+ env\(safe-area-inset-bottom\)\)/s);
+  // Translucent, blurred system material with a hairline top separator.
+  assert.match(css, /\.dilz-tabbar\s*\{[^}]*background:\s*var\(--tabbar-surface\)/s);
+  assert.match(css, /\.dilz-tabbar\s*\{[^}]*backdrop-filter:\s*blur\(/s);
+  assert.match(css, /\.dilz-tabbar\s*\{[^}]*border-top:\s*0?\.5px solid var\(--tabbar-hairline\)/s);
   assert.match(bottomNav, /aria-current=\{committed \? 'page' : undefined\}/);
 });
 
 test('the Post action shares the neutral styling of the other tabs', () => {
-  // Post icon is no longer an orange elevated FAB; it inherits colour like the rest
-  assert.match(css, /\.dilz-bottom-nav__item\.is-post \.dilz-bottom-nav__icon,[\s\S]*?background:\s*transparent !important/s);
-  assert.doesNotMatch(css, /\.dark \.dilz-bottom-nav__item\.is-post \.dilz-bottom-nav__icon\s*\{[^}]*background:\s*var\(--brand\) !important/s);
+  // Post is a plain tab like the rest — no orange FAB, no special class.
+  assert.doesNotMatch(bottomNav, /is-post/);
+  assert.doesNotMatch(bottomNav, /var\(--brand\)/);
 });
 
 test('the profile tab can show an uploaded avatar in the bar', () => {
-  assert.match(bottomNav, /dilz-bottom-nav__avatar/);
+  assert.match(bottomNav, /dilz-tabbar__avatar/);
   assert.match(bottomNav, /avatar_url/);
 });
 
