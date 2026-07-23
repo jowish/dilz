@@ -8,6 +8,7 @@ import { uploadDealImage, validateImageFile, deleteDealImage } from '../../lib/u
 import { copyText } from '../../lib/copyText';
 import { CopyToast } from '../../components/ui/CopyToast';
 import { VoteEmoji } from '../../components/ui/VoteEmoji';
+import { Wordmark } from '../../components/ui/Brand';
 import { useAppLanguage } from '../../lib/useAppLanguage';
 import { SafetyActions } from '../../components/ui/SafetyActions';
 import { buildDealGpsUrl } from '../../lib/dealLocation';
@@ -517,13 +518,7 @@ export default function DealPage() {
             </button>
             <Link href="/" className="dilz-logo-button" aria-label="Dilz home">
               <span className="dilz-logo-lockup" aria-label="dILz">
-                <span className="dilz-logo-mark" aria-hidden="true">
-                  <svg viewBox="0 0 48 48" focusable="false">
-                    <circle cx="21" cy="21" r="12" />
-                    <path d="M30.5 30.5 40 40" />
-                  </svg>
-                </span>
-                <span className="dilz-logo">dILz</span>
+                <Wordmark />
               </span>
             </Link>
             <div className="dilz-deal-header-actions">

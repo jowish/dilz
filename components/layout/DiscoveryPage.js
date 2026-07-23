@@ -1,5 +1,6 @@
 import Head from 'next/head';
 import Link from 'next/link';
+import { Wordmark } from '../ui/Brand';
 
 export function DiscoveryPage({ title, eyebrow, description, lang = 'en', onLanguageChange, children }) {
   return (
@@ -16,10 +17,7 @@ export function DiscoveryPage({ title, eyebrow, description, lang = 'en', onLang
             </Link>
             <Link href="/" className="dilz-logo-button" aria-label={lang === 'he' ? 'דף הבית של Dilz' : 'Dilz home'}>
               <span className="dilz-logo-lockup" aria-label="dILz">
-                <span className="dilz-logo-mark" aria-hidden="true">
-                  <svg viewBox="0 0 48 48"><circle cx="21" cy="21" r="12" /><path d="M30.5 30.5 40 40" /></svg>
-                </span>
-                <span className="dilz-logo">dILz</span>
+                <Wordmark />
               </span>
             </Link>
             <span className="dilz-discovery-header__spacer">

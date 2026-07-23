@@ -4,10 +4,11 @@ import Link from 'next/link';
 import Head from 'next/head';
 import { supabase } from '../lib/supabase';
 import { useAppLanguage } from '../lib/useAppLanguage';
+import { Wordmark } from '../components/ui/Brand';
 
 const AUTH_TEXT = {
-  en: { title: 'Sign in', tagline: 'Deals & promotions in Israel', required: 'Email and password are required', generic: 'Something went wrong. Please try again.', enterEmail: 'Enter your email address first.', resent: 'Confirmation email sent again. Check inbox and spam.', check: 'Check your email', sent: 'We sent a confirmation link to', instructions: 'Open it on this device if possible. If you do not see it, check spam or send it again.', sending: 'Sending...', resend: 'Resend confirmation email', backSignIn: 'Back to sign in', signIn: 'Sign in', signUp: 'Sign up', authMode: 'Authentication mode', name: 'Display name', email: 'Email', password: 'Password', wait: 'Please wait...', create: 'Create account', backDeals: 'Back to deals', home: 'Dilz home', legalPrefix: 'By creating an account, you agree to the', terms: 'Terms of Use', and: 'and', privacy: 'Privacy Policy', google: 'Continue with Google', orDivider: 'or' },
-  he: { title: 'התחברות', tagline: 'דילים ומבצעים בישראל', required: 'יש להזין אימייל וסיסמה', generic: 'אירעה שגיאה. נסו שוב.', enterEmail: 'יש להזין קודם כתובת אימייל.', resent: 'מייל האימות נשלח שוב. בדקו גם את תיקיית הספאם.', check: 'בדקו את האימייל', sent: 'שלחנו קישור אימות אל', instructions: 'מומלץ לפתוח אותו במכשיר הזה. אם הוא לא מופיע, בדקו בספאם או שלחו שוב.', sending: 'שולח...', resend: 'שליחת מייל אימות מחדש', backSignIn: 'חזרה להתחברות', signIn: 'התחברות', signUp: 'הרשמה', authMode: 'מצב אימות', name: 'שם תצוגה', email: 'אימייל', password: 'סיסמה', wait: 'נא להמתין...', create: 'יצירת חשבון', backDeals: 'חזרה לדילים', home: 'דף הבית של Dilz', legalPrefix: 'ביצירת חשבון אתם מסכימים ל', terms: 'תנאי השימוש', and: 'ול', privacy: 'מדיניות הפרטיות', google: 'המשך עם Google', orDivider: 'או' },
+  en: { title: 'Sign in', required: 'Email and password are required', generic: 'Something went wrong. Please try again.', enterEmail: 'Enter your email address first.', resent: 'Confirmation email sent again. Check inbox and spam.', check: 'Check your email', sent: 'We sent a confirmation link to', instructions: 'Open it on this device if possible. If you do not see it, check spam or send it again.', sending: 'Sending...', resend: 'Resend confirmation email', backSignIn: 'Back to sign in', signIn: 'Sign in', signUp: 'Sign up', authMode: 'Authentication mode', name: 'Display name', email: 'Email', password: 'Password', wait: 'Please wait...', create: 'Create account', backDeals: 'Back to deals', home: 'Dilz home', legalPrefix: 'By creating an account, you agree to the', terms: 'Terms of Use', and: 'and', privacy: 'Privacy Policy', google: 'Continue with Google', orDivider: 'or' },
+  he: { title: 'התחברות', required: 'יש להזין אימייל וסיסמה', generic: 'אירעה שגיאה. נסו שוב.', enterEmail: 'יש להזין קודם כתובת אימייל.', resent: 'מייל האימות נשלח שוב. בדקו גם את תיקיית הספאם.', check: 'בדקו את האימייל', sent: 'שלחנו קישור אימות אל', instructions: 'מומלץ לפתוח אותו במכשיר הזה. אם הוא לא מופיע, בדקו בספאם או שלחו שוב.', sending: 'שולח...', resend: 'שליחת מייל אימות מחדש', backSignIn: 'חזרה להתחברות', signIn: 'התחברות', signUp: 'הרשמה', authMode: 'מצב אימות', name: 'שם תצוגה', email: 'אימייל', password: 'סיסמה', wait: 'נא להמתין...', create: 'יצירת חשבון', backDeals: 'חזרה לדילים', home: 'דף הבית של Dilz', legalPrefix: 'ביצירת חשבון אתם מסכימים ל', terms: 'תנאי השימוש', and: 'ול', privacy: 'מדיניות הפרטיות', google: 'המשך עם Google', orDivider: 'או' },
 };
 
 function getRedirectPath(value) {
@@ -149,16 +150,9 @@ export default function Auth() {
           <div className="dilz-auth-logo">
             <Link href="/" className="dilz-logo-button" aria-label={text.home}>
               <span className="dilz-logo-lockup" aria-label="dILz">
-                <span className="dilz-logo-mark" aria-hidden="true">
-                  <svg viewBox="0 0 48 48" focusable="false">
-                    <circle cx="21" cy="21" r="12" />
-                    <path d="M30.5 30.5 40 40" />
-                  </svg>
-                </span>
-                <span className="dilz-logo">dILz</span>
+                <Wordmark />
               </span>
             </Link>
-            <p className="dilz-auth-tagline">{text.tagline}</p>
             <select className="dilz-language-select" value={lang} onChange={(event) => setLang(event.target.value)} aria-label="Language">
               <option value="en">English</option><option value="he">עברית</option>
             </select>

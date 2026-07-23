@@ -42,10 +42,11 @@ test('web app icons use the declared PNG dimensions', async () => {
 test('web manifest exposes the standard installable icon sizes', async () => {
   const manifest = JSON.parse(await readFile(path.join(process.cwd(), 'public', 'manifest.webmanifest'), 'utf8'));
   assert.deepEqual(
-    manifest.icons.map(({ src, sizes, type }) => ({ src, sizes, type })),
+    manifest.icons.map(({ src, sizes, type, purpose }) => ({ src, sizes, type, purpose })),
     [
-      { src: '/icon-192.png', sizes: '192x192', type: 'image/png' },
-      { src: '/icon-512.png', sizes: '512x512', type: 'image/png' },
+      { src: '/icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
+      { src: '/icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
+      { src: '/icon-maskable-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
     ],
   );
 });

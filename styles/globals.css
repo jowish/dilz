@@ -4644,12 +4644,6 @@ textarea:focus {
   margin-bottom: 36px;
 }
 
-.dilz-auth-tagline {
-  font-size: 14px;
-  color: var(--text-sub);
-  margin-top: 6px;
-}
-
 .dilz-auth-card {
   background: var(--bg-card);
   border-radius: 20px;
@@ -9681,4 +9675,31 @@ select:focus,
   .dilz-bottom-nav__item > span:last-child {
     transition: none !important;
   }
+}
+
+/* ── Brand wordmark — Bricolage Grotesque display cut ─────────────────────
+   Self-hosted (OFL). Applied only to the logotype so the rest of the app
+   keeps Inter. The "IL" carries a quiet underline — the ISO code for
+   Israel folded into the name — no second colour. */
+@font-face {
+  font-family: 'Bricolage Grotesque';
+  src: url('/fonts/BricolageGrotesque-Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+.dilz-logo {
+  font-family: 'Bricolage Grotesque', 'Inter', system-ui, sans-serif;
+  font-weight: 700;
+  letter-spacing: -0.035em;
+}
+
+.dilz-logo__il {
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-color: currentColor;
+  text-decoration-thickness: 0.045em;
+  text-underline-offset: 0.12em;
+  text-decoration-skip-ink: none;
 }
