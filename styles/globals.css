@@ -9719,13 +9719,13 @@ select:focus,
   --tabbar-safe: max(env(safe-area-inset-bottom, 0px), 14px);
   --tabbar-surface: rgba(249, 249, 251, 0.80);
   --tabbar-hairline: rgba(0, 0, 0, 0.15);
-  --tabbar-active: #0B1220;
+  --tabbar-active: #007AFF;   /* iOS system blue — the stock UITabBar tint */
   --tabbar-inactive: #999DA3;
 }
 .dark {
   --tabbar-surface: rgba(28, 28, 30, 0.78);
   --tabbar-hairline: rgba(255, 255, 255, 0.15);
-  --tabbar-active: #FFFFFF;
+  --tabbar-active: #0A84FF;   /* iOS system blue, dark-mode variant */
   --tabbar-inactive: #8D8D93;
 }
 
