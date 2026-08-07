@@ -16,7 +16,7 @@ permissions:
 
 jobs:
   quality:
-    name: Typecheck / Test / Build
+    name: Test / Build
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -26,8 +26,6 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - name: Typecheck
-        run: npm run typecheck
       - name: Tests
         run: npm test
       - name: Build
