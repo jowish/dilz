@@ -62,6 +62,11 @@ comment instead of doing it.**
 6. Payment / billing code paths
 7. `.github/workflows/**` and this file
 8. Dependency major-version bumps, lockfile rewrites, framework migrations
+9. `tests/criticalRegressionGuards.test.mjs` — le contrat de régression du repo.
+   Ce fichier verrouille la configuration CI, des sélecteurs CSS et des chaînes JSX
+   exactes. S'il échoue, le code est faux, pas le test. Ne jamais supprimer ni
+   assouplir une assertion pour faire passer la CI : signaler dans l'issue à la place.
+
 
 Rationale: RLS is the only thing standing between one merchant and another merchant's data.
 A test suite does not catch a wrong policy. A human must read every line of it.
@@ -73,6 +78,9 @@ A test suite does not catch a wrong policy. A human must read every line of it.
 - One issue → one branch → one PR. Never bundle unrelated changes.
 - Never modify code outside the scope of the issue, including formatting-only churn.
 - Never delete or weaken an existing test to make CI pass. If a test is wrong, say so in the PR.
+-  A failing assertion in `tests/criticalRegressionGuards.test.mjs` means the change
+  broke a contract. Fix the change, never the assertion.
+
 - Never commit secrets, tokens, real customer data, or `.env` files.
 - All new user-facing strings go through the existing i18n mechanism — no hardcoded copy.
 - Any Supabase query added must be written assuming RLS is enforced; never reach for the
