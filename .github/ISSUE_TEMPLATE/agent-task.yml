@@ -1,0 +1,82 @@
+name: Agent task
+description: A single, self-contained mission an AI agent can execute end to end.
+title: "[agent] "
+labels: ["agent-ready"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        One issue = one PR. If this needs two PRs, open two issues.
+        Read `AGENTS.md` before starting — §4 lists what you must not touch.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What is wrong or missing today, from the user's point of view.
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behaviour
+      description: What should happen instead. Behaviour, not implementation.
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+      description: Checklist. Each line must be verifiable on the Vercel preview from a phone.
+      value: |
+        - [ ] 
+        - [ ] 
+        - [ ] 
+    validations:
+      required: true
+
+  - type: textarea
+    id: edge-cases
+    attributes:
+      label: Edge cases
+      description: Empty states, offline, geolocation denied, expired promo, RTL/Hebrew, slow network.
+    validations:
+      required: true
+
+  - type: textarea
+    id: constraints
+    attributes:
+      label: Constraints
+      description: Files or areas that must not be modified. Performance or design limits.
+      value: |
+        - No changes to `supabase/migrations/`, RLS policies, auth or env config (AGENTS.md §4)
+        - No dependency upgrades
+    validations:
+      required: true
+
+  - type: dropdown
+    id: size
+    attributes:
+      label: Size
+      options:
+        - S — one file, under an hour
+        - M — a few files, one feature slice
+        - L — should probably be split before starting
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: dod
+    attributes:
+      label: Definition of Done
+      options:
+        - label: CI green (typecheck, lint, tests, build, E2E)
+          required: true
+        - label: Tests added for the new behaviour
+          required: true
+        - label: No restricted path in the diff
+          required: true
+        - label: Verified on the Vercel preview
+          required: true
