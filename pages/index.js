@@ -11,6 +11,7 @@ import { DealCard as PremiumDealCard } from '../components/deals/DealCard';
 import { CityModal } from '../components/ui/CityModal';
 import { Button } from '../components/ui/Button';
 import { EmptyState } from '../components/ui/EmptyState';
+import { ErrorToast } from '../components/ui/ErrorToast';
 import { readDealLayoutPreference, readDealSortPreference, readSessionDealSort, writeDealLayoutPreference, writeSessionDealSort } from '../lib/userPreferences';
 import { dealViewState, resolveDealLayout, resolveDealSort, sortDealsForView } from '../lib/navigationState';
 
@@ -616,6 +617,7 @@ export default function Home() {
 
   // Votes
   const [votedDeals, setVotedDeals] = useState({});
+  const [voteError, setVoteError] = useState('');
 
   // Saved items
   const [savedItems, setSavedItems] = useState([]);
@@ -982,37 +984,7 @@ export default function Home() {
       votes_froid: Math.max(0, (d.votes_froid || 0) + froid_delta),
     }));
 
-    const apiRes = await fetch('/api/bons-plans', {
-      method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${session.access_token}`,
-      },
-      body: JSON.stringify({
-        action: 'vote', id, type,
-        // Fallback deltas for when votes table isn't set up yet
-        chaud_delta, froid_delta,
-      }),
-    });
-
-    if (apiRes.ok) {
-      const data = await apiRes.json();
-      // Reconcile with server-authoritative state
-      const serverVote = data.newType ?? null;
-      setVotedDeals(prev => {
-        const next = { ...prev, [id]: serverVote };
-        try { localStorage.setItem('dilzDealVotes', JSON.stringify(next)); } catch {}
-        return next;
-      });
-      if (data.votes_chaud !== undefined) {
-        setDeals(prev => prev.map(d => d.id !== id ? d : {
-          ...d,
-          votes_chaud: data.votes_chaud,
-          votes_froid: data.votes_froid,
-        }));
-      }
-    } else {
-      // Rollback
+    const rollbackVote = () => {
       setVotedDeals(prev => {
         const next = { ...prev, [id]: currentVote };
         try { localStorage.setItem('dilzDealVotes', JSON.stringify(next)); } catch {}
@@ -1023,6 +995,45 @@ export default function Home() {
         votes_chaud: Math.max(0, (d.votes_chaud || 0) - chaud_delta),
         votes_froid: Math.max(0, (d.votes_froid || 0) - froid_delta),
       }));
+      setVoteError(lang === 'he' ? 'ההצבעה נכשלה. נסו שוב.' : 'Vote failed. Please try again.');
+      window.setTimeout(() => setVoteError(''), 1800);
+    };
+
+    try {
+      const apiRes = await fetch('/api/bons-plans', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({
+          action: 'vote', id, type,
+          // Fallback deltas for when votes table isn't set up yet
+          chaud_delta, froid_delta,
+        }),
+      });
+
+      if (apiRes.ok) {
+        const data = await apiRes.json();
+        // Reconcile with server-authoritative state
+        const serverVote = data.newType ?? null;
+        setVotedDeals(prev => {
+          const next = { ...prev, [id]: serverVote };
+          try { localStorage.setItem('dilzDealVotes', JSON.stringify(next)); } catch {}
+          return next;
+        });
+        if (data.votes_chaud !== undefined) {
+          setDeals(prev => prev.map(d => d.id !== id ? d : {
+            ...d,
+            votes_chaud: data.votes_chaud,
+            votes_froid: data.votes_froid,
+          }));
+        }
+      } else {
+        rollbackVote();
+      }
+    } catch {
+      rollbackVote();
     }
   };
 
@@ -1393,6 +1404,7 @@ export default function Home() {
             onClose={() => setShowCityModal(false)}
           />
         )}
+        <ErrorToast message={voteError} />
       </div>
     </>
   );
