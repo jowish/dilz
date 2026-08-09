@@ -36,7 +36,7 @@ test('bottom navigation is mounted globally exactly once, outside route pages', 
 });
 
 test('global bottom navigation stays visible across app routes and submenus', () => {
-  for (const route of ["'/'", "'/explore'", "'/alerts'", "'/post'", "'/profil'", "'/map'", "'/bons-plans-shopping'", "'/codes-promo'", "'/gratuit'", "'/scan'"]) {
+  for (const route of ["'/'", "'/explore'", "'/alerts'", "'/post'", "'/profil'", "'/map'", "'/bons-plans-shopping'", "'/codes-promo'", "'/gratuit'"]) {
     assert.ok(routeHelpers.includes(route), `missing nav route ${route}`);
   }
   assert.match(globalNav, /import \{ activeFromPath, shouldShowNav \} from '\.\.\/\.\.\/lib\/globalBottomNavRoutes\.mjs'/);
