@@ -7,6 +7,7 @@ import { traduireVille } from '../../lib/translations';
 import { uploadDealImage, validateImageFile, deleteDealImage } from '../../lib/uploadImage';
 import { copyText } from '../../lib/copyText';
 import { CopyToast } from '../../components/ui/CopyToast';
+import { ErrorToast } from '../../components/ui/ErrorToast';
 import { VoteEmoji } from '../../components/ui/VoteEmoji';
 import { Wordmark } from '../../components/ui/Brand';
 import { useAppLanguage } from '../../lib/useAppLanguage';
@@ -109,6 +110,7 @@ export default function DealPage() {
   const [submitting, setSubmitting] = useState(false);
   const [commentError, setCommentError] = useState('');
   const [myVote, setMyVote] = useState(null);
+  const [voteError, setVoteError] = useState('');
   const [mounted, setMounted] = useState(false);
   const [commentVotes, setCommentVotes] = useState({});
   const [replyTo, setReplyTo] = useState(null);
@@ -233,25 +235,7 @@ export default function DealPage() {
       votes_froid: Math.max(0, (prev.votes_froid || 0) + froid_delta),
     }));
 
-    const apiRes = await fetch('/api/bons-plans', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
-      body: JSON.stringify({ action: 'vote', id, type, chaud_delta, froid_delta }),
-    });
-
-    if (apiRes.ok) {
-      const data = await apiRes.json();
-      const serverVote = data.newType ?? null;
-      setMyVote(serverVote);
-      try {
-        const dv = JSON.parse(localStorage.getItem('dilzDealVotes') || '{}');
-        dv[id] = serverVote;
-        localStorage.setItem('dilzDealVotes', JSON.stringify(dv));
-      } catch {}
-      if (data.votes_chaud !== undefined) {
-        setDeal(prev => ({ ...prev, votes_chaud: data.votes_chaud, votes_froid: data.votes_froid }));
-      }
-    } else {
+    const rollbackVote = () => {
       setMyVote(prevVote);
       try {
         const dv = JSON.parse(localStorage.getItem('dilzDealVotes') || '{}');
@@ -263,6 +247,34 @@ export default function DealPage() {
         votes_chaud: Math.max(0, (prev.votes_chaud || 0) - chaud_delta),
         votes_froid: Math.max(0, (prev.votes_froid || 0) - froid_delta),
       }));
+      setVoteError(lang === 'he' ? 'ההצבעה נכשלה. נסו שוב.' : 'Vote failed. Please try again.');
+      window.setTimeout(() => setVoteError(''), 1800);
+    };
+
+    try {
+      const apiRes = await fetch('/api/bons-plans', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
+        body: JSON.stringify({ action: 'vote', id, type, chaud_delta, froid_delta }),
+      });
+
+      if (apiRes.ok) {
+        const data = await apiRes.json();
+        const serverVote = data.newType ?? null;
+        setMyVote(serverVote);
+        try {
+          const dv = JSON.parse(localStorage.getItem('dilzDealVotes') || '{}');
+          dv[id] = serverVote;
+          localStorage.setItem('dilzDealVotes', JSON.stringify(dv));
+        } catch {}
+        if (data.votes_chaud !== undefined) {
+          setDeal(prev => ({ ...prev, votes_chaud: data.votes_chaud, votes_froid: data.votes_froid }));
+        }
+      } else {
+        rollbackVote();
+      }
+    } catch {
+      rollbackVote();
     }
   };
 
@@ -972,6 +984,7 @@ export default function DealPage() {
           </div>
         )}
         <CopyToast visible={copySuccess} lang={lang} />
+        <ErrorToast message={voteError} />
       </div>
     </>
   );
