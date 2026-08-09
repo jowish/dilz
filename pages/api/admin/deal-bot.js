@@ -71,7 +71,7 @@ export default async function handler(req, res) {
       description: `${deal.description}\n\nSource: ${source_reference || 'DilzScout'}. Score: ${quality_score}/100.`.trim(),
       votes_chaud: 0,
       votes_froid: 0,
-      statut: 'pending',
+      statut: 'actif',
     }));
 
     const { data, error } = await supabaseAdmin.from('bons_plans').insert(rows).select('id,titre,magasin');
