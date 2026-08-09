@@ -79,9 +79,7 @@ Imports write with `SUPABASE_SERVICE_KEY`; public clients only receive read acce
 ```powershell
 node scripts/import-magasins.js
 node scripts/import-prix.js
-node scripts/import-promos.js
 node scripts/import-images.js
-node scripts/traduire-produits.js
 ```
 
 The import order matters because prices and promotions reference products, while city search reads normalized stores.
