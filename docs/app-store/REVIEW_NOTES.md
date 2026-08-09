@@ -17,7 +17,7 @@ The account must already be email-confirmed and must not have admin access.
 4. Profile > Account settings contains language, feed preference, Privacy Policy, Terms, Support and Delete account.
 5. Delete account permanently removes the account and private data and anonymizes public contributions.
 6. The city selector requests location only after My location is selected.
-7. The barcode scanner requests camera access only after the scan action.
+7. The camera is requested only when you choose to add a photo while posting or editing a deal.
 
 ## Moderation
 
