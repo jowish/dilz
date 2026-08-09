@@ -1,6 +1,11 @@
 # Dilz
 
-Dilz compares supermarket prices in Israel and provides a community feed for local and online deals.
+Dilz is a community platform for sharing deals. Any user who spots an
+interesting promotion — in a store, online, anywhere — posts it to the
+Dilz feed, where the community can see it, vote on it, comment and share it.
+
+Deals are geolocated, so people find what is worth their time near them.
+
 
 ## iOS application
 
