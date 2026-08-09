@@ -5,7 +5,9 @@ Updated: 2026-06-19
 ## Implemented in the repository
 
 - Capacitor 8 iOS project in `ios/` with bundle identifier `app.dilz.mobile`.
-- Production shell opens `https://dilz.vercel.app` over HTTPS and has an offline fallback page.
+- Production shell opens `https://dilz.vercel.app` over HTTPS. There is no offline page or caching —
+  a failed request shows a distinct "Can't load deals" error state with a Retry action on the main
+  feed (see issue #28), but the app otherwise requires connectivity to function.
 - Contextual iOS location permission and camera permission descriptions.
 - Native privacy manifest with no tracking declaration and the data categories used by Dilz.
 - Public Privacy Policy, Terms of Use and Support pages.

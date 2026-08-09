@@ -599,6 +599,7 @@ export default function Home() {
   const [loadingDeals, setLoadingDeals] = useState(false);
   const [loadingMoreDeals, setLoadingMoreDeals] = useState(false);
   const [hasMoreDeals, setHasMoreDeals] = useState(false);
+  const [dealsFetchError, setDealsFetchError] = useState(false);
 
   // Filters
   const [categoryFilter, setCategoryFilter] = useState('all');
@@ -839,6 +840,7 @@ export default function Home() {
     params.set('tri', sortDeals === 'nearby' ? 'latest' : sortDeals);
     if (myDealsOnly && user?.id) params.set('auteur_id', user.id);
     const response = await fetch(`/api/bons-plans?${params}`, { signal });
+    if (!response.ok) throw new Error(`Failed to load deals (${response.status})`);
     const d = await response.json();
     const nextDeals = d.bons_plans || [];
     const nextTotal = Number.isFinite(d.total) ? d.total : offset + nextDeals.length;
@@ -853,22 +855,29 @@ export default function Home() {
   }, [categoryFilter, sortDeals, myDealsOnly, user?.id, ville]);
 
   // ── Deals fetch ──
+  const [dealsFetchRetryCount, setDealsFetchRetryCount] = useState(0);
   useEffect(() => {
     if (tab !== 'deals' && tab !== 'search') return undefined;
     const controller = new AbortController();
     setLoadingDeals(true);
     setLoadingMoreDeals(false);
     setHasMoreDeals(false);
+    setDealsFetchError(false);
     fetchDealsPage({ offset: 0, append: false, signal: controller.signal })
       .then(() => setLoadingDeals(false))
       .catch((error) => {
         if (error.name !== 'AbortError') {
           setLoadingDeals(false);
           setHasMoreDeals(false);
+          setDealsFetchError(true);
         }
       });
     return () => controller.abort();
-  }, [tab, fetchDealsPage]);
+  }, [tab, fetchDealsPage, dealsFetchRetryCount]);
+
+  const retryDealsFetch = useCallback(() => {
+    setDealsFetchRetryCount((count) => count + 1);
+  }, []);
 
   const loadMoreDeals = useCallback(() => {
     if (loadingDeals || loadingMoreDeals || !hasMoreDeals || (tab !== 'deals' && tab !== 'search')) return;
@@ -1301,6 +1310,16 @@ export default function Home() {
                   <div className="dilz-spinner" />
                   <p>{t.loading}</p>
                 </div>
+              ) : visibleDeals.length === 0 && dealsFetchError ? (
+                <EmptyState
+                  tone="error"
+                  title={lang !== 'he' ? "Can't load deals" : 'לא ניתן לטעון דילים'}
+                  text={lang !== 'he'
+                    ? 'Check your connection and try again.'
+                    : 'בדקו את החיבור שלכם ונסו שוב.'}
+                  actionLabel={lang !== 'he' ? 'Retry' : 'נסה שוב'}
+                  onAction={retryDealsFetch}
+                />
               ) : visibleDeals.length === 0 && !hasMoreDeals ? (
                 <EmptyState
                   title={

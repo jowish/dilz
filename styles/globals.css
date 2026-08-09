@@ -2040,6 +2040,11 @@ textarea:focus {
   justify-content: center;
 }
 
+.dilz-empty-state.is-error .dilz-empty-state__mark {
+  background: var(--danger-soft);
+  color: var(--danger);
+}
+
 .dilz-empty-state h3 {
   color: var(--text-primary);
   font-size: 17px;
