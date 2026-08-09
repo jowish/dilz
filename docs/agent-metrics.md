@@ -9,7 +9,7 @@ and without it the whole workflow is an anecdote instead of a track record.
 |---|---|---|---|---|---|---|---|---|---|---|
 | #  | #  | S/M/L |  |  |  |  |  | yes/no |  |  |
 | #13 | #9 | S | 2026-08-09 | 2026-08-09 | ~2h (incl. infra debugging) | 1 (assertion in bottomNavContract.test.mjs, agent-authored) | 1 (Vercel prix-israel unrelated) | no | via subscription | Agent halted correctly on a pinned test value per AGENTS.md, asked before rewriting the assertion |
-| #__ | #10 | S | 2026-08-09 | 2026-08-09 | ~__ | 0 (docs only) | 0 | no | via subscription | Docs-only cleanup — README/docs no longer describe Dilz as a price-comparison tool; legacy Shufersal/Open Food Facts material marked as legacy, not deleted. Product comparison modal: __ |
+| #14 | #11 | S | 2026-08-09 | 2026-08-09 | ~10min | 0 (docs only) | 0 | no | via subscription | Docs-only cleanup, closes #11. Discovered PromoModal.js + scan.js price-comparison UI is still live in prod (not dead code as assumed) — needs a product decision, not just docs. |
 ## Derived KPIs — recompute monthly
 
 | KPI | Definition | Current | Target |
