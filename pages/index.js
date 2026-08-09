@@ -14,6 +14,7 @@ import { EmptyState } from '../components/ui/EmptyState';
 import { ErrorToast } from '../components/ui/ErrorToast';
 import { readDealLayoutPreference, readDealSortPreference, readSessionDealSort, writeDealLayoutPreference, writeSessionDealSort } from '../lib/userPreferences';
 import { dealViewState, resolveDealLayout, resolveDealSort, sortDealsForView } from '../lib/navigationState';
+import { composeFeedWithPinnedAndAds } from '../lib/feedComposition';
 
 const { DEAL_CATEGORIES, getDealCategoryLabel } = require('../lib/dealCategories');
 
@@ -595,6 +596,7 @@ export default function Home() {
 
   // Data
   const [deals, setDeals] = useState([]);
+  const [ads, setAds] = useState([]);
   const [dealTotal, setDealTotal] = useState(0);
   const [loadingDeals, setLoadingDeals] = useState(false);
   const [loadingMoreDeals, setLoadingMoreDeals] = useState(false);
@@ -847,6 +849,7 @@ export default function Home() {
       const seen = new Set(current.map((deal) => deal.id));
       return [...current, ...nextDeals.filter((deal) => !seen.has(deal.id))];
     });
+    if (offset === 0 && Array.isArray(d.ads)) setAds(d.ads);
     setDealTotal(nextTotal);
     setHasMoreDeals(typeof d.hasMore === 'boolean' ? d.hasMore : offset + nextDeals.length < nextTotal);
     return nextDeals.length;
@@ -1167,6 +1170,7 @@ export default function Home() {
     ? displayedDeals.filter((deal) => !dealIsExpired(deal))
     : displayedDeals;
   const displayedDealCount = dealCollection === 'all' ? dealTotal : visibleDeals.length;
+  const composedDeals = composeFeedWithPinnedAndAds(visibleDeals, ads);
 
   if (!mounted) return null;
 
@@ -1322,9 +1326,9 @@ export default function Home() {
                 <>
                   {visibleDeals.length > 0 && (
                     <div className={['dilz-feed-grid', dealLayout === 'compact' && 'is-compact', dealLayout === 'spotlight' && 'is-spotlight'].filter(Boolean).join(' ')}>
-                    {visibleDeals.map(deal => (
+                    {composedDeals.map(deal => (
                       <PremiumDealCard
-                        key={deal.id} deal={deal} lang={lang} isDark={isDark}
+                        key={deal._feedKey || deal.id} deal={deal} lang={lang} isDark={isDark}
                         layout={dealLayout}
                         onVote={handleDealVote} userCoords={userCoords}
                         votedDeal={votedDeals[deal.id] || null}

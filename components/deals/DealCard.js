@@ -33,10 +33,11 @@ export function DealCard({
 }) {
   const router = useRouter();
   const text = lang === 'he'
-    ? { storePromo: 'מבצע חנות', community: 'מהקהילה', you: 'אתם', member: 'חבר Dilz', online: 'אונליין', myDeal: 'הדיל שלי', shared: 'שותף על ידי', deal: 'דיל', inStore: 'בחנות', voteControls: 'כפתורי הצבעה', hot: 'סימון כחם', cold: 'סימון כקר', unsave: 'הסרה מהשמורים', save: 'שמירת הדיל', comments: 'תגובות' }
-    : { storePromo: 'Store promo', community: 'Community find', you: 'You', member: 'Dilz member', online: 'Online', myDeal: 'My deal', shared: 'Shared by', deal: 'Deal', inStore: 'In-store', voteControls: 'Vote controls', hot: 'Mark as hot', cold: 'Mark as cold', unsave: 'Unsave deal', save: 'Save deal', comments: 'comments' };
+    ? { storePromo: 'מבצע חנות', community: 'מהקהילה', you: 'אתם', member: 'חבר Dilz', online: 'אונליין', myDeal: 'הדיל שלי', shared: 'שותף על ידי', deal: 'דיל', inStore: 'בחנות', voteControls: 'כפתורי הצבעה', hot: 'סימון כחם', cold: 'סימון כקר', unsave: 'הסרה מהשמורים', save: 'שמירת הדיל', comments: 'תגובות', sponsored: 'ממומן' }
+    : { storePromo: 'Store promo', community: 'Community find', you: 'You', member: 'Dilz member', online: 'Online', myDeal: 'My deal', shared: 'Shared by', deal: 'Deal', inStore: 'In-store', voteControls: 'Vote controls', hot: 'Mark as hot', cold: 'Mark as cold', unsave: 'Unsave deal', save: 'Save deal', comments: 'comments', sponsored: 'Sponsored' };
   const [copied, setCopied] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
+  const isAd = Boolean(deal.is_ad);
   const images = [...new Set([...(Array.isArray(deal.image_urls) ? deal.image_urls : []), deal.image_url].filter(Boolean))].slice(0, 3);
   const primaryImage = images[0] || null;
   const discount = getDiscount(deal);
@@ -46,8 +47,8 @@ export function DealCard({
   const isOnline = deal.ville === 'Online' || deal.categorie === 'Online' || /online/i.test(String(deal.ville || ''));
   const isStorePromo = deal.auteur_nom === 'DilzCurator' || deal.auteur_nom === 'DilzBot';
   const trust = isStorePromo ? text.storePromo : text.community;
-  const authorName = deal.auteur_nom || (isOwner ? text.you : text.member);
-  const commentCount = Number(deal.commentaires?.[0]?.count || deal.comments_count || 0);
+  const authorName = isAd ? text.sponsored : (deal.auteur_nom || (isOwner ? text.you : text.member));
+  const commentCount = isAd ? 0 : Number(deal.commentaires?.[0]?.count || deal.comments_count || 0);
   const hideShareInRow = layout === 'list' || layout === 'spotlight';
   const city = deal.ville && !isOnline
     ? (translateCity ? translateCity(deal.ville, lang === 'he' ? 'he' : 'en') : deal.ville)
@@ -74,7 +75,7 @@ export function DealCard({
     try { sessionStorage.setItem('dilzEditDealOnOpen', String(deal.id)); } catch {}
     router.push(`/deal/${deal.id}`);
   };
-  const renderSaveButton = () => onSave ? (
+  const renderSaveButton = () => (onSave && !isAd) ? (
     <IconButton
       aria-label={isSaved ? text.unsave : text.save}
       selected={isSaved}
@@ -166,8 +167,8 @@ export function DealCard({
         )}
         <h3>{deal.titre}</h3>
         <p className="dilz-deal-card__author">
-          {text.shared}{' '}
-          {deal.auteur_id ? (
+          {!isAd && <>{text.shared}{' '}</>}
+          {deal.auteur_id && !isAd ? (
             <button type="button" onClick={(event) => { event.preventDefault(); event.stopPropagation(); router.push(`/user/${deal.auteur_id}`); }}>{authorName}</button>
           ) : <strong>{authorName}</strong>}
         </p>
@@ -192,72 +193,74 @@ export function DealCard({
             </span>
           )}
         </div>
-        <div className="dilz-deal-card__actions" onClick={(event) => event.stopPropagation()}>
-          <div className="dilz-vote-pill dilz-vote-pill--combined" aria-label={text.voteControls}>
-            <button
-              type="button"
-              className={votedDeal === 'chaud' ? 'is-up' : ''}
-              onClick={(event) => {
-                event.preventDefault();
-                event.stopPropagation();
-                onVote(deal.id, 'chaud');
-              }}
-              aria-label={text.hot}
-            >
-              <VoteEmoji type="chaud" />
-            </button>
-            <span
-              className={['dilz-vote-pill__score', (deal.votes_chaud || 0) > (deal.votes_froid || 0) ? 'is-hot' : 'is-cold'].join(' ')}
-            >
-              {Math.abs((deal.votes_chaud || 0) - (deal.votes_froid || 0))}
-            </span>
-            <button
-              type="button"
-              className={votedDeal === 'froid' ? 'is-down' : ''}
-              onClick={(event) => {
-                event.preventDefault();
-                event.stopPropagation();
-                onVote(deal.id, 'froid');
-              }}
-              aria-label={text.cold}
-            >
-              <VoteEmoji type="froid" />
-            </button>
+        {!isAd && (
+          <div className="dilz-deal-card__actions" onClick={(event) => event.stopPropagation()}>
+            <div className="dilz-vote-pill dilz-vote-pill--combined" aria-label={text.voteControls}>
+              <button
+                type="button"
+                className={votedDeal === 'chaud' ? 'is-up' : ''}
+                onClick={(event) => {
+                  event.preventDefault();
+                  event.stopPropagation();
+                  onVote(deal.id, 'chaud');
+                }}
+                aria-label={text.hot}
+              >
+                <VoteEmoji type="chaud" />
+              </button>
+              <span
+                className={['dilz-vote-pill__score', (deal.votes_chaud || 0) > (deal.votes_froid || 0) ? 'is-hot' : 'is-cold'].join(' ')}
+              >
+                {Math.abs((deal.votes_chaud || 0) - (deal.votes_froid || 0))}
+              </span>
+              <button
+                type="button"
+                className={votedDeal === 'froid' ? 'is-down' : ''}
+                onClick={(event) => {
+                  event.preventDefault();
+                  event.stopPropagation();
+                  onVote(deal.id, 'froid');
+                }}
+                aria-label={text.cold}
+              >
+                <VoteEmoji type="froid" />
+              </button>
+            </div>
+            <div className={['dilz-deal-card__right-actions', hideShareInRow && 'is-row-without-share'].filter(Boolean).join(' ')}>
+              <IconButton
+                aria-label={lang === 'he' ? 'אפשרויות שיתוף' : 'Share options'}
+                aria-expanded={shareOpen}
+                aria-controls={shareMenuId}
+                onClick={(event) => {
+                  event.preventDefault();
+                  event.stopPropagation();
+                  setShareOpen((current) => !current);
+                }}
+              >
+                <ShareIcon />
+              </IconButton>
+              <ShareMenu
+                id={shareMenuId}
+                open={shareOpen}
+                title={deal.titre}
+                url={shareUrl}
+                lang={lang}
+                onClose={() => setShareOpen(false)}
+                onCopy={() => copyDealLink().catch(() => {})}
+              />
+              {isOwner && onOwnerDelete && (
+                <>
+                  <button type="button" className="dilz-owner-edit" onClick={(event) => { event.preventDefault(); event.stopPropagation(); editOwnerDeal(); }}>
+                    Edit
+                  </button>
+                  <button type="button" className="dilz-owner-delete" onClick={(event) => { event.preventDefault(); event.stopPropagation(); onOwnerDelete(deal.id); }}>
+                    Delete
+                  </button>
+                </>
+              )}
+            </div>
           </div>
-          <div className={['dilz-deal-card__right-actions', hideShareInRow && 'is-row-without-share'].filter(Boolean).join(' ')}>
-            <IconButton
-              aria-label={lang === 'he' ? 'אפשרויות שיתוף' : 'Share options'}
-              aria-expanded={shareOpen}
-              aria-controls={shareMenuId}
-              onClick={(event) => {
-                event.preventDefault();
-                event.stopPropagation();
-                setShareOpen((current) => !current);
-              }}
-            >
-              <ShareIcon />
-            </IconButton>
-            <ShareMenu
-              id={shareMenuId}
-              open={shareOpen}
-              title={deal.titre}
-              url={shareUrl}
-              lang={lang}
-              onClose={() => setShareOpen(false)}
-              onCopy={() => copyDealLink().catch(() => {})}
-            />
-            {isOwner && onOwnerDelete && (
-              <>
-                <button type="button" className="dilz-owner-edit" onClick={(event) => { event.preventDefault(); event.stopPropagation(); editOwnerDeal(); }}>
-                  Edit
-                </button>
-                <button type="button" className="dilz-owner-delete" onClick={(event) => { event.preventDefault(); event.stopPropagation(); onOwnerDelete(deal.id); }}>
-                  Delete
-                </button>
-              </>
-            )}
-          </div>
-        </div>
+        )}
       </div>
       <CopyToast visible={copied} lang={lang} />
     </article>

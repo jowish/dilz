@@ -46,7 +46,9 @@ export default async function handler(req, res) {
       let query = supabase
         .from('bons_plans')
         .select('*, commentaires(count)', { count: 'exact' })
-        .or('statut.eq.actif,statut.is.null');
+        .or('statut.eq.actif,statut.is.null')
+        .eq('is_ad', false)
+        .order('is_pinned', { ascending: false });
 
       if (tri === 'oldest') query = query.order('created_at', { ascending: true });
       else if (tri === 'latest') query = query.order('created_at', { ascending: false });
@@ -76,8 +78,26 @@ export default async function handler(req, res) {
           return bc - ac || new Date(b.created_at) - new Date(a.created_at);
         });
       }
+
+      // Ad deals are guaranteed placement independent of sort/pagination — a
+      // freshly-created ad with zero votes would otherwise never surface under
+      // "hot" sort. Fetched once for the first page; the client interleaves
+      // them client-side and keeps the pool across subsequent "load more" pages.
+      let ads = [];
+      if (responseOffset === 0) {
+        const { data: adRows, error: adError } = await supabase
+          .from('bons_plans')
+          .select('*')
+          .or('statut.eq.actif,statut.is.null')
+          .eq('is_ad', true)
+          .order('created_at', { ascending: false })
+          .limit(10);
+        if (!adError) ads = (adRows || []).map(normalizeDealDates);
+      }
+
       return res.status(200).json({
         bons_plans: rows,
+        ads,
         total: count || 0,
         limit: responseLimit,
         offset: responseOffset,
@@ -182,6 +202,16 @@ export default async function handler(req, res) {
         const { type } = req.body;
         if (!['chaud', 'froid'].includes(type)) {
           return res.status(400).json({ erreur: 'type must be "chaud" or "froid".' });
+        }
+
+        const { data: targetDeal, error: targetError } = await supabaseAdmin
+          .from('bons_plans')
+          .select('is_ad')
+          .eq('id', dealId)
+          .maybeSingle();
+        if (targetError) return res.status(500).json({ erreur: targetError.message });
+        if (targetDeal?.is_ad) {
+          return res.status(403).json({ erreur: 'Sponsored content cannot be voted on.' });
         }
 
         const { data, error } = await supabaseAdmin.rpc('cast_bon_plan_vote', {
