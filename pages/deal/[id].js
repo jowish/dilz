@@ -17,8 +17,8 @@ import { buildDealGpsUrl } from '../../lib/dealLocation';
 const { DEAL_CATEGORIES, getDealCategoryLabel } = require('../../lib/dealCategories');
 
 const DETAIL_TEXT = {
-  en: { now: 'Just now', hour: 'h ago', day: 'd ago', notFound: 'Deal not found', backDeals: 'Back to deals', back: 'Back', copy: 'Copy link', edit: 'Edit', photos: 'Deal photos', viewPhoto: 'View photo', by: 'by', starts: 'Starts', ends: 'Ends', online: 'View online deal', comments: 'Comments', noComments: 'No comments yet - be the first!', anonymous: 'Anonymous', reply: 'Reply', replyTo: 'Reply to', addComment: 'Add a comment...', send: 'Send', signInComment: 'Sign in to comment', editDeal: 'Edit deal', close: 'Close', changePhoto: 'Change photo', cancel: 'Cancel', save: 'Save changes', saving: 'Saving...' },
-  he: { now: 'עכשיו', hour: 'ש׳', day: 'י׳', notFound: 'הדיל לא נמצא', backDeals: 'חזרה לדילים', back: 'חזרה', copy: 'העתקת קישור', edit: 'עריכה', photos: 'תמונות הדיל', viewPhoto: 'הצגת תמונה', by: 'מאת', starts: 'מתחיל', ends: 'מסתיים', online: 'מעבר לדיל אונליין', comments: 'תגובות', noComments: 'אין עדיין תגובות - היו הראשונים!', anonymous: 'אנונימי', reply: 'תגובה', replyTo: 'תגובה אל', addComment: 'הוספת תגובה...', send: 'שליחה', signInComment: 'התחברו כדי להגיב', editDeal: 'עריכת דיל', close: 'סגירה', changePhoto: 'החלפת תמונה', cancel: 'ביטול', save: 'שמירת שינויים', saving: 'שומר...' },
+  en: { now: 'Just now', hour: 'h ago', day: 'd ago', notFound: 'Deal not found', backDeals: 'Back to deals', back: 'Back', copy: 'Copy link', edit: 'Edit', photos: 'Deal photos', viewPhoto: 'View photo', by: 'by', starts: 'Starts', ends: 'Ends', online: 'View online deal', comments: 'Comments', noComments: 'No comments yet - be the first!', anonymous: 'Anonymous', reply: 'Reply', replyTo: 'Reply to', addComment: 'Add a comment...', send: 'Send', signInComment: 'Sign in to comment', editDeal: 'Edit deal', close: 'Close', changePhoto: 'Change photo', cancel: 'Cancel', save: 'Save changes', saving: 'Saving...', sponsored: 'Sponsored' },
+  he: { now: 'עכשיו', hour: 'ש׳', day: 'י׳', notFound: 'הדיל לא נמצא', backDeals: 'חזרה לדילים', back: 'חזרה', copy: 'העתקת קישור', edit: 'עריכה', photos: 'תמונות הדיל', viewPhoto: 'הצגת תמונה', by: 'מאת', starts: 'מתחיל', ends: 'מסתיים', online: 'מעבר לדיל אונליין', comments: 'תגובות', noComments: 'אין עדיין תגובות - היו הראשונים!', anonymous: 'אנונימי', reply: 'תגובה', replyTo: 'תגובה אל', addComment: 'הוספת תגובה...', send: 'שליחה', signInComment: 'התחברו כדי להגיב', editDeal: 'עריכת דיל', close: 'סגירה', changePhoto: 'החלפת תמונה', cancel: 'ביטול', save: 'שמירת שינויים', saving: 'שומר...', sponsored: 'ממומן' },
 };
 
 const CITY_COORDS = {
@@ -535,16 +535,18 @@ export default function DealPage() {
             </Link>
             <div className="dilz-deal-header-actions">
               <select className="dilz-language-select" value={lang} onChange={(event) => setLang(event.target.value)} aria-label="Language"><option value="en">EN</option><option value="he">HE</option></select>
-              <button
-                type="button"
-                className={['dilz-button', 'dilz-button--outline', 'dilz-button--sm', 'dilz-deal-save-action', dealSaved && 'is-saved'].filter(Boolean).join(' ')}
-                onClick={handleToggleSaveDeal}
-                disabled={saveSubmitting}
-                aria-pressed={dealSaved}
-              >
-                <BookmarkIcon filled={dealSaved} /> {dealSaved ? 'Saved' : 'Save'}
-              </button>
-              {isOwner && (
+              {!deal.is_ad && (
+                <button
+                  type="button"
+                  className={['dilz-button', 'dilz-button--outline', 'dilz-button--sm', 'dilz-deal-save-action', dealSaved && 'is-saved'].filter(Boolean).join(' ')}
+                  onClick={handleToggleSaveDeal}
+                  disabled={saveSubmitting}
+                  aria-pressed={dealSaved}
+                >
+                  <BookmarkIcon filled={dealSaved} /> {dealSaved ? 'Saved' : 'Save'}
+                </button>
+              )}
+              {isOwner && !deal.is_ad && (
                 <button
                   type="button"
                   className="dilz-button dilz-button--outline dilz-button--sm"
@@ -612,8 +614,10 @@ export default function DealPage() {
             <p className="dilz-deal-meta">
               {[deal.magasin, deal.ville ? traduireVille(deal.ville, lang) : null].filter(Boolean).join(' · ')}
               {' · '}{timeAgo(deal.created_at, text)}
-              {deal.auteur_nom ? ' · ' : ''}
-              {deal.auteur_nom && deal.auteur_id ? (
+              {deal.is_ad || deal.auteur_nom ? ' · ' : ''}
+              {deal.is_ad ? (
+                <strong>{text.sponsored}</strong>
+              ) : deal.auteur_nom && deal.auteur_id ? (
                 <Link href={`/user/${deal.auteur_id}`} className="dilz-deal-author-link">{text.by} {deal.auteur_nom}</Link>
               ) : deal.auteur_nom ? `${text.by} ${deal.auteur_nom}` : ''}
             </p>
@@ -670,6 +674,8 @@ export default function DealPage() {
               </a>
             )}
 
+            {!deal.is_ad && (
+              <>
             {/* Vote buttons */}
             <div className="dilz-deal-votes">
               <button
@@ -826,6 +832,8 @@ export default function DealPage() {
               <Link href={`/auth?redirect=/deal/${id}`} className="dilz-deal-signin-prompt">
                 {text.signInComment}
               </Link>
+            )}
+              </>
             )}
           </div>
         </div>

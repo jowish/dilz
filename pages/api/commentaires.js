@@ -57,6 +57,16 @@ export default async function handler(req, res) {
       return res.status(400).json({ erreur: moderation.reason, code: 'CONTENT_REJECTED' });
     }
 
+    const { data: targetDeal, error: targetError } = await supabaseAdmin
+      .from('bons_plans')
+      .select('is_ad')
+      .eq('id', bon_plan_id)
+      .maybeSingle();
+    if (targetError) return res.status(500).json({ erreur: targetError.message });
+    if (targetDeal?.is_ad) {
+      return res.status(403).json({ erreur: 'Sponsored content cannot be commented on.' });
+    }
+
     // Author name comes from verified JWT — not from client body
     const auteur_nom =
       user.user_metadata?.display_name ||

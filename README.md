@@ -35,6 +35,7 @@ imports). It is not the product — see
    - `supabase-alerts-setup.sql`
    - `supabase-safety-setup.sql`
    - `supabase-native-push-setup.sql`
+   - `supabase-deal-promotion-setup.sql`
 4. Start the application with `npm run dev`.
 
 The service-role key is server-only. Never prefix it with `NEXT_PUBLIC_` or expose it to browser code.
