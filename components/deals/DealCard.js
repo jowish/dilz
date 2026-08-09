@@ -47,7 +47,7 @@ export function DealCard({
   const isOnline = deal.ville === 'Online' || deal.categorie === 'Online' || /online/i.test(String(deal.ville || ''));
   const isStorePromo = deal.auteur_nom === 'DilzCurator' || deal.auteur_nom === 'DilzBot';
   const trust = isStorePromo ? text.storePromo : text.community;
-  const authorName = isAd ? text.sponsored : (deal.auteur_nom || (isOwner ? text.you : text.member));
+  const authorName = deal.auteur_nom || (isOwner ? text.you : text.member);
   const commentCount = isAd ? 0 : Number(deal.commentaires?.[0]?.count || deal.comments_count || 0);
   const hideShareInRow = layout === 'list' || layout === 'spotlight';
   const city = deal.ville && !isOnline
@@ -112,7 +112,7 @@ export function DealCard({
         {isExpired && <span className="dilz-deal-card__expired-stamp">Expired</span>}
         {images.length > 1 && <span className="dilz-deal-card__photo-count">1 / {images.length}</span>}
         <div className="dilz-deal-card__save">
-          {renderSaveButton()}
+          {isAd ? <span className="dilz-deal-card__sponsored-tag">{text.sponsored}</span> : renderSaveButton()}
         </div>
         {isStorePromo && (
           <div className="dilz-deal-card__trust">
@@ -166,12 +166,14 @@ export function DealCard({
           </div>
         )}
         <h3>{deal.titre}</h3>
-        <p className="dilz-deal-card__author">
-          {!isAd && <>{text.shared}{' '}</>}
-          {deal.auteur_id && !isAd ? (
-            <button type="button" onClick={(event) => { event.preventDefault(); event.stopPropagation(); router.push(`/user/${deal.auteur_id}`); }}>{authorName}</button>
-          ) : <strong>{authorName}</strong>}
-        </p>
+        {!isAd && (
+          <p className="dilz-deal-card__author">
+            {text.shared}{' '}
+            {deal.auteur_id ? (
+              <button type="button" onClick={(event) => { event.preventDefault(); event.stopPropagation(); router.push(`/user/${deal.auteur_id}`); }}>{authorName}</button>
+            ) : <strong>{authorName}</strong>}
+          </p>
+        )}
         {deal.description && (
           <p className="dilz-deal-card__description">{deal.description}</p>
         )}

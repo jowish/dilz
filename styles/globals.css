@@ -1294,6 +1294,24 @@ textarea:focus {
   height: 13px;
 }
 
+/* Small, low-visual-weight sponsored indicator — deliberately not a full
+   .dilz-badge: smaller, lighter weight, muted translucent background so it
+   reads as a discreet corner tag, not a competing colorful badge. */
+.dilz-deal-card__sponsored-tag {
+  display: inline-flex;
+  align-items: center;
+  height: 20px;
+  padding: 0 8px;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.55);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  pointer-events: none;
+}
+
 .dilz-deal-card__trust {
   position: absolute;
   left: 10px;

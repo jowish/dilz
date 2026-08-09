@@ -49,11 +49,13 @@ test('commenting rejects an is_ad deal server-side, before the comment insert ev
   assert.ok(comments.indexOf('is_ad') < comments.indexOf('.insert([rowWithId])'));
 });
 
-test('DealCard shows Sponsored instead of the author and hides vote/save/share for an ad deal', () => {
+test('DealCard shows a subtle sponsored tag (not the author line) and hides vote/save/share for an ad deal', () => {
   assert.match(dealCard, /const isAd = Boolean\(deal\.is_ad\)/);
-  assert.match(dealCard, /const authorName = isAd \? text\.sponsored/);
   assert.match(dealCard, /const renderSaveButton = \(\) => \(onSave && !isAd\)/);
   assert.match(dealCard, /\{!isAd && \(\s*<div className="dilz-deal-card__actions"/);
+  // Superseded by issue #33: no more bold "Sponsored" text replacing the
+  // author line — see dealAdIndicator.test.mjs for the current contract.
+  assert.doesNotMatch(dealCard, /const authorName = isAd \? text\.sponsored/);
 });
 
 test('the deal detail page also hides vote/save/share/comment controls for an ad deal', () => {
