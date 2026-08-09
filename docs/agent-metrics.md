@@ -8,7 +8,7 @@ and without it the whole workflow is an anecdote instead of a track record.
 | PR | Issue | Size | Opened | Merged | Cycle time | Human edits after PR (lines) | CI reds before green | Rework issue opened? | Est. API cost | Notes |
 |---|---|---|---|---|---|---|---|---|---|---|
 | #  | #  | S/M/L |  |  |  |  |  | yes/no |  |  |
-
+| #13 | #9 | S | 2026-08-09 | 2026-08-09 | ~2h (incl. infra debugging) | 1 (assertion in bottomNavContract.test.mjs, agent-authored) | 1 (Vercel prix-israel unrelated) | no | via subscription | Agent halted correctly on a pinned test value per AGENTS.md, asked before rewriting the assertion |
 ## Derived KPIs — recompute monthly
 
 | KPI | Definition | Current | Target |
