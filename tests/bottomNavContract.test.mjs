@@ -86,7 +86,12 @@ test('the tab bar is mobile-only; desktop keeps the header nav', () => {
   assert.match(css, /@media \(max-width: 767px\) \{\s*\.dilz-tabbar \{ display: grid; \}/);
 });
 
-test('dark mode redefines the tab-bar tokens for contrast', () => {
+test('dark mode redefines the tab-bar surface for contrast', () => {
   assert.match(css, /\.dark\s*\{[^}]*--tabbar-surface:\s*rgba\(28, 28, 30/s);
-  assert.match(css, /\.dark\s*\{[^}]*--tabbar-active:\s*#0A84FF/s);
+});
+
+test('the selected tab uses the app brand accent, not a hardcoded blue', () => {
+  assert.match(css, /:root\s*\{[^}]*--tabbar-active:\s*var\(--brand\)/s);
+  assert.match(css, /\.dark\s*\{[^}]*--tabbar-active:\s*var\(--brand\)/s);
+  assert.doesNotMatch(css, /--tabbar-active:\s*#[0-9A-Fa-f]{3,6}/);
 });
