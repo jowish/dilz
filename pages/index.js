@@ -8,16 +8,12 @@ import { supabase } from '../lib/supabase';
 import { AppHeader } from '../components/layout/AppHeader';
 import { MainMenuSheet } from '../components/ui/MainMenuSheet';
 import { DealCard as PremiumDealCard } from '../components/deals/DealCard';
-import { PromoCard } from '../components/deals/PromoCard';
-import { PromoModal } from '../components/deals/PromoModal';
 import { CityModal } from '../components/ui/CityModal';
 import { Button } from '../components/ui/Button';
 import { EmptyState } from '../components/ui/EmptyState';
-import { SectionHeader } from '../components/ui/SectionHeader';
 import { readDealLayoutPreference, readDealSortPreference, readSessionDealSort, writeDealLayoutPreference, writeSessionDealSort } from '../lib/userPreferences';
 import { dealViewState, resolveDealLayout, resolveDealSort, sortDealsForView } from '../lib/navigationState';
 
-const { PRODUCT_CATEGORIES, getProductCategoryLabel } = require('../lib/productCategories');
 const { DEAL_CATEGORIES, getDealCategoryLabel } = require('../lib/dealCategories');
 
 // ─── Design tokens ────────────────────────────────────────────────────────────
@@ -27,33 +23,6 @@ const LANG_OPTIONS = [
   { id: 'en', label: 'EN' },
   { id: 'he', label: 'עב' },
 ];
-
-const STORE_COLORS = {
-  'שופרסל':  { color: '#2563EB', bg: '#EFF6FF', dark: '#1A2744', nameEn: 'Shufersal' },
-  'רמי לוי': { color: '#DC2626', bg: '#FEF2F2', dark: '#3D1212', nameEn: 'Rami Levy' },
-  'ויקטורי': { color: '#7C3AED', bg: '#F5F3FF', dark: '#2A1845', nameEn: 'Victory' },
-  'יוחננוף': { color: '#059669', bg: '#ECFDF5', dark: '#0F3025', nameEn: 'Yohananof' },
-  'אושר עד': { color: '#D97706', bg: '#FFFBEB', dark: '#3B2500', nameEn: 'Osher Ad' },
-  'כרפור':   { color: '#0284C7', bg: '#F0F9FF', dark: '#0C2336', nameEn: 'Carrefour' },
-};
-
-STORE_COLORS.BE = { color: '#E2552D', bg: '#F0FDFA', dark: '#12322F', nameEn: 'BE' };
-STORE_COLORS['Super-Pharm'] = { color: '#E11D48', bg: '#FFF1F2', dark: '#3B111B', nameEn: 'Super-Pharm' };
-STORE_COLORS['Good Pharm'] = { color: '#16A34A', bg: '#F0FDF4', dark: '#12351F', nameEn: 'Good Pharm' };
-
-const STORE_FILTERS = [
-  { id: 'all' },
-  { id: 'שופרסל', nameEn: 'Shufersal' },
-  { id: 'רמי לוי', nameEn: 'Rami Levy' },
-  { id: 'ויקטורי', nameEn: 'Victory' },
-  { id: 'יוחננוף', nameEn: 'Yohananof' },
-  { id: 'אושר עד', nameEn: 'Osher Ad' },
-  { id: 'כרפור',   nameEn: 'Carrefour' },
-];
-
-STORE_FILTERS.push({ id: 'BE', nameEn: 'BE' });
-STORE_FILTERS.push({ id: 'Super-Pharm', nameEn: 'Super-Pharm' });
-STORE_FILTERS.push({ id: 'Good Pharm', nameEn: 'Good Pharm' });
 
 const CATEGORIES = ['all', ...DEAL_CATEGORIES];
 
@@ -70,10 +39,9 @@ const URL_TO_TAB = {
   profile: 'profile',
 };
 
-const PROMO_SORTS = ['discount', 'liked', 'recent', 'price_asc'];
 const DEAL_SORTS = ['hot', 'latest', 'nearby', 'ending', 'comments'];
 const DEAL_COLLECTIONS = ['all', 'codes', 'free', 'active'];
-const URL_ACTIONS = ['menu', 'post_deal', 'city', 'alerts', 'view_promo'];
+const URL_ACTIONS = ['menu', 'post_deal', 'city', 'alerts'];
 const CATEGORY_ICONS = Object.fromEntries(CATEGORIES.map((category) => [category, '']));
 const DEAL_PAGE_SIZE = 25;
 const PRIMARY_DEAL_FILTERS = ['latest', 'all', 'comments'];
@@ -181,28 +149,9 @@ function formatDateOnly(value, lang) {
   return date.toLocaleDateString(locale, { day: '2-digit', month: 'short' });
 }
 
-function productImageSrc(image) {
-  if (!image) return null;
-  try {
-    const url = new URL(image);
-    if (url.hostname === 'rami-levy.co.il' || url.hostname.endsWith('.rami-levy.co.il')) {
-      return `/api/image?url=${encodeURIComponent(url.toString())}`;
-    }
-  } catch {}
-  return image;
-}
-
 function queryParamsFromPath(asPath) {
   const queryString = String(asPath || '').split('?')[1]?.split('#')[0] || '';
   return new URLSearchParams(queryString);
-}
-
-function isValidStoreFilter(value) {
-  return STORE_FILTERS.some(store => store.id === value);
-}
-
-function isValidProductCategory(value) {
-  return value === 'all' || PRODUCT_CATEGORIES.includes(value);
 }
 
 function isValidDealCategory(value) {
@@ -213,10 +162,6 @@ function readHomeStateFromUrl(asPath, preferredSort = 'hot', savedLayout = 'card
   const params = queryParamsFromPath(asPath);
   const tab = URL_TO_TAB[params.get('tab')] || 'deals';
 
-  const promoStore = params.get('store');
-  const promoCategory = params.get('category');
-  const promoSort = params.get('sort');
-
   const dealCategory = params.get('category');
   const dealSort = params.get('sort');
   const dealLayout = params.get('layout');
@@ -224,37 +169,23 @@ function readHomeStateFromUrl(asPath, preferredSort = 'hot', savedLayout = 'card
   const dealCollection = DEAL_COLLECTIONS.includes(requestedCollection) ? requestedCollection : 'all';
   const mine = params.get('mine') === '1';
   const action = params.get('action');
-  const selectedPromoBarcode = params.get('promo') || null;
-  const normalizedAction = URL_ACTIONS.includes(action)
-    ? action
-    : selectedPromoBarcode
-      ? 'view_promo'
-      : null;
+  const normalizedAction = URL_ACTIONS.includes(action) ? action : null;
 
   return {
     tab,
     city: params.get('city') || null,
     searchQuery: params.get('q') || '',
-    storeFilter: isValidStoreFilter(promoStore) ? promoStore : 'all',
-    promoCategory: isValidProductCategory(promoCategory) ? promoCategory : 'all',
-    promoSort: PROMO_SORTS.includes(promoSort) ? promoSort : 'discount',
-    showPromoFilters: params.get('filters') === '1',
     categoryFilter: mine ? 'all' : (isValidDealCategory(dealCategory) ? dealCategory : 'all'),
     sortDeals: resolveDealSort({ requestedSort: dealSort, sessionSort, preferredSort }),
     myDealsOnly: mine,
     dealLayout: resolveDealLayout({ requestedLayout: dealLayout, savedLayout }),
     dealCollection,
     action: normalizedAction,
-    selectedPromoBarcode,
   };
 }
 
 function buildHomeUrl({
   tab,
-  storeFilter,
-  promoCategory,
-  promoSort,
-  showPromoFilters,
   categoryFilter,
   sortDeals,
   myDealsOnly,
@@ -263,19 +194,11 @@ function buildHomeUrl({
   city,
   searchQuery,
   action,
-  selectedPromoBarcode,
 }) {
   const params = new URLSearchParams();
   if (tab !== 'deals') params.set('tab', TAB_TO_URL[tab] || tab);
   if (city) params.set('city', city);
   if (tab === 'search' && searchQuery.trim()) params.set('q', searchQuery.trim());
-
-  if (tab === 'sales') {
-    if (storeFilter !== 'all') params.set('store', storeFilter);
-    if (promoCategory !== 'all') params.set('category', promoCategory);
-    if (promoSort !== 'discount') params.set('sort', promoSort);
-    if (showPromoFilters) params.set('filters', '1');
-  }
 
   if (tab === 'deals') {
     if (dealCollection !== 'all') params.set('collection', dealCollection);
@@ -289,7 +212,6 @@ function buildHomeUrl({
   }
 
   if (action) params.set('action', action);
-  if (selectedPromoBarcode) params.set('promo', selectedPromoBarcode);
 
   const qs = params.toString();
   return qs ? `/?${qs}` : '/';
@@ -356,17 +278,14 @@ function computeVoteDeltas(current, next) {
 }
 
 // ─── SearchTab ────────────────────────────────────────────────────────────────
-function SearchTab({ promos, deals, lang, isDark, onPromoClick, userCoords, promoVotes, onPromoVote, savedKeys, onToggleSave, votedDeals, onDealVote, user, searchQuery, isAdmin, onAdminDeleteDeal }) {
+function SearchTab({ deals, lang, isDark, userCoords, savedKeys, onToggleSave, votedDeals, onDealVote, user, searchQuery, isAdmin, onAdminDeleteDeal }) {
   const q = searchQuery || '';
 
-  const mPromos = q.length > 1
-    ? promos.filter(p => matchSearch(p.nom, q) || matchSearch(p.nom_en, q))
-    : [];
   const mDeals = q.length > 1
     ? deals.filter(d => matchSearch(d.titre, q) || matchSearch(d.magasin, q) || matchSearch(d.ville, q))
     : [];
 
-  const total = mPromos.length + mDeals.length;
+  const total = mDeals.length;
 
   return (
     <div style={{ padding: '0 14px' }}>
@@ -403,22 +322,6 @@ function SearchTab({ promos, deals, lang, isDark, onPromoClick, userCoords, prom
               : 'נסה איות אחר או חפש באנגלית'}
           </p>
         </div>
-      )}
-
-      {mPromos.length > 0 && (
-        <>
-          <p style={{ fontSize: 12, fontWeight: 500, color: 'var(--text-muted)', marginBottom: 10 }}>
-            Store Promotions ({mPromos.length})
-          </p>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 20 }}>
-            {mPromos.slice(0, 6).map(p => (
-              <PromoCard key={p.barcode} promo={p} lang={lang} isDark={isDark}
-                onClick={() => onPromoClick(p)} votes={promoVotes[p.barcode]} onVote={onPromoVote}
-                isSaved={Boolean(savedKeys[`product:${p.barcode}`])}
-                onSave={() => onToggleSave('product', p.barcode)} />
-            ))}
-          </div>
-        </>
       )}
 
       {mDeals.length > 0 && (
@@ -679,7 +582,7 @@ export default function Home() {
   // deals on every navigation back to the home page).
   const [tab, setTab] = useState(() => {
     if (typeof window === 'undefined') return 'deals';
-    const valid = ['deals', 'profile', 'search', 'sales'];
+    const valid = ['deals', 'profile', 'search'];
     const q = new URLSearchParams(window.location.search).get('tab');
     if (valid.includes(q)) return q;
     // Back-nav restore (also handled by an effect for scroll) — read it here too
@@ -690,8 +593,6 @@ export default function Home() {
   });
 
   // Data
-  const [promos, setPromos] = useState([]);
-  const [loadingPromos, setLoadingPromos] = useState(true);
   const [deals, setDeals] = useState([]);
   const [dealTotal, setDealTotal] = useState(0);
   const [loadingDeals, setLoadingDeals] = useState(false);
@@ -699,10 +600,6 @@ export default function Home() {
   const [hasMoreDeals, setHasMoreDeals] = useState(false);
 
   // Filters
-  const [storeFilter, setStoreFilter] = useState('all');
-  const [promoCategory, setPromoCategory] = useState('all');
-  const [promoSort, setPromoSort] = useState('discount');
-  const [showPromoFilters, setShowPromoFilters] = useState(false);
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [sortDeals, setSortDeals] = useState('hot');
   const [myDealsOnly, setMyDealsOnly] = useState(false);
@@ -718,7 +615,6 @@ export default function Home() {
   const [showCityModal, setShowCityModal] = useState(false);
 
   // Votes
-  const [promoVotes, setPromoVotes] = useState({});
   const [votedDeals, setVotedDeals] = useState({});
 
   // Saved items
@@ -730,8 +626,6 @@ export default function Home() {
   const [blockedUserIds, setBlockedUserIds] = useState([]);
 
   // Modals
-  const [selectedPromo, setSelectedPromo] = useState(null);
-  const [selectedPromoBarcode, setSelectedPromoBarcode] = useState(null);
   const [showMainMenu, setShowMainMenu] = useState(false);
   const [postSuccess, setPostSuccess] = useState(false);
 
@@ -757,8 +651,6 @@ export default function Home() {
       const ll = localStorage.getItem('dilzLang');
       if (ll === 'en' || ll === 'he') setLang(ll);
       else if (ll) localStorage.setItem('dilzLang', 'en');
-      const savedPromoFilters = localStorage.getItem('dilzShowPromoFilters');
-      if (savedPromoFilters !== null) setShowPromoFilters(savedPromoFilters === 'true');
       setDealLayout(readDealLayoutPreference());
       setAdminToken(localStorage.getItem('dilzAdminToken') || '');
       // Restore tab from back-nav
@@ -808,18 +700,6 @@ export default function Home() {
             setSavedItems(items);
             setSavedKeys(Object.fromEntries(items.map(item => [`${item.item_type}:${item.item_id}`, true])));
           }).catch(() => {});
-        fetch('/api/product-votes', { headers: { 'Authorization': `Bearer ${data.session.access_token}` } })
-          .then(r => r.ok ? r.json() : null)
-          .then(d => {
-            if (!d) return;
-            setPromoVotes(prev => {
-              const next = { ...prev };
-              for (const vote of (d.votes || [])) {
-                next[vote.barcode] = { ...(next[vote.barcode] || {}), myVote: vote.type };
-              }
-              return next;
-            });
-          }).catch(() => {});
         fetch('/api/safety', { headers: { 'Authorization': `Bearer ${data.session.access_token}` } })
           .then(r => r.ok ? r.json() : null)
           .then(d => { if (d) setBlockedUserIds(d.blockedUserIds || []); })
@@ -839,10 +719,6 @@ export default function Home() {
     syncingUrlRef.current = true;
 
     setTab(next.tab);
-    setStoreFilter(next.storeFilter);
-    setPromoCategory(next.promoCategory);
-    setPromoSort(next.promoSort);
-    setShowPromoFilters(next.showPromoFilters);
     setCategoryFilter(next.categoryFilter);
     setSortDeals(next.sortDeals);
     if (next.tab === 'deals') writeSessionDealSort(next.sortDeals);
@@ -862,8 +738,6 @@ export default function Home() {
     }
     setShowMainMenu(next.action === 'menu');
     setShowCityModal(next.action === 'city');
-    setSelectedPromoBarcode(next.action === 'view_promo' ? next.selectedPromoBarcode : null);
-    if (next.action !== 'view_promo') setSelectedPromo(null);
 
     initialUrlAppliedRef.current = true;
     const id = window.setTimeout(() => {
@@ -923,10 +797,6 @@ export default function Home() {
 
     const nextUrl = buildHomeUrl({
       tab,
-      storeFilter,
-      promoCategory,
-      promoSort,
-      showPromoFilters,
       categoryFilter,
       sortDeals,
       myDealsOnly,
@@ -934,14 +804,11 @@ export default function Home() {
       dealCollection,
       city: ville,
       searchQuery,
-      action: selectedPromoBarcode
-        ? 'view_promo'
-        : showMainMenu
-          ? 'menu'
-          : showCityModal
-            ? 'city'
-            : null,
-      selectedPromoBarcode,
+      action: showMainMenu
+        ? 'menu'
+        : showCityModal
+          ? 'city'
+          : null,
     });
     const currentUrl = router.asPath.split('#')[0] || '/';
     if (nextUrl === currentUrl) return;
@@ -950,10 +817,6 @@ export default function Home() {
   }, [
     router,
     tab,
-    storeFilter,
-    promoCategory,
-    promoSort,
-    showPromoFilters,
     categoryFilter,
     sortDeals,
     myDealsOnly,
@@ -963,35 +826,7 @@ export default function Home() {
     searchQuery,
     showMainMenu,
     showCityModal,
-    selectedPromoBarcode,
   ]);
-
-  useEffect(() => {
-    if (tab !== 'sales') return;
-    setLoadingPromos(true);
-    const params = new URLSearchParams({ sort: promoSort });
-    if (promoCategory !== 'all') params.set('category', promoCategory);
-
-    fetch(`/api/promos?${params}`)
-      .then(r => r.json())
-      .then(d => {
-        const nextPromos = d.promos || [];
-        setPromos(nextPromos);
-        setPromoVotes(prev => {
-          const next = { ...prev };
-          for (const promo of nextPromos) {
-            next[promo.barcode] = {
-              chaud: promo.votesChaud || 0,
-              froid: promo.votesFroid || 0,
-              myVote: prev[promo.barcode]?.myVote || null,
-            };
-          }
-          return next;
-        });
-        setLoadingPromos(false);
-      })
-      .catch(() => setLoadingPromos(false));
-  }, [tab, promoCategory, promoSort]);
 
   const fetchDealsPage = useCallback(async ({ offset = 0, append = false, signal } = {}) => {
     const params = new URLSearchParams();
@@ -1057,12 +892,6 @@ export default function Home() {
     return () => observer.disconnect();
   }, [tab, hasMoreDeals, loadingDeals]);
 
-  useEffect(() => {
-    if (!selectedPromoBarcode) return;
-    const promo = promos.find(item => String(item.barcode) === String(selectedPromoBarcode));
-    if (promo) setSelectedPromo(promo);
-  }, [selectedPromoBarcode, promos]);
-
   const handleCitySelect = (villeNom, coords) => {
     setVille(villeNom);
     const c = coords || (villeNom ? CITY_COORDS[villeNom] || null : null);
@@ -1076,29 +905,11 @@ export default function Home() {
     }
   };
 
-  const openPromo = (promo) => {
-    setSelectedPromo(promo);
-    setSelectedPromoBarcode(promo?.barcode || null);
-  };
-
-  const closePromo = () => {
-    setSelectedPromo(null);
-    setSelectedPromoBarcode(null);
-  };
-
   const setLanguage = (next) => {
     if (next !== 'en' && next !== 'he') return;
     setLang(next);
     try { localStorage.setItem('dilzLang', next); } catch {}
     window.dispatchEvent(new CustomEvent('dilz-language-change', { detail: next }));
-  };
-
-  const togglePromoFilters = () => {
-    setShowPromoFilters(current => {
-      const next = !current;
-      try { localStorage.setItem('dilzShowPromoFilters', String(next)); } catch {}
-      return next;
-    });
   };
 
   const changeDealLayout = (next) => {
@@ -1212,44 +1023,6 @@ export default function Home() {
         votes_chaud: Math.max(0, (d.votes_chaud || 0) - chaud_delta),
         votes_froid: Math.max(0, (d.votes_froid || 0) - froid_delta),
       }));
-    }
-  };
-
-  const handlePromoVote = async (barcode, type) => {
-    if (!user) { router.push('/auth'); return; }
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) { router.push('/auth'); return; }
-
-    const previous = promoVotes[barcode] || { chaud: 0, froid: 0, myVote: null };
-    const nextVote = previous.myVote === type ? null : type;
-    const optimistic = {
-      chaud: Math.max(0, previous.chaud - (previous.myVote === 'chaud' ? 1 : 0) + (nextVote === 'chaud' ? 1 : 0)),
-      froid: Math.max(0, previous.froid - (previous.myVote === 'froid' ? 1 : 0) + (nextVote === 'froid' ? 1 : 0)),
-      myVote: nextVote,
-    };
-    setPromoVotes(prev => ({ ...prev, [barcode]: optimistic }));
-
-    try {
-      const response = await fetch('/api/product-votes', {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session.access_token}`,
-        },
-        body: JSON.stringify({ barcode, type }),
-      });
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.erreur || 'Vote failed');
-      setPromoVotes(prev => ({
-        ...prev,
-        [barcode]: {
-          chaud: data.votes_chaud || 0,
-          froid: data.votes_froid || 0,
-          myVote: data.newType || null,
-        },
-      }));
-    } catch {
-      setPromoVotes(prev => ({ ...prev, [barcode]: previous }));
     }
   };
 
@@ -1384,11 +1157,6 @@ export default function Home() {
     : displayedDeals;
   const displayedDealCount = dealCollection === 'all' ? dealTotal : visibleDeals.length;
 
-  const filteredPromos = storeFilter === 'all'
-    ? promos
-    : promos.filter(p => p.tousLesPrix?.some(price => price.enseigne === storeFilter));
-  const gridPromos = filteredPromos;
-
   if (!mounted) return null;
 
   const cityLabel = ville ? traduireVille(ville, lang) : (lang !== 'he' ? 'All Israel' : 'כל הארץ');
@@ -1398,10 +1166,10 @@ export default function Home() {
     <>
       <Head>
         <title>Dilz — Best deals & promotions in Israel</title>
-        <meta name="description" content="Compare supermarket prices, discover community deals, and save money in Israel. Official promos from Shufersal, Rami Levy, Victory, Yohananof and more." />
+        <meta name="description" content="Discover and share worthwhile deals in Israel. Community-posted, geolocated promotions you can vote on, comment on and save." />
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
         <meta property="og:title" content="Dilz — Smart deals in Israel" />
-        <meta property="og:description" content="Official supermarket promos + community deals. Find the best prices near you." />
+        <meta property="og:description" content="Community deals near you. Find the best offers in Israel." />
         <meta name="theme-color" content="#E2552D" />
       </Head>
 
@@ -1424,142 +1192,6 @@ export default function Home() {
         />
 
         <main className="dilz-page-shell">
-
-          {/* ══ SALES TAB ══ */}
-          {tab === 'sales' && (
-            <div>
-              <SectionHeader
-                title={lang === 'he' ? 'מבצעים' : 'Promotions'}
-                subtitle={lang === 'he' ? 'מבצעי סופרמרקט רשמיים וירידות מחירים ברחבי ישראל.' : 'Official supermarket promotions and price drops across Israel.'}
-              />
-              <button
-                type="button"
-                className="dilz-filter-toggle"
-                onClick={togglePromoFilters}
-                aria-expanded={showPromoFilters}
-                aria-controls="supermarket-filters"
-              >
-                <span className="dilz-filter-toggle__left">
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                    <path d="M4 6h16M7 12h10M10 18h4" />
-                  </svg>
-                  <span>
-                    {showPromoFilters
-                      ? textFor(lang, { en: 'Hide filters', he: 'הסתר מסננים', fr: 'Masquer les filtres', es: 'Ocultar filtros' })
-                      : textFor(lang, { en: 'Show filters', he: 'הצג מסננים', fr: 'Afficher les filtres', es: 'Mostrar filtros' })}
-                  </span>
-                  {(storeFilter !== 'all' || promoCategory !== 'all' || promoSort !== 'discount') && (
-                    <span className="dilz-filter-toggle__count">
-                      {[storeFilter !== 'all', promoCategory !== 'all', promoSort !== 'discount'].filter(Boolean).length}
-                    </span>
-                  )}
-                </span>
-                <svg
-                  width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                  strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
-                  className={showPromoFilters ? 'dilz-filter-toggle__chevron is-open' : 'dilz-filter-toggle__chevron'}
-                  aria-hidden="true"
-                >
-                  <path d="M6 9l6 6 6-6" />
-                </svg>
-              </button>
-
-              <div id="supermarket-filters" hidden={!showPromoFilters}>
-                <div className="dilz-compact-filter-row" role="group" aria-label="Sort">
-                  {[
-                    { id: 'discount', en: 'Best discount', he: 'הנחה גבוהה', fr: 'Meilleure remise', es: 'Mejor descuento' },
-                    { id: 'liked', en: 'Most liked', he: 'הכי אהובים', fr: 'Les plus likés', es: 'Mas votados' },
-                    { id: 'recent', en: 'Newest', he: 'החדשים ביותר', fr: 'Plus récents', es: 'Mas recientes' },
-                    { id: 'price_asc', en: 'Lowest price', he: 'מחיר נמוך', fr: 'Prix le plus bas', es: 'Precio mas bajo' },
-                  ].map((option) => (
-                    <button
-                      key={option.id}
-                      type="button"
-                      className={['dilz-compact-filter-chip', promoSort === option.id && 'is-active'].filter(Boolean).join(' ')}
-                      onClick={() => setPromoSort(option.id)}
-                    >
-                      {textFor(lang, option)}
-                    </button>
-                  ))}
-                </div>
-
-                <div className="dilz-compact-filter-row" role="group" aria-label="Category">
-                  {['all', ...PRODUCT_CATEGORIES].map((category) => (
-                    <button
-                      key={category}
-                      type="button"
-                      className={['dilz-compact-filter-chip', promoCategory === category && 'is-active'].filter(Boolean).join(' ')}
-                      onClick={() => setPromoCategory(category)}
-                    >
-                      {getProductCategoryLabel(category, lang)}
-                    </button>
-                  ))}
-                </div>
-
-                <div className="dilz-compact-filter-row" role="group" aria-label="Store">
-                  {STORE_FILTERS.map((f) => {
-                    const active = storeFilter === f.id;
-                    const s = f.id !== 'all' ? STORE_COLORS[f.id] : null;
-                    return (
-                      <button
-                        key={f.id}
-                        type="button"
-                        className={['dilz-compact-filter-chip', active && 'is-active'].filter(Boolean).join(' ')}
-                        onClick={() => setStoreFilter(f.id)}
-                        style={active && s ? { borderColor: s.color, background: isDark ? s.dark : s.bg, color: s.color } : undefined}
-                      >
-                        {f.id === 'all' ? (lang !== 'he' ? 'All stores' : 'כל הרשתות') : (lang !== 'he' ? f.nameEn : f.id)}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {loadingPromos ? (
-                <div className="dilz-loading-state">
-                  <div className="dilz-spinner" />
-                  <p>{t.loadingDeals}</p>
-                </div>
-              ) : filteredPromos.length === 0 ? (
-                <EmptyState
-                  title={textFor(lang, { en: 'No promotions found', he: 'לא נמצאו מבצעים', fr: 'Aucune promotion trouvée', es: 'No se encontraron promociones' })}
-                  text={textFor(lang, { en: 'Try selecting a different store.', he: 'נסה לבחור חנות אחרת.', fr: 'Essaie une autre enseigne.', es: 'Prueba otra tienda.' })}
-                  actionLabel={textFor(lang, { en: 'Show all stores', he: 'כל הרשתות', fr: 'Toutes les enseignes', es: 'Todas las tiendas' })}
-                  onAction={() => setStoreFilter('all')}
-                />
-              ) : (
-                <>
-                  {gridPromos.length > 0 && (
-                    <>
-                      <p className="dilz-count-label">
-                        {textFor(lang, {
-                          en: `${filteredPromos.length} products compared`,
-                          he: `${filteredPromos.length} מוצרים להשוואה`,
-                          fr: `${filteredPromos.length} produits comparés`,
-                          es: `${filteredPromos.length} productos comparados`,
-                        })}
-                      </p>
-                      <div className="dilz-promo-grid">
-                        {gridPromos.map((p) => (
-                          <PromoCard
-                            key={p.barcode}
-                            promo={p}
-                            lang={lang}
-                            isDark={isDark}
-                            onClick={() => openPromo(p)}
-                            votes={promoVotes[p.barcode]}
-                            onVote={handlePromoVote}
-                            isSaved={Boolean(savedKeys[`product:${p.barcode}`])}
-                            onSave={() => handleToggleSave('product', p.barcode)}
-                          />
-                        ))}
-                      </div>
-                    </>
-                  )}
-                </>
-              )}
-            </div>
-          )}
 
           {/* ══ DEALS TAB ══ */}
           {tab === 'deals' && (
@@ -1708,25 +1340,14 @@ export default function Home() {
                 </>
               )}
 
-              {false && !loadingDeals && visibleDeals.length > 0 && (
-                <div className="dilz-tab-footer">
-                  <p>{textFor(lang, { en: 'Looking for supermarket prices?', he: 'מחפש מחירי סופרמרקט?', fr: 'Tu cherches les prix des supermarchés ?', es: '¿Buscas precios de supermercado?' })}</p>
-                  <button type="button" className="dilz-button dilz-button--secondary dilz-button--sm" onClick={() => setTab('sales')}>
-                    {textFor(lang, { en: 'Browse store prices', he: 'מחירי חנויות', fr: 'Voir les prix magasins', es: 'Ver precios de tiendas' })}
-                  </button>
-                </div>
-              )}
             </div>
           )}
 
           {/* ══ SEARCH TAB ══ */}
           {tab === 'search' && (
             <SearchTab
-              promos={promos} deals={deals} lang={lang} isDark={isDark}
-              onPromoClick={openPromo}
+              deals={deals} lang={lang} isDark={isDark}
               userCoords={userCoords}
-              promoVotes={promoVotes}
-              onPromoVote={handlePromoVote}
               savedKeys={savedKeys}
               onToggleSave={handleToggleSave}
               votedDeals={votedDeals}
@@ -1763,9 +1384,6 @@ export default function Home() {
           activeCategory={categoryFilter}
         />
 
-        {selectedPromo && (
-          <PromoModal promo={selectedPromo} lang={lang} isDark={isDark} onClose={closePromo} />
-        )}
         {showCityModal && (
           <CityModal
             villes={villes}

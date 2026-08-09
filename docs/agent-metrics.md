@@ -10,6 +10,7 @@ and without it the whole workflow is an anecdote instead of a track record.
 | #  | #  | S/M/L |  |  |  |  |  | yes/no |  |  |
 | #13 | #9 | S | 2026-08-09 | 2026-08-09 | ~2h (incl. infra debugging) | 1 (assertion in bottomNavContract.test.mjs, agent-authored) | 1 (Vercel prix-israel unrelated) | no | via subscription | Agent halted correctly on a pinned test value per AGENTS.md, asked before rewriting the assertion |
 | #14 | #11 | S | 2026-08-09 | 2026-08-09 | ~10min | 0 (docs only) | 0 | no | via subscription | Docs-only cleanup, closes #11. Discovered PromoModal.js + scan.js price-comparison UI is still live in prod (not dead code as assumed) — needs a product decision, not just docs. |
+| TBD | #15 | M | 2026-08-09 |  |  |  |  |  | via subscription | Scope widened during implementation with explicit user sign-off: PromoModal/PromoCard/scan.js were wired into a whole price-comparison surface (promos fetch, sales tab, filters, voting) beyond the two files named in the issue title — removed the full surface, not just the modal render, to avoid leaving dead click targets. PR number pending (no gh auth in this environment to open it). |
 ## Derived KPIs — recompute monthly
 
 | KPI | Definition | Current | Target |

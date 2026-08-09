@@ -19,7 +19,6 @@ test('global bottom nav maps every public app surface to the expected active tab
     ['/bons-plans-shopping', 'explore'],
     ['/codes-promo', 'explore'],
     ['/gratuit', 'explore'],
-    ['/scan', 'explore'],
     ['/shopping-deal/super-sale', 'explore'],
   ];
 
@@ -40,7 +39,6 @@ test('global bottom nav stays visible on nested app routes but hidden on non-app
     '/bons-plans-shopping',
     '/codes-promo',
     '/gratuit',
-    '/scan',
     '/map',
     '/deal/123',
     '/shopping-deal/super-sale',
