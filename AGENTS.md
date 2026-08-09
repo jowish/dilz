@@ -122,6 +122,9 @@ A PR is done when **all** of the following are true:
 - [ ] No file from §4 is in the diff
 - [ ] Vercel preview loads and the acceptance criteria are visibly satisfied
 - [ ] The PR description follows §8
+- [ ] A row was appended to `docs/agent-metrics.md` with PR number, issue
+      number, size, and opening date filled in. Leave merge date, cycle
+      time, and human-edit columns blank — those are filled at merge time.
 
 Critical paths that must never break (E2E-covered):
 1. Merchant sign-up → create a promotion → publish it
