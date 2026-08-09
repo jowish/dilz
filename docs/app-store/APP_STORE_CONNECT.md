@@ -21,7 +21,7 @@ Find community deals, supermarket promotions and local price drops across Israel
 
 Dilz helps people discover and share worthwhile deals in Israel.
 
-Browse community finds, compare supermarket promotions, vote on useful deals, save favorites and create alerts for the products and places that matter to you. Use the map to explore nearby offers, scan a barcode to compare products, and share verified deals with the community.
+Browse community finds, compare supermarket promotions, vote on useful deals, save favorites and create alerts for the products and places that matter to you. Use the map to explore nearby offers, and share verified deals with the community.
 
 Dilz supports English and Hebrew.
 

@@ -54,7 +54,7 @@ export default function PublicUserPage() {
       <main>
         <section className="dilz-public-profile__hero">
           {profile.avatar_url ? <img src={profile.avatar_url} alt="" /> : <span className="dilz-avatar">{initials}</span>}
-          <div><h1>{profile.name}</h1><p>{lang === 'he' ? '×—×‘×¨ ×ž××–' : 'Member since'} {new Date(profile.created_at).toLocaleDateString(lang === 'he' ? 'he-IL' : 'en-GB', { month: 'long', year: 'numeric' })}</p></div>
+          <div><h1>{profile.name}</h1><p>{lang === 'he' ? 'חבר מאז' : 'Member since'} {new Date(profile.created_at).toLocaleDateString(lang === 'he' ? 'he-IL' : 'en-GB', { month: 'long', year: 'numeric' })}</p></div>
           {viewer?.id !== profile.id && (
             <button
               type="button"
@@ -76,7 +76,7 @@ export default function PublicUserPage() {
           <div className="dilz-stat-card"><strong><VoteEmoji type="froid" /> {profile.cold_votes || 0}</strong><span>Cold votes</span></div>
           <div className="dilz-stat-card"><strong>{profile.last_posted_at ? new Date(profile.last_posted_at).toLocaleDateString(lang === 'he' ? 'he-IL' : 'en-GB') : '-'}</strong><span>Last post</span></div>
         </div>
-        <section className="dilz-public-profile__deals"><h2>{lang === 'he' ? '×“×™×œ×™× ×©×¤×•×¨×¡×ž×•' : 'Published deals'}</h2>{deals.map((deal) => <Link href={`/deal/${deal.id}`} key={deal.id}><img src={deal.image_url || '/icon-192.png'} alt=""/><span><strong>{deal.titre}</strong><small>{formatPrice(deal.prix)} ₪</small></span></Link>)}</section>
+        <section className="dilz-public-profile__deals"><h2>{lang === 'he' ? 'דילים שפורסמו' : 'Published deals'}</h2>{deals.map((deal) => <Link href={`/deal/${deal.id}`} key={deal.id}><img src={deal.image_url || '/icon-192.png'} alt=""/><span><strong>{deal.titre}</strong><small>{formatPrice(deal.prix)} ₪</small></span></Link>)}</section>
       </main>
     </div>
   );

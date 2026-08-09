@@ -68,3 +68,9 @@ test('public user profiles preserve follow state and shekel price formatting', (
   assert.match(userPage, /Follow user/);
   assert.match(userPage, /formatPrice\(deal\.prix\)[\s\S]*₪/);
 });
+
+test('public user profile Hebrew strings render as real Hebrew, not mojibake', () => {
+  assert.match(userPage, /'he' \? 'חבר מאז' : 'Member since'/);
+  assert.match(userPage, /'he' \? 'דילים שפורסמו' : 'Published deals'/);
+  assert.doesNotMatch(userPage, /×/);
+});

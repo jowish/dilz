@@ -24,12 +24,12 @@ Updated: 2026-06-19
 6. Add the Push Notifications capability and an APNs key. Native push delivery still needs server-side APNs integration; web-push credentials do not send iOS native tokens.
 7. Configure Associated Domains and universal links if confirmation links must return directly to the app.
 8. Create a dedicated App Review account with representative content and no admin privileges.
-9. Test account creation, email confirmation, login, posting, photo upload, barcode camera, location, voting, comments, report, block and account deletion on physical iPhones.
+9. Test account creation, email confirmation, login, posting, photo upload (including from the camera), location, voting, comments, report, block and account deletion on physical iPhones.
 10. Upload screenshots captured from the signed build, complete the privacy questionnaire and age-rating questions, then submit through App Store Connect.
 
 ## Principal rejection risks
 
-- Guideline 4.2: a remote web shell can be considered a repackaged website. Before submission, native push, contextual location, camera scanning and app deep links should all be demonstrably operational.
+- Guideline 4.2: a remote web shell can be considered a repackaged website. Before submission, native push, contextual location, camera photo capture and app deep links should all be demonstrably operational.
 - Guideline 1.2: reports need timely human review. Monitor the admin queue and document the moderation response process.
 - Broken support contact: Apple may test the support URL and email.
 - Incomplete privacy labels: App Store Connect answers must match `PrivacyInfo.xcprivacy` and `/privacy`.

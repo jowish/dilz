@@ -20,7 +20,7 @@ Run `npm run ios:sync` after changing Capacitor configuration or native plugins.
 - Web Push for saved-deal alerts
 
 Dilz also still carries a legacy Israeli supermarket price-comparison feature (product/price/promotion
-imports and a barcode scanner). It is not the product — see
+imports). It is not the product — see
 [Legacy: price comparison](#legacy-price-comparison-abandoned) below.
 
 ## Local setup
@@ -69,10 +69,10 @@ community deal-sharing platform described above. The price-comparison data pipel
 still present in the codebase — not deleted, since the local setup instructions above still depend on
 them — but they are not maintained or promoted as a feature.
 
-The **product comparison modal still exists in the app** (`components/deals/PromoModal.js`, opened from
-the deals feed, and the inline result view on `pages/scan.js`): given a product with prices at several
-stores, it lists each store's price, highlights the cheapest one, and shows the amount saved. It is fed
-by the price-transparency imports below and is not connected to community deals.
+The **product comparison modal** (`components/deals/PromoModal.js`) is no longer opened from anywhere
+in the app — it and the barcode scanner it was paired with (`pages/scan.js`) were disconnected from the
+UI in issue #15. When live, it listed each store's price for a product, highlighted the cheapest one,
+and showed the amount saved. The component remains in the codebase, unreferenced, per the note above.
 
 Imports write with `SUPABASE_SERVICE_KEY`; public clients only receive read access to catalog data.
 
