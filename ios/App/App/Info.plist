@@ -27,7 +27,7 @@
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSCameraUsageDescription</key>
-	<string>Dilz uses the camera only when you choose to scan a product barcode.</string>
+	<string>Dilz uses the camera only when you choose to add a photo to a deal you're posting or editing.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>Dilz uses your location only when you request it to show nearby deals or add a deal location.</string>
 	<key>UILaunchStoryboardName</key>
