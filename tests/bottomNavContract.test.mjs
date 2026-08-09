@@ -6,92 +6,225 @@ import path from 'node:path';
 const nav = await readFile(path.join(process.cwd(), 'components', 'layout', 'BottomNav.js'), 'utf8');
 const css = await readFile(path.join(process.cwd(), 'styles', 'globals.css'), 'utf8');
 
-// The bottom navigation is a standard iOS-style tab bar: a fixed, full-width,
-// translucent blurred bar with a hairline top separator and five evenly
-// spaced icon+label tabs. These tests lock that contract in and guard against
-// a regression back to the old floating "liquid glass" pill.
-
 // ── Component structure ──────────────────────────────────────────────────
 
 test('the five tabs are declared in the fixed order Deals, Explore, Post, Alerts, Profile', () => {
   assert.match(nav, /id: 'deals'[\s\S]*id: 'explore'[\s\S]*id: 'post'[\s\S]*id: 'alerts'[\s\S]*id: 'profile'/);
 });
 
-test('each tab renders an icon over a label inside the tab-bar item', () => {
-  assert.match(nav, /className="dilz-tabbar__icon"/);
-  assert.match(nav, /className="dilz-tabbar__label"/);
-  assert.match(nav, /dilz-tabbar__item/);
+test('Post is the only tab flagged as the primary action', () => {
+  assert.match(nav, /id: 'post',[^\n]*post: true/);
+  assert.equal((nav.match(/post: true/g) || []).length, 1);
 });
 
-test('the selected tab is marked with aria-current and an is-active class', () => {
-  assert.match(nav, /const committed = activeItem === item\.id/);
-  assert.match(nav, /committed && 'is-active'/);
+test('the bar uses a single sliding loupe element', () => {
+  assert.match(nav, /className=\{`dilz-bottom-nav__loupe/);
+  // exactly one loupe node
+  assert.equal((nav.match(/dilz-bottom-nav__loupe\$\{/g) || []).length, 1);
+});
+
+test('the loupe carries swiping and pressed state classes', () => {
+  assert.match(nav, /isSwiping \? ' is-swiping' : ''/);
+  assert.match(nav, /pressed \? ' is-pressed' : ''/);
+});
+
+test('loupe position and size come from the pure helpers, not inline maths', () => {
+  assert.match(nav, /from '\.\.\/\.\.\/lib\/bottomNav'/);
+  assert.match(nav, /computeLoupeLeftPx\(centers, fraction\)/);
+  assert.match(nav, /loupeLeftFallback\(loupeCenter, isRtl\)/);
+});
+
+test('button centres are measured with the border correction for exact centering', () => {
+  assert.match(nav, /clientLeft/);
+  assert.match(nav, /getBoundingClientRect\(\)/);
+  assert.match(nav, /requestAnimationFrame\(measure\)/);
+  assert.match(nav, /addEventListener\('resize', measure\)/);
+});
+
+test('pressing swells the bubble uniformly (same shape) and starts on touch', () => {
+  assert.match(nav, /setPressed\(true\)/);
+  // uniform swell via transform scale() (not scaleX, which distorts)
+  assert.match(nav, /transform: `translateX\(\$\{pos\}\) scale\(\$\{dragSwell\.toFixed\(3\)\}\)`/);
+  assert.doesNotMatch(nav, /scaleX/);
+  assert.match(nav, /const dragSwell = \(pressed \|\| isSwiping\) \? 1\.34 : 1/);
+});
+
+test('the loupe is positioned via GPU transform, not Firefox-risky individual transform properties or layout-thrashing left', () => {
+  assert.match(nav, /transform: `translateX\(\$\{pos\}\) scale\(\$\{dragSwell\.toFixed\(3\)\}\)`/);
+  assert.match(nav, /transformOrigin: 'center center'/);
+  assert.match(nav, /transform \$\{glideMs\}ms \$\{ease\}/);
+  assert.match(css, /\.dilz-bottom-nav__loupe\s*\{[^}]*will-change:\s*transform/s);
+  assert.doesNotMatch(nav, /translate: pos/);
+  assert.doesNotMatch(nav, /scale: `\$\{dragSwell\.toFixed\(3\)\}`/);
+  assert.doesNotMatch(css, /\.dilz-bottom-nav__loupe\s*\{[^}]*translate 320ms linear/s);
+});
+
+test('touch focuses the bubble under the finger before release navigation', () => {
+  assert.match(nav, /const \[touchFocusCenter, setTouchFocusCenter\] = useState\(null\)/);
+  assert.match(nav, /setPressed\(true\);\s*\/\/ swell immediately on touch/);
+  assert.match(nav, /persistedIdx = pos;\s*tapFocusRef\.current = \{ from: activeIdx, target: snapIndex\(pos\) \};\s*setTouchFocusCenter\(pos\)/);
+  assert.match(nav, /setTouchFocusCenter\(pos\)/);
+  assert.match(nav, /const loupeCenter = isSwiping \? swipeCenter : \(touchFocusing \? touchFocusCenter : restIdx\)/);
+  assert.match(nav, /transform \$\{glideMs\}ms \$\{ease\}/);
+  assert.match(nav, /const ease = 'cubic-bezier\(0\.33, 0, 0\.2, 1\)'/);
+  assert.match(nav, /const glideMs = 320/);
+  assert.doesNotMatch(nav, /const translateEase = 'linear'/);
+  assert.doesNotMatch(nav, /translate \$\{glideMs\}ms \$\{translateEase\}/);
+  assert.doesNotMatch(nav, /touchFocusing \? 180 : glideMs/);
+});
+
+test('stale tap focus clears when navigation commits to a different tab', () => {
+  assert.match(nav, /const tapFocusRef = useRef\(null\)/);
+  assert.match(nav, /tapFocusRef\.current = \{ from: activeIdx, target: snapIndex\(pos\) \}/);
+  assert.match(nav, /const focusedIdx = snapIndex\(touchFocusCenter\)/);
+  assert.match(nav, /if \(focusedIdx !== activeIdx\) \{[\s\S]*const pending = tapFocusRef\.current[\s\S]*activeIdx !== pending\.from[\s\S]*tapFocusRef\.current = null;[\s\S]*setTouchFocusCenter\(null\)/);
+  assert.match(nav, /\}, \[activeIdx, isSwiping, pressed, touchFocusCenter\]\)/);
+});
+
+test('bubble position is derived from a controlled resting centre, not a drifting state', () => {
+  // while resting, position comes from a committed centre that only changes on rAF
+  assert.match(nav, /const loupeCenter = isSwiping \? swipeCenter : \(touchFocusing \? touchFocusCenter : restIdx\)/);
+  assert.match(nav, /const \[restCenter, setRestCenter\] = useState\(startIdx\)/);
+  // and unresolved active items hold the last real tab (never snap to deals=0)
+  assert.match(nav, /const rawActiveIdx = items\.findIndex/);
+  assert.match(nav, /activeIdx = rawActiveIdx >= 0 \? rawActiveIdx : lastValidIdx\.current/);
+});
+
+test('close tab changes still get a previous frame before the new translate', () => {
+  assert.match(nav, /requestAnimationFrame\(\(\) => \{\s*setGlide\(true\);\s*setRestCenter\(activeIdx\);/);
+  assert.doesNotMatch(nav, /const restIdx = glide \? activeIdx : startIdx/);
+  assert.match(nav, /transition: \(isSwiping \|\| !glide \|\| !centers\)/);
+});
+
+test('the bubble glides across page navigations from its previous position', () => {
+  // position persisted at module scope so the next page mount can glide from it
+  assert.match(nav, /let persistedIdx = null/);
+  assert.match(nav, /persistedIdx = activeIdx/);
+  assert.match(nav, /persistedIdx = pos;\s*tapFocusRef\.current = \{ from: activeIdx, target: snapIndex\(pos\) \};\s*setTouchFocusCenter\(pos\)/);
+  assert.match(nav, /persistedIdx = idx;[\s\S]*?target\.action\(\)/);
+  assert.match(nav, /const startIdx = persistedIdx == null \? activeIdx : persistedIdx/);
+  assert.match(nav, /const restIdx = restCenter/);
+});
+
+test('the whole bar swells while interacted with (not individual icons)', () => {
+  // zoom is tied to the finger being down only — never to `moving`, so a slow
+  // page load after a tap can't keep the bar zoomed
+  assert.match(nav, /const barZoom = pressed;/);
+  assert.match(nav, /dilz-bottom-nav__inner\$\{barZoom \? ' is-zoomed' : ''\}/);
+  assert.match(css, /\.dilz-bottom-nav__inner\.is-zoomed\s*\{[^}]*transform:\s*scale\(1\.018\)/s);
+  // no per-icon dock magnification anymore
+  assert.doesNotMatch(nav, /dockScale\(idx/);
+});
+
+test('no press-shrink on the nav buttons (would fight the zoom)', () => {
+  assert.doesNotMatch(css, /\.dilz-bottom-nav__item:active\s*\{[^}]*transform:\s*scale\(0\.95\)/s);
+  assert.doesNotMatch(css, /\.dilz-bottom-nav__item\.is-post:active[^}]*transform:\s*scale\(0\.94\)/s);
+});
+
+test('the selected tab commits on release, not continuously during the drag', () => {
+  assert.match(nav, /function handleTouchEnd/);
+  assert.match(nav, /if \(target && target\.id !== activeItem\) target\.action\(\)/);
+  assert.doesNotMatch(nav, /function handleTouchStart(?:(?!function handleTouchMove)[\s\S])*target\.action\(\)/);
+});
+
+test('dragging cannot scroll the page and cannot select text', () => {
+  assert.match(css, /\.dilz-bottom-nav__inner[\s\S]*?touch-action:\s*none/);
+  assert.match(css, /\.dilz-bottom-nav__inner[\s\S]*?user-select:\s*none/);
+});
+
+test('vertical system gestures near the iPhone home indicator do not trigger navigation', () => {
+  assert.match(nav, /const suppressClickRef = useRef\(false\)/);
+  assert.match(nav, /dy > 10 && dy > dx/);
+  assert.match(nav, /state\.systemGesture = true/);
+  assert.match(nav, /window\.setTimeout\(\(\) => \{ suppressClickRef\.current = false; \}, 350\)/);
+  assert.match(nav, /onClick=\{\(event\) => handleItemClick\(event, item\.action\)\}/);
+});
+
+// ── Icons ───────────────────────────────────────────────────────────────
+
+test('active icons are filled via inline style (beating the global fill:none)', () => {
+  assert.match(nav, /const solid = \(active\) => \(\{ fill: active \? 'currentColor' : 'none'/);
+  assert.match(nav, /function HomeIcon/);
+  assert.match(nav, /function SearchIcon\(\{ active \}\)/);
+  assert.match(nav, /function BellIcon/);
+  assert.match(nav, /function UserIcon/);
+});
+
+test('the Post plus takes an explicit colour prop so it is legible on orange', () => {
+  assert.match(nav, /function PlusIcon\(\{ active, color \}\)/);
+  assert.match(nav, /stroke: color \|\| 'currentColor'/);
+});
+
+test('Post colour is orange by default and white once its bubble is orange', () => {
+  assert.match(nav, /const postWhite = item\.post && \(active \|\| postLit\)/);
+  assert.match(nav, /postWhite \? '#ffffff' : 'var\(--brand\)'/);
+});
+
+test('the profile tab can show the uploaded avatar photo', () => {
+  assert.match(nav, /dilz-bottom-nav__avatar/);
+  assert.match(nav, /avatar_url/);
+});
+
+test('accessibility marks the committed route, not the transient visual state', () => {
   assert.match(nav, /aria-current=\{committed \? 'page' : undefined\}/);
 });
 
-test('icons are outline when unselected and filled when selected (SF Symbols convention)', () => {
-  assert.match(nav, /const solid = \(active\) => \(\{ fill: active \? 'currentColor' : 'none', stroke: active \? 'none' : 'currentColor' \}\)/);
+test('Hebrew RTL flips the touch axis and the fallback position', () => {
+  assert.match(nav, /const isRtl = lang === 'he'/);
+  // touch mapping and fallback both receive the RTL flag
+  assert.match(nav, /touchToFraction\([^)]*, isRtl\)/);
+  assert.match(nav, /loupeLeftFallback\(loupeCenter, isRtl\)/);
 });
 
-test('the Alerts tab still surfaces the unread badge', () => {
-  assert.match(nav, /dilz-tabbar__badge/);
-  assert.match(nav, /unreadCount > 9 \? '9\+' : unreadCount/);
+// ── CSS invariants ────────────────────────────────────────────────────────
+
+test('tab buttons stack above the loupe so the bubble never masks icon or label', () => {
+  // loupe sits at z-index 1
+  assert.match(css, /\.dilz-bottom-nav__loupe\s*\{[^}]*z-index:\s*1/s);
+  // buttons are positioned above it
+  assert.match(css, /\.dilz-bottom-nav__item\s*\{[^}]*position:\s*relative;[\s\S]*?z-index:\s*2/s);
 });
 
-test('the profile tab shows the avatar when present', () => {
-  assert.match(nav, /item\.id === 'profile' && avatarUrl/);
-  assert.match(nav, /dilz-tabbar__avatar/);
+test('the loupe overshoots the bar (inner is not clipped)', () => {
+  assert.match(css, /\.dilz-bottom-nav__inner[\s\S]*?overflow:\s*visible\s*!important/);
+  assert.match(css, /\.dilz-bottom-nav__loupe\s*\{[^}]*box-sizing:\s*border-box/s);
 });
 
-// ── No floating-pill / liquid-glass remnants ──────────────────────────────
-
-test('the old sliding loupe, swipe gestures and pill wrapper are gone', () => {
-  assert.doesNotMatch(nav, /loupe/i);
-  assert.doesNotMatch(nav, /handleTouchStart|handleTouchMove|onTouchStart/);
-  assert.doesNotMatch(nav, /dilz-bottom-nav__inner/);
-  assert.doesNotMatch(nav, /translateX\(/);
+test('the bar background is translucent so content shows through', () => {
+  assert.match(css, /--dilz-tabbar-bg:\s*rgba\(18,\s*18,\s*22,\s*0\.48\)/);   // dark
+  assert.match(css, /--dilz-tabbar-bg:\s*rgba\(248,\s*248,\s*250,\s*0\.46\)/); // light
+  assert.match(css, /\.dilz-bottom-nav__inner[\s\S]*?backdrop-filter:\s*blur\(10px\) saturate\(190%\) brightness\(1\.04\)/);
+  assert.match(css, /\.dilz-bottom-nav__inner::before[\s\S]*?var\(--dilz-tabbar-glint\)/);
+  assert.match(css, /\.dilz-bottom-nav__inner::after[\s\S]*?var\(--dilz-tabbar-caustic\)/);
 });
 
-// ── CSS: a real bottom bar, not a floating pill ───────────────────────────
-
-test('the tab bar is fixed and spans the full width flush to the bottom edge', () => {
-  assert.match(css, /\.dilz-tabbar\s*\{[^}]*position:\s*fixed/s);
-  assert.match(css, /\.dilz-tabbar\s*\{[^}]*left:\s*0[^}]*right:\s*0[^}]*bottom:\s*0/s);
+test('the loupe is a CLEAR glass lens on touch/move (no frosted blur)', () => {
+  // clear lens: saturate/brightness only, NOT a frosting blur
+  assert.match(css, /\.dilz-bottom-nav__loupe\.is-moving,\s*\.dilz-bottom-nav__loupe\.is-pressed\s*\{[^}]*backdrop-filter:\s*saturate/s);
+  assert.doesNotMatch(css, /\.dilz-bottom-nav__loupe\.is-moving,\s*\.dilz-bottom-nav__loupe\.is-pressed\s*\{[^}]*backdrop-filter:\s*blur/s);
+  // Post tint is CSS-variable driven, so it does not overwrite the glass sheen
+  assert.match(nav, /'--dilz-loupe-post-alpha': postTint\.toFixed\(3\)/);
+  assert.doesNotMatch(nav, /loupeStyle\.background/);
+  assert.match(css, /rgba\(249,\s*115,\s*22,\s*var\(--dilz-loupe-post-alpha,\s*0\)\)/);
+  assert.match(css, /\.dilz-bottom-nav__loupe::before\s*\{[^}]*linear-gradient\(180deg/s);
+  // iridescent rim ring still there, but controlled by CSS variables
+  assert.match(css, /\.dilz-bottom-nav__loupe::after\s*\{[^}]*conic-gradient/s);
+  assert.match(nav, /'--dilz-loupe-ca-opacity': liquidMoving \? '0\.58' : '0\.28'/);
+  assert.match(css, /\.dilz-bottom-nav__loupe\.is-moving::after,\s*\.dilz-bottom-nav__loupe\.is-pressed::after\s*\{[^}]*opacity:\s*var\(--dilz-loupe-ca-opacity,\s*0\.58\)/s);
 });
 
-test('the bar carries a hairline top separator like a native UITabBar', () => {
-  assert.match(css, /\.dilz-tabbar\s*\{[^}]*border-top:\s*0?\.5px solid var\(--tabbar-hairline\)/s);
+test('the liquid bar has accessibility fallbacks for reduced transparency and motion', () => {
+  assert.match(css, /@media \(max-width:\s*767px\) and \(prefers-reduced-transparency:\s*reduce\)/);
+  assert.match(css, /@media \(max-width:\s*767px\) and \(prefers-reduced-motion:\s*reduce\)/);
+  assert.match(css, /prefers-reduced-transparency[\s\S]*?backdrop-filter:\s*none !important/);
 });
 
-test('the bar background is translucent and blurred (system material)', () => {
-  assert.match(css, /--tabbar-surface:\s*rgba\(/);
-  assert.match(css, /\.dilz-tabbar\s*\{[^}]*background:\s*var\(--tabbar-surface\)/s);
-  assert.match(css, /\.dilz-tabbar\s*\{[^}]*backdrop-filter:\s*blur\(/s);
+test('selected Post keeps a white plus and label as a CSS safety net', () => {
+  assert.match(css, /\.dilz-bottom-nav__item\.is-post\.is-active[\s\S]*?color:\s*#ffffff\s*!important/);
 });
 
-test('the bar clears the home-indicator safe area', () => {
-  // The safe-area inset is honoured with a minimum floor so the row never
-  // jams against the home-indicator gesture zone.
-  assert.match(css, /--tabbar-safe:\s*max\(env\(safe-area-inset-bottom[^)]*\), 14px\)/);
-  assert.match(css, /\.dilz-tabbar\s*\{[^}]*padding-bottom:\s*var\(--tabbar-safe\)/s);
-});
-
-test('the selected tab uses the active tint, the rest a muted grey', () => {
-  assert.match(css, /\.dilz-tabbar__item\s*\{[^}]*color:\s*var\(--tabbar-inactive\)/s);
-  assert.match(css, /\.dilz-tabbar__item\.is-active\s*\{[^}]*color:\s*var\(--tabbar-active\)/s);
-});
-
-test('the tab bar is mobile-only; desktop keeps the header nav', () => {
-  assert.match(css, /\.dilz-tabbar\s*\{[^}]*display:\s*none/s);
-  assert.match(css, /@media \(max-width: 767px\) \{\s*\.dilz-tabbar \{ display: grid; \}/);
-});
-
-test('dark mode redefines the tab-bar surface for contrast', () => {
-  assert.match(css, /\.dark\s*\{[^}]*--tabbar-surface:\s*rgba\(28, 28, 30/s);
-});
-
-test('the selected tab uses the app brand accent, not a hardcoded blue', () => {
-  assert.match(css, /:root\s*\{[^}]*--tabbar-active:\s*var\(--brand\)/s);
-  assert.match(css, /\.dark\s*\{[^}]*--tabbar-active:\s*var\(--brand\)/s);
-  assert.doesNotMatch(css, /--tabbar-active:\s*#[0-9A-Fa-f]{3,6}/);
+test('the bar is pinned to the bottom and stays a fixed, compact height', () => {
+  assert.match(css, /--dilz-tabbar-height:\s*80px/);
+  assert.match(css, /\.dilz-bottom-nav\s*\{[^}]*position:\s*fixed[^}]*\}/s);
+  assert.match(css, /\.dilz-bottom-nav\s*\{[^}]*bottom:\s*0/s);
 });

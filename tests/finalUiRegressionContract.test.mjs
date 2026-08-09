@@ -116,10 +116,18 @@ test('map view protects visible markers, city chips and the full bottom results 
   assert.match(css, /@media \(max-width: 767px\)[\s\S]*\.dilz-map-city-strip\s*\{[^}]*z-index:\s*41/s);
 });
 
-test('bottom navigation is a native tab bar, not the old liquid-glass pill', () => {
-  // The floating pill + sliding loupe + swipe gestures were replaced by a
-  // standard fixed iOS-style tab bar. Guard against a regression.
-  assert.doesNotMatch(bottomNav, /loupe|dragSwell|translateX\(|handleTouchMove/);
-  assert.match(bottomNav, /dilz-tabbar__item/);
-  assert.match(css, /\.dilz-tabbar\s*\{[^}]*position:\s*fixed[\s\S]*?border-top:\s*0?\.5px solid/s);
+test('liquid bottom nav keeps the calm transition and subtle press zoom contract', () => {
+  assert.match(bottomNav, /const glideMs = 320/);
+  assert.match(bottomNav, /transform: `translateX\(\$\{pos\}\) scale\(\$\{dragSwell\.toFixed\(3\)\}\)`/);
+  assert.match(bottomNav, /transform \$\{glideMs\}ms \$\{ease\}/);
+  assert.doesNotMatch(bottomNav, /translate: pos/);
+  assert.doesNotMatch(bottomNav, /scale: `\$\{dragSwell\.toFixed\(3\)\}`/);
+  assert.match(bottomNav, /activeIdx !== pending\.from[\s\S]*setTouchFocusCenter\(null\)/);
+  assert.match(bottomNav, /dy > 10 && dy > dx/);
+  assert.match(bottomNav, /state\.systemGesture = true/);
+  assert.match(bottomNav, /suppressClickRef\.current = true/);
+  assert.match(bottomNav, /const dragSwell = \(pressed \|\| isSwiping\) \? 1\.34 : 1/);
+  assert.match(css, /\.dilz-bottom-nav__inner\.is-zoomed\s*\{[^}]*transform:\s*scale\(1\.018\)/s);
+  assert.match(css, /\.dilz-bottom-nav__loupe\s*\{[^}]*top:\s*3px[^}]*bottom:\s*3px[^}]*width:\s*72px/s);
+  assert.match(css, /\.dilz-bottom-nav__loupe\.is-swiping\s*\{[^}]*transition:\s*none !important/s);
 });
