@@ -15,6 +15,32 @@ import { SafetyActions } from '../../components/ui/SafetyActions';
 import { buildDealGpsUrl } from '../../lib/dealLocation';
 
 const { DEAL_CATEGORIES, getDealCategoryLabel } = require('../../lib/dealCategories');
+const { dateOnlyPart, normalizeDealImageUrls } = require('../../lib/dealValidation');
+
+// Server-rendered so crawlers (WhatsApp, Facebook, Telegram link previews)
+// see this deal's real og:title/og:description/og:image on the very first
+// HTML response — the client-side fetch below never runs for those bots.
+export async function getServerSideProps({ params }) {
+  const { data } = await supabase
+    .from('bons_plans')
+    .select('*')
+    .eq('id', params.id)
+    .or('statut.eq.actif,statut.is.null')
+    .single();
+
+  if (!data) return { props: { initialDeal: null } };
+
+  return {
+    props: {
+      initialDeal: {
+        ...data,
+        image_urls: normalizeDealImageUrls(data.image_urls, data.image_url),
+        date_debut: dateOnlyPart(data.date_debut),
+        date_fin: dateOnlyPart(data.date_fin),
+      },
+    },
+  };
+}
 
 const DETAIL_TEXT = {
   en: { now: 'Just now', hour: 'h ago', day: 'd ago', notFound: 'Deal not found', backDeals: 'Back to deals', back: 'Back', copy: 'Copy link', edit: 'Edit', photos: 'Deal photos', viewPhoto: 'View photo', by: 'by', starts: 'Starts', ends: 'Ends', online: 'View online deal', comments: 'Comments', noComments: 'No comments yet - be the first!', anonymous: 'Anonymous', reply: 'Reply', replyTo: 'Reply to', addComment: 'Add a comment...', send: 'Send', signInComment: 'Sign in to comment', editDeal: 'Edit deal', close: 'Close', changePhoto: 'Change photo', cancel: 'Cancel', save: 'Save changes', saving: 'Saving...', sponsored: 'Sponsored' },
@@ -96,13 +122,13 @@ function BagIcon() {
   return <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" aria-hidden="true"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>;
 }
 
-export default function DealPage() {
+export default function DealPage({ initialDeal }) {
   const router = useRouter();
   const { lang, setLang, dir } = useAppLanguage();
   const text = DETAIL_TEXT[lang];
   const { id } = router.query;
 
-  const [deal, setDeal] = useState(null);
+  const [deal, setDeal] = useState(initialDeal || null);
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState('');
   const [user, setUser] = useState(null);
@@ -469,22 +495,53 @@ export default function DealPage() {
     openDealAddressInGps();
   };
 
-  if (!mounted) return null;
+  // Computed from `deal` (seeded from getServerSideProps' initialDeal) so this
+  // is correct on the very first server-rendered HTML, before `mounted`/hydration
+  // — that's the payload crawlers (WhatsApp, Facebook, Telegram) actually read.
+  const pageTitle = deal
+    ? `${deal.titre} — ₪${deal.prix} at ${deal.magasin} | Dilz`
+    : 'Dilz — Best deals & promotions in Israel';
+  const pageDesc = deal
+    ? (deal.description
+        ? `${deal.description.slice(0, 120)}…`
+        : `${deal.titre} for ₪${deal.prix} at ${deal.magasin}${deal.ville ? `, ${deal.ville}` : ''}. Found on Dilz.`)
+    : 'Discover and share worthwhile deals in Israel.';
+  const dealImage = deal?.image_url;
+  const headTags = (
+    <Head>
+      <title>{pageTitle}</title>
+      <meta name="description" content={pageDesc} />
+      <meta property="og:title" content={pageTitle} />
+      <meta property="og:description" content={pageDesc} />
+      {dealImage && <meta property="og:image" content={dealImage} />}
+      <meta property="og:type" content="article" />
+      <meta name="twitter:card" content={dealImage ? 'summary_large_image' : 'summary'} />
+      <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+    </Head>
+  );
+
+  if (!mounted) return headTags;
 
   if (loading) {
     return (
-      <div className="dilz-deal-loading">
-        <div className="dilz-spinner" />
-      </div>
+      <>
+        {headTags}
+        <div className="dilz-deal-loading">
+          <div className="dilz-spinner" />
+        </div>
+      </>
     );
   }
 
   if (!deal) {
     return (
-      <div className="dilz-deal-notfound">
-        <p>{text.notFound}</p>
-        <Link href="/" className="dilz-button dilz-button--primary dilz-button--md">{text.backDeals}</Link>
-      </div>
+      <>
+        {headTags}
+        <div className="dilz-deal-notfound">
+          <p>{text.notFound}</p>
+          <Link href="/" className="dilz-button dilz-button--primary dilz-button--md">{text.backDeals}</Link>
+        </div>
+      </>
     );
   }
 
@@ -497,23 +554,10 @@ export default function DealPage() {
   const visibleComments = blockedUserIds.length
     ? comments.filter((comment) => !comment.auteur_id || !blockedUserIds.includes(comment.auteur_id))
     : comments;
-  const pageTitle = `${deal.titre} — ₪${deal.prix} at ${deal.magasin} | Dilz`;
-  const pageDesc = deal.description
-    ? `${deal.description.slice(0, 120)}…`
-    : `${deal.titre} for ₪${deal.prix} at ${deal.magasin}${deal.ville ? `, ${deal.ville}` : ''}. Found on Dilz.`;
 
   return (
     <>
-      <Head>
-        <title>{pageTitle}</title>
-        <meta name="description" content={pageDesc} />
-        <meta property="og:title" content={pageTitle} />
-        <meta property="og:description" content={pageDesc} />
-        {deal.image_url && <meta property="og:image" content={deal.image_url} />}
-        <meta property="og:type" content="article" />
-        <meta name="twitter:card" content={deal.image_url ? 'summary_large_image' : 'summary'} />
-        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
-      </Head>
+      {headTags}
 
       <div className="dilz-deal-page" dir={dir}>
         <header className="dilz-app-header dilz-deal-header">
