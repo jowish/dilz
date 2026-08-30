@@ -1,6 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 import { processFollowerNotifications, processNewDeal } from '../../lib/alerts';
 import { moderateFields } from '../../lib/contentModeration';
+import { recomputeUserPoints } from '../../lib/points';
 
 const { clampLimit, dateOnlyInTimeZone, dateOnlyPart, normalizeDealImageUrls, normalizeDealInput } = require('../../lib/dealValidation');
 
@@ -206,7 +207,7 @@ export default async function handler(req, res) {
 
         const { data: targetDeal, error: targetError } = await supabaseAdmin
           .from('bons_plans')
-          .select('is_ad')
+          .select('is_ad,auteur_id')
           .eq('id', dealId)
           .maybeSingle();
         if (targetError) return res.status(500).json({ erreur: targetError.message });
@@ -230,6 +231,14 @@ export default async function handler(req, res) {
         }
 
         const result = Array.isArray(data) ? data[0] : data;
+
+        // Contribution points (issue #45) are recomputed from current vote
+        // state, not incremented — safe regardless of vote direction.
+        // Awaited (not fire-and-forget) so serverless runtimes cannot drop
+        // it once the response is sent, same reasoning as processNewDeal
+        // below in the deal-creation handler.
+        await recomputeUserPoints(targetDeal?.auteur_id, supabaseAdmin).catch(() => {});
+
         return res.status(200).json({
           ok: true,
           newType: result?.new_type || null,

@@ -37,7 +37,10 @@ test('ads are fetched separately (independent of sort/pagination) only on the fi
 
 test('voting rejects an is_ad deal server-side, before the vote RPC ever runs', () => {
   const voteAction = api.slice(api.indexOf("action === 'vote'"), api.indexOf("action === 'edit'"));
-  assert.match(voteAction, /\.select\('is_ad'\)/);
+  // Extended to also select auteur_id in issue #45, to recompute the
+  // author's contribution points after a vote — is_ad is still the first
+  // field selected and still checked before the vote RPC below.
+  assert.match(voteAction, /\.select\('is_ad,auteur_id'\)/);
   assert.match(voteAction, /if \(targetDeal\?\.is_ad\) \{\s*return res\.status\(403\)/);
   // The is_ad check must run before the vote RPC call, not after.
   assert.ok(voteAction.indexOf('is_ad') < voteAction.indexOf('cast_bon_plan_vote'));

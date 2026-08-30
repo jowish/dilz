@@ -7,6 +7,7 @@ import { supabase } from '../../lib/supabase';
 import { useAppLanguage } from '../../lib/useAppLanguage';
 import { formatPrice } from '../../lib/dealCard.js';
 import { Wordmark } from '../../components/ui/Brand';
+import { TIER_LABELS } from '../../lib/points';
 
 export default function PublicUserPage() {
   const router = useRouter();
@@ -54,7 +55,15 @@ export default function PublicUserPage() {
       <main>
         <section className="dilz-public-profile__hero">
           {profile.avatar_url ? <img src={profile.avatar_url} alt="" /> : <span className="dilz-avatar">{initials}</span>}
-          <div><h1>{profile.name}</h1><p>{lang === 'he' ? 'חבר מאז' : 'Member since'} {new Date(profile.created_at).toLocaleDateString(lang === 'he' ? 'he-IL' : 'en-GB', { month: 'long', year: 'numeric' })}</p></div>
+          <div>
+            <h1>
+              {profile.name}{' '}
+              <span className={`dilz-badge dilz-tier-badge dilz-tier-badge--${profile.tier}`}>
+                {TIER_LABELS[profile.tier]?.[lang === 'he' ? 'he' : 'en'] || TIER_LABELS.bronze.en}
+              </span>
+            </h1>
+            <p>{lang === 'he' ? 'חבר מאז' : 'Member since'} {new Date(profile.created_at).toLocaleDateString(lang === 'he' ? 'he-IL' : 'en-GB', { month: 'long', year: 'numeric' })}</p>
+          </div>
           {viewer?.id !== profile.id && (
             <button
               type="button"
