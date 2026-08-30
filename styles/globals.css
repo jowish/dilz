@@ -512,6 +512,31 @@ textarea:focus {
   color: var(--danger);
 }
 
+.dilz-tier-badge {
+  vertical-align: middle;
+  font-size: 12px;
+}
+
+.dilz-tier-badge--bronze {
+  background: #E8DCCB;
+  color: #7A4A24;
+}
+
+.dilz-tier-badge--silver {
+  background: #E4E7EB;
+  color: #4B5563;
+}
+
+.dilz-tier-badge--gold {
+  background: #FCEBB6;
+  color: #92660A;
+}
+
+.dilz-tier-badge--platinum {
+  background: #E4DEFB;
+  color: #5B3EBF;
+}
+
 .dilz-badge--brand {
   background: var(--brand-soft);
   color: var(--brand);
