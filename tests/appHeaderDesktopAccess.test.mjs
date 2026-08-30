@@ -18,7 +18,8 @@ test('desktop header exposes a profile entry point that mirrors BottomNav', () =
 });
 
 test('desktop header exposes a notifications entry point with the same auth gate and unread badge as BottomNav', () => {
-  assert.match(appHeader, /const goAlerts = \(\) => router\.push\(user \? '\/alerts' : '\/auth\?redirect=\/alerts'\)/);
+  assert.match(appHeader, /if \(!user\) \{ router\.push\('\/auth\?redirect=\/alerts'\); return; \}/);
+  assert.match(appHeader, /window\.dispatchEvent\(new Event\('dilz:open-notifications'\)\)/);
   assert.match(appHeader, /<IconButton onClick=\{goAlerts\} aria-label=\{labels\.alerts\}>/);
   assert.match(appHeader, /<BellIcon \/>/);
   assert.match(appHeader, /unreadCount > 0 && \(/);

@@ -93,7 +93,10 @@ export function AppHeader({
   }, []);
 
   const goProfile = () => router.push('/?tab=profile', undefined, { shallow: true, scroll: false });
-  const goAlerts = () => router.push(user ? '/alerts' : '/auth?redirect=/alerts');
+  const goAlerts = () => {
+    if (!user) { router.push('/auth?redirect=/alerts'); return; }
+    window.dispatchEvent(new Event('dilz:open-notifications'));
+  };
 
   return (
     <header className="dilz-app-header">

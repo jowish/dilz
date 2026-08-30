@@ -3,6 +3,7 @@ import { useRouter } from 'next/router';
 import { supabase } from '../../lib/supabase';
 import { useAppLanguage } from '../../lib/useAppLanguage';
 import { BottomNav } from './BottomNav';
+import { NotificationSheet } from '../ui/NotificationSheet';
 import { activeFromPath, shouldShowNav } from '../../lib/globalBottomNavRoutes.mjs';
 
 export function GlobalBottomNav() {
@@ -10,18 +11,20 @@ export function GlobalBottomNav() {
   const { lang } = useAppLanguage();
   const [user, setUser] = useState(null);
   const [optimisticActive, setOptimisticActive] = useState(null);
-  const [unreadCount, setUnreadCount] = useState(0);
+  const [notifications, setNotifications] = useState([]);
+  const [sheetOpen, setSheetOpen] = useState(false);
+  const unreadCount = notifications.filter((notification) => !notification.is_read).length;
 
-  const loadUnreadCount = useCallback((session) => {
+  const loadNotifications = useCallback((session) => {
     if (!session?.access_token) {
-      setUnreadCount(0);
+      setNotifications([]);
       return;
     }
     fetch('/api/notifications', { headers: { Authorization: `Bearer ${session.access_token}` } })
       .then((response) => response.ok ? response.json() : null)
       .then((data) => {
         if (!data) return;
-        setUnreadCount((data.notifications || []).filter((notification) => !notification.is_read).length);
+        setNotifications(data.notifications || []);
       })
       .catch(() => {});
   }, []);
@@ -31,33 +34,36 @@ export function GlobalBottomNav() {
     supabase.auth.getSession().then(({ data }) => {
       if (!alive) return;
       setUser(data.session?.user || null);
-      loadUnreadCount(data.session);
+      loadNotifications(data.session);
     });
     const { data: subscription } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user || null);
-      loadUnreadCount(session);
+      loadNotifications(session);
     });
     return () => {
       alive = false;
       subscription?.subscription?.unsubscribe?.();
     };
-  }, [loadUnreadCount]);
+  }, [loadNotifications]);
 
   useEffect(() => {
-    const refreshUnread = () => supabase.auth.getSession().then(({ data }) => loadUnreadCount(data.session));
+    const refresh = () => supabase.auth.getSession().then(({ data }) => loadNotifications(data.session));
     const clearOptimistic = () => {
       setOptimisticActive(null);
-      refreshUnread();
+      refresh();
     };
+    const openSheet = () => setSheetOpen(true);
     router.events.on('routeChangeComplete', clearOptimistic);
     router.events.on('routeChangeError', clearOptimistic);
-    window.addEventListener('dilz:notifications-read', refreshUnread);
+    window.addEventListener('dilz:notifications-read', refresh);
+    window.addEventListener('dilz:open-notifications', openSheet);
     return () => {
       router.events.off('routeChangeComplete', clearOptimistic);
       router.events.off('routeChangeError', clearOptimistic);
-      window.removeEventListener('dilz:notifications-read', refreshUnread);
+      window.removeEventListener('dilz:notifications-read', refresh);
+      window.removeEventListener('dilz:open-notifications', openSheet);
     };
-  }, [loadUnreadCount, router.events]);
+  }, [loadNotifications, router.events]);
 
   const routeActive = useMemo(
     () => activeFromPath(router.asPath, router.pathname),
@@ -73,18 +79,49 @@ export function GlobalBottomNav() {
   };
   const homeOptions = router.pathname === '/' ? { shallow: true, scroll: false } : undefined;
 
+  const openNotifications = () => {
+    if (!user) { push('/auth?redirect=/alerts', 'alerts'); return; }
+    if (activeTab === 'alerts') return; // already viewing the full alerts page
+    setSheetOpen(true);
+  };
+
+  const markAllRead = () => {
+    supabase.auth.getSession().then(({ data }) => {
+      if (!data.session) return;
+      fetch('/api/notifications', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${data.session.access_token}` },
+        body: JSON.stringify({ markAllRead: true }),
+      }).catch(() => {});
+    });
+    setNotifications((prev) => prev.map((notification) => ({ ...notification, is_read: true })));
+    window.dispatchEvent(new Event('dilz:notifications-read'));
+  };
+
   return (
-    <BottomNav
-      lang={lang}
-      activeTab={activeTab}
-      unreadCount={unreadCount}
-      alertsOpen={activeTab === 'alerts'}
-      postOpen={activeTab === 'post'}
-      onMenu={() => push('/explore', 'explore')}
-      onTab={() => push('/', 'deals', homeOptions)}
-      onPost={() => push(user ? '/post' : '/auth?redirect=/post', 'post')}
-      onAlerts={() => push(user ? '/alerts' : '/auth?redirect=/alerts', 'alerts')}
-      onProfile={() => push('/?tab=profile', 'profile', homeOptions)}
-    />
+    <>
+      <BottomNav
+        lang={lang}
+        activeTab={activeTab}
+        unreadCount={unreadCount}
+        alertsOpen={activeTab === 'alerts' || sheetOpen}
+        postOpen={activeTab === 'post'}
+        onMenu={() => push('/explore', 'explore')}
+        onTab={() => push('/', 'deals', homeOptions)}
+        onPost={() => push(user ? '/post' : '/auth?redirect=/post', 'post')}
+        onAlerts={openNotifications}
+        onProfile={() => push('/?tab=profile', 'profile', homeOptions)}
+      />
+      {sheetOpen && (
+        <NotificationSheet
+          user={user}
+          lang={lang}
+          notifications={notifications}
+          onClose={() => setSheetOpen(false)}
+          onMarkAllRead={markAllRead}
+          onOpenAlerts={() => { setSheetOpen(false); push('/alerts', 'alerts'); }}
+        />
+      )}
+    </>
   );
 }

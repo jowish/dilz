@@ -70,20 +70,25 @@ test('global bottom navigation keeps auth redirects and home shallow routing exp
   assert.match(globalNav, /const homeOptions = router\.pathname === '\/' \? \{ shallow: true, scroll: false \} : undefined/);
   assert.match(globalNav, /onTab=\{\(\) => push\('\/', 'deals', homeOptions\)\}/);
   assert.match(globalNav, /onPost=\{\(\) => push\(user \? '\/post' : '\/auth\?redirect=\/post', 'post'\)\}/);
-  assert.match(globalNav, /onAlerts=\{\(\) => push\(user \? '\/alerts' : '\/auth\?redirect=\/alerts', 'alerts'\)\}/);
+  assert.match(globalNav, /onAlerts=\{openNotifications\}/);
   assert.match(globalNav, /onProfile=\{\(\) => push\('\/\?tab=profile', 'profile', homeOptions\)\}/);
 });
 
 test('global active state is still delegated to the liquid bottom nav component', () => {
-  assert.match(globalNav, /<BottomNav[\s\S]*activeTab=\{activeTab\}[\s\S]*unreadCount=\{unreadCount\}[\s\S]*alertsOpen=\{activeTab === 'alerts'\}[\s\S]*postOpen=\{activeTab === 'post'\}/);
+  assert.match(globalNav, /<BottomNav[\s\S]*activeTab=\{activeTab\}[\s\S]*unreadCount=\{unreadCount\}[\s\S]*alertsOpen=\{activeTab === 'alerts' \|\| sheetOpen\}[\s\S]*postOpen=\{activeTab === 'post'\}/);
   assert.match(bottomNav, /aria-current=\{committed \? 'page' : undefined\}/);
 });
 
-test('alert notifications are surfaced only through the bottom Alerts tab', () => {
-  assert.match(globalNav, /const \[unreadCount, setUnreadCount\] = useState\(0\)/);
+test('the bell/alerts action opens a shared notification sheet reachable from both mobile and desktop', () => {
+  assert.match(globalNav, /const \[notifications, setNotifications\] = useState\(\[\]\)/);
+  assert.match(globalNav, /const \[sheetOpen, setSheetOpen\] = useState\(false\)/);
+  assert.match(globalNav, /const unreadCount = notifications\.filter\(\(notification\) => !notification\.is_read\)\.length/);
   assert.match(globalNav, /fetch\('\/api\/notifications'/);
-  assert.match(globalNav, /filter\(\(notification\) => !notification\.is_read\)\.length/);
-  assert.match(globalNav, /window\.addEventListener\('dilz:notifications-read', refreshUnread\)/);
+  assert.match(globalNav, /window\.addEventListener\('dilz:notifications-read', refresh\)/);
+  assert.match(globalNav, /window\.addEventListener\('dilz:open-notifications', openSheet\)/);
+  assert.match(globalNav, /import \{ NotificationSheet \} from '\.\.\/ui\/NotificationSheet'/);
+  assert.match(globalNav, /\{sheetOpen && \(\s*<NotificationSheet/);
+  assert.match(globalNav, /if \(activeTab === 'alerts'\) return; \/\/ already viewing the full alerts page/);
   assert.match(bottomNav, /item\.id === 'alerts' && unreadCount > 0/);
   assert.match(bottomNav, /className="dilz-bottom-nav__badge"/);
 });
