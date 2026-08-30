@@ -17,7 +17,8 @@ test('alerts render as a dedicated route with persistent bottom navigation', () 
   assert.match(app, /<GlobalBottomNav \/>/);
   assert.match(globalNav, /activeFromPath\(router\.asPath, router\.pathname\)/);
   assert.match(routeHelpers, /if \(path === '\/alerts'\) return 'alerts'/);
-  assert.match(globalNav, /onAlerts=\{\(\) => push\(user \? '\/alerts' : '\/auth\?redirect=\/alerts', 'alerts'\)\}/);
+  assert.match(globalNav, /onAlerts=\{openNotifications\}/);
+  assert.match(globalNav, /if \(!user\) \{ push\('\/auth\?redirect=\/alerts', 'alerts'\); return; \}/);
   assert.doesNotMatch(home, /<AlertModal/);
   assert.match(css, /\.dilz-alerts-route\s*\{[^}]*min-height:\s*100dvh/s);
 });
