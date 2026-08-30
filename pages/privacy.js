@@ -20,8 +20,8 @@ const sections = [
   {
     title: { en: 'Service providers and external links', he: 'ספקי שירות וקישורים חיצוניים' },
     body: {
-      en: ['Dilz uses Supabase for authentication, database and storage, and Vercel for hosting. Push notification providers process delivery information when you enable notifications. If you explicitly request My location, OpenStreetMap Nominatim receives coordinates to identify your address and nearby city. Your live location is used in memory for nearby sorting; an exact address and coordinates are stored only when you choose to include them in a published Dilz. Merchant links open third-party services governed by their own privacy policies.'],
-      he: ['Dilz משתמשת ב-Supabase לאימות, מסד נתונים ואחסון וב-Vercel לאירוח. ספקי הודעות דחיפה מעבדים פרטי מסירה כאשר אתם מפעילים התראות. אם תבחרו במפורש במיקום שלי, OpenStreetMap Nominatim יקבל קואורדינטות כדי לזהות את העיר הקרובה. קישורים לסוחרים פותחים שירותי צד שלישי הכפופים למדיניות שלהם.'],
+      en: ['Dilz uses Supabase for authentication, database and storage, and Vercel for hosting. Vercel Analytics measures page views and site performance in an aggregated, cookie-free way and does not track you across other sites. Push notification providers process delivery information when you enable notifications. If you explicitly request My location, OpenStreetMap Nominatim receives coordinates to identify your address and nearby city. Your live location is used in memory for nearby sorting; an exact address and coordinates are stored only when you choose to include them in a published Dilz. Merchant links open third-party services governed by their own privacy policies.'],
+      he: ['Dilz משתמשת ב-Supabase לאימות, מסד נתונים ואחסון וב-Vercel לאירוח. Vercel Analytics מודדת צפיות בעמודים וביצועי האתר באופן מצרפי, ללא עוגיות, ואינה עוקבת אחריכם באתרים אחרים. ספקי הודעות דחיפה מעבדים פרטי מסירה כאשר אתם מפעילים התראות. אם תבחרו במפורש במיקום שלי, OpenStreetMap Nominatim יקבל קואורדינטות כדי לזהות את העיר הקרובה. קישורים לסוחרים פותחים שירותי צד שלישי הכפופים למדיניות שלהם.'],
     },
   },
   {
