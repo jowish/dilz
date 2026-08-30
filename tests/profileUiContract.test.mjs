@@ -73,6 +73,18 @@ test('profile settings keeps the back action on the top left even in RTL', () =>
   assert.match(css, /\.dilz-profil-header \.dilz-profil-header-actions\s*\{[^}]*justify-self:\s*end/s);
 });
 
+test('profile tab links to the signed-in user\'s own public profile, bilingually, on both mobile and desktop', () => {
+  const profileTab = index.slice(index.indexOf('function ProfileTab'), index.indexOf('function ChevronIcon'));
+  assert.match(profileTab, /href: `\/user\/\$\{user\.id\}`/);
+  assert.match(profileTab, /'View my public profile' : 'צפה בפרופיל הציבורי שלי'/);
+  // ProfileTab is the same component/route reached by both the mobile
+  // BottomNav profile tap and the desktop AppHeader profile icon (#35/#39) —
+  // no separate desktop-only implementation is needed, and no CSS hides
+  // .dilz-profile-tab or .dilz-profile-links at any viewport width.
+  assert.doesNotMatch(css, /\.dilz-profile-tab\s*\{[^}]*display:\s*none/s);
+  assert.doesNotMatch(css, /\.dilz-profile-links\s*\{[^}]*display:\s*none/s);
+});
+
 test('theme controls live only in account settings and support system mode', () => {
   assert.doesNotMatch(appHeader, /ThemeToggle/);
   assert.match(app, /defaultTheme="system" enableSystem/);

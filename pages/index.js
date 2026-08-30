@@ -431,6 +431,7 @@ function ProfileTab({ user, lang, savedItems = [], onToggleSave, onSignOut }) {
         {[
           { label: lang !== 'he' ? 'My deals' : 'הדילים שלי', href: '/profil?view=deals' },
           { label: lang !== 'he' ? 'Account settings' : 'הגדרות חשבון', href: '/profil?view=settings' },
+          { label: lang !== 'he' ? 'View my public profile' : 'צפה בפרופיל הציבורי שלי', href: `/user/${user.id}` },
         ].map(item => (
           <Link
             key={item.href + item.label}
