@@ -1279,6 +1279,29 @@ textarea:focus {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  box-shadow: inset 0 0 0 1px rgba(11, 18, 32, 0.06);
+}
+
+/* Frames bright product photos into the surrounding card instead of letting
+   them sit as a raw bright block: a soft inner ring plus an edge vignette
+   fading into the media backdrop. Pure overlay — never crops or resizes
+   the image underneath. */
+.dilz-deal-card__media::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  box-shadow: inset 0 0 0 1px rgba(11, 18, 32, 0.05), inset 0 -28px 28px -24px rgba(11, 18, 32, 0.16);
+}
+
+.dark .dilz-deal-card__media img,
+.dark .dilz-deal-card__image {
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.45);
+}
+
+.dark .dilz-deal-card__media::after {
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.4), inset 0 -32px 32px -22px rgba(0, 0, 0, 0.55);
 }
 
 .dilz-deal-card__photo-count {
