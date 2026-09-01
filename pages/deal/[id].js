@@ -542,7 +542,7 @@ export default function DealPage({ initialDeal }) {
       {dealImage && <meta property="og:image" content={dealImage} />}
       <meta property="og:type" content="article" />
       <meta name="twitter:card" content={dealImage ? 'summary_large_image' : 'summary'} />
-      <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+      <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
     </Head>
   );
 

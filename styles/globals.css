@@ -9902,3 +9902,23 @@ select:focus,
 .dilz-feed-grid:not(.is-list):not(.is-compact):not(.is-spotlight) {
   gap: 7px !important;
 }
+
+/* ── Header clears the notch/status bar on native iOS/Android ───────────
+   Capacitor's status bar overlays the webview by default (see
+   StatusBar.setStyle in lib/nativeApp.js — nothing there disables the
+   overlay), so a sticky header pinned to the very top renders its content
+   underneath the status bar unless it reserves that space itself. Every
+   env(safe-area-inset-*) rule elsewhere in this file is for the BOTTOM
+   inset (floating nav, home indicator) — none handle the top, so this was
+   silently missing everywhere .dilz-app-header is used (the main app
+   header, the deal detail page, the profile page). Most visible on the
+   deal page, where the header floats translucent over a full-bleed hero
+   photo instead of a solid bar, so the back button had nothing but a
+   blurred, moving photo behind it up near the status bar.
+   Padding (not a taller fixed height) so the existing __inner height
+   rules — set in more than one place in this file — keep controlling the
+   header's actual content height unchanged; this only adds clearance
+   above them. */
+.dilz-app-header {
+  padding-top: env(safe-area-inset-top, 0px) !important;
+}
