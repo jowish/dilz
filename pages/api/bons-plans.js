@@ -44,9 +44,15 @@ export default async function handler(req, res) {
       const { ville, categorie, limit = 25, offset = 0, tri = 'hot', auteur_id: filterAuteurId } = req.query;
       const responseLimit = clampLimit(limit, 25, 500);
       const responseOffset = Math.max(0, Number.parseInt(String(offset), 10) || 0);
+      // Deliberately no exact-count option on this select: it makes Postgres
+      // COUNT(*) the whole filtered table on every single feed request, which
+      // gets linearly slower as deals accumulate. Nothing in the UI renders the
+      // exact total (the client falls back to a computed value when `total` is
+      // absent), and "is there another page?" only needs one extra row — so we
+      // ask for limit + 1 instead.
       let query = supabase
         .from('bons_plans')
-        .select('*, commentaires(count)', { count: 'exact' })
+        .select('*, commentaires(count)')
         .or('statut.eq.actif,statut.is.null')
         .eq('is_ad', false)
         .order('is_pinned', { ascending: false });
@@ -63,15 +69,17 @@ export default async function handler(req, res) {
       else if (tri === 'comments') query = query.order('created_at', { ascending: false });
       else query = query.order('votes_chaud', { ascending: false });
 
-      query = query.range(responseOffset, responseOffset + responseLimit - 1);
+      query = query.range(responseOffset, responseOffset + responseLimit);
 
       if (ville) query = query.eq('ville', ville);
       if (categorie && categorie !== 'all') query = query.eq('categorie', categorie);
       if (filterAuteurId) query = query.eq('auteur_id', filterAuteurId);
 
-      const { data, error, count } = await query;
+      const { data, error } = await query;
       if (error) return res.status(500).json({ erreur: error.message });
-      const rows = (data || []).map(normalizeDealDates);
+      const pageRows = data || [];
+      const hasMore = pageRows.length > responseLimit;
+      const rows = pageRows.slice(0, responseLimit).map(normalizeDealDates);
       if (tri === 'comments') {
         rows.sort((a, b) => {
           const ac = Number(a.commentaires?.[0]?.count || 0);
@@ -99,10 +107,9 @@ export default async function handler(req, res) {
       return res.status(200).json({
         bons_plans: rows,
         ads,
-        total: count || 0,
         limit: responseLimit,
         offset: responseOffset,
-        hasMore: responseOffset + rows.length < (count || 0),
+        hasMore,
       });
     }
 

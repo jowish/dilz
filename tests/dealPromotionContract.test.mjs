@@ -74,6 +74,9 @@ test('the home feed composes pinned/ad ordering from a separately fetched ad poo
   // The composed (pinned+ad) array drives rendering, but pagination/empty-state
   // logic still reads the uncomposed visibleDeals — ads must never affect
   // hasMore/dealTotal/empty-state calculations.
-  assert.match(home, /\{composedDeals\.map\(deal => \(/);
+  // Signature-agnostic on purpose (the callback also takes an index, to flag
+  // the first few cards as priority images) — still fails if rendering ever
+  // switches back to the uncomposed visibleDeals.
+  assert.match(home, /\{composedDeals\.map\(\(?deal\b/);
   assert.match(home, /key=\{deal\._feedKey \|\| deal\.id\}/);
 });

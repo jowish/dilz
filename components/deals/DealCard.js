@@ -8,6 +8,7 @@ import { copyText } from '../../lib/copyText';
 import { SafetyActions } from '../ui/SafetyActions';
 import { ShareMenu } from '../ui/ShareMenu';
 import { getDiscount, formatPrice, timeRemaining, timeAgo } from '../../lib/dealCard.js';
+import { optimizedImageUrl } from '../../lib/imageUrl';
 
 function isExpiredDeal(dateFin) {
   const match = String(dateFin || '').match(/^(\d{4}-\d{2}-\d{2})(?:$|[T\s])/);
@@ -30,6 +31,9 @@ export function DealCard({
   onAdminDelete,
   onOwnerDelete,
   onBlocked,
+  // Set on the handful of cards that are above the fold so their photo isn't
+  // deferred — everything below stays lazy.
+  priority = false,
 }) {
   const router = useRouter();
   const text = lang === 'he'
@@ -94,7 +98,28 @@ export function DealCard({
     <article className={['dilz-card', 'dilz-deal-card', layout === 'list' && 'is-list', layout === 'compact' && 'is-compact', layout === 'spotlight' && 'is-spotlight', isExpired && 'is-expired'].filter(Boolean).join(' ')} onClick={go}>
       <div className="dilz-deal-card__media">
         {primaryImage ? (
-          <img src={primaryImage} alt={deal.titre} onError={(event) => { event.currentTarget.style.display = 'none'; }} />
+          <img
+            src={optimizedImageUrl(primaryImage, { width: 640, quality: 70 })}
+            alt={deal.titre}
+            // Off-screen cards must not download their photo. A 25-deal page
+            // was fetching every full-size image up front just to show the
+            // two cards that actually fit on a phone screen.
+            loading={priority ? 'eager' : 'lazy'}
+            decoding="async"
+            fetchpriority={priority ? 'high' : 'low'}
+            onError={(event) => {
+              // If the optimizer rejects this URL for any reason, fall back to
+              // the original once before giving up, so a card can never end up
+              // worse off than before optimization existed.
+              const img = event.currentTarget;
+              if (img.dataset.fallbackApplied !== 'true' && img.src !== primaryImage) {
+                img.dataset.fallbackApplied = 'true';
+                img.src = primaryImage;
+                return;
+              }
+              img.style.display = 'none';
+            }}
+          />
         ) : (
           <div className="dilz-deal-card__image-fallback" aria-hidden="true">
             <svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
