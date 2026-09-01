@@ -9821,3 +9821,61 @@ select:focus,
   text-underline-offset: 0.12em;
   text-decoration-skip-ink: none;
 }
+
+/* ── Feed density (default card layout only) ────────────────────────────
+   The vertical "card" layout (not list/compact/spotlight, which already
+   have their own tighter layouts) left only ~1.4 cards visible on a
+   typical mobile screen. Tighten the non-interactive spacing and shorten
+   the photo panel so ~2-2.5 fit, without touching any tap target — vote
+   buttons, save, share and comment controls keep their exact sizes.
+   High specificity (four :not()s) + last-in-file deliberately outranks
+   the older per-layout rules above rather than editing them in place,
+   since several of those are duplicated across the file and a plain
+   in-place edit risks landing on a copy the cascade doesn't actually use. */
+.dilz-deal-card:not(.is-list):not(.is-compact):not(.is-spotlight) {
+  padding: 7px !important;
+}
+
+.dilz-deal-card:not(.is-list):not(.is-compact):not(.is-spotlight) .dilz-deal-card__media {
+  aspect-ratio: 29 / 10 !important;
+}
+
+.dilz-deal-card:not(.is-list):not(.is-compact):not(.is-spotlight) .dilz-deal-card__body {
+  padding-top: 8px !important;
+}
+
+.dilz-deal-card:not(.is-list):not(.is-compact):not(.is-spotlight) .dilz-deal-card__store-row {
+  margin-bottom: 3px !important;
+}
+
+.dilz-deal-card:not(.is-list):not(.is-compact):not(.is-spotlight) .dilz-deal-card__author {
+  margin-top: 2px !important;
+}
+
+.dilz-deal-card:not(.is-list):not(.is-compact):not(.is-spotlight) .dilz-deal-card__description {
+  margin-top: 5px !important;
+  -webkit-line-clamp: 1 !important;
+  line-clamp: 1 !important;
+}
+
+.dilz-deal-card:not(.is-list):not(.is-compact):not(.is-spotlight) .dilz-deal-card__price-row {
+  margin-top: 5px !important;
+}
+
+.dilz-deal-card:not(.is-list):not(.is-compact):not(.is-spotlight) .dilz-deal-card__price-row strong {
+  min-height: 24px !important;
+  padding: 3px 8px !important;
+  font-size: 17px !important;
+}
+
+.dilz-deal-card:not(.is-list):not(.is-compact):not(.is-spotlight) .dilz-deal-card__meta {
+  margin-top: 4px !important;
+}
+
+.dilz-deal-card:not(.is-list):not(.is-compact):not(.is-spotlight) .dilz-deal-card__actions {
+  padding-top: 8px !important;
+}
+
+.dilz-feed-grid:not(.is-list):not(.is-compact):not(.is-spotlight) {
+  gap: 7px !important;
+}
