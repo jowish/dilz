@@ -123,6 +123,26 @@ function selectedOtherDealFilter({ sortDeals, categoryFilter, myDealsOnly, dealC
   return sortDeals || '';
 }
 
+function SearchGlyphIcon() {
+  return (
+    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" aria-hidden="true">
+      <circle cx="11" cy="11" r="7" />
+      <path d="m20 20-3.4-3.4" />
+    </svg>
+  );
+}
+
+function NoResultsIcon() {
+  return (
+    <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <circle cx="11" cy="11" r="7" />
+      <path d="m20 20-3.4-3.4" />
+      <path d="M9 9h.01M13 9h.01" />
+      <path d="M9 13.5c.7.6 1.6 1 2.5 1s1.8-.4 2.5-1" strokeLinecap="round" />
+    </svg>
+  );
+}
+
 function ViewSettingsIcon() {
   return (
     <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -294,7 +314,7 @@ function SearchTab({ deals, lang, isDark, userCoords, savedKeys, onToggleSave, v
 
       {!q && (
         <div style={{ textAlign: 'center', paddingTop: 40 }}>
-          <p style={{ fontSize: 42, marginBottom: 14 }}>🔍</p>
+          <p style={{ marginBottom: 14, color: 'var(--text-muted)' }} aria-hidden="true"><SearchGlyphIcon /></p>
           <p style={{ fontSize: 17, fontWeight: 700, color: 'var(--text)', marginBottom: 8 }}>
             {textFor(lang, { en: 'Search Dilz', he: 'חיפוש בדילז', fr: 'Rechercher dans Dilz', es: 'Buscar en Dilz' })}
           </p>
@@ -314,7 +334,7 @@ function SearchTab({ deals, lang, isDark, userCoords, savedKeys, onToggleSave, v
 
       {q.length >= 2 && total === 0 && (
         <div style={{ textAlign: 'center', paddingTop: 40 }}>
-          <p style={{ fontSize: 36, marginBottom: 12 }}>🤷</p>
+          <p style={{ marginBottom: 12, color: 'var(--text-muted)' }} aria-hidden="true"><NoResultsIcon /></p>
           <p style={{ fontSize: 17, fontWeight: 700, color: 'var(--text)', marginBottom: 6 }}>
             {lang !== 'he' ? 'No results for' : 'לא נמצאו תוצאות עבור'} "{q}"
           </p>
