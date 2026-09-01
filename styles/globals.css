@@ -4911,36 +4911,56 @@ textarea:focus {
   color: var(--text-secondary);
 }
 
+/* One bordered strip that reads as a single unit, not N separate cards —
+   individual cells share the container's background/border and are only
+   divided by hairlines (vertical between columns, horizontal when a 4th+
+   stat wraps to a second row, as on the public profile's 6-stat version). */
 .dilz-profil-stats {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
+  grid-template-columns: repeat(3, 1fr);
+  background: var(--surface-main);
+  border: 1px solid var(--border-default);
+  border-radius: 16px;
+  overflow: hidden;
 }
 
 .dilz-stat-card {
-  background: var(--surface-main);
-  border-radius: 16px;
-  padding: 18px;
-  border: 1px solid var(--border-default);
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  padding: 12px 6px;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  text-align: center;
+}
+
+.dilz-stat-card:not(:nth-child(3n)) {
+  border-right: 1px solid var(--border-default);
+}
+
+.dilz-stat-card:nth-child(n+4) {
+  border-top: 1px solid var(--border-default);
 }
 
 .dilz-stat-card strong {
-  font-size: 28px;
+  font-size: 18px;
   font-weight: 800;
   color: var(--brand);
   display: flex;
   align-items: center;
-  gap: 6px;
-  line-height: 1;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 4px;
+  line-height: 1.2;
 }
 
 .dilz-stat-card span {
-  font-size: 12px;
+  font-size: 11px;
   color: var(--text-secondary);
-  font-weight: 500;
+  font-weight: 600;
 }
 
 .dilz-profil-section-title {
@@ -5184,7 +5204,7 @@ textarea:focus {
 
 /* Dark mode */
 .dark .dilz-profil-card,
-.dark .dilz-stat-card,
+.dark .dilz-profil-stats,
 .dark .dilz-account-settings,
 .dark .dilz-profil-deals {
   background: #181C26;
