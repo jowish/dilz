@@ -1366,10 +1366,11 @@ export default function Home() {
                 <>
                   {visibleDeals.length > 0 && (
                     <div className={['dilz-feed-grid', dealLayout === 'compact' && 'is-compact', dealLayout === 'spotlight' && 'is-spotlight'].filter(Boolean).join(' ')}>
-                    {composedDeals.map(deal => (
+                    {composedDeals.map((deal, index) => (
                       <PremiumDealCard
                         key={deal._feedKey || deal.id} deal={deal} lang={lang} isDark={isDark}
                         layout={dealLayout}
+                        priority={index < 3}
                         onVote={handleDealVote} userCoords={userCoords}
                         votedDeal={votedDeals[deal.id] || null}
                         user={user}

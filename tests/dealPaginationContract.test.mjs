@@ -11,10 +11,16 @@ test('deals API defaults to small paginated pages and returns pagination metadat
   assert.match(api, /limit = 25, offset = 0/);
   assert.match(api, /const responseLimit = clampLimit\(limit, 25, 500\)/);
   assert.match(api, /const responseOffset = Math\.max\(0, Number\.parseInt\(String\(offset\), 10\) \|\| 0\)/);
-  assert.match(api, /query = query\.range\(responseOffset, responseOffset \+ responseLimit - 1\)/);
+  // One row past the page is fetched purely as a "is there a next page?"
+  // probe, replacing a { count: 'exact' } that made Postgres COUNT(*) the
+  // whole filtered table on every feed request.
+  assert.match(api, /query = query\.range\(responseOffset, responseOffset \+ responseLimit\)/);
+  assert.match(api, /const hasMore = pageRows\.length > responseLimit/);
+  assert.match(api, /const rows = pageRows\.slice\(0, responseLimit\)/);
   assert.match(api, /limit: responseLimit/);
   assert.match(api, /offset: responseOffset/);
-  assert.match(api, /hasMore: responseOffset \+ rows\.length < \(count \|\| 0\)/);
+  assert.match(api, /hasMore,/);
+  assert.doesNotMatch(api, /count: 'exact'/);
   assert.doesNotMatch(api, /limit = 200/);
   assert.doesNotMatch(api, /fetchLimit = tri === 'comments' \? 500/);
 });
