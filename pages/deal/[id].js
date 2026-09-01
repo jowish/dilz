@@ -132,7 +132,7 @@ export default function DealPage({ initialDeal }) {
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState('');
   const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!initialDeal);
   const [submitting, setSubmitting] = useState(false);
   const [commentError, setCommentError] = useState('');
   const [myVote, setMyVote] = useState(null);
@@ -175,13 +175,39 @@ export default function DealPage({ initialDeal }) {
 
   useEffect(() => {
     if (!id) return;
-    fetchDeal();
+    // getServerSideProps already fetched this exact deal — including on a
+    // client-side navigation between two deal pages, where Next re-runs it
+    // and delivers the result as a fresh `initialDeal` prop without a full
+    // reload. Re-fetching the same query again from here via /api/deal/[id]
+    // was a fully redundant second network round-trip on every deal open;
+    // just seed state from the prop instead. fetchDeal() is kept around
+    // for the one case that still needs a real re-fetch: refreshing after
+    // an edit (see handleEditSubmit).
+    if (initialDeal && String(initialDeal.id) === String(id)) {
+      setDeal(initialDeal);
+      setActiveImageIndex(0);
+      setEditForm({
+        titre: initialDeal.titre || '',
+        description: initialDeal.description || '',
+        prix: initialDeal.prix || '',
+        prix_original: initialDeal.prix_original || '',
+        magasin: initialDeal.magasin || '',
+        ville: initialDeal.ville || '',
+        categorie: initialDeal.categorie || 'Food',
+        url_source: initialDeal.url_source || '',
+        date_debut: dateInputValue(initialDeal.date_debut),
+        date_fin: dateInputValue(initialDeal.date_fin),
+      });
+      setLoading(false);
+    } else {
+      fetchDeal();
+    }
     fetchComments();
     try {
       const dv = localStorage.getItem('dilzDealVotes');
       if (dv) { const parsed = JSON.parse(dv); setMyVote(parsed[id] || null); }
     } catch {}
-  }, [id]);
+  }, [id, initialDeal]);
 
   useEffect(() => {
     if (!deal || !user || user.id !== deal.auteur_id) return;
