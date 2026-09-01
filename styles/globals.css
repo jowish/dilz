@@ -3516,7 +3516,10 @@ textarea:focus {
   position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, 0.6);
-  z-index: 400;
+  /* Above the floating bottom nav's z-index:1000 (see the mobile
+     .dilz-bottom-nav rule) so the scrim + sheet fully cover it instead of
+     the liquid-glass bar floating on top of a supposedly modal sheet. */
+  z-index: 1100;
   display: flex;
   align-items: flex-end;
   justify-content: center;
