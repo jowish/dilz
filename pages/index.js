@@ -1212,7 +1212,7 @@ export default function Home() {
       <Head>
         <title>Dilz — Best deals & promotions in Israel</title>
         <meta name="description" content="Discover and share worthwhile deals in Israel. Community-posted, geolocated promotions you can vote on, comment on and save." />
-        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
         <meta property="og:title" content="Dilz — Smart deals in Israel" />
         <meta property="og:description" content="Community deals near you. Find the best offers in Israel." />
         <meta name="theme-color" content="#E2552D" />

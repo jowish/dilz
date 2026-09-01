@@ -143,7 +143,7 @@ export default function Auth() {
     <>
       <Head>
         <title>{text.title} - Dilz</title>
-        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
       </Head>
       <div className="dilz-auth-page" dir={dir}>
         <div className="dilz-auth-container">

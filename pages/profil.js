@@ -194,7 +194,7 @@ export default function Profil() {
     <>
       <Head>
         <title>{text.profile} - Dilz</title>
-        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
       </Head>
       <div className="dilz-profil-page" dir={dir}>
         <header className="dilz-app-header dilz-profil-header">
