@@ -4,6 +4,7 @@ import { moderateFields } from '../../lib/contentModeration';
 import { recomputeUserPoints } from '../../lib/points';
 
 const { clampLimit, dateOnlyInTimeZone, dateOnlyPart, normalizeDealImageUrls, normalizeDealInput } = require('../../lib/dealValidation');
+const { buildDealSearchFilter } = require('../../lib/dealSearch');
 
 function normalizeDealDates(deal) {
   return {
@@ -41,7 +42,7 @@ export default async function handler(req, res) {
   try {
     // ─── GET ──────────────────────────────────────────────────────────────────
     if (req.method === 'GET') {
-      const { ville, categorie, limit = 25, offset = 0, tri = 'hot', auteur_id: filterAuteurId } = req.query;
+      const { ville, categorie, limit = 25, offset = 0, tri = 'hot', auteur_id: filterAuteurId, q } = req.query;
       const responseLimit = clampLimit(limit, 25, 500);
       const responseOffset = Math.max(0, Number.parseInt(String(offset), 10) || 0);
       // Deliberately no exact-count option on this select: it makes Postgres
@@ -74,6 +75,11 @@ export default async function handler(req, res) {
       if (ville) query = query.eq('ville', ville);
       if (categorie && categorie !== 'all') query = query.eq('categorie', categorie);
       if (filterAuteurId) query = query.eq('auteur_id', filterAuteurId);
+      // Full-table search across title/description/store/city. Without this the
+      // search tab could only ever match deals already paginated into the
+      // browser, so anything past the first page was invisible to it.
+      const searchFilter = buildDealSearchFilter(q);
+      if (searchFilter) query = query.or(searchFilter);
 
       const { data, error } = await query;
       if (error) return res.status(500).json({ erreur: error.message });
