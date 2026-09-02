@@ -8,10 +8,11 @@ const bottomNav = await readFile(path.join(process.cwd(), 'components', 'layout'
 
 test('mobile navigation uses the compact liquid-glass bar contract', () => {
   assert.match(css, /--dilz-tabbar-height:\s*80px/);
-  // The bar still reserves room for the home indicator, but takes the LARGER
-  // of the design gap and the safe-area inset instead of adding them — adding
-  // stacked 20px + 34px into a 54px gap that left the bar riding too high.
-  assert.match(css, /--dilz-tabbar-bottom:\s*max\(var\(--dilz-tabbar-gap\), env\(safe-area-inset-bottom, 0px\)\)/);
+  // The bar sits a fraction of the safe-area inset above the screen edge, and
+  // never adds the design gap on top of the inset (which stacked 20px + 34px
+  // into a 54px gap and left the bar riding far too high up the page).
+  assert.match(css, /--dilz-tabbar-bottom:\s*max\(12px, calc\(env\(safe-area-inset-bottom, 0px\) \* 0\.6\)\)/);
+  assert.doesNotMatch(css, /calc\(var\(--dilz-tabbar-gap\) \+ env\(safe-area-inset-bottom\)\)/);
   assert.match(css, /height:\s*calc\(var\(--dilz-tabbar-height\) - var\(--dilz-tabbar-gap\) \+ var\(--dilz-tabbar-bottom\)\)/);
   assert.match(css, /padding:\s*0 20px var\(--dilz-tabbar-bottom\)/);
   assert.doesNotMatch(css, /padding:\s*0 20px calc\(var\(--dilz-tabbar-gap\) \+ env\(safe-area-inset-bottom\)\)/);
