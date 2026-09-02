@@ -10,7 +10,12 @@ const config: CapacitorConfig = {
     allowNavigation: ['dilz.vercel.app'],
   },
   ios: {
-    contentInset: 'automatic',
+    // 'automatic' lets WKWebView add and continuously re-adjust its own
+    // content insets while scrolling, which visibly shifts the top of the
+    // page — the header appeared to move and sit too low. The web app has
+    // handled the safe areas itself since the header started reserving
+    // env(safe-area-inset-top), so the webview must not inset on top of that.
+    contentInset: 'never',
     preferredContentMode: 'mobile',
     scheme: 'Dilz',
   },
