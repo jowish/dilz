@@ -10,11 +10,25 @@ test('returning from a deal restores the feed position instead of guessing on a 
   // fired before the feed had been fetched, so the document was still short
   // and the scroll clamped near the top.
   assert.doesNotMatch(home, /setTimeout\(\(\) => window\.scrollTo/);
-  assert.match(home, /pendingRestoreRef\.current = \{/);
-  // Scrolls only once the layout is genuinely tall enough for the target.
-  assert.match(home, /const maxScroll = document\.documentElement\.scrollHeight - window\.innerHeight/);
-  assert.match(home, /if \(maxScroll >= pending\.y - 4\)/);
+  assert.match(home, /pendingRestoreRef\.current = saved/);
+  // Releases only once the real content — not the reserved height on <html> —
+  // can hold the target offset.
+  assert.match(home, /const contentHeight = \(\) => document\.body\.scrollHeight/);
+  assert.match(home, /if \(contentHeight\(\) >= pending\.y \+ window\.innerHeight - 4\)/);
   assert.match(home, /window\.scrollTo\(\{ top: pending\.y, behavior: 'instant' \}\)/);
+});
+
+test('the feed lands on the saved offset before the first paint, without showing the top first', () => {
+  // The restore has to run in a layout effect: an ordinary effect fires after
+  // the browser has already painted the top of the list, which is the visible
+  // flash on every back navigation.
+  assert.match(home, /const useIsoLayoutEffect = typeof window !== 'undefined' \? useLayoutEffect : useEffect/);
+  assert.match(home, /useIsoLayoutEffect\(\(\) => \{/);
+  // A freshly mounted feed is one screen tall, so the offset is only reachable
+  // if the previous document height is reserved first.
+  assert.match(home, /sessionStorage\.setItem\('dilzFeedHeight'/);
+  assert.match(home, /document\.documentElement\.style\.minHeight = `\$\{saved\.height\}px`/);
+  assert.match(home, /const releaseReservedHeight = \(\) => \{ document\.documentElement\.style\.minHeight = ''; \}/);
 });
 
 test('enough pages are re-fetched to reach where the user was, but the retry is bounded', () => {
