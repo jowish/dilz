@@ -15,6 +15,7 @@ import { ErrorToast } from '../components/ui/ErrorToast';
 import { readDealLayoutPreference, readDealSortPreference, readSessionDealSort, writeDealLayoutPreference, writeSessionDealSort } from '../lib/userPreferences';
 import { dealViewState, resolveDealLayout, resolveDealSort, sortDealsForView } from '../lib/navigationState';
 import { composeFeedWithPinnedAndAds } from '../lib/feedComposition';
+import { SEARCH_MIN_LENGTH } from '../lib/dealSearch';
 
 const { DEAL_CATEGORIES, getDealCategoryLabel } = require('../lib/dealCategories');
 
@@ -302,11 +303,40 @@ function computeVoteDeltas(current, next) {
 // ─── SearchTab ────────────────────────────────────────────────────────────────
 function SearchTab({ deals, lang, isDark, userCoords, savedKeys, onToggleSave, votedDeals, onDealVote, user, searchQuery, isAdmin, onAdminDeleteDeal }) {
   const q = searchQuery || '';
+  const [results, setResults] = useState([]);
+  const [searching, setSearching] = useState(false);
 
-  const mDeals = q.length > 1
-    ? deals.filter(d => matchSearch(d.titre, q) || matchSearch(d.magasin, q) || matchSearch(d.ville, q))
-    : [];
+  // Query the database rather than filtering the handful of deals the feed
+  // happens to have paginated in — that made anything past the first page
+  // unfindable, and never looked at `description` at all.
+  useEffect(() => {
+    const term = q.trim();
+    if (term.length < SEARCH_MIN_LENGTH) {
+      setResults([]);
+      setSearching(false);
+      return undefined;
+    }
+    const controller = new AbortController();
+    setSearching(true);
+    const debounce = setTimeout(() => {
+      const params = new URLSearchParams({ q: term, limit: '30', offset: '0', tri: 'latest' });
+      fetch(`/api/bons-plans?${params}`, { signal: controller.signal })
+        .then((response) => (response.ok ? response.json() : null))
+        .then((payload) => {
+          if (!payload) return;
+          setResults(Array.isArray(payload.bons_plans) ? payload.bons_plans : []);
+        })
+        .catch((error) => { if (error?.name !== 'AbortError') setResults([]); })
+        .finally(() => setSearching(false));
+    }, 250);
+    return () => {
+      controller.abort();
+      clearTimeout(debounce);
+      setSearching(false);
+    };
+  }, [q]);
 
+  const mDeals = results;
   const total = mDeals.length;
 
   return (
@@ -332,7 +362,13 @@ function SearchTab({ deals, lang, isDark, userCoords, savedKeys, onToggleSave, v
         </p>
       )}
 
-      {q.length >= 2 && total === 0 && (
+      {q.length >= SEARCH_MIN_LENGTH && searching && total === 0 && (
+        <div style={{ textAlign: 'center', paddingTop: 40 }}>
+          <div className="dilz-spinner" />
+        </div>
+      )}
+
+      {q.length >= SEARCH_MIN_LENGTH && !searching && total === 0 && (
         <div style={{ textAlign: 'center', paddingTop: 40 }}>
           <p style={{ marginBottom: 12, color: 'var(--text-muted)' }} aria-hidden="true"><NoResultsIcon /></p>
           <p style={{ fontSize: 17, fontWeight: 700, color: 'var(--text)', marginBottom: 6 }}>
