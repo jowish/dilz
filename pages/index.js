@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useRef } from 'react';
+import { useState, useCallback, useEffect, useLayoutEffect, useRef } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
@@ -51,6 +51,11 @@ const DEAL_PAGE_SIZE = 25;
 // reach the position the user left from, so a very deep scroll can't turn into
 // an unbounded fetch loop.
 const RESTORE_MAX_PAGES = 8;
+// Restoring the feed position has to happen before the browser paints, or the
+// user watches the list render at the top and then jump. useLayoutEffect is
+// the only hook that runs in time; fall back to useEffect during SSR, where
+// it would only warn.
+const useIsoLayoutEffect = typeof window !== 'undefined' ? useLayoutEffect : useEffect;
 const PRIMARY_DEAL_FILTERS = ['latest', 'all', 'comments'];
 
 const POPULAR_CITIES = ['תל אביב', 'ירושלים', 'חיפה', 'ראשון לציון', 'נתניה', 'רעננה', 'הרצליה', 'כפר סבא', 'רמת גן', 'פתח תקווה'];
@@ -728,21 +733,9 @@ export default function Home() {
       if (rt) {
         setTab(rt);
         sessionStorage.removeItem('dilzReturnTab');
-        const sy = sessionStorage.getItem('dilzScrollY');
-        if (sy) {
-          const savedCount = Number.parseInt(sessionStorage.getItem('dilzDealCount') || '0', 10);
-          sessionStorage.removeItem('dilzScrollY');
-          sessionStorage.removeItem('dilzDealCount');
-          // Don't scroll on a timer — the feed hasn't been fetched yet at this
-          // point, so the document is still short and the scroll would clamp
-          // to the top. Record the target; the effect below re-loads enough
-          // pages and waits for real layout before jumping.
-          pendingRestoreRef.current = {
-            y: Number.parseInt(sy, 10) || 0,
-            count: Number.isFinite(savedCount) ? savedCount : 0,
-          };
-          restorePagesFetchedRef.current = 0;
-        }
+        // The scroll target itself is picked up before paint, in the layout
+        // effect below — by the time this runs the first frame is already on
+        // screen, which is exactly the flash we are trying to avoid.
       }
       // Restore sort after posting a deal (show user their new deal)
       const rs = sessionStorage.getItem('dilzReturnSort');
@@ -972,8 +965,8 @@ export default function Home() {
 
   // Remember how far into the feed the user was before leaving it, so that
   // coming back can restore the position rather than the first page. The card
-  // itself already stores the scroll offset; the page count has to come from
-  // here, since only the feed knows how many pages it has loaded.
+  // itself already stores the scroll offset; the page count and the document
+  // height have to come from here, since only the feed knows them.
   useEffect(() => {
     const rememberFeedPosition = () => {
       if (tab !== 'deals') return;
@@ -981,11 +974,46 @@ export default function Home() {
         sessionStorage.setItem('dilzReturnTab', 'deals');
         sessionStorage.setItem('dilzScrollY', String(window.scrollY));
         sessionStorage.setItem('dilzDealCount', String(deals.length));
+        // Needed to make the page scrollable to that offset again on the very
+        // first frame back, before any deal has loaded.
+        sessionStorage.setItem('dilzFeedHeight', String(document.documentElement.scrollHeight));
       } catch {}
     };
     router.events.on('routeChangeStart', rememberFeedPosition);
     return () => router.events.off('routeChangeStart', rememberFeedPosition);
   }, [router.events, tab, deals.length]);
+
+  // Jump to the saved offset before the first paint. Waiting for the deals to
+  // arrive means the browser paints the top of the list first and then scrolls,
+  // which is the visible "trip through the top" on every back navigation. A
+  // freshly mounted feed is only one screen tall, so the scroll would clamp to
+  // 0 — reserving the height the page had when we left keeps the offset valid
+  // until the real content catches up.
+  useIsoLayoutEffect(() => {
+    let saved = null;
+    try {
+      if (sessionStorage.getItem('dilzReturnTab') !== 'deals') return;
+      const y = Number.parseInt(sessionStorage.getItem('dilzScrollY') || '', 10);
+      if (!Number.isFinite(y) || y <= 0) return;
+      saved = {
+        y,
+        count: Number.parseInt(sessionStorage.getItem('dilzDealCount') || '0', 10) || 0,
+        height: Number.parseInt(sessionStorage.getItem('dilzFeedHeight') || '0', 10) || 0,
+      };
+      sessionStorage.removeItem('dilzScrollY');
+      sessionStorage.removeItem('dilzDealCount');
+      sessionStorage.removeItem('dilzFeedHeight');
+    } catch {
+      return;
+    }
+
+    pendingRestoreRef.current = saved;
+    restorePagesFetchedRef.current = 0;
+    if (saved.height > 0) {
+      document.documentElement.style.minHeight = `${saved.height}px`;
+    }
+    window.scrollTo({ top: saved.y, behavior: 'instant' });
+  }, []);
 
   // Re-load enough pages to reach the saved offset, then wait for the layout
   // to actually be that tall before scrolling. A plain scrollTo right after
@@ -1005,18 +1033,32 @@ export default function Home() {
       return undefined;
     }
 
-    const deadline = Date.now() + 4000;
+    const deadline = Date.now() + 6000;
+    // Measure the real content, not <html> — that still carries the height we
+    // reserved to keep the scroll offset valid while the deals load back in.
+    const contentHeight = () => document.body.scrollHeight;
+    const releaseReservedHeight = () => { document.documentElement.style.minHeight = ''; };
+
     let frame = requestAnimationFrame(function attempt() {
       const pending = pendingRestoreRef.current;
-      if (!pending) return;
-      const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
-      if (maxScroll >= pending.y - 4) {
+      if (!pending) {
+        releaseReservedHeight();
+        return;
+      }
+      if (contentHeight() >= pending.y + window.innerHeight - 4) {
+        // Real content can hold the position now, so the reservation can go.
         window.scrollTo({ top: pending.y, behavior: 'instant' });
         pendingRestoreRef.current = null;
+        releaseReservedHeight();
         return;
       }
       if (Date.now() > deadline) {
+        // Give up gracefully: settle as close to the target as the content
+        // allows rather than leaving phantom scroll space behind.
         pendingRestoreRef.current = null;
+        releaseReservedHeight();
+        const maxScroll = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
+        window.scrollTo({ top: Math.min(pending.y, maxScroll), behavior: 'instant' });
         return;
       }
       frame = requestAnimationFrame(attempt);
@@ -1027,7 +1069,12 @@ export default function Home() {
   // Any deliberate scroll means the user has taken over — stop trying to
   // restore, so we never yank the page out from under them.
   useEffect(() => {
-    const abandonRestore = () => { pendingRestoreRef.current = null; };
+    const abandonRestore = () => {
+      pendingRestoreRef.current = null;
+      // Drop the reserved height too, or the page keeps phantom scroll space
+      // below the real content.
+      document.documentElement.style.minHeight = '';
+    };
     window.addEventListener('wheel', abandonRestore, { passive: true, once: true });
     window.addEventListener('touchstart', abandonRestore, { passive: true, once: true });
     return () => {
