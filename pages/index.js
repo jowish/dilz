@@ -47,6 +47,10 @@ const DEAL_COLLECTIONS = ['all', 'codes', 'free', 'active'];
 const URL_ACTIONS = ['menu', 'post_deal', 'city', 'alerts'];
 const CATEGORY_ICONS = Object.fromEntries(CATEGORIES.map((category) => [category, '']));
 const DEAL_PAGE_SIZE = 25;
+// Cap on how many extra pages a back-navigation will re-fetch while trying to
+// reach the position the user left from, so a very deep scroll can't turn into
+// an unbounded fetch loop.
+const RESTORE_MAX_PAGES = 8;
 const PRIMARY_DEAL_FILTERS = ['latest', 'all', 'comments'];
 
 const POPULAR_CITIES = ['תל אביב', 'ירושלים', 'חיפה', 'ראשון לציון', 'נתניה', 'רעננה', 'הרצליה', 'כפר סבא', 'רמת גן', 'פתח תקווה'];
@@ -695,6 +699,10 @@ export default function Home() {
   const [adminToken, setAdminToken] = useState('');
   const loadMoreDealsRef = useRef(null);
   const dealListEndRef = useRef(null);
+  // Where in the feed to land when coming back from a deal, and how many
+  // pages we've re-fetched trying to get there.
+  const pendingRestoreRef = useRef(null);
+  const restorePagesFetchedRef = useRef(0);
   const lastTrackedSearchRef = useRef('');
   const lastDealScrollYRef = useRef(0);
 
@@ -722,8 +730,18 @@ export default function Home() {
         sessionStorage.removeItem('dilzReturnTab');
         const sy = sessionStorage.getItem('dilzScrollY');
         if (sy) {
+          const savedCount = Number.parseInt(sessionStorage.getItem('dilzDealCount') || '0', 10);
           sessionStorage.removeItem('dilzScrollY');
-          setTimeout(() => window.scrollTo({ top: parseInt(sy), behavior: 'instant' }), 300);
+          sessionStorage.removeItem('dilzDealCount');
+          // Don't scroll on a timer — the feed hasn't been fetched yet at this
+          // point, so the document is still short and the scroll would clamp
+          // to the top. Record the target; the effect below re-loads enough
+          // pages and waits for real layout before jumping.
+          pendingRestoreRef.current = {
+            y: Number.parseInt(sy, 10) || 0,
+            count: Number.isFinite(savedCount) ? savedCount : 0,
+          };
+          restorePagesFetchedRef.current = 0;
         }
       }
       // Restore sort after posting a deal (show user their new deal)
@@ -951,6 +969,72 @@ export default function Home() {
   useEffect(() => {
     loadMoreDealsRef.current = loadMoreDeals;
   }, [loadMoreDeals]);
+
+  // Remember how far into the feed the user was before leaving it, so that
+  // coming back can restore the position rather than the first page. The card
+  // itself already stores the scroll offset; the page count has to come from
+  // here, since only the feed knows how many pages it has loaded.
+  useEffect(() => {
+    const rememberFeedPosition = () => {
+      if (tab !== 'deals') return;
+      try {
+        sessionStorage.setItem('dilzReturnTab', 'deals');
+        sessionStorage.setItem('dilzScrollY', String(window.scrollY));
+        sessionStorage.setItem('dilzDealCount', String(deals.length));
+      } catch {}
+    };
+    router.events.on('routeChangeStart', rememberFeedPosition);
+    return () => router.events.off('routeChangeStart', rememberFeedPosition);
+  }, [router.events, tab, deals.length]);
+
+  // Re-load enough pages to reach the saved offset, then wait for the layout
+  // to actually be that tall before scrolling. A plain scrollTo right after
+  // mount silently clamps to the top, because the feed is still empty.
+  useEffect(() => {
+    const target = pendingRestoreRef.current;
+    if (!target || tab !== 'deals' || loadingDeals) return undefined;
+
+    if (
+      deals.length < target.count
+      && hasMoreDeals
+      && !loadingMoreDeals
+      && restorePagesFetchedRef.current < RESTORE_MAX_PAGES
+    ) {
+      restorePagesFetchedRef.current += 1;
+      loadMoreDeals();
+      return undefined;
+    }
+
+    const deadline = Date.now() + 4000;
+    let frame = requestAnimationFrame(function attempt() {
+      const pending = pendingRestoreRef.current;
+      if (!pending) return;
+      const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+      if (maxScroll >= pending.y - 4) {
+        window.scrollTo({ top: pending.y, behavior: 'instant' });
+        pendingRestoreRef.current = null;
+        return;
+      }
+      if (Date.now() > deadline) {
+        pendingRestoreRef.current = null;
+        return;
+      }
+      frame = requestAnimationFrame(attempt);
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [tab, deals.length, loadingDeals, loadingMoreDeals, hasMoreDeals, loadMoreDeals]);
+
+  // Any deliberate scroll means the user has taken over — stop trying to
+  // restore, so we never yank the page out from under them.
+  useEffect(() => {
+    const abandonRestore = () => { pendingRestoreRef.current = null; };
+    window.addEventListener('wheel', abandonRestore, { passive: true, once: true });
+    window.addEventListener('touchstart', abandonRestore, { passive: true, once: true });
+    return () => {
+      window.removeEventListener('wheel', abandonRestore);
+      window.removeEventListener('touchstart', abandonRestore);
+    };
+  }, []);
 
   useEffect(() => {
     if (tab !== 'deals' || !hasMoreDeals || loadingDeals) return undefined;
