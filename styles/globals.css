@@ -9930,20 +9930,21 @@ select:focus,
   padding-top: env(safe-area-inset-top, 0px) !important;
 }
 
-/* ── Deal page header is solid, not frosted glass ───────────────────────
-   Everywhere else the app header sits above a plain page background, so
-   its translucent + blur(16px) treatment is invisible. On the deal page it
-   sits above a full-bleed hero photo, so the photo bled through as a
-   blurred wash behind the back button and wordmark — unreadable, and it
-   read as a rendering glitch rather than a design. Opaque page-coloured
-   bar instead. Two classes so it outranks the single-class
-   `.dilz-app-header { background: ... !important }` rule regardless of
-   source order.
+/* ── Top bars are solid, not frosted glass ──────────────────────────────
+   These headers are sticky, so page content scrolls underneath them — and
+   with a translucent background plus blur(16px) that content smeared
+   through as a blurred band across the top of every screen. It was most
+   obvious on the deal page (a full-bleed hero photo behind the back
+   button), which is what the first pass fixed, but it is the same effect
+   on the feed and everywhere else the header is used, and it now covers
+   the status-bar strip too since the header reserves the top safe area.
+   Opaque page-coloured bar instead.
    Only the unprefixed property is declared on purpose: writing both it and
    the -webkit- alias made the CSS build collapse them and keep only the
    alias, which Chromium does not treat as overriding an unprefixed blur()
    from another rule — so the blur silently survived. */
-.dilz-app-header.dilz-deal-header {
+.dilz-app-header,
+.dilz-discovery-header {
   background: var(--bg-app) !important;
   backdrop-filter: none !important;
 }
