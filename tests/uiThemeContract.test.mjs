@@ -8,8 +8,13 @@ const bottomNav = await readFile(path.join(process.cwd(), 'components', 'layout'
 
 test('mobile navigation uses the compact liquid-glass bar contract', () => {
   assert.match(css, /--dilz-tabbar-height:\s*80px/);
-  assert.match(css, /height:\s*calc\(var\(--dilz-tabbar-height\) \+ env\(safe-area-inset-bottom\)\)/);
-  assert.match(css, /padding:\s*0 20px calc\(var\(--dilz-tabbar-gap\) \+ env\(safe-area-inset-bottom\)\)/);
+  // The bar still reserves room for the home indicator, but takes the LARGER
+  // of the design gap and the safe-area inset instead of adding them — adding
+  // stacked 20px + 34px into a 54px gap that left the bar riding too high.
+  assert.match(css, /--dilz-tabbar-bottom:\s*max\(var\(--dilz-tabbar-gap\), env\(safe-area-inset-bottom, 0px\)\)/);
+  assert.match(css, /height:\s*calc\(var\(--dilz-tabbar-height\) - var\(--dilz-tabbar-gap\) \+ var\(--dilz-tabbar-bottom\)\)/);
+  assert.match(css, /padding:\s*0 20px var\(--dilz-tabbar-bottom\)/);
+  assert.doesNotMatch(css, /padding:\s*0 20px calc\(var\(--dilz-tabbar-gap\) \+ env\(safe-area-inset-bottom\)\)/);
   assert.match(css, /\.dilz-bottom-nav\s*\{[^}]*bottom:\s*0/s);
   // Liquid glass background: gradient sheen layered over the translucent base
   assert.match(css, /\.dilz-bottom-nav__inner\s*\{[^}]*backdrop-filter:\s*blur\(10px\) saturate\(190%\) brightness\(1\.04\)/s);
