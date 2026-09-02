@@ -9352,13 +9352,18 @@ select:focus,
     display: flex !important;
     justify-content: center;
     align-items: flex-end;
-    /* The floating bar's gap above the screen edge used to be the design gap
-       PLUS the whole home-indicator inset (20px + 34px on a notched iPhone),
-       which stacked into a 54px gap and left the bar visibly riding too high
-       up the page. The inset already reserves the space the home indicator
-       needs, so take whichever is larger rather than adding them: 20px where
-       there is no inset (unchanged), 34px on an iPhone instead of 54px. */
-    --dilz-tabbar-bottom: max(var(--dilz-tabbar-gap), env(safe-area-inset-bottom, 0px));
+    /* How far the floating bar sits above the bottom of the screen.
+       It originally added the design gap to the whole home-indicator inset
+       (20px + 34px on a notched iPhone = 54px), which left it riding well up
+       the page. Clamping to the inset alone brought that to 34px, still too
+       high to feel like a bottom bar, so it now sits at a fraction of the
+       inset instead: ~20px on an iPhone, ~14px on Android gesture nav, 12px
+       on a device with no inset at all.
+       This deliberately reaches into the system's reserved band — an
+       explicit product call to get the bar closer to the edge. The bar still
+       clears the home indicator itself; raise the 0.6 factor if any device
+       ends up feeling too tight. */
+    --dilz-tabbar-bottom: max(12px, calc(env(safe-area-inset-bottom, 0px) * 0.6));
     height: calc(var(--dilz-tabbar-height) - var(--dilz-tabbar-gap) + var(--dilz-tabbar-bottom)) !important;
     padding: 0 20px var(--dilz-tabbar-bottom) !important;
     border: 0 !important;
