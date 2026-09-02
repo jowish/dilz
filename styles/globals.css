@@ -919,9 +919,9 @@ textarea:focus {
   position: sticky;
   top: 72px;
   z-index: 80;
-  background: rgba(248, 250, 247, 0.94);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  /* Opaque, no blur: this bar is sticky, so the feed scrolls underneath it
+     and a translucent blur smeared that content across the top of the page. */
+  background: var(--bg-app);
   border-bottom: 1px solid var(--border-default);
   padding: 10px 0;
   margin: 0 -32px 20px;
@@ -4214,8 +4214,9 @@ textarea:focus {
   min-height: 66px;
   padding: 10px max(20px, calc((100vw - 1120px) / 2));
   border-bottom: 1px solid var(--border);
-  background: var(--nav-bg);
-  backdrop-filter: blur(16px);
+  /* Opaque, no blur — this is the bar at the top of the Explore/Alerts
+     route, and the page scrolls underneath it. */
+  background: var(--bg-app);
 }
 
 .dilz-alerts-route__main {
@@ -5291,8 +5292,8 @@ textarea:focus {
   min-height: 64px;
   padding: 0 max(20px, calc((100vw - 860px) / 2));
   border-bottom: 1px solid var(--border-soft);
-  background: rgba(255, 255, 255, 0.96);
-  backdrop-filter: blur(16px);
+  /* Opaque, no blur — same reason as the other sticky top bars. */
+  background: var(--bg-app);
 }
 
 .dilz-legal-main {
@@ -9942,7 +9943,11 @@ select:focus,
    Only the unprefixed property is declared on purpose: writing both it and
    the -webkit- alias made the CSS build collapse them and keep only the
    alias, which Chromium does not treat as overriding an unprefixed blur()
-   from another rule — so the blur silently survived. */
+   from another rule — so the blur silently survived.
+   The other sticky top bars (alerts/explore route, legal pages, the sticky
+   filter bar) are de-blurred at their own rule sites further up this file
+   rather than here, so this override block stays clear of the reverted
+   "premium polish layer" region that partialRollbackContract guards. */
 .dilz-app-header,
 .dilz-discovery-header {
   background: var(--bg-app) !important;
