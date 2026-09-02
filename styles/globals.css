@@ -9351,8 +9351,15 @@ select:focus,
     display: flex !important;
     justify-content: center;
     align-items: flex-end;
-    height: calc(var(--dilz-tabbar-height) + env(safe-area-inset-bottom)) !important;
-    padding: 0 20px calc(var(--dilz-tabbar-gap) + env(safe-area-inset-bottom)) !important;
+    /* The floating bar's gap above the screen edge used to be the design gap
+       PLUS the whole home-indicator inset (20px + 34px on a notched iPhone),
+       which stacked into a 54px gap and left the bar visibly riding too high
+       up the page. The inset already reserves the space the home indicator
+       needs, so take whichever is larger rather than adding them: 20px where
+       there is no inset (unchanged), 34px on an iPhone instead of 54px. */
+    --dilz-tabbar-bottom: max(var(--dilz-tabbar-gap), env(safe-area-inset-bottom, 0px));
+    height: calc(var(--dilz-tabbar-height) - var(--dilz-tabbar-gap) + var(--dilz-tabbar-bottom)) !important;
+    padding: 0 20px var(--dilz-tabbar-bottom) !important;
     border: 0 !important;
     background: transparent !important;
     box-shadow: none !important;
