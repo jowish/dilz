@@ -9922,3 +9922,21 @@ select:focus,
 .dilz-app-header {
   padding-top: env(safe-area-inset-top, 0px) !important;
 }
+
+/* ── Deal page header is solid, not frosted glass ───────────────────────
+   Everywhere else the app header sits above a plain page background, so
+   its translucent + blur(16px) treatment is invisible. On the deal page it
+   sits above a full-bleed hero photo, so the photo bled through as a
+   blurred wash behind the back button and wordmark — unreadable, and it
+   read as a rendering glitch rather than a design. Opaque page-coloured
+   bar instead. Two classes so it outranks the single-class
+   `.dilz-app-header { background: ... !important }` rule regardless of
+   source order.
+   Only the unprefixed property is declared on purpose: writing both it and
+   the -webkit- alias made the CSS build collapse them and keep only the
+   alias, which Chromium does not treat as overriding an unprefixed blur()
+   from another rule — so the blur silently survived. */
+.dilz-app-header.dilz-deal-header {
+  background: var(--bg-app) !important;
+  backdrop-filter: none !important;
+}
