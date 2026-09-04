@@ -5,6 +5,7 @@
  */
 const { createClient } = require('@supabase/supabase-js');
 const { parseStringPromise } = require('xml2js');
+const { findDuplicates } = require('../lib/dealDuplicates');
 require('dotenv').config({ path: '.env.local' });
 
 const BOT_NAME = 'DilzScout';
@@ -89,6 +90,23 @@ function extractPrices(text = '') {
   }
   const unique = [...new Set(values)].sort((a, b) => a - b);
   return { prix: unique[0] ?? null, prix_original: unique.length > 1 ? unique[unique.length - 1] : null };
+}
+
+/**
+ * A link tagged with the publisher's own name (`?ref=poenta` on poenta.co.il)
+ * is that site monetising an article, not the subject of it. Those links are
+ * what turned news headlines into deals for unrelated products.
+ */
+function isAffiliateLinkFor(url, feedHost) {
+  const siteName = String(feedHost || '').split('.')[0].toLowerCase();
+  if (!siteName) return false;
+  try {
+    const params = new URL(url).searchParams;
+    return ['ref', 'referrer', 'utm_source', 'aff', 'affiliate', 'partner']
+      .some((key) => String(params.get(key) || '').toLowerCase().includes(siteName));
+  } catch {
+    return false;
+  }
 }
 
 function storeFromUrl(url, fallback = 'Online') {
@@ -248,15 +266,19 @@ async function scrapeRssFeed(feedUrl) {
     const text = `${item.title || ''}\n${content}`;
     let articleHtml = '';
     try { articleHtml = link ? await fetchText(link) : ''; } catch {}
-    const articleScope = articleHtml.match(/<article\b[\s\S]*?<\/article>/i)?.[0] || articleHtml;
-    const anchorLinks = [...articleScope.matchAll(/href=["']([^"']+)["']/gi)]
-      .map((match) => normalizeUrl(match[1]))
-      .filter(Boolean);
     const blocked = /(?:google|facebook|instagram|twitter|youtube|tiktok|whatsapp|linkedin|pinterest)/i;
     const commerceSignal = /(?:amazon|aliexpress|ksp|godeal|rockstargames|epicgames|play\.google|wolt|shufersal|rami-levy|victory|super-pharm|terminalx|zap|ivory|bug|target|sephora|store|shop|sale|deal|offer|coupon|product|item|buy|goldbox|newswire)/i;
-    const merchantLinks = [...new Set([...externalUrls(content), ...anchorLinks])].filter((url) => {
+    // Only links the post itself points at. Scanning every anchor in the page
+    // swept up sidebars and affiliate boxes, so an article about fuel prices
+    // was published as a "Bug" deal for whatever product happened to be
+    // advertised alongside it — a different one each day.
+    const merchantLinks = [...new Set(externalUrls(content))].filter((url) => {
       const host = new URL(url).hostname.replace(/^www\./, '');
-      return host !== feedHost && !blocked.test(host) && isDirectDealUrl(url) && commerceSignal.test(url);
+      return host !== feedHost
+        && !blocked.test(host)
+        && isDirectDealUrl(url)
+        && commerceSignal.test(url)
+        && !isAffiliateLinkFor(url, feedHost);
     });
     const image = item.enclosure?.url
       || item['media:content']?.url
@@ -268,9 +290,19 @@ async function scrapeRssFeed(feedUrl) {
   return candidates;
 }
 
+/**
+ * Two ways the same deal can come back. Keying on the URL alone let an
+ * identical headline return day after day, because each copy carried a
+ * different link.
+ */
+function candidateKeys(deal) {
+  const keys = [`text:${deal.magasin}:${deal.titre}`.toLowerCase().replace(/\s+/g, ' ').trim()];
+  if (deal.url_source) keys.push(`url:${deal.url_source.toLowerCase()}`);
+  return keys;
+}
+
 function candidateKey(deal) {
-  if (deal.url_source) return `url:${deal.url_source.toLowerCase()}`;
-  return `text:${deal.magasin}:${deal.titre}`.toLowerCase().replace(/\s+/g, ' ');
+  return candidateKeys(deal)[0];
 }
 
 function selectQualityDeals(deals, minimumScore = 65) {
@@ -287,10 +319,23 @@ function selectQualityDeals(deals, minimumScore = 65) {
 
 async function removeExisting(supabase, deals) {
   const since = new Date(Date.now() - 30 * 86400000).toISOString();
-  const { data, error } = await supabase.from('bons_plans').select('titre,magasin,url_source').gte('created_at', since).limit(2000);
+  const { data, error } = await supabase
+    .from('bons_plans')
+    .select('id,titre,magasin,url_source,prix,prix_original,created_at')
+    .gte('created_at', since)
+    .limit(2000);
   if (error) throw error;
-  const keys = new Set((data || []).flatMap((deal) => [candidateKey(deal), deal.url_source ? `url:${deal.url_source.toLowerCase()}` : null].filter(Boolean)));
-  return deals.filter((deal) => !keys.has(candidateKey(deal)));
+
+  const existing = data || [];
+  const keys = new Set(existing.flatMap(candidateKeys));
+
+  return deals.filter((deal) => {
+    if (candidateKeys(deal).some((key) => keys.has(key))) return false;
+    // Beyond exact repeats, the bot is held to the same duplicate rule people
+    // are (P0.3) — it used to publish straight to the table and so was never
+    // checked at all.
+    return !findDuplicates(deal, existing).some((match) => match.confidence === 'high');
+  });
 }
 
 async function discoverDeals() {
@@ -349,6 +394,7 @@ async function main() {
 module.exports = {
   candidateFromPost,
   candidateKey,
+  candidateKeys,
   discoverDeals,
   extractPrices,
   isDirectDealUrl,
