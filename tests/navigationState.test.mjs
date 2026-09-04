@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { bottomNavActiveItem, bottomNavPanelState, dealViewState, mainDealViewState, resolveDealLayout, resolveDealSort, sortDealsForView } from '../lib/navigationState.js';
+import {
+  DEFAULT_DEAL_LAYOUT, bottomNavActiveItem, bottomNavPanelState, dealViewState, mainDealViewState, resolveDealLayout, resolveDealSort, sortDealsForView } from '../lib/navigationState.js';
 
 test('returning to the main Dilz view restores the saved latest preference', () => {
   const temporaryView = dealViewState('comments', 'latest');
@@ -149,5 +150,18 @@ test('resolveDealLayout accepts compact and spotlight, mapping legacy list to sp
   assert.equal(resolveDealLayout({ savedLayout: 'spotlight' }), 'spotlight');
   assert.equal(resolveDealLayout({ requestedLayout: 'spotlight', savedLayout: 'list' }), 'spotlight');
   assert.equal(resolveDealLayout({ requestedLayout: 'list', savedLayout: 'compact' }), 'spotlight');
-  assert.equal(resolveDealLayout({ savedLayout: 'unknown' }), 'card');
+  assert.equal(resolveDealLayout({ savedLayout: 'unknown' }), DEFAULT_DEAL_LAYOUT);
+});
+
+test('the feed opens as rows, but never overrides a layout someone chose', () => {
+  assert.equal(DEFAULT_DEAL_LAYOUT, 'spotlight', 'row is the default view');
+  // Nothing chosen yet — including the server, which has no localStorage.
+  assert.equal(resolveDealLayout({}), 'spotlight');
+  assert.equal(resolveDealLayout({ savedLayout: null }), 'spotlight');
+  // Chosen explicitly: kept, cards included. This is the distinction that
+  // readStoredDealLayout() exists to preserve.
+  assert.equal(resolveDealLayout({ savedLayout: 'card' }), 'card');
+  assert.equal(resolveDealLayout({ savedLayout: 'compact' }), 'compact');
+  // A URL still wins over both.
+  assert.equal(resolveDealLayout({ requestedLayout: 'card', savedLayout: null }), 'card');
 });

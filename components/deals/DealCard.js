@@ -18,6 +18,7 @@ import {
   locationLabel,
 } from '../../lib/dealPresentation';
 import { EXPIRED, deriveLifecycle, lifecycleLabel } from '../../lib/dealLifecycle';
+import { TIER_LABELS } from '../../lib/points';
 
 export function DealCard({
   deal,
@@ -39,8 +40,8 @@ export function DealCard({
 }) {
   const router = useRouter();
   const text = lang === 'he'
-    ? { storePromo: 'מבצע חנות', community: 'מהקהילה', you: 'אתם', member: 'חבר Dilz', online: 'אונליין', myDeal: 'הדיל שלי', shared: 'שותף על ידי', deal: 'דיל', inStore: 'בחנות', voteControls: 'כפתורי הצבעה', hot: 'סימון כחם', cold: 'סימון כקר', unsave: 'הסרה מהשמורים', save: 'שמירת הדיל', comments: 'תגובות', sponsored: 'ממומן' }
-    : { storePromo: 'Store promo', community: 'Community find', you: 'You', member: 'Dilz member', online: 'Online', myDeal: 'My deal', shared: 'Shared by', deal: 'Deal', inStore: 'In-store', voteControls: 'Vote controls', hot: 'Mark as hot', cold: 'Mark as cold', unsave: 'Unsave deal', save: 'Save deal', comments: 'comments', sponsored: 'Sponsored' };
+    ? { storePromo: 'מבצע חנות', community: 'מהקהילה', you: 'אתם', member: 'חבר Dilz', online: 'אונליין', myDeal: 'הדיל שלי', shared: 'שותף על ידי', deal: 'דיל', inStore: 'בחנות', voteControls: 'כפתורי הצבעה', hot: 'סימון כחם', cold: 'סימון כקר', unsave: 'הסרה מהשמורים', save: 'שמירת הדיל', comments: 'תגובות', sponsored: 'ממומן', viewDeal: 'לצפייה בדיל' }
+    : { storePromo: 'Store promo', community: 'Community find', you: 'You', member: 'Dilz member', online: 'Online', myDeal: 'My deal', shared: 'Shared by', deal: 'Deal', inStore: 'In-store', voteControls: 'Vote controls', hot: 'Mark as hot', cold: 'Mark as cold', unsave: 'Unsave deal', save: 'Save deal', comments: 'comments', sponsored: 'Sponsored', viewDeal: 'View deal' };
   const [copied, setCopied] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
   const isAd = Boolean(deal.is_ad);
@@ -55,6 +56,11 @@ export function DealCard({
   const authorName = deal.auteur_nom || (isOwner ? text.you : text.member);
   const commentCount = isAd ? 0 : Number(deal.commentaires?.[0]?.count || deal.comments_count || 0);
   const hideShareInRow = layout === 'list' || layout === 'spotlight';
+  // The row is the feed's default view, and carries more per card than the
+  // others: when it was posted, who posted it and how established they are,
+  // the discount beside the price, and a direct way in.
+  const isRow = layout === 'spotlight';
+  const postedAgo = deal.created_at ? timeAgo(deal.created_at, lang) : null;
   // null for online deals — the availability slot already says "Online", and
   // printing it here as well is what produced "Online · Online".
   const city = locationLabel(deal, { translateCity, lang });
@@ -139,7 +145,7 @@ export function DealCard({
         )}
         <div className="dilz-deal-card__overlay dilz-deal-card__overlay--top">
           {discount !== null && (
-            <Badge tone={discount >= 30 ? 'saving-strong' : 'saving'}>-{discount}%</Badge>
+            <Badge dir="ltr" tone={discount >= 30 ? 'saving-strong' : 'saving'}>-{discount}%</Badge>
           )}
           {ending && <Badge tone="danger" className="dilz-deal-card__ending-badge">{ending}</Badge>}
         </div>
@@ -192,13 +198,12 @@ export function DealCard({
         <div className="dilz-deal-card__store-row">
           <strong>{deal.magasin}</strong>
           {city && <span>{city}</span>}
+          {isRow && postedAgo && (
+            <div className="dilz-deal-card__spotlight-tools">
+              <span className="dilz-deal-card__posted">{postedAgo}</span>
+            </div>
+          )}
         </div>
-        {layout === 'spotlight' && (discount !== null || onSave) && (
-          <div className="dilz-deal-card__spotlight-tools">
-            {discount !== null && <Badge tone={discount >= 30 ? 'saving-strong' : 'saving'}>-{discount}%</Badge>}
-            {onSave && <span className="dilz-deal-card__spotlight-save">{renderSaveButton()}</span>}
-          </div>
-        )}
         <h3>{deal.titre}</h3>
         {!isAd && (
           <p className="dilz-deal-card__author">
@@ -206,6 +211,16 @@ export function DealCard({
             {deal.auteur_id ? (
               <button type="button" onClick={(event) => { event.preventDefault(); event.stopPropagation(); router.push(`/user/${deal.auteur_id}`); }}>{authorName}</button>
             ) : <strong>{authorName}</strong>}
+            {/* The poster's contribution tier (lib/points.js), so it is clear
+                at a glance whether a regular contributor posted this. */}
+            {deal.auteur_tier && (
+              <span
+                className={`dilz-poster-tier is-${deal.auteur_tier}`}
+                title={TIER_LABELS[deal.auteur_tier]?.[lang === 'he' ? 'he' : 'en']}
+              >
+                {TIER_LABELS[deal.auteur_tier]?.[lang === 'he' ? 'he' : 'en']}
+              </span>
+            )}
           </p>
         )}
         {deal.description && (
@@ -216,7 +231,12 @@ export function DealCard({
               when it is a real price genuinely higher than the current one. */}
           <strong className={isFree ? 'is-free' : undefined}>{priceLabel}</strong>
           {originalPriceLabel && <span>{originalPriceLabel}</span>}
-          {commentCount > 0 && (
+          {/* In the row, the saving belongs next to the two prices it relates
+              to, rather than floating over the photo. */}
+          {isRow && discount !== null && (
+            <Badge dir="ltr" tone={discount >= 30 ? 'saving-strong' : 'saving'}>-{discount}%</Badge>
+          )}
+          {!isRow && commentCount > 0 && (
             <span className="dilz-deal-card__price-context">
               <span><CommentIcon /> {commentCount}</span>
             </span>
@@ -270,6 +290,21 @@ export function DealCard({
                 <VoteEmoji type="froid" />
               </button>
             </div>
+            {isRow && (
+              <div className="dilz-deal-card__row-tools">
+                {commentCount > 0 && (
+                  <span className="dilz-deal-card__comment-meta"><CommentIcon /> {commentCount}</span>
+                )}
+                {onSave && !isAd && <span className="dilz-deal-card__spotlight-save">{renderSaveButton()}</span>}
+                <Button
+                  className="dilz-deal-card__view"
+                  size="sm"
+                  onClick={(event) => { event.preventDefault(); event.stopPropagation(); go(); }}
+                >
+                  {text.viewDeal} <span aria-hidden="true">›</span>
+                </Button>
+              </div>
+            )}
             <div className={['dilz-deal-card__right-actions', hideShareInRow && 'is-row-without-share'].filter(Boolean).join(' ')}>
               <IconButton
                 aria-label={lang === 'he' ? 'אפשרויות שיתוף' : 'Share options'}

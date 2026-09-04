@@ -1,7 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 import { processFollowerNotifications, processNewDeal } from '../../lib/alerts';
 import { moderateFields } from '../../lib/contentModeration';
-import { recomputeUserPoints } from '../../lib/points';
+import { pointsToTier, recomputeUserPoints } from '../../lib/points';
 
 const { clampLimit, dateOnlyInTimeZone, dateOnlyPart, normalizeDealImageUrls, normalizeDealInput } = require('../../lib/dealValidation');
 const { buildDealSearchFilter } = require('../../lib/dealSearch');
@@ -15,6 +15,32 @@ function normalizeDealDates(deal) {
     date_debut: dateOnlyPart(deal.date_debut),
     date_fin: dateOnlyPart(deal.date_fin),
   };
+}
+
+/**
+ * Attaches each author's contribution tier to the deals being returned, so a
+ * card can show who posted it and how established they are (lib/points.js).
+ *
+ * One extra query per page, keyed on the authors actually on that page — not a
+ * join, and not a lookup per card. A failure here costs the badges, never the
+ * feed.
+ */
+async function withAuthorTiers(supabase, deals) {
+  const authorIds = [...new Set(deals.map((deal) => deal.auteur_id).filter(Boolean))];
+  if (!authorIds.length) return deals;
+  try {
+    const { data, error } = await supabase
+      .from('user_points')
+      .select('user_id,points')
+      .in('user_id', authorIds);
+    if (error) return deals;
+    const points = new Map((data || []).map((row) => [row.user_id, row.points]));
+    return deals.map((deal) => (deal.auteur_id
+      ? { ...deal, auteur_tier: pointsToTier(points.get(deal.auteur_id) || 0) }
+      : deal));
+  } catch {
+    return deals;
+  }
 }
 
 export default async function handler(req, res) {
@@ -121,7 +147,7 @@ export default async function handler(req, res) {
       }
 
       return res.status(200).json({
-        bons_plans: rows,
+        bons_plans: await withAuthorTiers(supabase, rows),
         ads,
         limit: responseLimit,
         offset: responseOffset,
