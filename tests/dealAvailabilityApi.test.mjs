@@ -66,3 +66,24 @@ test('the schema is additive and keeps existing rows valid', () => {
   assert.match(sql, /auth\.uid\(\) = user_id/);
   assert.match(sql, /UNIQUE \(bon_plan_id, user_id\)/);
 });
+
+test('an answer counts for the local day, and the question returns after it rolls over', async () => {
+  // Same Asia/Jerusalem boundary the rest of the app uses for deal dates, so
+  // "tomorrow" means local midnight rather than 24h after answering.
+  assert.match(api, /dateOnlyInTimeZone/);
+  assert.match(api, /answered_today:/);
+  assert.match(api, /myAnsweredOn === dateOnlyInTimeZone\(\)/);
+  // POST echoes the state back so the page can switch without a second trip.
+  assert.match(api, /answered_today: true/);
+});
+
+test('once answered today the question is replaced by a thank-you, not a stuck toggle', async () => {
+  assert.match(detail, /answeredToday \? \(/);
+  assert.match(detail, /Thanks for confirming this deal is still available/);
+  assert.match(detail, /Thanks for letting us know this deal is gone/);
+  assert.match(detail, /תודה שאימתת שהדיל עדיין זמין/);
+  assert.match(detail, /תודה שעדכנת שהדיל כבר לא זמין/);
+  assert.match(detail, /We'll ask you again tomorrow/);
+  // A failed write must put the question back rather than leave a false thanks.
+  assert.match(detail, /setAnsweredToday\(previousAnsweredToday\)/);
+});

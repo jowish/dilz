@@ -5,6 +5,8 @@ import { recomputeUserPoints } from '../../lib/points';
 
 const { clampLimit, dateOnlyInTimeZone, dateOnlyPart, normalizeDealImageUrls, normalizeDealInput } = require('../../lib/dealValidation');
 const { buildDealSearchFilter } = require('../../lib/dealSearch');
+const { findDuplicates } = require('../../lib/dealDuplicates');
+const { fetchDuplicateCandidates, publicDuplicateShape } = require('../../lib/dealDuplicateLookup');
 
 function normalizeDealDates(deal) {
   return {
@@ -144,6 +146,31 @@ export default async function handler(req, res) {
       const moderation = moderateFields([normalized.value.titre, normalized.value.description, normalized.value.magasin]);
       if (!moderation.allowed) {
         return res.status(400).json({ erreur: moderation.reason, code: 'CONTENT_REJECTED' });
+      }
+
+      // Duplicate guard (P0.3). Enforced here, not only in the posting UI, so
+      // skipping the flow cannot bury the feed in copies of the same deal.
+      // Nothing existing is ever modified or removed — the post is simply held
+      // back until the author decides what to do.
+      if (req.body.allow_duplicate !== true) {
+        try {
+          const candidates = await fetchDuplicateCandidates(supabase, normalized.value);
+          const matches = findDuplicates(normalized.value, candidates);
+          const blocking = matches.filter((match) => match.confidence === 'high');
+          if (blocking.length) {
+            return res.status(409).json({
+              erreur: 'This deal may already exist.',
+              code: 'DUPLICATE_SUSPECTED',
+              matches: blocking.slice(0, 5).map((match) => ({
+                confidence: match.confidence,
+                reasons: match.reasons,
+                deal: publicDuplicateShape(match.deal),
+              })),
+            });
+          }
+        } catch {
+          // Never let a failing duplicate lookup stop a legitimate post.
+        }
       }
 
       const auteur_nom =

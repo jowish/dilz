@@ -6,6 +6,7 @@ import { traduireVille } from '../../lib/translations';
 import { Button } from '../ui/Button';
 import { Input, Select, Textarea } from '../ui/FormControls';
 import { Modal } from '../ui/Modal';
+import { DuplicateDealPrompt } from './DuplicateDealPrompt';
 import { SegmentedControl } from '../ui/SegmentedControl';
 import { CityPicker } from '../ui/CityPicker';
 import { getDevicePosition, triggerSuccessHaptic } from '../../lib/nativeApp';
@@ -89,6 +90,10 @@ export function PostDealModal({ user, onClose, onSuccess, cityOptions = [], lang
   const text = copy[lang === 'he' ? 'he' : 'en'];
   const fileInputRef = useRef(null);
   const [step, setStep] = useState(0);
+  // Suspected duplicates held back before publishing (P0.3), and the author's
+  // explicit decision to publish regardless.
+  const [duplicateMatches, setDuplicateMatches] = useState([]);
+  const [allowDuplicate, setAllowDuplicate] = useState(false);
   const [form, setForm] = useState({ titre: '', description: '', prix: '', prix_original: '', magasin: '', ville: '', adresse: '', latitude: null, longitude: null, categorie: 'Food', url_source: '', date_debut: '', date_fin: '', onlineMode: 'store' });
   const [images, setImages] = useState([]);
   const [fieldErrors, setFieldErrors] = useState({});
@@ -184,6 +189,29 @@ export function PostDealModal({ user, onClose, onSuccess, cityOptions = [], lang
     return errors;
   };
 
+  // Ask the server whether this looks like an existing deal, before any
+  // upload happens. A failure here never blocks posting.
+  const checkForDuplicates = async () => {
+    try {
+      const response = await fetch('/api/deal-duplicates', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          titre: form.titre,
+          magasin: form.magasin,
+          prix: form.prix ? Number(form.prix) : null,
+          prix_original: form.prix_original ? Number(form.prix_original) : null,
+          url_source: form.url_source,
+        }),
+      });
+      if (!response.ok) return [];
+      const payload = await response.json();
+      return Array.isArray(payload.matches) ? payload.matches : [];
+    } catch {
+      return [];
+    }
+  };
+
   const handlePublish = async () => {
     const errors = validateAll();
     if (Object.keys(errors).length) {
@@ -197,6 +225,17 @@ export function PostDealModal({ user, onClose, onSuccess, cityOptions = [], lang
 
     setSubmitting(true);
     setError('');
+    // Check before uploading anything — no point spending an image upload on
+    // a post that is about to be held back.
+    if (!allowDuplicate) {
+      const matches = await checkForDuplicates();
+      if (matches.length) {
+        setDuplicateMatches(matches);
+        setSubmitting(false);
+        return;
+      }
+    }
+
     const uploadPaths = [];
     try {
       let resolvedLocation = { latitude: form.latitude, longitude: form.longitude, address: form.adresse, city: form.ville };
@@ -233,6 +272,7 @@ export function PostDealModal({ user, onClose, onSuccess, cityOptions = [], lang
         date_fin: form.date_fin,
         image_url: imageUrls[0],
         image_urls: imageUrls,
+        allow_duplicate: allowDuplicate,
       };
 
       const response = await fetch('/api/bons-plans', {
@@ -241,6 +281,14 @@ export function PostDealModal({ user, onClose, onSuccess, cityOptions = [], lang
         body: JSON.stringify(payload),
       });
       const data = await response.json();
+      // Someone may have posted the same deal seconds ago: show the prompt
+      // rather than a raw error, and drop the images we just uploaded.
+      if (response.status === 409 && data.code === 'DUPLICATE_SUSPECTED') {
+        await Promise.all(uploadPaths.map((path) => deleteDealImage(path)));
+        setDuplicateMatches(data.matches || []);
+        setSubmitting(false);
+        return;
+      }
       if (!response.ok || data.erreur) throw new Error(data.erreur || text.errors.failed);
       await triggerSuccessHaptic();
       onSuccess(data.bon_plan?.id || null);
@@ -260,6 +308,24 @@ export function PostDealModal({ user, onClose, onSuccess, cityOptions = [], lang
           <Button as={Link} href="/auth" variant="primary">{text.signIn}</Button>
           <Button variant="secondary" onClick={onClose}>{text.cancel}</Button>
         </div>
+      </PostSurface>
+    );
+  }
+
+  if (duplicateMatches.length) {
+    return (
+      <PostSurface pageMode={pageMode} title={text.title} subtitle={text.subtitle} onClose={onClose}>
+        <DuplicateDealPrompt
+          matches={duplicateMatches}
+          lang={lang}
+          onPostAnyway={() => {
+            // Explicit override: the server is told as well, since it
+            // enforces the same rule independently of this screen.
+            setAllowDuplicate(true);
+            setDuplicateMatches([]);
+          }}
+          onDone={onClose}
+        />
       </PostSurface>
     );
   }

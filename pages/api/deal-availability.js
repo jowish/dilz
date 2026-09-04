@@ -1,5 +1,16 @@
 import { createClient } from '@supabase/supabase-js';
 
+const { dateOnlyInTimeZone } = require('../../lib/dealValidation');
+
+// An answer counts for the calendar day it was given, on the same
+// Asia/Jerusalem boundary the rest of the app uses for deal dates — so the
+// question comes back at local midnight rather than 24h after answering.
+function answeredOn(timestamp) {
+  if (!timestamp) return null;
+  const date = new Date(timestamp);
+  return Number.isNaN(date.getTime()) ? null : dateOnlyInTimeZone(date);
+}
+
 // "Still available? Yes / No" on a deal (P0.2).
 //
 // One answer per person per deal — answering again updates that same row, so a
@@ -26,27 +37,42 @@ export default async function handler(req, res) {
 
   // ── GET: the current tally, plus this viewer's own answer if signed in ────
   if (req.method === 'GET') {
-    const { data, error } = await supabase
-      .from('deal_availability_confirmations')
-      .select('user_id,is_available')
-      .eq('bon_plan_id', dealId);
+    // The public tally comes from the denormalised counters on the deal, which
+    // anyone can already read. Nobody gets to enumerate the confirmations
+    // table and see *who* reported a deal as gone — RLS only lets a signed-in
+    // user read their own row.
+    const { data: deal, error } = await supabase
+      .from('bons_plans')
+      .select('availability_yes_count,availability_no_count')
+      .eq('id', dealId)
+      .maybeSingle();
     if (error) return res.status(500).json({ erreur: error.message });
 
-    const rows = data || [];
     let myAnswer = null;
+    let myAnsweredOn = null;
     const token = (req.headers.authorization || '').replace('Bearer ', '').trim();
     if (token && supabaseAdmin) {
       const { data: { user } } = await supabaseAdmin.auth.getUser(token);
       if (user) {
-        const mine = rows.find((row) => row.user_id === user.id);
-        if (mine) myAnswer = mine.is_available;
+        const { data: mine } = await supabaseAdmin
+          .from('deal_availability_confirmations')
+          .select('is_available,updated_at')
+          .eq('bon_plan_id', dealId)
+          .eq('user_id', user.id)
+          .maybeSingle();
+        if (mine) {
+          myAnswer = mine.is_available;
+          myAnsweredOn = answeredOn(mine.updated_at);
+        }
       }
     }
 
     return res.status(200).json({
-      available_count: rows.filter((row) => row.is_available).length,
-      unavailable_count: rows.filter((row) => !row.is_available).length,
+      available_count: deal?.availability_yes_count || 0,
+      unavailable_count: deal?.availability_no_count || 0,
       my_answer: myAnswer,
+      // The question is asked again once the local day rolls over.
+      answered_today: myAnsweredOn !== null && myAnsweredOn === dateOnlyInTimeZone(),
     });
   }
 
@@ -85,7 +111,14 @@ export default async function handler(req, res) {
       .eq('id', dealId)
       .maybeSingle();
 
-    return res.status(200).json({ ok: true, deal: deal || null });
+    // Echo the answer back so the page can switch straight to the thank-you
+    // state without a second round trip.
+    return res.status(200).json({
+      ok: true,
+      deal: deal || null,
+      my_answer: available,
+      answered_today: true,
+    });
   }
 
   res.setHeader('Allow', 'GET, POST');

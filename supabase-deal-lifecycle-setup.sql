@@ -1,9 +1,9 @@
 -- Dilz deal lifecycle (P0.2). Run in the Supabase SQL Editor. Safe to run repeatedly.
 --
--- ⚠️ REVIEW THE RLS POLICIES BELOW LINE BY LINE BEFORE RUNNING.
--- Per AGENTS.md §4, row level security is the only thing standing between one
--- merchant and another merchant's data, and an agent must not be trusted with
--- it unreviewed. Every policy here is spelled out rather than inherited.
+-- ⚠️ ROW LEVEL SECURITY BELOW — READ IT LINE BY LINE.
+-- Per AGENTS.md §4, RLS is the only thing standing between one merchant and
+-- another merchant's data. Every policy here is spelled out rather than
+-- inherited, and deliberately no looser than the existing votes setup.
 --
 -- What this adds:
 --   1. Freshness columns on bons_plans. `statut` is left completely alone: it
@@ -38,6 +38,8 @@ DO $$ BEGIN
 END $$;
 
 -- ── 2. Community availability confirmations ─────────────────────────────────
+-- No separate index on bon_plan_id: the UNIQUE constraint below already
+-- indexes it as the leading column.
 CREATE TABLE IF NOT EXISTS deal_availability_confirmations (
   id           BIGSERIAL PRIMARY KEY,
   bon_plan_id  BIGINT NOT NULL REFERENCES bons_plans(id) ON DELETE CASCADE,
@@ -50,22 +52,22 @@ CREATE TABLE IF NOT EXISTS deal_availability_confirmations (
   UNIQUE (bon_plan_id, user_id)
 );
 
-CREATE INDEX IF NOT EXISTS idx_deal_availability_deal
-  ON deal_availability_confirmations(bon_plan_id);
-
 ALTER TABLE deal_availability_confirmations ENABLE ROW LEVEL SECURITY;
 
--- Anyone may read confirmations (they are aggregate community signal, and the
--- counts are shown publicly on the deal).
+-- A signed-in user may read only their OWN answer, so nobody can enumerate who
+-- reported a deal as gone. The public tally is served from the denormalised
+-- availability_yes_count / availability_no_count columns on bons_plans, which
+-- are already readable as part of the deal itself.
 DO $$ BEGIN
   IF NOT EXISTS (
     SELECT 1 FROM pg_policies
     WHERE tablename = 'deal_availability_confirmations'
-      AND policyname = 'Anyone can view availability confirmations'
+      AND policyname = 'Users read their own availability answer'
   ) THEN
-    CREATE POLICY "Anyone can view availability confirmations"
+    CREATE POLICY "Users read their own availability answer"
     ON deal_availability_confirmations FOR SELECT
-    USING (true);
+    TO authenticated
+    USING (auth.uid() = user_id);
   END IF;
 END $$;
 
@@ -97,21 +99,24 @@ DO $$ BEGIN
   END IF;
 END $$;
 
-GRANT SELECT ON deal_availability_confirmations TO authenticated, anon;
-GRANT INSERT, UPDATE ON deal_availability_confirmations TO authenticated;
+-- No grants to anon: an anonymous visitor reads the public tally from the deal
+-- row, never this table.
+GRANT SELECT, INSERT, UPDATE ON deal_availability_confirmations TO authenticated;
 GRANT USAGE, SELECT ON SEQUENCE deal_availability_confirmations_id_seq TO authenticated;
 GRANT ALL ON deal_availability_confirmations TO service_role;
 
 -- ── 3. Keep the denormalised counters in step ───────────────────────────────
--- The counters on bons_plans are derived, never client-written: the API uses
--- the service role, and no UPDATE grant on bons_plans is added here.
+-- The counters on bons_plans are derived, never client-written: no UPDATE
+-- grant on bons_plans is added here, and the API writes with the service role.
 CREATE OR REPLACE FUNCTION refresh_deal_availability_counters(p_bon_plan_id BIGINT)
 RETURNS VOID
 LANGUAGE plpgsql
 SECURITY DEFINER
 SET search_path = public
-AS $$
+AS $fn$
 BEGIN
+  -- Aggregates over an empty set still yield one row (0 / NULL), so removing
+  -- the last confirmation correctly resets the deal's counters.
   UPDATE bons_plans b
   SET
     availability_yes_count = COALESCE(counts.yes_count, 0),
@@ -129,24 +134,51 @@ BEGIN
   ) AS counts
   WHERE b.id = p_bon_plan_id;
 END;
-$$;
+$fn$;
 
 CREATE OR REPLACE FUNCTION trg_refresh_deal_availability_counters()
 RETURNS TRIGGER
 LANGUAGE plpgsql
 SECURITY DEFINER
 SET search_path = public
-AS $$
+AS $fn$
 BEGIN
   PERFORM refresh_deal_availability_counters(COALESCE(NEW.bon_plan_id, OLD.bon_plan_id));
   RETURN NULL;
 END;
-$$;
+$fn$;
+
+-- Flipping an answer must move its timestamp, otherwise the lifecycle would
+-- keep reading a stale "last reported" time.
+CREATE OR REPLACE FUNCTION trg_touch_deal_availability_updated_at()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SET search_path = public
+AS $fn$
+BEGIN
+  NEW.updated_at := NOW();
+  RETURN NEW;
+END;
+$fn$;
+
+-- These helpers are only ever needed by their triggers, which run as the
+-- definer regardless. Revoking from PUBLIC alone is NOT enough: Supabase
+-- grants EXECUTE to anon and authenticated explicitly, so without naming them
+-- the functions stay callable over /rest/v1/rpc — the database linter flags
+-- exactly that.
+REVOKE ALL ON FUNCTION refresh_deal_availability_counters(BIGINT) FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON FUNCTION trg_refresh_deal_availability_counters() FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON FUNCTION trg_touch_deal_availability_updated_at() FROM PUBLIC, anon, authenticated;
+
+DROP TRIGGER IF EXISTS deal_availability_touch_updated_at ON deal_availability_confirmations;
+CREATE TRIGGER deal_availability_touch_updated_at
+BEFORE UPDATE ON deal_availability_confirmations
+FOR EACH ROW EXECUTE FUNCTION trg_touch_deal_availability_updated_at();
 
 DROP TRIGGER IF EXISTS deal_availability_counters ON deal_availability_confirmations;
 CREATE TRIGGER deal_availability_counters
 AFTER INSERT OR UPDATE OR DELETE ON deal_availability_confirmations
 FOR EACH ROW EXECUTE FUNCTION trg_refresh_deal_availability_counters();
 
--- Feed ordering support: expired deals must stop competing with live ones.
+-- Supports the active-feed filter that keeps expired deals from competing.
 CREATE INDEX IF NOT EXISTS idx_bons_plans_date_fin ON bons_plans(date_fin);
