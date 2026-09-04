@@ -10082,3 +10082,130 @@ select:focus,
 .dark .dilz-deal-availability__thanks-icon {
   background: var(--bg-card);
 }
+
+/* ── Duplicate deal prompt (P0.3) ───────────────────────────────────────
+   Shown before publishing when the deal looks like one already on Dilz. */
+.dilz-duplicate-prompt {
+  display: grid;
+  gap: 16px;
+}
+
+.dilz-duplicate-prompt__header h3 {
+  color: var(--text-primary);
+  font-size: 18px;
+  font-weight: 850;
+  letter-spacing: -0.2px;
+}
+
+.dilz-duplicate-prompt__header p {
+  margin-top: 6px;
+  color: var(--text-secondary);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.dilz-duplicate-prompt__list {
+  display: grid;
+  gap: 12px;
+}
+
+.dilz-duplicate-card {
+  display: grid;
+  grid-template-columns: 64px minmax(0, 1fr);
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid var(--border-default);
+  border-radius: var(--r-card);
+  background: var(--surface-main);
+}
+
+.dilz-duplicate-card__media {
+  width: 64px;
+  height: 64px;
+  border-radius: var(--r-img);
+  overflow: hidden;
+  background: var(--surface-soft);
+}
+
+.dilz-duplicate-card__media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.dilz-duplicate-card__body {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.dilz-duplicate-card__title {
+  color: var(--text-primary);
+  font-size: 15px;
+  font-weight: 750;
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.dilz-duplicate-card__meta {
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+.dilz-duplicate-card__reasons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.dilz-duplicate-card__reason {
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: var(--brand-soft);
+  color: var(--brand);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.dilz-duplicate-card__actions {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.dilz-duplicate-card__confirmed {
+  color: var(--saving);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.dilz-duplicate-prompt__footer {
+  display: flex;
+  justify-content: center;
+}
+
+/* Deliberately low emphasis: posting a second copy is the last resort. */
+.dilz-duplicate-prompt__post-anyway {
+  border: 0;
+  background: none;
+  color: var(--text-muted);
+  font-size: 13px;
+  font-weight: 650;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.dilz-duplicate-prompt__post-anyway:hover {
+  color: var(--text-secondary);
+}
+
+.dark .dilz-duplicate-card {
+  background: var(--bg-card);
+  border-color: var(--border);
+}
