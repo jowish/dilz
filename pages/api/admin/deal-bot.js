@@ -2,6 +2,7 @@ import { createClient } from '@supabase/supabase-js';
 
 const { getAdminToken, secretsMatch } = require('../../../lib/adminAuth');
 const {
+  SCOUT_ENABLED,
   candidateKey,
   discoverDeals,
   removeExisting,
@@ -13,6 +14,16 @@ const { discoverWithClaude } = require('../../../scripts/claude-deal-scout');
 export default async function handler(req, res) {
   res.setHeader('Allow', 'POST, GET');
   if (req.method !== 'POST' && req.method !== 'GET') return res.status(405).end();
+
+  // The scout is switched off. Checked before anything else so no schedule,
+  // no manual trigger and no leftover cron can discover or insert anything.
+  if (!SCOUT_ENABLED) {
+    return res.status(200).json({
+      disabled: true,
+      inserted: 0,
+      erreur: 'The deal scout is switched off (SCOUT_ENABLED in scripts/deal-bot.js).',
+    });
+  }
 
   const ADMIN_BOT_TOKEN = process.env.ADMIN_BOT_TOKEN || '';
   const CRON_SECRET = process.env.CRON_SECRET || '';
