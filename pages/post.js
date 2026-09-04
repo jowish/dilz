@@ -1,11 +1,9 @@
 import Head from 'next/head';
-import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import { PostDealModal } from '../components/deals/PostDealModal';
 import { supabase } from '../lib/supabase';
 import { useAppLanguage } from '../lib/useAppLanguage';
-import { Wordmark } from '../components/ui/Brand';
 
 export default function PostPage() {
   const router = useRouter();
@@ -23,11 +21,10 @@ export default function PostPage() {
 
   return (
     <>
-      <Head><title>{lang === 'he' ? '×¤×¨×¡×•× ×“×™×œ | Dilz' : 'Post a deal | Dilz'}</title></Head>
+      <Head><title>{lang === 'he' ? 'פרסום דיל | Dilz' : 'Post a deal | Dilz'}</title></Head>
       <div className="dilz-post-page" dir={dir}>
-        <header className="dilz-alerts-route__header">
-          <Link href="/" className="dilz-logo-button"><Wordmark /></Link>
-        </header>
+        {/* No route header here (P0.4): the posting surface already carries its
+            own title and close control, and two stacked headers ate the screen. */}
         <main className="dilz-post-page__main">
           {user ? (
             <PostDealModal
