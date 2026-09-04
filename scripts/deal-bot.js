@@ -8,6 +8,19 @@ const { parseStringPromise } = require('xml2js');
 const { findDuplicates } = require('../lib/dealDuplicates');
 require('dotenv').config({ path: '.env.local' });
 
+/**
+ * The scout is OFF (2026-09-04, maintainer's decision).
+ *
+ * It had been publishing news articles as deals: a headline about fuel prices
+ * went out three days running as a "Bug" deal for whatever product was
+ * advertised beside it, priced 8 was 412.50. Nothing reviewed those before they
+ * reached the feed.
+ *
+ * Nothing discovers or inserts while this is false — not the CLI, not the API
+ * route, whoever triggers them. Set it to true to start the scout again.
+ */
+const SCOUT_ENABLED = false;
+
 const BOT_NAME = 'DilzScout';
 const USER_AGENT = 'DilzScout/1.0 (+https://dilz.vercel.app)';
 const SOCIAL_HOSTS = new Set(['t.me', 'telegram.me', 'facebook.com', 'www.facebook.com', 'instagram.com', 'www.instagram.com', 'x.com', 'twitter.com']);
@@ -362,6 +375,10 @@ async function discoverDeals() {
 }
 
 async function main() {
+  if (!SCOUT_ENABLED) {
+    console.warn('[DilzScout] The scout is switched off (SCOUT_ENABLED = false in scripts/deal-bot.js). Nothing was discovered or inserted.');
+    return;
+  }
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const serviceKey = process.env.SUPABASE_SERVICE_KEY;
   if (!url || !serviceKey) throw new Error('Missing NEXT_PUBLIC_SUPABASE_URL or SUPABASE_SERVICE_KEY');
@@ -392,6 +409,7 @@ async function main() {
 }
 
 module.exports = {
+  SCOUT_ENABLED,
   candidateFromPost,
   candidateKey,
   candidateKeys,
