@@ -14,10 +14,10 @@ import {
   formatDealPrice,
   formatOriginalPrice,
   getDealDiscount,
-  isExpiredDeal,
   isFreeDeal,
   locationLabel,
 } from '../../lib/dealPresentation';
+import { EXPIRED, deriveLifecycle, lifecycleLabel } from '../../lib/dealLifecycle';
 
 export function DealCard({
   deal,
@@ -49,7 +49,6 @@ export function DealCard({
   const discount = getDealDiscount(deal);
   const ending = timeRemaining(deal.date_fin, lang);
   const isOwner = user && user.id === deal.auteur_id;
-  const isExpired = isExpiredDeal(deal);
   const isFree = isFreeDeal(deal);
   const isStorePromo = deal.auteur_nom === 'DilzCurator' || deal.auteur_nom === 'DilzBot';
   const trust = isStorePromo ? text.storePromo : text.community;
@@ -62,6 +61,11 @@ export function DealCard({
   const availability = availabilityLabel(deal, lang);
   const priceLabel = formatDealPrice(deal, lang);
   const originalPriceLabel = formatOriginalPrice(deal);
+  const lifecycleState = deriveLifecycle(deal);
+  const freshnessLabel = lifecycleLabel(deal, { lang });
+  // Derived from the lifecycle rather than the end date alone, so an admin
+  // marking a deal expired greys it out too.
+  const isExpired = lifecycleState === EXPIRED;
 
   const go = () => {
     try {
@@ -219,7 +223,13 @@ export function DealCard({
           )}
         </div>
         <div className="dilz-deal-card__meta">
-          <span>{ending || timeAgo(deal.created_at, lang)}</span>
+          {/* Meaningful status ("Verified today", "Possibly expired") rather
+              than a bare age, which made every older deal look dead. An
+              upcoming end date still wins, since it is the more actionable
+              fact. */}
+          <span className={`dilz-deal-freshness is-${lifecycleState.toLowerCase()}`}>
+            {ending || freshnessLabel}
+          </span>
           <span>{availability}</span>
           {commentCount > 0 && (
             <span className="dilz-deal-card__comment-meta">
