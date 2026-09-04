@@ -13,6 +13,7 @@ import { Wordmark } from '../../components/ui/Brand';
 import { useAppLanguage } from '../../lib/useAppLanguage';
 import { SafetyActions } from '../../components/ui/SafetyActions';
 import { buildDealGpsUrl } from '../../lib/dealLocation';
+import { lifecycleLabel } from '../../lib/dealLifecycle';
 
 const { DEAL_CATEGORIES, getDealCategoryLabel } = require('../../lib/dealCategories');
 const { dateOnlyPart, normalizeDealImageUrls } = require('../../lib/dealValidation');
@@ -154,6 +155,10 @@ export default function DealPage({ initialDeal }) {
   const [saveSubmitting, setSaveSubmitting] = useState(false);
   const [activeImageIndex, setActiveImageIndex] = useState(0);
   const [blockedUserIds, setBlockedUserIds] = useState([]);
+  const [availabilityCounts, setAvailabilityCounts] = useState({ available_count: 0, unavailable_count: 0 });
+  const [availabilityAnswer, setAvailabilityAnswer] = useState(null);
+  const [availabilityBusy, setAvailabilityBusy] = useState(false);
+  const [availabilityError, setAvailabilityError] = useState('');
   const addressPressRef = useRef({ timer: null, longPressed: false, suppressNextClick: false });
 
   useEffect(() => {
@@ -203,6 +208,7 @@ export default function DealPage({ initialDeal }) {
       fetchDeal();
     }
     fetchComments();
+    loadAvailability(id);
     try {
       const dv = localStorage.getItem('dilzDealVotes');
       if (dv) { const parsed = JSON.parse(dv); setMyVote(parsed[id] || null); }
@@ -257,6 +263,54 @@ export default function DealPage({ initialDeal }) {
       });
     }
     setLoading(false);
+  };
+
+  const loadAvailability = async (dealId) => {
+    if (!dealId) return;
+    try {
+      const { data } = await supabase.auth.getSession();
+      const headers = data.session ? { Authorization: `Bearer ${data.session.access_token}` } : undefined;
+      const response = await fetch(`/api/deal-availability?deal_id=${dealId}`, { headers });
+      if (!response.ok) return;
+      const payload = await response.json();
+      setAvailabilityCounts({
+        available_count: payload.available_count || 0,
+        unavailable_count: payload.unavailable_count || 0,
+      });
+      setAvailabilityAnswer(typeof payload.my_answer === 'boolean' ? payload.my_answer : null);
+    } catch {}
+  };
+
+  const submitAvailability = async (available) => {
+    if (!user) { router.push(`/auth?redirect=/deal/${id}`); return; }
+    setAvailabilityBusy(true);
+    setAvailabilityError('');
+    // Optimistic: reflect the answer immediately, roll back if the write fails.
+    const previousAnswer = availabilityAnswer;
+    setAvailabilityAnswer(available);
+    try {
+      const { data } = await supabase.auth.getSession();
+      if (!data.session) { router.push(`/auth?redirect=/deal/${id}`); return; }
+      const response = await fetch('/api/deal-availability', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${data.session.access_token}` },
+        body: JSON.stringify({ deal_id: Number(id), available }),
+      });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        setAvailabilityAnswer(previousAnswer);
+        setAvailabilityError(payload.erreur || (lang === 'he' ? 'לא ניתן היה לשמור' : 'Could not save that'));
+        return;
+      }
+      // Re-derive the lifecycle from the freshly written counters.
+      if (payload.deal) setDeal((current) => ({ ...current, ...payload.deal }));
+      await loadAvailability(id);
+    } catch {
+      setAvailabilityAnswer(previousAnswer);
+      setAvailabilityError(lang === 'he' ? 'שגיאת רשת' : 'Network error');
+    } finally {
+      setAvailabilityBusy(false);
+    }
   };
 
   const fetchComments = async () => {
@@ -762,6 +816,39 @@ export default function DealPage({ initialDeal }) {
               >
                 <VoteEmoji type="froid" /> {deal.votes_froid || 0}
               </button>
+            </div>
+
+            {/* Still available? — community freshness signal (P0.2). A single
+                "No" never expires a deal; repeated ones mark it as possibly
+                expired, and a later "Yes" clears that. */}
+            <div className="dilz-deal-availability">
+              <p className="dilz-deal-availability__question">
+                {lang === 'he' ? 'עדיין זמין?' : 'Still available?'}
+                <span className="dilz-deal-availability__status">{lifecycleLabel(deal, { lang })}</span>
+              </p>
+              <div className="dilz-deal-availability__actions">
+                <button
+                  type="button"
+                  className={['dilz-button', 'dilz-button--sm', availabilityAnswer === true ? 'dilz-button--success' : 'dilz-button--secondary'].join(' ')}
+                  onClick={() => submitAvailability(true)}
+                  disabled={availabilityBusy}
+                  aria-pressed={availabilityAnswer === true}
+                >
+                  {lang === 'he' ? 'כן' : 'Yes'}
+                  {availabilityCounts.available_count > 0 && ` · ${availabilityCounts.available_count}`}
+                </button>
+                <button
+                  type="button"
+                  className={['dilz-button', 'dilz-button--sm', availabilityAnswer === false ? 'dilz-button--danger' : 'dilz-button--secondary'].join(' ')}
+                  onClick={() => submitAvailability(false)}
+                  disabled={availabilityBusy}
+                  aria-pressed={availabilityAnswer === false}
+                >
+                  {lang === 'he' ? 'לא' : 'No'}
+                  {availabilityCounts.unavailable_count > 0 && ` · ${availabilityCounts.unavailable_count}`}
+                </button>
+              </div>
+              {availabilityError && <p className="dilz-field__error">{availabilityError}</p>}
             </div>
 
             {/* Share row */}

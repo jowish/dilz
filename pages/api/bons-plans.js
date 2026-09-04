@@ -75,6 +75,14 @@ export default async function handler(req, res) {
       if (ville) query = query.eq('ville', ville);
       if (categorie && categorie !== 'all') query = query.eq('categorie', categorie);
       if (filterAuteurId) query = query.eq('auteur_id', filterAuteurId);
+      // Expired deals stay reachable by link, on profiles and via
+      // include_expired=1 — they just stop competing with live ones in the
+      // active feed (P0.2). 'ending' already filters on the end date itself.
+      const includeExpired = String(req.query.include_expired || '') === '1';
+      if (!includeExpired && tri !== 'ending') {
+        const today = dateOnlyInTimeZone();
+        query = query.or(`date_fin.is.null,date_fin.gte.${today}`);
+      }
       // Full-table search across title/description/store/city. Without this the
       // search tab could only ever match deals already paginated into the
       // browser, so anything past the first page was invisible to it.

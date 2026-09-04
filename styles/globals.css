@@ -9958,3 +9958,62 @@ select:focus,
   background: var(--bg-app) !important;
   backdrop-filter: none !important;
 }
+
+/* ── Deal lifecycle (P0.2) ──────────────────────────────────────────────
+   Freshness reads as status ("Verified today", "Possibly expired") rather
+   than a bare age. Only the states that need attention get colour; ACTIVE
+   stays in the normal muted meta tone so the row is not noisy. */
+.dilz-deal-freshness.is-verified {
+  color: var(--saving);
+  font-weight: 750;
+}
+
+.dilz-deal-freshness.is-possibly_expired {
+  color: var(--warning);
+  font-weight: 750;
+}
+
+.dilz-deal-freshness.is-expired {
+  color: var(--text-muted);
+  font-weight: 750;
+}
+
+.dilz-deal-availability {
+  display: grid;
+  gap: 10px;
+  margin: 18px 0;
+  padding: 14px;
+  border: 1px solid var(--border-default);
+  border-radius: var(--r-card);
+  background: var(--surface-soft);
+}
+
+.dilz-deal-availability__question {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  color: var(--text-primary);
+  font-size: 14px;
+  font-weight: 750;
+}
+
+.dilz-deal-availability__status {
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.dilz-deal-availability__actions {
+  display: flex;
+  gap: 8px;
+}
+
+.dilz-deal-availability__actions .dilz-button {
+  flex: 1;
+}
+
+.dark .dilz-deal-availability {
+  background: var(--bg-soft);
+  border-color: var(--border);
+}
