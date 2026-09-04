@@ -12,8 +12,8 @@ import { CityModal } from '../components/ui/CityModal';
 import { Button } from '../components/ui/Button';
 import { EmptyState } from '../components/ui/EmptyState';
 import { ErrorToast } from '../components/ui/ErrorToast';
-import { readDealLayoutPreference, readDealSortPreference, readSessionDealSort, writeDealLayoutPreference, writeSessionDealSort } from '../lib/userPreferences';
-import { dealViewState, resolveDealLayout, resolveDealSort, sortDealsForView } from '../lib/navigationState';
+import { readDealSortPreference, readSessionDealSort, readStoredDealLayout, writeDealLayoutPreference, writeSessionDealSort } from '../lib/userPreferences';
+import { DEFAULT_DEAL_LAYOUT, dealViewState, resolveDealLayout, resolveDealSort, sortDealsForView } from '../lib/navigationState';
 import { composeFeedWithPinnedAndAds } from '../lib/feedComposition';
 import { SEARCH_MIN_LENGTH } from '../lib/dealSearch';
 
@@ -240,7 +240,7 @@ function buildHomeUrl({
       params.set('category', categoryFilter);
     }
     params.set('sort', sortDeals);
-    if (dealLayout !== 'card') params.set('layout', dealLayout);
+    if (dealLayout !== DEFAULT_DEAL_LAYOUT) params.set('layout', dealLayout);
   }
 
   if (action) params.set('action', action);
@@ -673,7 +673,7 @@ export default function Home() {
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [sortDeals, setSortDeals] = useState('hot');
   const [myDealsOnly, setMyDealsOnly] = useState(false);
-  const [dealLayout, setDealLayout] = useState('card');
+  const [dealLayout, setDealLayout] = useState(DEFAULT_DEAL_LAYOUT);
   const [dealCollection, setDealCollection] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [showDealToolbar, setShowDealToolbar] = useState(true);
@@ -726,7 +726,7 @@ export default function Home() {
       const ll = localStorage.getItem('dilzLang');
       if (ll === 'en' || ll === 'he') setLang(ll);
       else if (ll) localStorage.setItem('dilzLang', 'en');
-      setDealLayout(readDealLayoutPreference());
+      setDealLayout(resolveDealLayout({ savedLayout: readStoredDealLayout() }));
       setAdminToken(localStorage.getItem('dilzAdminToken') || '');
       // Restore tab from back-nav
       const rt = sessionStorage.getItem('dilzReturnTab');
@@ -786,7 +786,7 @@ export default function Home() {
     const next = readHomeStateFromUrl(
       router.asPath,
       readDealSortPreference(),
-      readDealLayoutPreference(),
+      readStoredDealLayout(),
       readSessionDealSort()
     );
     syncingUrlRef.current = true;

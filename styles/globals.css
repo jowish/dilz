@@ -10242,3 +10242,101 @@ select:focus,
   line-height: 1.5;
   font-weight: 600;
 }
+
+/* Row cards: the feed's default view. Photo beside the details, the saving
+   next to the prices it relates to, and one obvious way into the deal. */
+.dilz-feed-grid.is-spotlight .dilz-deal-card.is-spotlight .dilz-deal-card__store-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding-right: 26px;
+}
+
+.dilz-feed-grid.is-spotlight .dilz-deal-card.is-spotlight .dilz-deal-card__spotlight-tools {
+  display: flex;
+  margin-inline-start: auto;
+}
+
+.dilz-deal-card__posted {
+  color: var(--text-muted);
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+/* The poster's standing, right where their name is. */
+.dilz-poster-tier {
+  display: inline-flex;
+  align-items: center;
+  margin-inline-start: 6px;
+  padding: 1px 7px;
+  border-radius: 999px;
+  border: 1px solid var(--border-default);
+  background: var(--surface-soft);
+  color: var(--text-muted);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  vertical-align: middle;
+}
+
+.dilz-poster-tier.is-silver { border-color: #9aa4b2; color: #5b6472; }
+.dilz-poster-tier.is-gold { border-color: #d9a520; color: #a1740a; background: rgba(217, 165, 32, 0.12); }
+.dilz-poster-tier.is-platinum { border-color: #6c7ae0; color: #4b57b8; background: rgba(108, 122, 224, 0.12); }
+
+.dilz-feed-grid.is-spotlight .dilz-deal-card.is-spotlight .dilz-deal-card__price-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.dilz-feed-grid.is-spotlight .dilz-deal-card.is-spotlight .dilz-deal-card__actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.dilz-deal-card__row-tools {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-inline-start: auto;
+}
+
+.dilz-deal-card__row-tools .dilz-deal-card__comment-meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.dilz-deal-card__view {
+  white-space: nowrap;
+}
+
+@media (max-width: 767px) {
+  /* At phone width the button keeps its place; the comment count is the first
+     thing to give way, since it is repeated on the deal itself. */
+  .dilz-deal-card__row-tools .dilz-deal-card__comment-meta {
+    display: none;
+  }
+
+  .dilz-deal-card__view {
+    padding-inline: 12px;
+    font-size: 13px;
+  }
+}
+
+/* The mockup marks the saving in green. This app already defines a savings
+   green (--saving: #15803D); a global rule further up forces every saving
+   badge to brand orange with !important, so this re-asserts it — scoped to the
+   row's price line, leaving every other badge, and the brand colour, alone. */
+.dilz-feed-grid.is-spotlight .dilz-deal-card.is-spotlight .dilz-deal-card__price-row .dilz-badge--saving,
+.dilz-feed-grid.is-spotlight .dilz-deal-card.is-spotlight .dilz-deal-card__price-row .dilz-badge--saving-strong {
+  background: var(--saving-soft) !important;
+  border-color: var(--saving-soft) !important;
+  color: var(--saving) !important;
+}
