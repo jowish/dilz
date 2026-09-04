@@ -19,8 +19,9 @@ const copy = {
   en: {
     title: 'Post a deal', subtitle: 'Share a real deal you found with the community.', signInSubtitle: 'Sign in to share real deals with the community.',
     authText: 'Voting, posting and saving are connected to your Dilz account.', signIn: 'Sign in to post', cancel: 'Cancel', back: 'Back', continue: 'Continue', publish: 'Publish deal',
-    uploading: 'Uploading photos', publishing: 'Publishing', steps: ['Photos', 'Details', 'Location', 'Preview'],
+    uploading: 'Uploading photos', publishing: 'Publishing', steps: ['Add', 'Review', 'Publish'],
     uploadTitle: 'Add deal photos *', uploadHelp: 'Add 1 to 3 clear photos or screenshots. JPEG, PNG or WebP up to 5 MB each.', addPhoto: 'Add photo', remove: 'Remove',
+    sourceUrlHelp: 'Optional here. Paste the deal link if you have one — it helps us spot deals already on Dilz.', reviewIntro: 'Check the details below, then publish.', publishIntro: 'This is how your deal will look.',
     dealTitle: 'Deal title', description: 'Description', price: 'Current price', oldPrice: 'Old price', optional: 'Optional', discount: 'discount', category: 'Category', startDate: 'Start date', endDate: 'End date',
     availability: 'Deal availability', storeMode: 'In-store', onlineMode: 'Online', store: 'Store name', website: 'Website or app', city: 'City', chooseCity: 'Choose city', url: 'Deal URL',
     onlineStoreHelp: 'Optional. The website can also be identified from the URL.', onlineUrlHelp: 'Required for an online-only Dilz.', storeUrlHelp: 'Optional, but recommended for trust.',
@@ -32,7 +33,8 @@ const copy = {
   he: {
     title: 'פרסום דיל', subtitle: 'שתפו דיל אמיתי שמצאתם עם הקהילה.', signInSubtitle: 'התחברו כדי לשתף דילים אמיתיים עם הקהילה.',
     authText: 'הצבעה, פרסום ושמירה מחוברים לחשבון Dilz שלכם.', signIn: 'התחברות לפרסום', cancel: 'ביטול', back: 'חזרה', continue: 'המשך', publish: 'פרסום הדיל',
-    uploading: 'מעלה תמונות', publishing: 'מפרסם', steps: ['תמונות', 'פרטים', 'מיקום', 'תצוגה מקדימה'],
+    uploading: 'מעלה תמונות', publishing: 'מפרסם', steps: ['הוספה', 'בדיקה', 'פרסום'],
+    sourceUrlHelp: 'לא חובה כאן. הדביקו את הקישור לדיל אם יש לכם — זה עוזר לזהות דילים שכבר קיימים ב-Dilz.', reviewIntro: 'בדקו את הפרטים ולאחר מכן פרסמו.', publishIntro: 'כך הדיל שלכם ייראה.',
     uploadTitle: 'הוספת תמונות לדיל *', uploadHelp: 'הוסיפו 1 עד 3 תמונות או צילומי מסך ברורים. JPEG, PNG או WebP עד 5MB לתמונה.', addPhoto: 'הוספת תמונה', remove: 'הסרה',
     dealTitle: 'כותרת הדיל', description: 'תיאור', price: 'מחיר נוכחי', oldPrice: 'מחיר קודם', optional: 'לא חובה', discount: 'הנחה', category: 'קטגוריה', startDate: 'תאריך התחלה', endDate: 'תאריך סיום',
     availability: 'זמינות הדיל', storeMode: 'בחנות', onlineMode: 'אונליין', store: 'שם החנות', website: 'אתר או אפליקציה', city: 'עיר', chooseCity: 'בחרו עיר', url: 'קישור לדיל',
@@ -64,18 +66,25 @@ function previewFile(file) {
   });
 }
 
+// Three stages (P0.4): 0 add the source, 1 review every detail, 2 publish.
+// Everything that used to be split across Details and Location is validated
+// together in Review, so a deal can be posted without stepping through four
+// screens.
+const STEP_ADD = 0;
+const STEP_REVIEW = 1;
+const STEP_PUBLISH = 2;
+const LAST_STEP = STEP_PUBLISH;
+
 function validateStep(step, form, images, text) {
   const errors = {};
-  if (step === 0 && images.length === 0) errors.images = text.errors.images;
-  if (step === 1) {
+  if (step === STEP_ADD && images.length === 0) errors.images = text.errors.images;
+  if (step === STEP_REVIEW) {
     if (!form.titre.trim()) errors.titre = text.errors.title;
     if (form.prix === '') errors.prix = text.errors.price;
     if (form.prix_original !== '' && Number(form.prix_original) < Number(form.prix)) {
       errors.prix_original = text.errors.oldPrice || 'Old price must be equal to or higher than the current price.';
     }
     if (form.date_debut && form.date_fin && form.date_fin < form.date_debut) errors.date_fin = text.errors.dates;
-  }
-  if (step === 2) {
     if (form.onlineMode === 'store') {
       if (!form.magasin.trim()) errors.magasin = text.errors.store;
       if (!form.ville && !form.adresse.trim() && !(Number.isFinite(Number(form.latitude)) && Number.isFinite(Number(form.longitude)))) errors.ville = text.errors.city;
@@ -177,14 +186,20 @@ export function PostDealModal({ user, onClose, onSuccess, cityOptions = [], lang
     if (Object.keys(errors).length) {
       setFieldErrors((current) => ({ ...current, ...errors }));
       setError(text.errors.form);
+      if (errors.url_source && Object.keys(errors).length === 1) setStep(STEP_ADD);
       return;
     }
     setError('');
     setStep((value) => value + 1);
   };
 
+  // The deal link is collected on Add (it is a source), but it only becomes
+  // required once the deal is marked online on Review — so send the author
+  // back to the field that needs them rather than showing a dead error.
+  const stepForErrors = (errors) => (errors.images || errors.url_source ? STEP_ADD : STEP_REVIEW);
+
   const validateAll = () => {
-    const errors = [0, 1, 2].reduce((all, currentStep) => ({ ...all, ...validateStep(currentStep, form, images, text) }), {});
+    const errors = [STEP_ADD, STEP_REVIEW].reduce((all, currentStep) => ({ ...all, ...validateStep(currentStep, form, images, text) }), {});
     if (!user) errors.auth = text.errors.auth;
     return errors;
   };
@@ -217,9 +232,7 @@ export function PostDealModal({ user, onClose, onSuccess, cityOptions = [], lang
     if (Object.keys(errors).length) {
       setFieldErrors(errors);
       setError(text.errors.form);
-      if (errors.images) setStep(0);
-      else if (errors.titre || errors.prix || errors.prix_original || errors.date_fin) setStep(1);
-      else setStep(2);
+      setStep(stepForErrors(errors));
       return;
     }
 
@@ -338,8 +351,8 @@ export function PostDealModal({ user, onClose, onSuccess, cityOptions = [], lang
       onClose={onClose}
       footer={(
         <>
-          <Button variant="secondary" onClick={() => step === 0 ? onClose() : setStep((value) => value - 1)}>{step === 0 ? text.cancel : text.back}</Button>
-          {step < 3 ? <Button onClick={goNext}>{text.continue}</Button> : (
+          <Button variant="secondary" onClick={() => step === STEP_ADD ? onClose() : setStep((value) => value - 1)}>{step === STEP_ADD ? text.cancel : text.back}</Button>
+          {step < LAST_STEP ? <Button onClick={goNext}>{text.continue}</Button> : (
             <Button loading={submitting} onClick={handlePublish}>{uploadPhase === 'photo' ? text.uploading : uploadPhase === 'saving' ? text.publishing : text.publish}</Button>
           )}
         </>
@@ -347,13 +360,18 @@ export function PostDealModal({ user, onClose, onSuccess, cityOptions = [], lang
     >
       <div className="dilz-post-stepper" aria-label={text.title}>
         {text.steps.map((label, index) => (
-          <div key={label} className={['dilz-post-step', step === index && 'is-active', step > index && 'is-complete'].filter(Boolean).join(' ')}>
-            <span>{index + 1}</span><strong>{label}</strong>
+          <div
+            key={label}
+            className={['dilz-post-step', step === index && 'is-active', step > index && 'is-complete'].filter(Boolean).join(' ')}
+            aria-current={step === index ? 'step' : undefined}
+          >
+            {/* The stage name carries the meaning; the marker is only progress. */}
+            <span aria-hidden="true">{step > index ? '✓' : ''}</span><strong>{label}</strong>
           </div>
         ))}
       </div>
 
-      {step === 0 && (
+      {step === STEP_ADD && (
         <div className="dilz-post-upload">
           <div className={['dilz-upload-zone', imageSlots.primary && 'has-image', fieldErrors.images && 'has-error'].filter(Boolean).join(' ')}>
             <button type="button" className="dilz-upload-zone__picker" onClick={() => fileInputRef.current?.click()}>
@@ -381,11 +399,15 @@ export function PostDealModal({ user, onClose, onSuccess, cityOptions = [], lang
             </div>
           )}
           {fieldErrors.images && <span className="dilz-field__error">{fieldErrors.images}</span>}
+          {/* The link is the other kind of source: it feeds duplicate
+              detection and, once available, the automatic extraction. */}
+          <Input label={text.url} error={fieldErrors.url_source} type="url" inputMode="url" value={form.url_source} onChange={(event) => set('url_source', event.target.value)} placeholder="https://..." helper={text.sourceUrlHelp} />
         </div>
       )}
 
-      {step === 1 && (
+      {step === STEP_REVIEW && (
         <div className="dilz-form-grid">
+          <p className="dilz-post-stage-intro">{text.reviewIntro}</p>
           <Input required label={text.dealTitle} error={fieldErrors.titre} value={form.titre} onChange={(event) => set('titre', event.target.value)} placeholder={lang === 'he' ? 'לדוגמה: Apple Watch SE ב-999 ₪' : 'e.g. Apple Watch SE from 999 ₪'} />
           <Textarea label={text.description} value={form.description} onChange={(event) => set('description', event.target.value)} placeholder={lang === 'he' ? 'מה הופך את הדיל למשתלם?' : 'What makes this deal useful?'} />
           <div className="dilz-form-grid dilz-form-grid--two dilz-price-fields">
@@ -393,20 +415,12 @@ export function PostDealModal({ user, onClose, onSuccess, cityOptions = [], lang
             <Input label={text.oldPrice} error={fieldErrors.prix_original} type="number" inputMode="decimal" min="0" step="any" value={form.prix_original} onChange={(event) => set('prix_original', event.target.value)} placeholder="1299" helper={discount ? `${discount}% ${text.discount}` : text.optional} />
           </div>
           <Select label={text.category} value={form.categorie} onChange={(event) => set('categorie', event.target.value)}>{DEAL_CATEGORIES.map((category) => <option key={category} value={category}>{getDealCategoryLabel(category, lang)}</option>)}</Select>
-          <div className="dilz-form-grid dilz-form-grid--two dilz-date-fields">
-            <Input className="dilz-date-input" label={text.startDate} type="date" value={form.date_debut} max={form.date_fin || undefined} onChange={(event) => set('date_debut', event.target.value)} />
-            <Input className="dilz-date-input" label={text.endDate} error={fieldErrors.date_fin} type="date" value={form.date_fin} min={form.date_debut || undefined} onChange={(event) => set('date_fin', event.target.value)} />
-          </div>
-        </div>
-      )}
-
-      {step === 2 && (
-        <div className="dilz-form-grid">
           <SegmentedControl ariaLabel={text.availability} value={form.onlineMode} onChange={(value) => { set('onlineMode', value); setFieldErrors({}); }} options={[{ value: 'store', label: text.storeMode }, { value: 'online', label: text.onlineMode }]} />
           <Input required={form.onlineMode === 'store'} label={form.onlineMode === 'online' ? text.website : text.store} error={fieldErrors.magasin} value={form.magasin} onChange={(event) => set('magasin', event.target.value)} placeholder={form.onlineMode === 'online' ? 'Amazon, KSP, Terminal X' : 'Bug, Terminal X, Rami Levy'} helper={form.onlineMode === 'online' ? text.onlineStoreHelp : undefined} />
           {form.onlineMode === 'store' && (
             <div className="dilz-field">
-              <span className="dilz-field__label">{text.city} / {lang === 'he' ? '×ž×™×§×•× ×ž×“×•×™×§' : 'exact location'}<span className="dilz-field__required"> *</span></span>
+              {/* This Hebrew literal had been mis-encoded and rendered as mojibake. */}
+              <span className="dilz-field__label">{text.city} / {lang === 'he' ? 'מיקום מדויק' : 'exact location'}<span className="dilz-field__required"> *</span></span>
               <CityPicker value={form.ville} cities={cityOptions} lang={lang} includeAll={false} error={fieldErrors.ville} onChange={(city, coords) => {
                 setFieldErrors((current) => ({ ...current, ville: undefined }));
                 setForm((current) => city
@@ -421,15 +435,24 @@ export function PostDealModal({ user, onClose, onSuccess, cityOptions = [], lang
               <Button variant="secondary" loading={locating} onClick={useCurrentLocation}>{lang === 'he' ? 'השתמשו במיקום הנוכחי' : 'Use current location'}</Button>
             </>
           )}
-          <Input required={form.onlineMode === 'online'} label={text.url} error={fieldErrors.url_source} type="url" value={form.url_source} onChange={(event) => set('url_source', event.target.value)} placeholder="https://..." helper={form.onlineMode === 'online' ? text.onlineUrlHelp : text.storeUrlHelp} />
+          <div className="dilz-form-grid dilz-form-grid--two dilz-date-fields">
+            <Input className="dilz-date-input" label={text.startDate} type="date" value={form.date_debut} max={form.date_fin || undefined} onChange={(event) => set('date_debut', event.target.value)} />
+            <Input className="dilz-date-input" label={text.endDate} error={fieldErrors.date_fin} type="date" value={form.date_fin} min={form.date_debut || undefined} onChange={(event) => set('date_fin', event.target.value)} />
+          </div>
+          {/* The link itself is on the Add stage; here we only say when it is
+              required, so an online deal is never published without a way in. */}
+          <p className="dilz-post-stage-note">{text.url} — {form.onlineMode === 'online' ? text.onlineUrlHelp : text.storeUrlHelp}</p>
         </div>
       )}
 
-      {step === 3 && (
+      {step === STEP_PUBLISH && (
         <div className="dilz-post-preview">
+          <p className="dilz-post-stage-intro">{text.publishIntro}</p>
           <div className="dilz-post-preview__gallery">{images.map((image) => <img key={image.id} src={image.preview} alt="" />)}</div>
           <div>
-            <span>{form.magasin || text.previewStore} · {form.onlineMode === 'online' ? text.onlineMode : form.ville ? traduireVille(form.ville, lang) : text.previewCity}</span>
+            {/* An online deal with no store name is published under the store
+                derived from its link — preview the same thing, not "Store". */}
+            <span>{form.magasin.trim() || (form.onlineMode === 'online' && form.url_source.trim() ? storeFromUrl(form.url_source) : text.previewStore)} · {form.onlineMode === 'online' ? text.onlineMode : form.ville ? traduireVille(form.ville, lang) : text.previewCity}</span>
             {form.onlineMode === 'store' && form.adresse && <small className="dilz-post-preview__address">{form.adresse}</small>}
             <h3>{form.titre || text.previewTitle}</h3><p>{form.description || text.previewDescription}</p><strong>{form.prix || '0'} ₪</strong>{form.prix_original && <del>{form.prix_original} ₪</del>}
           </div>

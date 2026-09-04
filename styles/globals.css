@@ -2164,7 +2164,7 @@ textarea:focus {
 
 .dilz-post-stepper {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 8px;
   margin-bottom: 20px;
 }
@@ -2891,8 +2891,10 @@ textarea:focus {
     grid-template-columns: 1fr;
   }
 
+  /* Three stages fit on a phone, and the names are the whole point of the
+     stepper (P0.4) — keep them visible instead of falling back to markers. */
   .dilz-post-step strong {
-    display: none;
+    font-size: 11px;
   }
 
   .dilz-post-preview {
@@ -10208,4 +10210,21 @@ select:focus,
 .dark .dilz-duplicate-card {
   background: var(--bg-card);
   border-color: var(--border);
+}
+
+/* Post flow stages (P0.4): Add -> Review -> Publish. The marker is a plain
+   progress dot; the stage name is what carries the meaning. */
+.dilz-post-step span {
+  width: 18px;
+  height: 18px;
+  font-size: 11px;
+  line-height: 1;
+}
+
+.dilz-post-stage-intro,
+.dilz-post-stage-note {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 13px;
+  line-height: 1.5;
 }
