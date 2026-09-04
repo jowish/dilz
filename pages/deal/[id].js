@@ -157,6 +157,9 @@ export default function DealPage({ initialDeal }) {
   const [blockedUserIds, setBlockedUserIds] = useState([]);
   const [availabilityCounts, setAvailabilityCounts] = useState({ available_count: 0, unavailable_count: 0 });
   const [availabilityAnswer, setAvailabilityAnswer] = useState(null);
+  // Whether this user already answered for the current local day — the
+  // question stands down until the day rolls over.
+  const [answeredToday, setAnsweredToday] = useState(false);
   const [availabilityBusy, setAvailabilityBusy] = useState(false);
   const [availabilityError, setAvailabilityError] = useState('');
   const addressPressRef = useRef({ timer: null, longPressed: false, suppressNextClick: false });
@@ -278,6 +281,7 @@ export default function DealPage({ initialDeal }) {
         unavailable_count: payload.unavailable_count || 0,
       });
       setAvailabilityAnswer(typeof payload.my_answer === 'boolean' ? payload.my_answer : null);
+      setAnsweredToday(Boolean(payload.answered_today));
     } catch {}
   };
 
@@ -285,9 +289,12 @@ export default function DealPage({ initialDeal }) {
     if (!user) { router.push(`/auth?redirect=/deal/${id}`); return; }
     setAvailabilityBusy(true);
     setAvailabilityError('');
-    // Optimistic: reflect the answer immediately, roll back if the write fails.
+    // Optimistic: switch to the thank-you immediately, roll back if the write
+    // fails so the question comes straight back.
     const previousAnswer = availabilityAnswer;
+    const previousAnsweredToday = answeredToday;
     setAvailabilityAnswer(available);
+    setAnsweredToday(true);
     try {
       const { data } = await supabase.auth.getSession();
       if (!data.session) { router.push(`/auth?redirect=/deal/${id}`); return; }
@@ -299,6 +306,7 @@ export default function DealPage({ initialDeal }) {
       const payload = await response.json().catch(() => ({}));
       if (!response.ok) {
         setAvailabilityAnswer(previousAnswer);
+        setAnsweredToday(previousAnsweredToday);
         setAvailabilityError(payload.erreur || (lang === 'he' ? 'לא ניתן היה לשמור' : 'Could not save that'));
         return;
       }
@@ -307,6 +315,7 @@ export default function DealPage({ initialDeal }) {
       await loadAvailability(id);
     } catch {
       setAvailabilityAnswer(previousAnswer);
+      setAnsweredToday(previousAnsweredToday);
       setAvailabilityError(lang === 'he' ? 'שגיאת רשת' : 'Network error');
     } finally {
       setAvailabilityBusy(false);
@@ -821,33 +830,57 @@ export default function DealPage({ initialDeal }) {
             {/* Still available? — community freshness signal (P0.2). A single
                 "No" never expires a deal; repeated ones mark it as possibly
                 expired, and a later "Yes" clears that. */}
-            <div className="dilz-deal-availability">
-              <p className="dilz-deal-availability__question">
-                {lang === 'he' ? 'עדיין זמין?' : 'Still available?'}
-                <span className="dilz-deal-availability__status">{lifecycleLabel(deal, { lang })}</span>
-              </p>
-              <div className="dilz-deal-availability__actions">
-                <button
-                  type="button"
-                  className={['dilz-button', 'dilz-button--sm', availabilityAnswer === true ? 'dilz-button--success' : 'dilz-button--secondary'].join(' ')}
-                  onClick={() => submitAvailability(true)}
-                  disabled={availabilityBusy}
-                  aria-pressed={availabilityAnswer === true}
-                >
-                  {lang === 'he' ? 'כן' : 'Yes'}
-                  {availabilityCounts.available_count > 0 && ` · ${availabilityCounts.available_count}`}
-                </button>
-                <button
-                  type="button"
-                  className={['dilz-button', 'dilz-button--sm', availabilityAnswer === false ? 'dilz-button--danger' : 'dilz-button--secondary'].join(' ')}
-                  onClick={() => submitAvailability(false)}
-                  disabled={availabilityBusy}
-                  aria-pressed={availabilityAnswer === false}
-                >
-                  {lang === 'he' ? 'לא' : 'No'}
-                  {availabilityCounts.unavailable_count > 0 && ` · ${availabilityCounts.unavailable_count}`}
-                </button>
-              </div>
+            <div className={['dilz-deal-availability', answeredToday && 'is-answered', answeredToday && (availabilityAnswer ? 'is-answered-yes' : 'is-answered-no')].filter(Boolean).join(' ')}>
+              {answeredToday ? (
+                /* Answered for today: thank them and stand down. The question
+                   returns by itself once the local day rolls over. */
+                <div className="dilz-deal-availability__thanks" role="status">
+                  <span className="dilz-deal-availability__thanks-icon" aria-hidden="true">
+                    {availabilityAnswer ? (
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="m20 6-11 11-5-5" /></svg>
+                    ) : (
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 8v5" /><path d="M12 16h.01" /><circle cx="12" cy="12" r="9" /></svg>
+                    )}
+                  </span>
+                  <span className="dilz-deal-availability__thanks-text">
+                    <strong>
+                      {availabilityAnswer
+                        ? (lang === 'he' ? 'תודה שאימתת שהדיל עדיין זמין' : 'Thanks for confirming this deal is still available')
+                        : (lang === 'he' ? 'תודה שעדכנת שהדיל כבר לא זמין' : 'Thanks for letting us know this deal is gone')}
+                    </strong>
+                    <small>
+                      {lang === 'he' ? 'נשאל אותך שוב מחר' : "We'll ask you again tomorrow"}
+                    </small>
+                  </span>
+                </div>
+              ) : (
+                <>
+                  <p className="dilz-deal-availability__question">
+                    {lang === 'he' ? 'עדיין זמין?' : 'Still available?'}
+                    <span className="dilz-deal-availability__status">{lifecycleLabel(deal, { lang })}</span>
+                  </p>
+                  <div className="dilz-deal-availability__actions">
+                    <button
+                      type="button"
+                      className="dilz-button dilz-button--sm dilz-button--secondary"
+                      onClick={() => submitAvailability(true)}
+                      disabled={availabilityBusy}
+                    >
+                      {lang === 'he' ? 'כן' : 'Yes'}
+                      {availabilityCounts.available_count > 0 && ` · ${availabilityCounts.available_count}`}
+                    </button>
+                    <button
+                      type="button"
+                      className="dilz-button dilz-button--sm dilz-button--secondary"
+                      onClick={() => submitAvailability(false)}
+                      disabled={availabilityBusy}
+                    >
+                      {lang === 'he' ? 'לא' : 'No'}
+                      {availabilityCounts.unavailable_count > 0 && ` · ${availabilityCounts.unavailable_count}`}
+                    </button>
+                  </div>
+                </>
+              )}
               {availabilityError && <p className="dilz-field__error">{availabilityError}</p>}
             </div>
 
