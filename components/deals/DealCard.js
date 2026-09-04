@@ -7,15 +7,17 @@ import { VoteEmoji } from '../ui/VoteEmoji';
 import { copyText } from '../../lib/copyText';
 import { SafetyActions } from '../ui/SafetyActions';
 import { ShareMenu } from '../ui/ShareMenu';
-import { getDiscount, formatPrice, timeRemaining, timeAgo } from '../../lib/dealCard.js';
+import { timeRemaining, timeAgo } from '../../lib/dealCard.js';
 import { optimizedImageUrl } from '../../lib/imageUrl';
-
-function isExpiredDeal(dateFin) {
-  const match = String(dateFin || '').match(/^(\d{4}-\d{2}-\d{2})(?:$|[T\s])/);
-  if (!match) return false;
-  const today = new Date().toISOString().slice(0, 10);
-  return match[1] < today;
-}
+import {
+  availabilityLabel,
+  formatDealPrice,
+  formatOriginalPrice,
+  getDealDiscount,
+  isExpiredDeal,
+  isFreeDeal,
+  locationLabel,
+} from '../../lib/dealPresentation';
 
 export function DealCard({
   deal,
@@ -44,19 +46,22 @@ export function DealCard({
   const isAd = Boolean(deal.is_ad);
   const images = [...new Set([...(Array.isArray(deal.image_urls) ? deal.image_urls : []), deal.image_url].filter(Boolean))].slice(0, 3);
   const primaryImage = images[0] || null;
-  const discount = getDiscount(deal);
+  const discount = getDealDiscount(deal);
   const ending = timeRemaining(deal.date_fin, lang);
   const isOwner = user && user.id === deal.auteur_id;
-  const isExpired = isExpiredDeal(deal.date_fin);
-  const isOnline = deal.ville === 'Online' || deal.categorie === 'Online' || /online/i.test(String(deal.ville || ''));
+  const isExpired = isExpiredDeal(deal);
+  const isFree = isFreeDeal(deal);
   const isStorePromo = deal.auteur_nom === 'DilzCurator' || deal.auteur_nom === 'DilzBot';
   const trust = isStorePromo ? text.storePromo : text.community;
   const authorName = deal.auteur_nom || (isOwner ? text.you : text.member);
   const commentCount = isAd ? 0 : Number(deal.commentaires?.[0]?.count || deal.comments_count || 0);
   const hideShareInRow = layout === 'list' || layout === 'spotlight';
-  const city = deal.ville && !isOnline
-    ? (translateCity ? translateCity(deal.ville, lang === 'he' ? 'he' : 'en') : deal.ville)
-    : text.online;
+  // null for online deals — the availability slot already says "Online", and
+  // printing it here as well is what produced "Online · Online".
+  const city = locationLabel(deal, { translateCity, lang });
+  const availability = availabilityLabel(deal, lang);
+  const priceLabel = formatDealPrice(deal, lang);
+  const originalPriceLabel = formatOriginalPrice(deal);
 
   const go = () => {
     try {
@@ -182,7 +187,7 @@ export function DealCard({
         )}
         <div className="dilz-deal-card__store-row">
           <strong>{deal.magasin}</strong>
-          <span>{city}</span>
+          {city && <span>{city}</span>}
         </div>
         {layout === 'spotlight' && (discount !== null || onSave) && (
           <div className="dilz-deal-card__spotlight-tools">
@@ -203,8 +208,10 @@ export function DealCard({
           <p className="dilz-deal-card__description">{deal.description}</p>
         )}
         <div className="dilz-deal-card__price-row">
-          <strong>{formatPrice(deal.prix)} ₪</strong>
-          {deal.prix_original && <span>{formatPrice(deal.prix_original)} ₪</span>}
+          {/* FREE rather than "0 ₪"; the struck-through original only renders
+              when it is a real price genuinely higher than the current one. */}
+          <strong className={isFree ? 'is-free' : undefined}>{priceLabel}</strong>
+          {originalPriceLabel && <span>{originalPriceLabel}</span>}
           {commentCount > 0 && (
             <span className="dilz-deal-card__price-context">
               <span><CommentIcon /> {commentCount}</span>
@@ -213,7 +220,7 @@ export function DealCard({
         </div>
         <div className="dilz-deal-card__meta">
           <span>{ending || timeAgo(deal.created_at, lang)}</span>
-          <span>{isOnline ? text.online : text.inStore}</span>
+          <span>{availability}</span>
           {commentCount > 0 && (
             <span className="dilz-deal-card__comment-meta">
               <CommentIcon /> {commentCount}

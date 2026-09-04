@@ -10,6 +10,7 @@ import { readDealSortPreference, writeDealSortPreference } from '../lib/userPref
 import { profileBackFallback, profileViewVisibility } from '../lib/profileNavigation';
 import { uploadAvatarImage, validateImageFile } from '../lib/uploadImage';
 import { normalizeTheme, THEME_VALUES } from '../lib/themePreference';
+import { formatDealPrice, getDealDiscount, isExpiredDeal } from '../lib/dealPresentation';
 
 const PROFILE_TEXT = {
   en: { profile: 'Profile', back: 'Back', signOut: 'Sign out', posted: 'Deals posted', received: 'Hot votes received', settings: 'Account settings', settingsHelp: 'Choose how Dilz should look when you return.', language: 'Language', theme: 'Appearance', light: 'Light', dark: 'Dark', system: 'System', feedOrder: 'Default feed order', english: 'English', hebrew: 'Hebrew', hot: 'Hottest first', latest: 'Newest first', comments: 'Most commented', saved: 'Preference saved', mine: 'My deals', loading: 'Loading...', empty: 'No deals yet', emptyText: 'Share a deal you spotted!', post: 'Post a deal', now: 'Just now', hour: 'h ago', day: 'd ago', legal: 'Legal and privacy', privacy: 'Privacy Policy', terms: 'Terms of Use', danger: 'Delete account', dangerHelp: 'Permanently delete your account and private data. Your public contributions will be anonymized.', delete: 'Delete my account', confirmTitle: 'This action cannot be undone', confirmHelp: 'Type DELETE to permanently delete your Dilz account.', confirmWord: 'DELETE', cancel: 'Cancel', deleting: 'Deleting...', deleteError: 'Account deletion failed. Please try again or contact support.' },
@@ -347,11 +348,13 @@ export default function Profil() {
           ) : (
             <div className="dilz-profil-deals">
               {deals.map((deal) => {
-                const reduction = deal.prix_original
-                  ? Math.round((deal.prix_original - deal.prix) / deal.prix_original * 100)
-                  : null;
+                // Shared with the feed card: a discount only renders when both
+                // prices are valid and the original is genuinely higher, and a
+                // free deal reads FREE instead of "₪0".
+                const reduction = getDealDiscount(deal);
+                const expired = isExpiredDeal(deal);
                 return (
-                  <Link key={deal.id} href={`/deal/${deal.id}`} className="dilz-profil-deal-row">
+                  <Link key={deal.id} href={`/deal/${deal.id}`} className={['dilz-profil-deal-row', expired && 'is-expired'].filter(Boolean).join(' ')}>
                     <div className="dilz-profil-deal-row__thumb">
                       {deal.image_url ? (
                         <img src={deal.image_url} alt={deal.titre} />
@@ -362,8 +365,9 @@ export default function Profil() {
                     <div className="dilz-profil-deal-row__body">
                       <p className="dilz-profil-deal-row__title">{deal.titre}</p>
                       <div className="dilz-profil-deal-row__meta">
-                        <strong>&#8362;{deal.prix}</strong>
-                        {reduction && <span className="dilz-badge dilz-badge--saving">-{reduction}%</span>}
+                        <strong>{formatDealPrice(deal, lang)}</strong>
+                        {reduction !== null && <span className="dilz-badge dilz-badge--saving">-{reduction}%</span>}
+                        {expired && <span className="dilz-badge dilz-badge--neutral">{lang === 'he' ? 'פג תוקף' : 'Expired'}</span>}
                         <span>{timeAgo(deal.created_at, text)}</span>
                       </div>
                     </div>

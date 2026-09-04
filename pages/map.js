@@ -3,6 +3,7 @@ import Head from 'next/head';
 import { useRouter } from 'next/router';
 import { traduireVille } from '../lib/translations';
 import { useAppLanguage } from '../lib/useAppLanguage';
+import { formatDealPrice } from '../lib/dealPresentation';
 import { VoteEmoji } from '../components/ui/VoteEmoji';
 import {
   buildMapUrl,
@@ -65,14 +66,6 @@ const CITY_COORDS = {
   'אור יהודה': { lat: 32.0267, lon: 34.8569 },
   'קריית אונו': { lat: 32.0639, lon: 34.8556 },
 };
-
-function formatPrice(value) {
-  const n = Number(value);
-  if (!Number.isFinite(n)) return '';
-  return n % 1 === 0
-    ? n.toLocaleString('en-US')
-    : n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-}
 
 function getCommentCount(deal) {
   return Number(deal.commentaires?.[0]?.count || deal.comments_count || 0);
@@ -211,7 +204,7 @@ export default function MapPage() {
       const coords = getMapDealCoordinates(deal, CITY_COORDS);
       const icon = L.divIcon({
         className: '',
-        html: `<div class="dilz-map-marker dilz-map-marker--exact"><strong>${formatPrice(deal.prix)} ₪</strong></div>`,
+        html: `<div class="dilz-map-marker dilz-map-marker--exact"><strong>${formatDealPrice(deal, lang)}</strong></div>`,
         iconSize: [64, 34],
         iconAnchor: [32, 17],
       });
@@ -327,7 +320,7 @@ export default function MapPage() {
                     <strong>{deal.titre}</strong>
                     <span>{[deal.magasin, deal.auteur_nom].filter(Boolean).join(' · ')}</span>
                     <span className="dilz-map-deal__stats">
-                      <b>{formatPrice(deal.prix)} ₪</b>
+                      <b>{formatDealPrice(deal, lang)}</b>
                       <span><VoteEmoji type="chaud" /> {deal.votes_chaud || 0}</span>
                       <span><VoteEmoji type="froid" /> {deal.votes_froid || 0}</span>
                       <span>{getCommentCount(deal)} {text.comments}</span>
