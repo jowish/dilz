@@ -10228,3 +10228,17 @@ select:focus,
   font-size: 13px;
   line-height: 1.5;
 }
+
+/* Automatic extraction result (P0.5): a quiet confirmation, not a banner
+   that competes with the form it is describing. */
+.dilz-post-extracted {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: var(--surface-soft);
+  border: 1px solid var(--border-default);
+  color: var(--text-primary);
+  font-size: 13px;
+  line-height: 1.5;
+  font-weight: 600;
+}
