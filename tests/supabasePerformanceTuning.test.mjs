@@ -3,7 +3,12 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 
-const read = (...parts) => readFile(path.join(process.cwd(), ...parts), 'utf8');
+// Normalised to LF: git checks these files out with CRLF on Windows, and the
+// patterns below span line breaks.
+const read = async (...parts) => {
+  const text = await readFile(path.join(process.cwd(), ...parts), 'utf8');
+  return text.split('\r\n').join('\n');
+};
 const [sql, dealsApi] = await Promise.all([
   read('supabase-performance-tuning-setup.sql'),
   read('pages', 'api', 'bons-plans.js'),
