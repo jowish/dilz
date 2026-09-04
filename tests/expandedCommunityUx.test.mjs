@@ -243,7 +243,10 @@ test('compact and spotlight views remain bounded while global zoom and horizonta
   assert.match(dealCard, /dilz-deal-card__ending-badge/);
   // Expiry now comes from the shared lib/dealPresentation helper, which takes
   // the whole deal (price and expiry are independent) rather than just date_fin.
-  assert.match(dealCard, /isExpiredDeal\(deal\)/);
+  // Expiry is now one outcome of the deal lifecycle (end date OR an explicit
+  // admin call), not a date check on its own.
+  assert.match(dealCard, /lifecycleState === EXPIRED/);
+  assert.match(dealCard, /deriveLifecycle\(deal\)/);
   assert.match(dealCard, /isExpired && 'is-expired'/);
   assert.match(dealCard, /dilz-deal-card__expired-stamp">Expired/);
   assert.match(dealCard, /dilz-deal-card__spotlight-tools/);
