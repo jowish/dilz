@@ -55,3 +55,10 @@ test('the post page does not stack a second header above the posting surface', (
   assert.doesNotMatch(postPage, /dilz-alerts-route__header/);
   assert.doesNotMatch(postPage, /Wordmark/);
 });
+
+test('every stage starts at its own top, not where the previous one ended', () => {
+  // Tapping Continue from the bottom of a long stage used to drop the poster
+  // into the middle of the next one.
+  assert.match(modal, /useEffect\(\(\) => \{[\s\S]*?window\.scrollTo\(0, 0\);[\s\S]*?\}, \[step\]\)/);
+  assert.match(modal, /document\.querySelector\('\.dilz-post-page__body, \.dilz-modal__body'\)/);
+});

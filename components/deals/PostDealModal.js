@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { supabase } from '../../lib/supabase';
 import { uploadDealImage, validateImageFile, deleteDealImage } from '../../lib/uploadImage';
@@ -123,6 +123,18 @@ export function PostDealModal({ user, onClose, onSuccess, cityOptions = [], lang
   const lastExtractedSource = useRef('');
   const discount = useMemo(() => computeDiscount(form), [form]);
   const imageSlots = useMemo(() => dealImageSlots(images, MAX_IMAGES), [images]);
+
+  // Each stage is a new screen, so it starts at its own beginning. Without
+  // this, tapping Continue from the bottom of a long stage drops you into the
+  // middle of the next one — the Review stage appeared already scrolled past
+  // its own first field.
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    window.scrollTo(0, 0);
+    // Whichever surface is in use — the page or the modal — owns the scroll.
+    const scroller = document.querySelector('.dilz-post-page__body, .dilz-modal__body');
+    if (scroller) scroller.scrollTop = 0;
+  }, [step]);
 
   const set = (key, value) => {
     setError('');
