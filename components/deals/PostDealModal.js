@@ -10,9 +10,10 @@ import { DuplicateDealPrompt } from './DuplicateDealPrompt';
 import { SegmentedControl } from '../ui/SegmentedControl';
 import { CityPicker } from '../ui/CityPicker';
 import { getDevicePosition, triggerSuccessHaptic } from '../../lib/nativeApp';
-import { clearDealCity, dealImageSlots } from '../../lib/postDealForm';
+import { clearDealCity, dealImageSlots, screenshotDataUrl } from '../../lib/postDealForm';
 
 const { DEAL_CATEGORIES, getDealCategoryLabel } = require('../../lib/dealCategories');
+const { applyExtraction } = require('../../lib/dealExtraction');
 const MAX_IMAGES = 3;
 
 const copy = {
@@ -21,7 +22,8 @@ const copy = {
     authText: 'Voting, posting and saving are connected to your Dilz account.', signIn: 'Sign in to post', cancel: 'Cancel', back: 'Back', continue: 'Continue', publish: 'Publish deal',
     uploading: 'Uploading photos', publishing: 'Publishing', steps: ['Add', 'Review', 'Publish'],
     uploadTitle: 'Add deal photos *', uploadHelp: 'Add 1 to 3 clear photos or screenshots. JPEG, PNG or WebP up to 5 MB each.', addPhoto: 'Add photo', remove: 'Remove',
-    sourceUrlHelp: 'Optional here. Paste the deal link if you have one — it helps us spot deals already on Dilz.', reviewIntro: 'Check the details below, then publish.', publishIntro: 'This is how your deal will look.',
+    sourceUrlHelp: 'Optional here. Paste the deal link if you have one — we can read the details from it.', reviewIntro: 'Check the details below, then publish.', publishIntro: 'This is how your deal will look.',
+    reading: 'Reading the deal details', extracted: 'We found the deal details for you. Check them before publishing.', extractedNone: 'We could not read the details automatically — fill them in below.', extractedPrice: 'The price was in another currency, so we left it for you to enter.',
     dealTitle: 'Deal title', description: 'Description', price: 'Current price', oldPrice: 'Old price', optional: 'Optional', discount: 'discount', category: 'Category', startDate: 'Start date', endDate: 'End date',
     availability: 'Deal availability', storeMode: 'In-store', onlineMode: 'Online', store: 'Store name', website: 'Website or app', city: 'City', chooseCity: 'Choose city', url: 'Deal URL',
     onlineStoreHelp: 'Optional. The website can also be identified from the URL.', onlineUrlHelp: 'Required for an online-only Dilz.', storeUrlHelp: 'Optional, but recommended for trust.',
@@ -34,7 +36,8 @@ const copy = {
     title: 'פרסום דיל', subtitle: 'שתפו דיל אמיתי שמצאתם עם הקהילה.', signInSubtitle: 'התחברו כדי לשתף דילים אמיתיים עם הקהילה.',
     authText: 'הצבעה, פרסום ושמירה מחוברים לחשבון Dilz שלכם.', signIn: 'התחברות לפרסום', cancel: 'ביטול', back: 'חזרה', continue: 'המשך', publish: 'פרסום הדיל',
     uploading: 'מעלה תמונות', publishing: 'מפרסם', steps: ['הוספה', 'בדיקה', 'פרסום'],
-    sourceUrlHelp: 'לא חובה כאן. הדביקו את הקישור לדיל אם יש לכם — זה עוזר לזהות דילים שכבר קיימים ב-Dilz.', reviewIntro: 'בדקו את הפרטים ולאחר מכן פרסמו.', publishIntro: 'כך הדיל שלכם ייראה.',
+    sourceUrlHelp: 'לא חובה כאן. הדביקו את הקישור לדיל אם יש לכם — נוכל לקרוא ממנו את הפרטים.', reviewIntro: 'בדקו את הפרטים ולאחר מכן פרסמו.', publishIntro: 'כך הדיל שלכם ייראה.',
+    reading: 'קוראים את פרטי הדיל', extracted: 'מצאנו עבורכם את פרטי הדיל. בדקו אותם לפני הפרסום.', extractedNone: 'לא הצלחנו לקרוא את הפרטים אוטומטית — מלאו אותם למטה.', extractedPrice: 'המחיר הופיע במטבע אחר, ולכן השארנו אותו לכם למילוי.',
     uploadTitle: 'הוספת תמונות לדיל *', uploadHelp: 'הוסיפו 1 עד 3 תמונות או צילומי מסך ברורים. JPEG, PNG או WebP עד 5MB לתמונה.', addPhoto: 'הוספת תמונה', remove: 'הסרה',
     dealTitle: 'כותרת הדיל', description: 'תיאור', price: 'מחיר נוכחי', oldPrice: 'מחיר קודם', optional: 'לא חובה', discount: 'הנחה', category: 'קטגוריה', startDate: 'תאריך התחלה', endDate: 'תאריך סיום',
     availability: 'זמינות הדיל', storeMode: 'בחנות', onlineMode: 'אונליין', store: 'שם החנות', website: 'אתר או אפליקציה', city: 'עיר', chooseCity: 'בחרו עיר', url: 'קישור לדיל',
@@ -110,6 +113,14 @@ export function PostDealModal({ user, onClose, onSuccess, cityOptions = [], lang
   const [error, setError] = useState('');
   const [uploadPhase, setUploadPhase] = useState(null);
   const [locating, setLocating] = useState(false);
+  // Automatic extraction (P0.5): what it filled, what it could not read, and
+  // the source it last ran on — so leaving and re-entering Review does not
+  // re-run it, but changing the photo or the link does.
+  const [extracting, setExtracting] = useState(false);
+  const [extractionFilled, setExtractionFilled] = useState([]);
+  const [extractionWarnings, setExtractionWarnings] = useState([]);
+  const [extractionRan, setExtractionRan] = useState(false);
+  const lastExtractedSource = useRef('');
   const discount = useMemo(() => computeDiscount(form), [form]);
   const imageSlots = useMemo(() => dealImageSlots(images, MAX_IMAGES), [images]);
 
@@ -181,7 +192,49 @@ export function PostDealModal({ user, onClose, onSuccess, cityOptions = [], lang
     }
   };
 
-  const goNext = () => {
+  // Reads the link and the screenshot, and fills in what the poster has not
+  // typed yet. It never overwrites their input, and a failure is silent by
+  // design: they can always fill the form in themselves.
+  const runExtraction = async () => {
+    const sourceUrl = form.url_source.trim();
+    const photo = images[0] || null;
+    if (!sourceUrl && !photo) return;
+
+    const signature = `${sourceUrl}|${photo ? photo.id : ''}`;
+    if (signature === lastExtractedSource.current) return;
+
+    setExtracting(true);
+    try {
+      const { data } = await supabase.auth.getSession();
+      if (!data.session) return;
+
+      const image = photo ? await screenshotDataUrl(photo.file).catch(() => null) : null;
+      const response = await fetch('/api/deal-extract', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${data.session.access_token}` },
+        body: JSON.stringify({ url: sourceUrl || undefined, image: image || undefined }),
+      });
+      if (!response.ok) return;
+      const payload = await response.json();
+
+      // Applied against the form as it stands now rather than inside a state
+      // updater, so `filled` is known here and the message matches what the
+      // poster is about to see.
+      const { form: next, filled } = applyExtraction(form, payload.fields || {});
+      setForm(next);
+      setExtractionFilled(filled);
+      setExtractionWarnings(Array.isArray(payload.warnings) ? payload.warnings : []);
+      lastExtractedSource.current = signature;
+      setExtractionRan(true);
+    } catch {
+      // Extraction is a convenience; a failure must not interrupt posting.
+      setExtractionWarnings([]);
+    } finally {
+      setExtracting(false);
+    }
+  };
+
+  const goNext = async () => {
     const errors = validateStep(step, form, images, text);
     if (Object.keys(errors).length) {
       setFieldErrors((current) => ({ ...current, ...errors }));
@@ -190,6 +243,9 @@ export function PostDealModal({ user, onClose, onSuccess, cityOptions = [], lang
       return;
     }
     setError('');
+    // Leaving Add is the moment we have a source and the poster is waiting on
+    // Review anyway, so that is where extraction runs.
+    if (step === STEP_ADD) await runExtraction();
     setStep((value) => value + 1);
   };
 
@@ -352,7 +408,9 @@ export function PostDealModal({ user, onClose, onSuccess, cityOptions = [], lang
       footer={(
         <>
           <Button variant="secondary" onClick={() => step === STEP_ADD ? onClose() : setStep((value) => value - 1)}>{step === STEP_ADD ? text.cancel : text.back}</Button>
-          {step < LAST_STEP ? <Button onClick={goNext}>{text.continue}</Button> : (
+          {step < LAST_STEP ? (
+            <Button loading={extracting} onClick={goNext}>{extracting ? text.reading : text.continue}</Button>
+          ) : (
             <Button loading={submitting} onClick={handlePublish}>{uploadPhase === 'photo' ? text.uploading : uploadPhase === 'saving' ? text.publishing : text.publish}</Button>
           )}
         </>
@@ -407,6 +465,16 @@ export function PostDealModal({ user, onClose, onSuccess, cityOptions = [], lang
 
       {step === STEP_REVIEW && (
         <div className="dilz-form-grid">
+          {/* What extraction did, in the poster's own terms. Silent when there
+              was no source to read. */}
+          {extractionRan && (extractionFilled.length ? (
+            <p className="dilz-post-extracted" role="status">{text.extracted}</p>
+          ) : (
+            <p className="dilz-post-stage-note" role="status">{text.extractedNone}</p>
+          ))}
+          {extractionWarnings.includes('price_currency') && (
+            <p className="dilz-post-stage-note">{text.extractedPrice}</p>
+          )}
           <p className="dilz-post-stage-intro">{text.reviewIntro}</p>
           <Input required label={text.dealTitle} error={fieldErrors.titre} value={form.titre} onChange={(event) => set('titre', event.target.value)} placeholder={lang === 'he' ? 'לדוגמה: Apple Watch SE ב-999 ₪' : 'e.g. Apple Watch SE from 999 ₪'} />
           <Textarea label={text.description} value={form.description} onChange={(event) => set('description', event.target.value)} placeholder={lang === 'he' ? 'מה הופך את הדיל למשתלם?' : 'What makes this deal useful?'} />
