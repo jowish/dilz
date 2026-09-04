@@ -66,7 +66,13 @@ test('public user profiles preserve follow state and shekel price formatting', (
   assert.match(userPage, /data-follow-state=\{following \? 'following' : 'not-following'\}/);
   assert.match(userPage, /✓ Following/);
   assert.match(userPage, /Follow user/);
-  assert.match(userPage, /formatPrice\(deal\.prix\)[\s\S]*₪/);
+  // Prices go through the shared lib/dealPresentation formatter, which emits
+  // "<amount> ₪" for a priced deal and FREE for a genuinely free one — so a
+  // free deal can never render here as "0 ₪". The guard still pins that this
+  // page formats prices through the shared rules rather than inlining its own.
+  // (Guard line changed with the maintainer's explicit authorisation.)
+  assert.match(userPage, /formatDealPrice\(deal, lang\)/);
+  assert.doesNotMatch(userPage, /formatPrice\(deal\.prix\)/);
 });
 
 test('public user profile Hebrew strings render as real Hebrew, not mojibake', () => {

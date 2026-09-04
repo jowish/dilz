@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react';
 import { VoteEmoji } from '../../components/ui/VoteEmoji';
 import { supabase } from '../../lib/supabase';
 import { useAppLanguage } from '../../lib/useAppLanguage';
-import { formatPrice } from '../../lib/dealCard.js';
+import { formatDealPrice } from '../../lib/dealPresentation';
 import { Wordmark } from '../../components/ui/Brand';
 import { TIER_LABELS } from '../../lib/points';
 
@@ -85,7 +85,7 @@ export default function PublicUserPage() {
           <div className="dilz-stat-card"><strong><VoteEmoji type="froid" /> {profile.cold_votes || 0}</strong><span>Cold votes</span></div>
           <div className="dilz-stat-card"><strong>{profile.last_posted_at ? new Date(profile.last_posted_at).toLocaleDateString(lang === 'he' ? 'he-IL' : 'en-GB') : '-'}</strong><span>Last post</span></div>
         </div>
-        <section className="dilz-public-profile__deals"><h2>{lang === 'he' ? 'דילים שפורסמו' : 'Published deals'}</h2>{deals.map((deal) => <Link href={`/deal/${deal.id}`} key={deal.id}><img src={deal.image_url || '/icon-192.png'} alt=""/><span><strong>{deal.titre}</strong><small>{formatPrice(deal.prix)} ₪</small></span></Link>)}</section>
+        <section className="dilz-public-profile__deals"><h2>{lang === 'he' ? 'דילים שפורסמו' : 'Published deals'}</h2>{deals.map((deal) => <Link href={`/deal/${deal.id}`} key={deal.id}><img src={deal.image_url || '/icon-192.png'} alt=""/><span><strong>{deal.titre}</strong><small>{formatDealPrice(deal, lang)}</small></span></Link>)}</section>
       </main>
     </div>
   );

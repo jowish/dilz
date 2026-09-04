@@ -153,7 +153,8 @@ test('public profiles expose membership stats, deals and follow controls', () =>
   assert.match(profilePage, /profile\.followers_count/);
   assert.match(profilePage, /toggleFollow/);
   assert.match(profilePage, /profile\.deals_count/);
-  assert.match(profilePage, /formatPrice\(deal\.prix\)[\s\S]*₪/);
+  // Shared price formatting — "<amount> ₪" when priced, FREE when free.
+  assert.match(profilePage, /formatDealPrice\(deal, lang\)/);
   assert.match(profilePage, /aria-pressed=\{following\}/);
   assert.match(profilePage, /data-follow-state=\{following \? 'following' : 'not-following'\}/);
   assert.match(profilePage, /✓ Following/);
