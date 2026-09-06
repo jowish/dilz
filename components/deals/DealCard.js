@@ -7,7 +7,7 @@ import { VoteEmoji } from '../ui/VoteEmoji';
 import { copyText } from '../../lib/copyText';
 import { SafetyActions } from '../ui/SafetyActions';
 import { ShareMenu } from '../ui/ShareMenu';
-import { timeRemaining, timeAgo } from '../../lib/dealCard.js';
+import { timeRemaining, timeAgo, timeAgoLong } from '../../lib/dealCard.js';
 import { optimizedImageUrl } from '../../lib/imageUrl';
 import {
   availabilityLabel,
@@ -60,7 +60,7 @@ export function DealCard({
   // others: when it was posted, who posted it and how established they are,
   // the discount beside the price, and a direct way in.
   const isRow = layout === 'spotlight';
-  const postedAgo = deal.created_at ? timeAgo(deal.created_at, lang) : null;
+  const postedAgo = deal.created_at ? timeAgoLong(deal.created_at, lang) : null;
   // null for online deals — the availability slot already says "Online", and
   // printing it here as well is what produced "Online · Online".
   const city = locationLabel(deal, { translateCity, lang });
@@ -94,6 +94,26 @@ export function DealCard({
     try { sessionStorage.setItem('dilzEditDealOnOpen', String(deal.id)); } catch {}
     router.push(`/deal/${deal.id}`);
   };
+  const authorLine = !isAd ? (
+    <p className="dilz-deal-card__author">
+      {text.shared}{' '}
+      {deal.auteur_id ? (
+        <button type="button" onClick={(event) => { event.preventDefault(); event.stopPropagation(); router.push(`/user/${deal.auteur_id}`); }}>{authorName}</button>
+      ) : <strong>{authorName}</strong>}
+      {/* The poster's contribution tier (lib/points.js), so it is clear at a
+          glance whether a regular contributor posted this. */}
+      {deal.auteur_tier && (
+        <span
+          className={`dilz-poster-tier is-${deal.auteur_tier}`}
+          title={TIER_LABELS[deal.auteur_tier]?.[lang === 'he' ? 'he' : 'en']}
+        >
+          {TIER_LABELS[deal.auteur_tier]?.[lang === 'he' ? 'he' : 'en']}
+        </span>
+      )}
+      {isRow && postedAgo && <span className="dilz-deal-card__posted"> {postedAgo}</span>}
+    </p>
+  ) : null;
+
   const renderSaveButton = () => (onSave && !isAd) ? (
     <IconButton
       aria-label={isSaved ? text.unsave : text.save}
@@ -207,31 +227,18 @@ export function DealCard({
         <div className="dilz-deal-card__store-row">
           <strong>{deal.magasin}</strong>
           {city && <span>{city}</span>}
-          {isRow && postedAgo && (
+          {/* Whether you can walk in or have to click through is the first
+              thing worth knowing, so the row says it up here. */}
+          {isRow && availability && (
             <div className="dilz-deal-card__spotlight-tools">
-              <span className="dilz-deal-card__posted">{postedAgo}</span>
+              <span className="dilz-deal-card__channel">{availability}</span>
             </div>
           )}
         </div>
         <h3>{deal.titre}</h3>
-        {!isAd && (
-          <p className="dilz-deal-card__author">
-            {text.shared}{' '}
-            {deal.auteur_id ? (
-              <button type="button" onClick={(event) => { event.preventDefault(); event.stopPropagation(); router.push(`/user/${deal.auteur_id}`); }}>{authorName}</button>
-            ) : <strong>{authorName}</strong>}
-            {/* The poster's contribution tier (lib/points.js), so it is clear
-                at a glance whether a regular contributor posted this. */}
-            {deal.auteur_tier && (
-              <span
-                className={`dilz-poster-tier is-${deal.auteur_tier}`}
-                title={TIER_LABELS[deal.auteur_tier]?.[lang === 'he' ? 'he' : 'en']}
-              >
-                {TIER_LABELS[deal.auteur_tier]?.[lang === 'he' ? 'he' : 'en']}
-              </span>
-            )}
-          </p>
-        )}
+        {/* In the row the byline closes the card instead of interrupting it,
+            and carries the age with it: "Shared by Dana 2 days ago". */}
+        {!isRow && authorLine}
         {deal.description && (
           <p className="dilz-deal-card__description">{deal.description}</p>
         )}
@@ -339,6 +346,7 @@ export function DealCard({
             </div>
           </div>
         )}
+        {isRow && authorLine}
       </div>
       <CopyToast visible={copied} lang={lang} />
     </article>
