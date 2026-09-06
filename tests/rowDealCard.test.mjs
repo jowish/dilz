@@ -7,12 +7,15 @@ const read = async (...parts) => {
   const text = await readFile(path.join(process.cwd(), ...parts), 'utf8');
   return text.split('\r\n').join('\n');
 };
-const [card, home, dealsApi, prefs, css] = await Promise.all([
+const [card, home, dealsApi, prefs, css, premium] = await Promise.all([
   read('components', 'deals', 'DealCard.js'),
   read('pages', 'index.js'),
   read('pages', 'api', 'bons-plans.js'),
   read('lib', 'userPreferences.js'),
   read('styles', 'globals.css'),
+  // premium-refresh.css is loaded after globals and is the authority for the
+  // row card — defining it in both is what caused its action bar to overlap.
+  read('styles', 'premium-refresh.css'),
 ]);
 
 test('the feed opens on rows without overriding a chosen layout', () => {
@@ -26,11 +29,57 @@ test('the feed opens on rows without overriding a chosen layout', () => {
   assert.doesNotMatch(home, /readDealLayoutPreference\(\)/);
 });
 
-test('a row card shows when it was posted and who posted it', () => {
+test('a row card closes with who posted it and when, in words', () => {
   assert.match(card, /const isRow = layout === 'spotlight'/);
-  assert.match(card, /const postedAgo = deal\.created_at \? timeAgo\(deal\.created_at, lang\) : null/);
-  assert.match(card, /isRow && postedAgo/);
-  assert.match(card, /dilz-deal-card__posted/);
+  assert.match(card, /const postedAgo = deal\.created_at \? timeAgoLong\(deal\.created_at, lang\) : null/);
+  // The byline ends the card rather than interrupting it after the title.
+  assert.match(card, /\{!isRow && authorLine\}/);
+  assert.match(card, /\{isRow && authorLine\}/);
+  assert.ok(
+    card.indexOf('{isRow && authorLine}') > card.indexOf('dilz-deal-card__actions'),
+    'in the row the byline comes after the actions, at the foot of the card'
+  );
+  assert.match(card, /isRow && postedAgo && <span className="dilz-deal-card__posted"> \{postedAgo\}<\/span>/);
+});
+
+test('the top of a row says whether you can walk in or have to click through', () => {
+  const storeRow = card.slice(
+    card.indexOf('<div className="dilz-deal-card__store-row">'),
+    card.indexOf('<h3>{deal.titre}</h3>')
+  );
+  assert.match(storeRow, /isRow && availability/);
+  assert.match(storeRow, /dilz-deal-card__channel/);
+});
+
+test('the photo runs the full height of the row, and the title leads', () => {
+  assert.match(
+    premium,
+    /\.dilz-feed-grid\.is-spotlight[^{]*\.dilz-deal-card__media \{[^}]*min-height: 100%[^}]*aspect-ratio: auto/s,
+    'the media fills the card rather than keeping a fixed ratio'
+  );
+  assert.match(premium, /\.dilz-feed-grid\.is-spotlight[^{]*\.dilz-deal-card__media img \{[^}]*object-fit: cover/s);
+  // Two rules further up set .dilz-deal-card h3 with !important, one of them
+  // inside the phone media query, so the row's own size has to be as loud.
+  assert.match(premium, /\.dilz-feed-grid\.is-spotlight[^{]*\.is-spotlight h3 \{[^}]*font-size: 18px !important/s);
+  // And it belongs in this file only: defining the row in both stylesheets is
+  // what put the action bar on top of the title before.
+  assert.doesNotMatch(css, /Row card refinements/);
+});
+
+test('a saving is never struck through', () => {
+  // .dilz-deal-card__price-row span strikes every span it contains, and a
+  // Badge is a span — which is how the green -35% ended up with a line
+  // through it on a real phone.
+  assert.match(premium, /\.dilz-deal-card__price-row \.dilz-badge \{[^}]*text-decoration: none/s);
+});
+
+test('the byline can wrap, and the action bar cannot', () => {
+  // Measured on a phone: the byline was cut mid-word ("2 hours a…") and the
+  // vote pill, bookmark and button had spilled onto a second line.
+  assert.match(premium, /\.is-spotlight \.dilz-deal-card__author \{[^}]*white-space: normal/s);
+  assert.match(premium, /\.is-spotlight \.dilz-deal-card__actions \{[^}]*flex-wrap: nowrap/s);
+  // The store name keeps its room; the city is what gives way.
+  assert.match(premium, /\.dilz-deal-card__store-row strong \{[^}]*flex: 0 0 auto/s);
 });
 
 test("the poster's tier is shown beside their name, from the existing points system", () => {

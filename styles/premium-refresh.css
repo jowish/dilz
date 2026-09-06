@@ -3072,3 +3072,119 @@ body {
     transition: none !important;
   }
 }
+
+/* Row cards, second pass (maintainer feedback on the live feed):
+   the photo runs the card's full height, the title leads, the saving is not
+   struck through, the byline closes the card with the poster's age, and the
+   top line says whether you can walk in or have to click through.
+
+   These live here, not in globals.css, because this file is the authority for
+   the row card — defining it in both is what produced the overlapping action
+   bar this section was rewritten to fix. */
+
+.dilz-feed-grid.is-spotlight .dilz-deal-card.is-spotlight {
+  align-items: stretch;
+}
+
+.dilz-feed-grid.is-spotlight .dilz-deal-card.is-spotlight .dilz-deal-card__media {
+  height: auto;
+  min-height: 100%;
+  aspect-ratio: auto;
+  align-self: stretch;
+}
+
+.dilz-feed-grid.is-spotlight .dilz-deal-card.is-spotlight .dilz-deal-card__media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* The title is what someone scans the feed for. Two rules further up set
+   .dilz-deal-card h3 with !important (one of them inside the phone media
+   query), so this has to say it just as loudly to be heard. */
+.dilz-feed-grid.is-spotlight .dilz-deal-card.is-spotlight h3 {
+  margin: 1px 0 2px !important;
+  min-height: 0 !important;
+  font-size: 18px !important;
+  line-height: 1.2 !important;
+  font-weight: 900 !important;
+  letter-spacing: -0.01em;
+}
+
+/* A saving is not a struck-out price. The price row strikes every span it
+   contains, and a Badge is a span — which is how the green -35% ended up with
+   a line through it. */
+.dilz-deal-card__price-row .dilz-badge {
+  text-decoration: none;
+}
+
+/* Walk in, or click through — said at the top, where it is looked for. */
+.dilz-deal-card__channel {
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--surface-soft);
+  border: 1px solid var(--border-default);
+  color: var(--text-muted);
+  font-size: 10.5px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+/* "Shared by Dana · 2 days ago", closing the card. */
+.dilz-feed-grid.is-spotlight .dilz-deal-card.is-spotlight .dilz-deal-card__author {
+  margin-top: auto !important;
+  padding-top: 7px;
+  border-top: 1px solid var(--border-default);
+  font-size: 11px;
+}
+
+.dilz-feed-grid.is-spotlight .dilz-deal-card.is-spotlight .dilz-deal-card__author .dilz-deal-card__posted {
+  font-size: 11px;
+}
+
+.dilz-feed-grid.is-spotlight .dilz-deal-card.is-spotlight .dilz-deal-card__author .dilz-deal-card__posted::before {
+  content: '·';
+  margin-inline-end: 4px;
+}
+
+/* Fit, after measuring the three above on a phone:
+   the store name and city were being squeezed to "Donna st… · Beit Sh…" by the
+   new channel pill, the byline was clipped mid-word ("2 hours a…"), and the
+   action bar wrapped onto a second line. */
+
+/* The name gets the room first, the city gives way before it does, and the
+   pill never takes space from either. */
+.dilz-feed-grid.is-spotlight .dilz-deal-card.is-spotlight .dilz-deal-card__store-row {
+  padding-right: 26px !important;
+}
+
+.dilz-feed-grid.is-spotlight .dilz-deal-card.is-spotlight .dilz-deal-card__store-row strong {
+  flex: 0 0 auto;
+  max-width: 58%;
+}
+
+.dilz-feed-grid.is-spotlight .dilz-deal-card.is-spotlight .dilz-deal-card__store-row > span {
+  flex: 0 1 auto;
+  min-width: 0;
+}
+
+.dilz-feed-grid.is-spotlight .dilz-deal-card.is-spotlight .dilz-deal-card__channel {
+  flex: 0 0 auto;
+}
+
+/* The byline is the last line of the card; it can wrap rather than be cut. */
+.dilz-feed-grid.is-spotlight .dilz-deal-card.is-spotlight .dilz-deal-card__author {
+  overflow: visible;
+  text-overflow: clip;
+  white-space: normal;
+}
+
+/* Vote, save and "View deal" belong on one line. */
+.dilz-feed-grid.is-spotlight .dilz-deal-card.is-spotlight .dilz-deal-card__actions {
+  flex-wrap: nowrap;
+}
+
+.dilz-feed-grid.is-spotlight .dilz-deal-card.is-spotlight .dilz-deal-card__row-tools {
+  min-width: 0;
+  flex: 0 1 auto;
+}
