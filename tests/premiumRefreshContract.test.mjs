@@ -89,9 +89,14 @@ test('feed toolbar keeps filters, deal count, map and three layouts available', 
 test('card, row and small-card layouts remain responsive and bounded', () => {
   assert.match(premiumCss, /\.dilz-feed-grid\.is-compact\s*\{[^}]*repeat\(4, minmax\(0, 1fr\)\)/s);
   assert.match(premiumCss, /@media \(max-width: 767px\)[\s\S]*\.dilz-feed-grid\.is-compact\s*\{[^}]*repeat\(2, minmax\(0, 1fr\)\)/s);
-  assert.match(premiumCss, /\.dilz-deal-card\.is-list,[\s\S]*grid-template-columns:\s*112px minmax\(0, 1fr\)/s);
-  assert.match(premiumCss, /@media \(max-width: 767px\)[\s\S]*\.dilz-deal-card\.is-list,[\s\S]*grid-template-columns:\s*94px minmax\(0, 1fr\)/s);
-  assert.match(premiumCss, /\.dilz-deal-card\.is-list \.dilz-deal-card__right-actions,[\s\S]*display:\s*none !important/s);
+  // `.is-list` is a legacy layout value migrated straight to 'spotlight'
+  // (lib/userPreferences.js, lib/navigationState.js) — it's unreachable, so
+  // the row layout only needs to be tested via `.is-spotlight`, the feed's
+  // real default.
+  assert.doesNotMatch(premiumCss, /\.dilz-deal-card\.is-list/);
+  assert.match(premiumCss, /\.dilz-feed-grid\.is-spotlight \.dilz-deal-card\.is-spotlight \{[^}]*grid-template-columns:\s*104px minmax\(0, 1fr\)/s);
+  assert.match(premiumCss, /@media \(min-width:\s*640px\)[\s\S]*\.dilz-feed-grid\.is-spotlight \.dilz-deal-card\.is-spotlight \{[^}]*grid-template-columns:\s*132px minmax\(0, 1fr\)/s);
+  assert.match(premiumCss, /\.dilz-feed-grid\.is-spotlight \.dilz-deal-card\.is-spotlight \.dilz-deal-card__right-actions\s*\{[^}]*display:\s*none/s);
   assert.match(documentPage, /maximum-scale=1, user-scalable=no, viewport-fit=cover/);
 });
 

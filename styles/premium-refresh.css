@@ -496,7 +496,7 @@ body {
 .dilz-promo-card,
 .dilz-hero-promo-card {
   overflow: visible;
-  padding: 9px !important;
+  padding: 10px !important;
   border: 1px solid var(--border-default) !important;
   border-radius: 20px !important;
   background: var(--surface-main) !important;
@@ -658,21 +658,6 @@ body {
   white-space: nowrap;
 }
 
-.dilz-deal-card__owner-badge {
-  flex: 0 0 auto;
-  margin-inline-start: auto;
-  padding: 3px 6px;
-  border-radius: 7px;
-  background: var(--surface-soft);
-  color: var(--text-muted) !important;
-  font-size: 9.5px;
-  font-weight: 700;
-}
-
-.dilz-deal-card__owner-badge::before {
-  display: none !important;
-}
-
 .dilz-deal-card h3 {
   min-height: 39px !important;
   margin: 0 !important;
@@ -684,10 +669,14 @@ body {
 }
 
 .dilz-deal-card__author {
+  min-width: 0;
   margin-top: 5px !important;
+  overflow: hidden;
   color: var(--text-muted) !important;
   font-size: 11px !important;
   line-height: 1.3;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .dilz-deal-card__author button,
@@ -696,7 +685,34 @@ body {
   font-weight: 680 !important;
 }
 
-.dilz-deal-card:not(.is-list):not(.is-spotlight) .dilz-deal-card__description {
+/* The poster's contribution tier (lib/points.js), right where their name is
+   -- shown everywhere the name itself is shown, card or row. */
+.dilz-poster-tier {
+  display: inline-flex;
+  align-items: center;
+  margin-inline-start: 6px;
+  padding: 1px 7px;
+  border-radius: 999px;
+  border: 1px solid var(--border-default);
+  background: var(--surface-soft);
+  color: var(--text-muted);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  vertical-align: middle;
+}
+
+.dilz-poster-tier.is-silver { border-color: #9aa4b2; color: #5b6472; }
+.dilz-poster-tier.is-gold { border-color: #d9a520; color: #8a6208; background: rgba(217, 165, 32, 0.14); }
+.dilz-poster-tier.is-platinum { border-color: #6c7ae0; color: #4b57b8; background: rgba(108, 122, 224, 0.14); }
+
+.dark .dilz-poster-tier { border-color: var(--border-strong); color: var(--text-secondary); }
+.dark .dilz-poster-tier.is-silver { border-color: #aeb8c6; color: #c7ced8; }
+.dark .dilz-poster-tier.is-gold { border-color: #d9a520; color: #f0c65a; background: rgba(217, 165, 32, 0.16); }
+.dark .dilz-poster-tier.is-platinum { border-color: #8a94ea; color: #b3bbf5; background: rgba(108, 122, 224, 0.2); }
+
+.dilz-deal-card:not(.is-spotlight) .dilz-deal-card__description {
   display: none !important;
 }
 
@@ -867,140 +883,196 @@ body {
   color: var(--danger) !important;
 }
 
-/* Horizontal rows */
+/* Row cards (spotlight) — the feed's default view.
+   Rewritten from scratch: the previous version pinned .dilz-deal-card__actions
+   (vote pill + comment count + bookmark + the "View deal" button) to
+   `position: absolute; top: 0; right: 0` in a 96x32px box. That box was sized
+   for a single small icon, but a vote pill and a real button never fit in it —
+   they overflowed and sat on top of the title and price. Nothing here is
+   absolutely positioned over text; the action bar is simply the last thing in
+   the column, in normal flow, so it can never overlap anything above it.
+   This also restores two things the old version hid outright in row view:
+   the poster's tier badge (.dilz-deal-card__author was `display: none`) and
+   the freshness signal (.dilz-deal-card__meta was `display: none`) — both are
+   real features (#45's points system, #P0.2's lifecycle) that were shipped
+   and then made invisible on the one layout everyone actually sees. */
 
-.dilz-deal-card.is-list,
 .dilz-feed-grid.is-spotlight .dilz-deal-card.is-spotlight {
-  min-width: 0;
-  display: grid !important;
-  grid-template-columns: 112px minmax(0, 1fr) !important;
-  gap: 11px !important;
-  align-items: stretch !important;
-  padding: 8px !important;
-  border-radius: 18px !important;
+  display: grid;
+  grid-template-columns: 104px minmax(0, 1fr);
+  gap: 12px;
+  align-items: start;
+  padding: 10px;
+  border-radius: 18px;
 }
 
-.dilz-deal-card.is-list .dilz-deal-card__media,
 .dilz-feed-grid.is-spotlight .dilz-deal-card.is-spotlight .dilz-deal-card__media {
-  width: 112px !important;
-  min-height: 112px !important;
-  aspect-ratio: 1 / 1 !important;
-  border-radius: 13px !important;
+  width: 104px;
+  height: 104px;
+  aspect-ratio: 1 / 1;
+  border-radius: 14px;
 }
 
-.dilz-deal-card.is-list .dilz-deal-card__body,
-.dilz-feed-grid.is-spotlight .dilz-deal-card.is-spotlight .dilz-deal-card__body {
-  min-width: 0;
-  display: flex !important;
-  flex-direction: column;
-  padding: 2px 104px 2px 0 !important;
-}
-
-[dir="rtl"] .dilz-deal-card.is-list .dilz-deal-card__body,
-[dir="rtl"] .dilz-feed-grid.is-spotlight .dilz-deal-card.is-spotlight .dilz-deal-card__body {
-  padding: 2px 0 2px 104px !important;
-}
-
-.dilz-deal-card.is-list .dilz-deal-card__overlay,
-.dilz-deal-card.is-list .dilz-deal-card__trust,
-.dilz-deal-card.is-list .dilz-deal-card__save,
-.dilz-feed-grid.is-spotlight .dilz-deal-card.is-spotlight .dilz-deal-card__overlay,
+/* Only the countdown stays on the photo. The discount moves next to the
+   price below (where it's legible at this thumbnail size); the save icon
+   moves into the action bar instead of floating over the image. */
 .dilz-feed-grid.is-spotlight .dilz-deal-card.is-spotlight .dilz-deal-card__trust,
-.dilz-feed-grid.is-spotlight .dilz-deal-card.is-spotlight .dilz-deal-card__save {
-  display: none !important;
+.dilz-feed-grid.is-spotlight .dilz-deal-card.is-spotlight .dilz-deal-card__save,
+.dilz-feed-grid.is-spotlight .dilz-deal-card.is-spotlight .dilz-deal-card__photo-count,
+.dilz-feed-grid.is-spotlight .dilz-deal-card.is-spotlight .dilz-deal-card__overlay--top .dilz-badge:not(.dilz-deal-card__ending-badge) {
+  display: none;
 }
 
-.dilz-deal-card.is-list .dilz-deal-card__store-row,
-.dilz-feed-grid.is-spotlight .dilz-deal-card.is-spotlight .dilz-deal-card__store-row {
-  margin: 0 0 3px !important;
-  padding: 0 !important;
-  font-size: 10.5px !important;
+.dilz-feed-grid.is-spotlight .dilz-deal-card.is-spotlight .dilz-deal-card__overlay--top {
+  top: 5px;
+  left: 5px;
+  right: 5px;
 }
 
-.dilz-deal-card.is-list h3,
-.dilz-feed-grid.is-spotlight .dilz-deal-card.is-spotlight h3 {
-  min-height: 0 !important;
-  font-size: 14px !important;
-  line-height: 1.24 !important;
-}
-
-.dilz-deal-card.is-list .dilz-deal-card__author,
-.dilz-deal-card.is-list .dilz-deal-card__description,
-.dilz-deal-card.is-list .dilz-deal-card__meta,
-.dilz-feed-grid.is-spotlight .dilz-deal-card.is-spotlight .dilz-deal-card__author,
-.dilz-feed-grid.is-spotlight .dilz-deal-card.is-spotlight .dilz-deal-card__description,
-.dilz-feed-grid.is-spotlight .dilz-deal-card.is-spotlight .dilz-deal-card__meta {
-  display: none !important;
-}
-
-.dilz-deal-card.is-list .dilz-deal-card__price-row,
-.dilz-feed-grid.is-spotlight .dilz-deal-card.is-spotlight .dilz-deal-card__price-row {
-  margin-top: 6px !important;
-}
-
-.dilz-deal-card.is-list .dilz-deal-card__price-row strong,
-.dilz-feed-grid.is-spotlight .dilz-deal-card.is-spotlight .dilz-deal-card__price-row strong {
-  font-size: 16px !important;
-}
-
-.dilz-deal-card.is-list .dilz-deal-card__price-context,
-.dilz-feed-grid.is-spotlight .dilz-deal-card.is-spotlight .dilz-deal-card__price-context {
+.dilz-feed-grid.is-spotlight .dilz-deal-card.is-spotlight .dilz-deal-card__body {
+  display: flex;
   min-width: 0;
-  display: inline-flex !important;
-  align-items: center;
-  gap: 6px !important;
-  overflow: hidden;
-  color: var(--text-muted) !important;
-  font-size: 10px !important;
-  font-weight: 600 !important;
-  text-decoration: none !important;
+  flex-direction: column;
+  padding: 0;
 }
 
-.dilz-deal-card.is-list .dilz-deal-card__price-context > span,
-.dilz-feed-grid.is-spotlight .dilz-deal-card.is-spotlight .dilz-deal-card__price-context > span {
-  color: inherit !important;
-  text-decoration: none !important;
+.dilz-feed-grid.is-spotlight .dilz-deal-card.is-spotlight .dilz-deal-card__store-row {
+  margin: 0 0 3px;
+  padding: 0;
+  font-size: 11px;
 }
 
-.dilz-deal-card.is-list .dilz-deal-card__actions,
+.dilz-feed-grid.is-spotlight .dilz-deal-card.is-spotlight .dilz-deal-card__spotlight-tools {
+  flex: 0 0 auto;
+  margin-inline-start: auto;
+}
+
+.dilz-feed-grid.is-spotlight .dilz-deal-card.is-spotlight h3 {
+  min-height: 0;
+  font-size: 14.5px;
+  line-height: 1.26;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+}
+
+.dilz-feed-grid.is-spotlight .dilz-deal-card.is-spotlight .dilz-deal-card__author {
+  margin-top: 3px !important;
+  font-size: 10.5px;
+}
+
+.dilz-feed-grid.is-spotlight .dilz-deal-card.is-spotlight .dilz-poster-tier {
+  padding: 0 5px;
+  font-size: 9px;
+}
+
+.dilz-feed-grid.is-spotlight .dilz-deal-card.is-spotlight .dilz-deal-card__price-row {
+  margin-top: 6px;
+  flex-wrap: wrap;
+}
+
+.dilz-feed-grid.is-spotlight .dilz-deal-card.is-spotlight .dilz-deal-card__price-row strong {
+  font-size: 17px;
+}
+
+/* Freshness ("Verified today") is the one lifecycle signal worth the width
+   here; availability and the comment count are already said elsewhere on
+   the row, so only the first meta item survives at this size. */
+.dilz-feed-grid.is-spotlight .dilz-deal-card.is-spotlight .dilz-deal-card__meta {
+  margin-top: 4px;
+  font-size: 10px;
+}
+
+.dilz-feed-grid.is-spotlight .dilz-deal-card.is-spotlight .dilz-deal-card__meta > span:not(:first-child) {
+  display: none;
+}
+
 .dilz-feed-grid.is-spotlight .dilz-deal-card.is-spotlight .dilz-deal-card__actions {
-  position: absolute !important;
-  top: 0 !important;
-  right: 0 !important;
-  width: 96px;
-  min-height: 32px;
-  justify-content: flex-end !important;
-  margin: 0 !important;
-  padding: 0 !important;
+  position: static;
+  margin-top: 8px;
 }
 
-.dilz-deal-card.is-list .dilz-deal-card__right-actions,
 .dilz-feed-grid.is-spotlight .dilz-deal-card.is-spotlight .dilz-deal-card__right-actions {
-  display: none !important;
+  display: none;
 }
 
-[dir="rtl"] .dilz-deal-card.is-list .dilz-deal-card__actions,
-[dir="rtl"] .dilz-feed-grid.is-spotlight .dilz-deal-card.is-spotlight .dilz-deal-card__actions {
-  right: auto !important;
+.dilz-feed-grid.is-spotlight .dilz-deal-card.is-spotlight .dilz-vote-pill--combined {
+  height: 30px;
+}
+
+.dilz-feed-grid.is-spotlight .dilz-deal-card.is-spotlight .dilz-vote-pill--combined button {
+  width: 24px;
+  height: 24px;
+}
+
+.dilz-deal-card__posted {
+  color: var(--text-muted);
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.dilz-deal-card__row-tools {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-inline-start: auto;
+}
+
+.dilz-deal-card__row-tools .dilz-deal-card__comment-meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.dilz-feed-grid.is-spotlight .dilz-deal-card.is-spotlight .dilz-deal-card__view {
+  white-space: nowrap;
+}
+
+@media (max-width: 767px) {
+  /* The comment count is the first thing to give way at phone width — it's
+     repeated on the deal itself, and the "View deal" button keeps its place. */
+  .dilz-deal-card__row-tools .dilz-deal-card__comment-meta {
+    display: none;
+  }
+
+  .dilz-feed-grid.is-spotlight .dilz-deal-card.is-spotlight .dilz-deal-card__view {
+    padding-inline: 12px;
+    font-size: 13px;
+  }
+}
+
+.dilz-feed-grid.is-spotlight .dilz-deal-card.is-spotlight .dilz-deal-card__safety-menu {
+  top: auto;
+  right: 0;
+  bottom: -2px;
+}
+
+[dir="rtl"] .dilz-feed-grid.is-spotlight .dilz-deal-card.is-spotlight .dilz-deal-card__safety-menu {
+  right: auto;
   left: 0;
 }
 
-.dilz-deal-card.is-list .dilz-vote-pill--combined,
-.dilz-feed-grid.is-spotlight .dilz-deal-card.is-spotlight .dilz-vote-pill--combined {
-  height: 31px !important;
-}
+@media (min-width: 640px) {
+  .dilz-feed-grid.is-spotlight .dilz-deal-card.is-spotlight {
+    grid-template-columns: 132px minmax(0, 1fr);
+    gap: 16px;
+    padding: 12px;
+  }
 
-.dilz-deal-card.is-list .dilz-vote-pill--combined button,
-.dilz-feed-grid.is-spotlight .dilz-deal-card.is-spotlight .dilz-vote-pill--combined button {
-  width: 24px !important;
-  height: 24px !important;
-}
+  .dilz-feed-grid.is-spotlight .dilz-deal-card.is-spotlight .dilz-deal-card__media {
+    width: 132px;
+    height: 132px;
+  }
 
-.dilz-deal-card.is-list .dilz-deal-card__safety-menu,
-.dilz-feed-grid.is-spotlight .dilz-deal-card.is-spotlight .dilz-deal-card__safety-menu {
-  top: auto !important;
-  right: 0 !important;
-  bottom: -2px !important;
+  .dilz-feed-grid.is-spotlight .dilz-deal-card.is-spotlight h3 {
+    font-size: 16px;
+  }
+
+  .dilz-feed-grid.is-spotlight .dilz-deal-card.is-spotlight .dilz-deal-card__price-row strong {
+    font-size: 19px;
+  }
 }
 
 /* Small cards */
@@ -1039,8 +1111,7 @@ body {
 .dilz-deal-card.is-compact .dilz-deal-card__meta,
 .dilz-deal-card.is-compact .dilz-deal-card__trust,
 .dilz-deal-card.is-compact .dilz-deal-card__ending-badge,
-.dilz-deal-card.is-compact .dilz-deal-card__right-actions,
-.dilz-deal-card.is-compact .dilz-deal-card__owner-badge {
+.dilz-deal-card.is-compact .dilz-deal-card__right-actions {
   display: none !important;
 }
 
@@ -2516,6 +2587,57 @@ body {
   }
 }
 
+/* Deal detail: a real two-column desktop layout instead of a ~600-820px
+   mobile column stretched into the middle of a much wider screen. The photo
+   (plus thumbnails) sticks in the left column while price/title/actions/
+   description/votes/availability/share scroll in the right one; comments
+   stay in that same right column below them rather than full width — a
+   valid, common pattern (galleries + a scrolling info-and-reviews column)
+   that needed no JSX restructuring: .dilz-deal-hero, .dilz-deal-gallery-thumbs
+   and .dilz-deal-body are already the only three direct children of
+   .dilz-deal-content, just placed with grid-column/grid-row instead of
+   stacked. */
+@media (min-width: 900px) {
+  .dilz-deal-content {
+    width: min(100%, 1180px) !important;
+    display: grid;
+    grid-template-columns: minmax(0, 440px) minmax(0, 1fr);
+    align-items: start;
+    column-gap: 40px;
+    padding: 32px 24px 80px !important;
+  }
+
+  .dilz-deal-hero {
+    grid-column: 1;
+    grid-row: 1;
+    position: sticky;
+    top: 92px;
+    aspect-ratio: 1 / 1 !important;
+  }
+
+  .dilz-deal-gallery-thumbs {
+    grid-column: 1;
+    grid-row: 2;
+    position: sticky;
+    /* The hero above is a 1:1 square capped at the column's 440px max width,
+       so its height never exceeds 440px — this clears it at any narrower
+       column width too, it just leaves a bit more gap. */
+    top: calc(92px + 440px + 12px);
+    padding: 0 !important;
+    background: transparent !important;
+  }
+
+  .dilz-deal-body {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+    margin-top: 0 !important;
+  }
+
+  .dilz-deal-title {
+    max-width: none;
+  }
+}
+
 @media (max-width: 767px) {
   .dilz-app-message {
     min-height: 38px !important;
@@ -2708,34 +2830,10 @@ body {
     padding: 6px !important;
   }
 
-  .dilz-deal-card.is-list,
-  .dilz-feed-grid.is-spotlight .dilz-deal-card.is-spotlight {
-    grid-template-columns: 94px minmax(0, 1fr) !important;
-    gap: 9px !important;
-    padding: 7px !important;
-  }
-
-  .dilz-deal-card.is-list .dilz-deal-card__media,
-  .dilz-feed-grid.is-spotlight .dilz-deal-card.is-spotlight .dilz-deal-card__media {
-    width: 94px !important;
-    min-height: 94px !important;
-  }
-
-  .dilz-deal-card.is-list .dilz-deal-card__body,
-  .dilz-feed-grid.is-spotlight .dilz-deal-card.is-spotlight .dilz-deal-card__body {
-    padding-right: 92px !important;
-  }
-
-  [dir="rtl"] .dilz-deal-card.is-list .dilz-deal-card__body,
-  [dir="rtl"] .dilz-feed-grid.is-spotlight .dilz-deal-card.is-spotlight .dilz-deal-card__body {
-    padding-right: 0 !important;
-    padding-left: 92px !important;
-  }
-
-  .dilz-deal-card.is-list .dilz-deal-card__actions,
-  .dilz-feed-grid.is-spotlight .dilz-deal-card.is-spotlight .dilz-deal-card__actions {
-    width: 88px;
-  }
+  /* Row cards keep the base (sub-640px) sizing from the "Row cards" section
+     above at this breakpoint — no reserved padding, no absolute-width action
+     box: the action bar is in normal flow, so there is nothing here to
+     re-fight for space with the title. */
 
   .dilz-search-tab {
     padding: 0 2px;

@@ -5547,8 +5547,12 @@ textarea:focus {
   justify-self: end;
 }
 
+/* Width is fully owned by styles/premium-refresh.css (loaded after this
+   file) at every breakpoint — max-width used to be set here too (600px),
+   which silently capped the deal page at 600px on every screen size
+   regardless of what premium-refresh.css's own `width` rules said, since
+   max-width always wins over width. */
 .dilz-deal-content {
-  max-width: 600px;
   margin: 0 auto;
 }
 
@@ -8614,150 +8618,14 @@ body { touch-action: pan-y; }
   display: none;
 }
 
+/* Row-card (.is-spotlight) layout, sizing, and its mobile breakpoint are
+   fully redefined in styles/premium-refresh.css (loaded after this file) —
+   see the "Row cards (spotlight)" section there for why this used to be
+   defined three times across two files, which is what caused the row card's
+   action bar to overlap its own title and price. */
 .dilz-feed-grid.is-spotlight {
   grid-template-columns: minmax(0, 1fr);
   gap: 12px;
-}
-
-.dilz-feed-grid.is-spotlight .dilz-deal-card.is-spotlight {
-  display: grid;
-  grid-template-columns: 138px minmax(0, 1fr);
-  gap: 14px;
-  align-items: stretch;
-  padding: 10px;
-  border-radius: 18px;
-}
-
-.dilz-feed-grid.is-spotlight .dilz-deal-card.is-spotlight .dilz-deal-card__media {
-  width: 138px;
-  min-height: 178px;
-  aspect-ratio: 3 / 4;
-  border-radius: 16px;
-}
-
-.dilz-feed-grid.is-spotlight .dilz-deal-card.is-spotlight .dilz-deal-card__overlay--top,
-.dilz-feed-grid.is-spotlight .dilz-deal-card.is-spotlight .dilz-deal-card__save,
-.dilz-feed-grid.is-spotlight .dilz-deal-card.is-spotlight .dilz-deal-card__trust,
-.dilz-feed-grid.is-spotlight .dilz-deal-card.is-spotlight .dilz-deal-card__photo-count {
-  display: none;
-}
-
-.dilz-feed-grid.is-spotlight .dilz-deal-card.is-spotlight .dilz-deal-card__body {
-  display: flex;
-  min-width: 0;
-  flex-direction: column;
-  padding: 2px 0;
-}
-
-.dilz-feed-grid.is-spotlight .dilz-deal-card.is-spotlight .dilz-deal-card__store-row {
-  margin-bottom: 5px;
-  font-size: 12px;
-}
-
-.dilz-feed-grid.is-spotlight .dilz-deal-card.is-spotlight .dilz-deal-card__spotlight-tools {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin: 0 0 7px;
-}
-
-.dilz-feed-grid.is-spotlight .dilz-deal-card.is-spotlight .dilz-deal-card__spotlight-save {
-  display: inline-flex;
-  margin-left: auto;
-}
-
-.dilz-feed-grid.is-spotlight .dilz-deal-card.is-spotlight h3 {
-  min-height: 0;
-  font-size: 17px;
-  line-height: 1.24;
-  -webkit-line-clamp: 2;
-  line-clamp: 2;
-}
-
-.dilz-feed-grid.is-spotlight .dilz-deal-card.is-spotlight .dilz-deal-card__author {
-  margin-top: 4px;
-  font-size: 11px;
-}
-
-.dilz-feed-grid.is-spotlight .dilz-deal-card.is-spotlight .dilz-deal-card__description {
-  margin-top: 6px;
-  font-size: 12px;
-  line-height: 1.35;
-  -webkit-line-clamp: 2;
-  line-clamp: 2;
-}
-
-.dilz-feed-grid.is-spotlight .dilz-deal-card.is-spotlight .dilz-deal-card__price-row {
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 7px;
-  margin-top: 8px;
-}
-
-.dilz-feed-grid.is-spotlight .dilz-deal-card.is-spotlight .dilz-deal-card__price-row strong {
-  font-size: 18px;
-}
-
-.dilz-feed-grid.is-spotlight .dilz-deal-card.is-spotlight .dilz-deal-card__price-context {
-  display: inline-flex;
-  color: var(--text-muted);
-  text-decoration: none;
-}
-
-.dilz-feed-grid.is-spotlight .dilz-deal-card.is-spotlight .dilz-deal-card__price-context span {
-  color: inherit;
-  text-decoration: none;
-}
-
-.dilz-feed-grid.is-spotlight .dilz-deal-card.is-spotlight .dilz-deal-card__meta {
-  margin-top: 6px;
-  font-size: 11px;
-}
-
-.dilz-feed-grid.is-spotlight .dilz-deal-card.is-spotlight .dilz-deal-card__actions {
-  margin-top: auto;
-  padding-top: 10px;
-}
-
-.dilz-feed-grid.is-spotlight .dilz-deal-card.is-spotlight .dilz-deal-card__right-actions.is-row-without-share > .dilz-icon-button,
-.dilz-feed-grid.is-spotlight .dilz-deal-card.is-spotlight .dilz-deal-card__right-actions.is-row-without-share > .dilz-share-menu,
-.dilz-feed-grid.is-spotlight .dilz-deal-card.is-spotlight .dilz-deal-card__right-actions.is-row-without-share > .dilz-popover-dismiss {
-  display: none !important;
-}
-
-.dilz-feed-grid.is-spotlight .dilz-deal-card.is-spotlight .dilz-owner-delete {
-  display: none;
-}
-
-@media (max-width: 767px) {
-  .dilz-feed-grid.is-spotlight .dilz-deal-card.is-spotlight {
-    grid-template-columns: 108px minmax(0, 1fr);
-    gap: 10px;
-    padding: 8px;
-  }
-
-  .dilz-feed-grid.is-spotlight .dilz-deal-card.is-spotlight .dilz-deal-card__media {
-    width: 108px;
-    min-height: 146px;
-  }
-
-  .dilz-feed-grid.is-spotlight .dilz-deal-card.is-spotlight h3 {
-    font-size: 14px;
-  }
-
-  .dilz-feed-grid.is-spotlight .dilz-deal-card.is-spotlight .dilz-deal-card__description {
-    -webkit-line-clamp: 1;
-    line-clamp: 1;
-  }
-
-  .dilz-feed-grid.is-spotlight .dilz-deal-card.is-spotlight .dilz-deal-card__meta {
-    display: none;
-  }
-
-  .dilz-feed-grid.is-spotlight .dilz-deal-card.is-spotlight .dilz-vote-pill button {
-    min-width: 42px;
-    padding: 0 7px;
-  }
 }
 
 .dilz-public-profile__hero button[data-follow-state='following'],
@@ -10243,92 +10111,11 @@ select:focus,
   font-weight: 600;
 }
 
-/* Row cards: the feed's default view. Photo beside the details, the saving
-   next to the prices it relates to, and one obvious way into the deal. */
-.dilz-feed-grid.is-spotlight .dilz-deal-card.is-spotlight .dilz-deal-card__store-row {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding-right: 26px;
-}
-
-.dilz-feed-grid.is-spotlight .dilz-deal-card.is-spotlight .dilz-deal-card__spotlight-tools {
-  display: flex;
-  margin-inline-start: auto;
-}
-
-.dilz-deal-card__posted {
-  color: var(--text-muted);
-  font-size: 12px;
-  white-space: nowrap;
-}
-
-/* The poster's standing, right where their name is. */
-.dilz-poster-tier {
-  display: inline-flex;
-  align-items: center;
-  margin-inline-start: 6px;
-  padding: 1px 7px;
-  border-radius: 999px;
-  border: 1px solid var(--border-default);
-  background: var(--surface-soft);
-  color: var(--text-muted);
-  font-size: 10px;
-  font-weight: 800;
-  letter-spacing: 0.02em;
-  text-transform: uppercase;
-  vertical-align: middle;
-}
-
-.dilz-poster-tier.is-silver { border-color: #9aa4b2; color: #5b6472; }
-.dilz-poster-tier.is-gold { border-color: #d9a520; color: #a1740a; background: rgba(217, 165, 32, 0.12); }
-.dilz-poster-tier.is-platinum { border-color: #6c7ae0; color: #4b57b8; background: rgba(108, 122, 224, 0.12); }
-
-.dilz-feed-grid.is-spotlight .dilz-deal-card.is-spotlight .dilz-deal-card__price-row {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.dilz-feed-grid.is-spotlight .dilz-deal-card.is-spotlight .dilz-deal-card__actions {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.dilz-deal-card__row-tools {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-inline-start: auto;
-}
-
-.dilz-deal-card__row-tools .dilz-deal-card__comment-meta {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  color: var(--text-muted);
-  font-size: 12px;
-  font-weight: 700;
-}
-
-.dilz-deal-card__view {
-  white-space: nowrap;
-}
-
-@media (max-width: 767px) {
-  /* At phone width the button keeps its place; the comment count is the first
-     thing to give way, since it is repeated on the deal itself. */
-  .dilz-deal-card__row-tools .dilz-deal-card__comment-meta {
-    display: none;
-  }
-
-  .dilz-deal-card__view {
-    padding-inline: 12px;
-    font-size: 13px;
-  }
-}
+/* Row-card internals (store-row, spotlight-tools, poster-tier, price-row,
+   actions, row-tools, view/posted, and their mobile breakpoint) are fully
+   redefined in styles/premium-refresh.css now. The saving-badge colour
+   override below is the one rule from this section that still applies,
+   since premium-refresh.css doesn't touch .dilz-badge--saving. */
 
 /* The mockup marks the saving in green. This app already defines a savings
    green (--saving: #15803D); a global rule further up forces every saving
