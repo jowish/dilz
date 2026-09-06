@@ -67,9 +67,9 @@ export function PromoCard({ promo, lang, isDark, onClick, votes, onVote, isSaved
       <div className="dilz-promo-card__body" onClick={onClick} role="button" tabIndex={-1} style={{ cursor: 'pointer' }}>
         <p className="dilz-promo-card__name">{nom}</p>
         <div className="dilz-promo-card__prices">
-          <strong>&#8362;{promo.prixMin.toFixed(2)}</strong>
+          <strong>{promo.prixMin.toFixed(2)} &#8362;</strong>
           {promo.prixMax > promo.prixMin && (
-            <del>&#8362;{promo.prixMax.toFixed(2)}</del>
+            <del>{promo.prixMax.toFixed(2)} &#8362;</del>
           )}
         </div>
         <span className="dilz-promo-card__store">
@@ -139,10 +139,10 @@ export function HeroPromoCard({ promo, lang, isDark, onClick, votes, onVote, isS
         <p className="dilz-hero-promo-card__label">{lang !== 'he' ? 'Price comparison' : 'השוואת מחירים'}</p>
         <p className="dilz-hero-promo-card__name">{nom}</p>
         <div className="dilz-hero-promo-card__prices">
-          <strong>&#8362;{promo.prixMin.toFixed(2)}</strong>
-          <del>&#8362;{promo.prixMax.toFixed(2)}</del>
+          <strong>{promo.prixMin.toFixed(2)} &#8362;</strong>
+          <del>{promo.prixMax.toFixed(2)} &#8362;</del>
           <span className="dilz-hero-promo-card__saving">
-            {lang !== 'he' ? `Save ₪${(promo.prixMax - promo.prixMin).toFixed(2)}` : `חסכו ₪${(promo.prixMax - promo.prixMin).toFixed(2)}`}
+            {lang !== 'he' ? `Save ${(promo.prixMax - promo.prixMin).toFixed(2)} ₪` : `חסכו ${(promo.prixMax - promo.prixMin).toFixed(2)} ₪`}
           </span>
         </div>
       </div>

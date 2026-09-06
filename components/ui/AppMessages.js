@@ -15,6 +15,13 @@ function dismissalKey(message) {
   return `dilzMessageDismissed:${message.id}:${message.updated_at || message.created_at || ''}`;
 }
 
+function shouldShowTitle(message) {
+  const title = String(message.title || '').trim();
+  const body = String(message.body || '').trim();
+  if (!title) return false;
+  return !body.toLocaleLowerCase().startsWith(title.toLocaleLowerCase());
+}
+
 export function AppMessages() {
   const router = useRouter();
   const [messages, setMessages] = useState([]);
@@ -69,7 +76,7 @@ export function AppMessages() {
       {visibleMessages.map(message => (
         <section key={message.id} className={['dilz-app-message', `is-${message.type}`].join(' ')}>
           <div className="dilz-app-message__content">
-            {message.title && <strong>{message.title}</strong>}
+            {shouldShowTitle(message) && <strong>{message.title}</strong>}
             <span>{message.body}</span>
           </div>
           <div className="dilz-app-message__actions">

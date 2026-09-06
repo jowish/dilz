@@ -153,11 +153,40 @@ function NoResultsIcon() {
   );
 }
 
-function ViewSettingsIcon() {
+function CardLayoutIcon() {
   return (
-    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="M12 15.5A3.5 3.5 0 1 0 12 8a3.5 3.5 0 0 0 0 7.5Z" />
+    <svg className="dilz-card-layout-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <rect x="3.5" y="3.5" width="17" height="17" rx="3.5" />
       <path d="M19.4 15a1.8 1.8 0 0 0 .36 1.98l.04.04a2.1 2.1 0 0 1-2.97 2.97l-.04-.04a1.8 1.8 0 0 0-1.98-.36 1.8 1.8 0 0 0-1.09 1.65V21a2.1 2.1 0 0 1-4.2 0v-.06a1.8 1.8 0 0 0-1.09-1.65 1.8 1.8 0 0 0-1.98.36l-.04.04a2.1 2.1 0 0 1-2.97-2.97l.04-.04A1.8 1.8 0 0 0 4.6 15a1.8 1.8 0 0 0-1.65-1.09H3a2.1 2.1 0 0 1 0-4.2h.06A1.8 1.8 0 0 0 4.7 8.62a1.8 1.8 0 0 0-.36-1.98l-.04-.04A2.1 2.1 0 0 1 7.27 3.6l.04.04a1.8 1.8 0 0 0 1.98.36A1.8 1.8 0 0 0 10.38 2.35V2a2.1 2.1 0 0 1 4.2 0v.35a1.8 1.8 0 0 0 1.09 1.65 1.8 1.8 0 0 0 1.98-.36l.04-.04a2.1 2.1 0 0 1 2.97 2.97l-.04.04a1.8 1.8 0 0 0-.36 1.98 1.8 1.8 0 0 0 1.65 1.09H22a2.1 2.1 0 0 1 0 4.2h-.06A1.8 1.8 0 0 0 19.4 15Z" />
+    </svg>
+  );
+}
+
+function RowLayoutIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <rect x="3" y="5" width="18" height="5" rx="2" />
+      <rect x="3" y="14" width="18" height="5" rx="2" />
+    </svg>
+  );
+}
+
+function CompactLayoutIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <rect x="3" y="3" width="7" height="7" rx="2" />
+      <rect x="14" y="3" width="7" height="7" rx="2" />
+      <rect x="3" y="14" width="7" height="7" rx="2" />
+      <rect x="14" y="14" width="7" height="7" rx="2" />
+    </svg>
+  );
+}
+
+function MapLayoutIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="m3 6 6-3 6 3 6-3v15l-6 3-6-3-6 3V6Z" />
+      <path d="M9 3v15M15 6v15" />
     </svg>
   );
 }
@@ -349,24 +378,24 @@ function SearchTab({ deals, lang, isDark, userCoords, savedKeys, onToggleSave, v
   const total = mDeals.length;
 
   return (
-    <div style={{ padding: '0 14px' }}>
+    <div className="dilz-search-tab">
 
       {!q && (
-        <div style={{ textAlign: 'center', paddingTop: 40 }}>
-          <p style={{ marginBottom: 14, color: 'var(--text-muted)' }} aria-hidden="true"><SearchGlyphIcon /></p>
-          <p style={{ fontSize: 17, fontWeight: 700, color: 'var(--text)', marginBottom: 8 }}>
+        <div className="dilz-search-empty">
+          <span className="dilz-search-empty__icon" aria-hidden="true"><SearchGlyphIcon /></span>
+          <h1>
             {textFor(lang, { en: 'Search Dilz', he: 'חיפוש בדילז', fr: 'Rechercher dans Dilz', es: 'Buscar en Dilz' })}
-          </p>
-          <p style={{ fontSize: 14, color: 'var(--text-sub)', lineHeight: 1.6 }}>
+          </h1>
+          <p>
             {lang !== 'he'
-              ? 'Try: milk, diapers, pizza\nחלב, חיתולים, פיצה'
+              ? 'Search deals, products, stores or cities.'
               : 'נסה: חלב, חיתולים, פיצה'}
           </p>
         </div>
       )}
 
       {q.length > 0 && q.length < 2 && (
-        <p style={{ textAlign: 'center', color: 'var(--text-muted)', fontSize: 14 }}>
+        <p className="dilz-search-hint" role="status">
           {lang !== 'he' ? 'Keep typing...' : 'המשך להקליד...'}
         </p>
       )}
@@ -378,12 +407,12 @@ function SearchTab({ deals, lang, isDark, userCoords, savedKeys, onToggleSave, v
       )}
 
       {q.length >= SEARCH_MIN_LENGTH && !searching && total === 0 && (
-        <div style={{ textAlign: 'center', paddingTop: 40 }}>
-          <p style={{ marginBottom: 12, color: 'var(--text-muted)' }} aria-hidden="true"><NoResultsIcon /></p>
-          <p style={{ fontSize: 17, fontWeight: 700, color: 'var(--text)', marginBottom: 6 }}>
+        <div className="dilz-search-empty" role="status">
+          <span className="dilz-search-empty__icon" aria-hidden="true"><NoResultsIcon /></span>
+          <h1>
             {lang !== 'he' ? 'No results for' : 'לא נמצאו תוצאות עבור'} "{q}"
-          </p>
-          <p style={{ fontSize: 14, color: 'var(--text-sub)', lineHeight: 1.6 }}>
+          </h1>
+          <p>
             {lang !== 'he'
               ? 'Try a different spelling or search in Hebrew'
               : 'נסה איות אחר או חפש באנגלית'}
@@ -392,10 +421,11 @@ function SearchTab({ deals, lang, isDark, userCoords, savedKeys, onToggleSave, v
       )}
 
       {mDeals.length > 0 && (
-        <>
-          <p style={{ fontSize: 12, fontWeight: 500, color: 'var(--text-muted)', marginBottom: 10 }}>
-            Dilz ({mDeals.length})
-          </p>
+        <section className="dilz-search-group">
+          <div className="dilz-search-group__heading">
+            <h2>{lang === 'he' ? 'דילים מהקהילה' : 'Community deals'}</h2>
+            <span>{mDeals.length}</span>
+          </div>
           <div className="dilz-search-deal-results">
           {mDeals.slice(0, 5).map(d => (
             <PremiumDealCard key={d.id} deal={d} lang={lang} isDark={isDark}
@@ -408,7 +438,7 @@ function SearchTab({ deals, lang, isDark, userCoords, savedKeys, onToggleSave, v
               onSave={() => onToggleSave('deal', d.id)} />
           ))}
           </div>
-        </>
+        </section>
       )}
     </div>
   );
@@ -1411,9 +1441,9 @@ export default function Home() {
               <div className={['dilz-deal-toolbar', !showDealToolbar && 'is-hidden'].filter(Boolean).join(' ')}>
                 <div className="dilz-view-switcher" aria-label="Dilz views">
                 {[
-                  { id: 'latest', label: 'New' },
-                  { id: 'all', label: 'Hot' },
-                  { id: 'comments', label: 'Trending' },
+                  { id: 'latest', label: lang === 'he' ? 'חדשים' : 'New' },
+                  { id: 'all', label: lang === 'he' ? 'חמים' : 'Hot' },
+                  { id: 'comments', label: lang === 'he' ? 'מדוברים' : 'Discussed' },
                 ].map(view => (
                   <button
                     key={view.id}
@@ -1445,40 +1475,52 @@ export default function Home() {
                     }}
                     aria-label="Other filters"
                   >
-                    <option value="">Other</option>
-                    <option value="active">Active</option>
-                    <option value="all">All</option>
-                    {userCoords && <option value="nearby">Near me</option>}
-                    <option value="ending">Ending soon</option>
+                    <option value="">{lang === 'he' ? 'עוד' : 'More'}</option>
+                    <option value="active">{lang === 'he' ? 'פעילים' : 'Active'}</option>
+                    <option value="all">{lang === 'he' ? 'הכל' : 'All'}</option>
+                    {userCoords && <option value="nearby">{lang === 'he' ? 'קרוב אליי' : 'Near me'}</option>}
+                    <option value="ending">{lang === 'he' ? 'מסתיימים בקרוב' : 'Ending soon'}</option>
                     {DEAL_CATEGORIES.map((category) => (
                       <option key={category} value={category}>{getDealCategoryLabel(category, lang)}</option>
                     ))}
-                    {user && <option value="mine">My Dilz</option>}
+                    {user && <option value="mine">{lang === 'he' ? 'הדילים שלי' : 'My deals'}</option>}
                   </select>
                   <span className="dilz-view-switcher__select-chevron" aria-hidden="true" />
                 </span>
-                <span className="dilz-view-switcher__select-wrap dilz-view-switcher__select-wrap--display" title="Display">
-                  <span className="dilz-view-switcher__display-icon">
-                    <ViewSettingsIcon />
+                </div>
+                <div className="dilz-feed-controls">
+                  <span className="dilz-view-switcher__count" aria-live="polite">
+                    <strong>{displayedDealCount}</strong>
+                    <span>{lang === 'he' ? 'דילים' : 'deals'}</span>
                   </span>
-                  <select
-                    className="dilz-view-switcher__select"
-                    value={dealLayout}
-                    onChange={(event) => {
-                      if (event.target.value === 'map') {
-                        openMap();
-                        return;
-                      }
-                      changeDealLayout(event.target.value);
-                    }}
-                    aria-label={lang === 'he' ? 'Display options' : 'Display options'}
+                  <button
+                    type="button"
+                    className="dilz-map-quick-btn"
+                    onClick={openMap}
+                    aria-label={lang === 'he' ? 'תצוגת מפה' : 'Map view'}
+                    title={lang === 'he' ? 'מפה' : 'Map'}
                   >
-                    <option value="card">Cards</option>
-                    <option value="compact">Compact</option>
-                    <option value="spotlight">Row</option>
-                    <option value="map">Map</option>
-                  </select>
-                </span>
+                    <MapLayoutIcon />
+                  </button>
+                  <div className="dilz-layout-toggle" role="group" aria-label={lang === 'he' ? 'אפשרויות תצוגה' : 'Display options'}>
+                    {[
+                      { id: 'card', label: lang === 'he' ? 'כרטיסים' : 'Cards', icon: <CardLayoutIcon /> },
+                      { id: 'spotlight', label: lang === 'he' ? 'שורות' : 'Rows', icon: <RowLayoutIcon /> },
+                      { id: 'compact', label: lang === 'he' ? 'כרטיסים קטנים' : 'Small cards', icon: <CompactLayoutIcon /> },
+                    ].map((option) => (
+                      <button
+                        key={option.id}
+                        type="button"
+                        className={dealLayout === option.id ? 'is-active' : ''}
+                        onClick={() => changeDealLayout(option.id)}
+                        aria-label={option.label}
+                        aria-pressed={dealLayout === option.id}
+                        title={option.label}
+                      >
+                        {option.icon}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               </div>
 

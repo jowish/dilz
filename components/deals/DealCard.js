@@ -168,7 +168,16 @@ export function DealCard({
 
       <div className="dilz-deal-card__body">
         <div className="dilz-deal-card__safety-menu">
-          <SafetyActions contentType="deal" contentId={deal.id} authorId={deal.auteur_id} currentUserId={user?.id} lang={lang} onBlocked={onBlocked} />
+          <SafetyActions
+            contentType="deal"
+            contentId={deal.id}
+            authorId={deal.auteur_id}
+            currentUserId={user?.id}
+            lang={lang}
+            onBlocked={onBlocked}
+            onEdit={isOwner ? editOwnerDeal : undefined}
+            onDelete={isOwner && onOwnerDelete ? () => onOwnerDelete(deal.id) : undefined}
+          />
         </div>
         {isAdmin && (
           <div className="dilz-admin-controls" onClick={(event) => event.stopPropagation()}>
@@ -327,16 +336,6 @@ export function DealCard({
                 onClose={() => setShareOpen(false)}
                 onCopy={() => copyDealLink().catch(() => {})}
               />
-              {isOwner && onOwnerDelete && (
-                <>
-                  <button type="button" className="dilz-owner-edit" onClick={(event) => { event.preventDefault(); event.stopPropagation(); editOwnerDeal(); }}>
-                    Edit
-                  </button>
-                  <button type="button" className="dilz-owner-delete" onClick={(event) => { event.preventDefault(); event.stopPropagation(); onOwnerDelete(deal.id); }}>
-                    Delete
-                  </button>
-                </>
-              )}
             </div>
           </div>
         )}

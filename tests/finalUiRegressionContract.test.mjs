@@ -7,6 +7,7 @@ const read = (...parts) => readFile(path.join(process.cwd(), ...parts), 'utf8');
 
 const [
   css,
+  premiumCss,
   app,
   globalNav,
   bottomNav,
@@ -17,6 +18,7 @@ const [
   map,
 ] = await Promise.all([
   read('styles', 'globals.css'),
+  read('styles', 'premium-refresh.css'),
   read('pages', '_app.js'),
   read('components', 'layout', 'GlobalBottomNav.js'),
   read('components', 'layout', 'BottomNav.js'),
@@ -56,20 +58,22 @@ test('recent header fixes stay aligned and free of duplicate profile/theme contr
   assert.doesNotMatch(profile, /dilz-theme-toggle/);
   assert.doesNotMatch(home, /ThemeToggle/);
   assert.match(home, /className="dilz-view-switcher__select"/);
-  assert.match(home, /\{ id: 'latest', label: 'New' \}/);
-  assert.match(home, /\{ id: 'all', label: 'Hot' \}/);
-  assert.match(home, /\{ id: 'comments', label: 'Trending' \}/);
+  assert.match(home, /\{ id: 'latest', label: lang === 'he' \? '[^']+' : 'New' \}/);
+  assert.match(home, /\{ id: 'all', label: lang === 'he' \? '[^']+' : 'Hot' \}/);
+  assert.match(home, /\{ id: 'comments', label: lang === 'he' \? '[^']+' : 'Discussed' \}/);
   assert.doesNotMatch(home, /\{ id: 'active', label: 'Active' \}/);
   assert.match(home, /dealCollection === 'active'/);
   assert.match(home, /visibleDeals = dealCollection === 'active'/);
-  assert.match(home, /<option value="">Other<\/option>/);
-  assert.match(home, /<option value="active">Active<\/option>/);
-  assert.match(home, /<option value="all">All<\/option>/);
-  assert.match(home, /dilz-view-switcher__select-wrap--display/);
+  assert.match(home, /<option value="">\{lang === 'he' \? '[^']+' : 'More'\}<\/option>/);
+  assert.match(home, /<option value="active">\{lang === 'he' \? '[^']+' : 'Active'\}<\/option>/);
+  assert.match(home, /<option value="ending">\{lang === 'he' \? '[^']+' : 'Ending soon'\}<\/option>/);
   assert.match(home, /lastTrackedSearchRef/);
   assert.match(home, /fetch\('\/api\/search-analytics'/);
-  assert.doesNotMatch(home, /className="dilz-view-switcher__count"/);
-  assert.doesNotMatch(home, /className="dilz-layout-toggle"/);
+  assert.match(home, /className="dilz-view-switcher__count"/);
+  assert.match(home, /className="dilz-map-quick-btn"/);
+  assert.match(home, /className="dilz-layout-toggle"/);
+  assert.match(home, /aria-pressed=\{dealLayout === option\.id\}/);
+  assert.doesNotMatch(home, /dilz-view-switcher__select-wrap--display/);
   assert.match(home, /className="dilz-view-switcher__select-wrap"/);
   assert.match(home, /className="dilz-view-switcher__select-chevron"/);
   assert.match(home, /const \[showDealToolbar, setShowDealToolbar\] = useState\(true\)/);
@@ -77,17 +81,15 @@ test('recent header fixes stay aligned and free of duplicate profile/theme contr
   assert.match(home, /delta < -4[\s\S]*setShowDealToolbar\(true\)/);
   assert.match(home, /delta > 4 && currentY > 30[\s\S]*setShowDealToolbar\(false\)/);
   assert.match(home, /className=\{\['dilz-deal-toolbar', !showDealToolbar && 'is-hidden'\]/);
-  assert.match(css, /\.dilz-view-switcher__select\s*\{[^}]*background:\s*transparent[^}]*color:\s*var\(--text-secondary\)[^}]*font:\s*inherit/s);
-  assert.match(css, /\.dilz-deal-toolbar\s*\{[^}]*top:\s*68px[^}]*padding-top:\s*6px[^}]*padding-bottom:\s*4px/s);
+  assert.match(premiumCss, /\.dilz-view-switcher__select\s*\{[^}]*background:\s*transparent !important[^}]*color:\s*var\(--text-secondary\) !important/s);
+  assert.match(premiumCss, /\.dilz-deal-toolbar\s*\{[^}]*top:\s*64px !important[^}]*display:\s*flex !important/s);
   assert.match(css, /\.dilz-deal-toolbar\.is-hidden\s*\{[^}]*opacity:\s*0[^}]*pointer-events:\s*none/s);
-  assert.match(css, /@media \(max-width: 767px\)[\s\S]*\.dilz-deal-toolbar\s*\{[^}]*top:\s*58px/s);
+  assert.match(premiumCss, /@media \(max-width: 767px\)[\s\S]*\.dilz-deal-toolbar\s*\{[^}]*top:\s*109px !important[^}]*display:\s*grid !important/s);
   assert.match(css, /\.dilz-view-switcher__select-chevron\s*\{[^}]*border-right:\s*2px solid currentColor[^}]*transform:\s*translateY\(-65%\) rotate\(45deg\)/s);
-  assert.match(css, /\.dilz-view-switcher__select,[\s\S]*\.dilz-view-switcher__select-wrap:focus-within\s*\{[^}]*color:\s*var\(--text-secondary\) !important[^}]*box-shadow:\s*none !important[^}]*outline:\s*none !important/s);
-  assert.match(css, /@media \(max-width: 767px\)[\s\S]*\.dilz-deal-toolbar \.dilz-view-switcher\s*\{[^}]*display:\s*grid[^}]*grid-template-columns:\s*0\.96fr 0\.82fr 1\.32fr 1\.08fr 0\.62fr[^}]*overflow-x:\s*visible/s);
-  assert.match(css, /\.dilz-view-switcher__select-wrap--display \.dilz-view-switcher__select\s*\{[^}]*opacity:\s*0/s);
-  assert.match(css, /@media \(max-width: 767px\)[\s\S]*\.dilz-deal-toolbar \.dilz-view-switcher__select-wrap,[\s\S]*?width:\s*100%/s);
-  assert.match(css, /@media \(max-width: 767px\)[\s\S]*\.dilz-app-header__search\s*\{[^}]*display:\s*block[^}]*flex:\s*1 1 0/s);
-  assert.match(css, /@media \(max-width: 767px\)[\s\S]*\.dilz-mobile-search\s*\{[^}]*display:\s*none/s);
+  assert.match(premiumCss, /@media \(max-width: 767px\)[\s\S]*\.dilz-deal-toolbar \.dilz-view-switcher\s*\{[^}]*display:\s*flex !important[^}]*overflow-x:\s*auto !important/s);
+  assert.match(premiumCss, /@media \(max-width: 767px\)[\s\S]*\.dilz-app-header__search\s*\{[^}]*display:\s*none !important/s);
+  assert.match(premiumCss, /@media \(max-width: 767px\)[\s\S]*\.dilz-mobile-search\s*\{[^}]*display:\s*block !important/s);
+  assert.doesNotMatch(appHeader, /ThemeToggle/);
   assert.doesNotMatch(appHeader, /dilz-header-alerts-btn/);
   assert.doesNotMatch(appHeader, /dilz-notification-dot/);
 });

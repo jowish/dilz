@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { ThemeProvider } from 'next-themes'
 import { Analytics } from '@vercel/analytics/next';
 import '../styles/globals.css'
+import '../styles/premium-refresh.css'
 import { initializeNativeApp } from '../lib/nativeApp';
 import { AppMessages } from '../components/ui/AppMessages';
 import { GlobalBottomNav } from '../components/layout/GlobalBottomNav';

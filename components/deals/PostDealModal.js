@@ -16,12 +16,20 @@ const { DEAL_CATEGORIES, getDealCategoryLabel } = require('../../lib/dealCategor
 const { applyExtraction } = require('../../lib/dealExtraction');
 const MAX_IMAGES = 3;
 
+function StepCheckIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="m6.5 12.5 3.25 3.25L17.5 8" />
+    </svg>
+  );
+}
+
 const copy = {
   en: {
     title: 'Post a deal', subtitle: 'Share a real deal you found with the community.', signInSubtitle: 'Sign in to share real deals with the community.',
     authText: 'Voting, posting and saving are connected to your Dilz account.', signIn: 'Sign in to post', cancel: 'Cancel', back: 'Back', continue: 'Continue', publish: 'Publish deal',
     uploading: 'Uploading photos', publishing: 'Publishing', steps: ['Add', 'Review', 'Publish'],
-    uploadTitle: 'Add deal photos *', uploadHelp: 'Add 1 to 3 clear photos or screenshots. JPEG, PNG or WebP up to 5 MB each.', addPhoto: 'Add photo', remove: 'Remove',
+    uploadTitle: 'Add deal photos *', uploadHelp: 'Upload 1-3 clear photos or screenshots. JPEG, PNG or WebP, max 5 MB each.', addPhoto: 'Choose photos', remove: 'Remove',
     sourceUrlHelp: 'Optional here. Paste the deal link if you have one — we can read the details from it.', reviewIntro: 'Check the details below, then publish.', publishIntro: 'This is how your deal will look.',
     reading: 'Reading the deal details', extracted: 'We found the deal details for you. Check them before publishing.', extractedNone: 'We could not read the details automatically — fill them in below.', extractedPrice: 'The price was in another currency, so we left it for you to enter.',
     dealTitle: 'Deal title', description: 'Description', price: 'Current price', oldPrice: 'Old price', optional: 'Optional', discount: 'discount', category: 'Category', startDate: 'Start date', endDate: 'End date',
@@ -436,7 +444,7 @@ export function PostDealModal({ user, onClose, onSuccess, cityOptions = [], lang
             aria-current={step === index ? 'step' : undefined}
           >
             {/* The stage name carries the meaning; the marker is only progress. */}
-            <span aria-hidden="true">{step > index ? '✓' : ''}</span><strong>{label}</strong>
+            <span aria-hidden="true">{step > index ? <StepCheckIcon /> : index + 1}</span><strong>{label}</strong>
           </div>
         ))}
       </div>

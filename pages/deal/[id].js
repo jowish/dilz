@@ -95,6 +95,10 @@ function ShareIcon() {
   return <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>;
 }
 
+function ArrowUpRightIcon() {
+  return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M7 17 17 7"/><path d="M7 7h10v10"/></svg>;
+}
+
 function EditIcon() {
   return <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>;
 }
@@ -744,6 +748,7 @@ export default function DealPage({ initialDeal }) {
 
             <h1 className="dilz-deal-title">{deal.titre}</h1>
 
+            <div className="dilz-deal-meta-row">
             <p className="dilz-deal-meta">
               {[deal.magasin, deal.ville ? traduireVille(deal.ville, lang) : null].filter(Boolean).join(' · ')}
               {' · '}{timeAgo(deal.created_at, text)}
@@ -754,6 +759,18 @@ export default function DealPage({ initialDeal }) {
                 <Link href={`/user/${deal.auteur_id}`} className="dilz-deal-author-link">{text.by} {deal.auteur_nom}</Link>
               ) : deal.auteur_nom ? `${text.by} ${deal.auteur_nom}` : ''}
             </p>
+              <SafetyActions
+                contentType="deal"
+                contentId={deal.id}
+                authorId={deal.auteur_id}
+                currentUserId={user?.id}
+                lang={lang}
+                onBlocked={(userId) => {
+                  setBlockedUserIds((current) => current.includes(userId) ? current : [...current, userId]);
+                  router.replace('/?tab=dilz');
+                }}
+              />
+            </div>
             {deal.adresse && (
               <button
                 type="button"
@@ -774,19 +791,19 @@ export default function DealPage({ initialDeal }) {
                 <small>{lang === 'he' ? 'לחיצה לפתיחת ניווט · לחיצה ארוכה להעתקה' : 'Tap for GPS · long press to copy'}</small>
               </button>
             )}
-            <div className="dilz-deal-safety-row">
-              <SafetyActions
-                contentType="deal"
-                contentId={deal.id}
-                authorId={deal.auteur_id}
-                currentUserId={user?.id}
-                lang={lang}
-                onBlocked={(userId) => {
-                  setBlockedUserIds((current) => current.includes(userId) ? current : [...current, userId]);
-                  router.replace('/?tab=dilz');
-                }}
-              />
-            </div>
+            {deal.url_source ? (
+              <a href={deal.url_source} target="_blank" rel="noopener noreferrer" className="dilz-deal-source-link">
+                <span>{lang === 'he' ? text.online : 'Get deal'}</span><ArrowUpRightIcon />
+              </a>
+            ) : (deal.adresse || (deal.latitude && deal.longitude)) ? (
+              <button type="button" className="dilz-deal-source-link" onClick={handleAddressClick}>
+                <span>{lang === 'he' ? '\u05e4\u05ea\u05d9\u05d7\u05d4 \u05d1\u05e0\u05d9\u05d5\u05d5\u05d8' : 'Open location'}</span><ArrowUpRightIcon />
+              </button>
+            ) : !deal.is_ad ? (
+              <button type="button" className="dilz-deal-source-link" onClick={handleToggleSaveDeal} disabled={saveSubmitting}>
+                <span>{dealSaved ? (lang === 'he' ? '\u05e0\u05e9\u05de\u05e8' : 'Saved') : (lang === 'he' ? '\u05e9\u05de\u05d9\u05e8\u05ea \u05d4\u05d3\u05d9\u05dc' : 'Save deal')}</span><BookmarkIcon filled={dealSaved} />
+              </button>
+            ) : null}
 
             {(deal.date_debut || deal.date_fin) && (
               <div className="dilz-deal-dates">
@@ -799,12 +816,6 @@ export default function DealPage({ initialDeal }) {
               <div className="dilz-deal-description">
                 <p>{deal.description}</p>
               </div>
-            )}
-
-            {deal.url_source && (
-              <a href={deal.url_source} target="_blank" rel="noopener noreferrer" className="dilz-deal-source-link">
-                {text.online} ↗
-              </a>
             )}
 
             {!deal.is_ad && (

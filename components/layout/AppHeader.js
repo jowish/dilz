@@ -6,6 +6,15 @@ import { SearchBar } from '../ui/SearchBar';
 import { Wordmark } from '../ui/Brand';
 import { supabase } from '../../lib/supabase';
 
+function PinIcon() {
+  return (
+    <svg className="dilz-header-city__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M20 10c0 5-8 12-8 12S4 15 4 10a8 8 0 1 1 16 0Z" />
+      <circle cx="12" cy="10" r="2.5" />
+    </svg>
+  );
+}
+
 function Logo({ onClick }) {
   const content = (
     <span className="dilz-logo-lockup" aria-label="dILz">
@@ -122,8 +131,9 @@ export function AppHeader({
               <option key={option.id} value={option.id}>{option.label}</option>
             ))}
           </select>
-          <Button variant="secondary" size="sm" onClick={onCityClick}>
-            {cityLabel || labels.allIsrael}
+          <Button className="dilz-header-city" variant="secondary" size="sm" onClick={onCityClick}>
+            <PinIcon />
+            <span>{cityLabel || labels.allIsrael}</span>
           </Button>
           <IconButton onClick={goAlerts} aria-label={labels.alerts}>
             <BellIcon />
