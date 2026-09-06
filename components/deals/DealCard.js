@@ -121,7 +121,7 @@ export function DealCard({
             // two cards that actually fit on a phone screen.
             loading={priority ? 'eager' : 'lazy'}
             decoding="async"
-            fetchpriority={priority ? 'high' : 'low'}
+            fetchPriority={priority ? 'high' : 'low'}
             onError={(event) => {
               // If the optimizer rejects this URL for any reason, fall back to
               // the original once before giving up, so a card can never end up

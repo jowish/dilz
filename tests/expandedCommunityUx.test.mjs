@@ -271,21 +271,36 @@ test('compact and spotlight views remain bounded while global zoom and horizonta
   assert.match(premiumCss, /\.dilz-feed-grid\.is-compact\s*\{[^}]*repeat\(4/s);
   assert.match(premiumCss, /@media \(max-width: 767px\)[\s\S]*\.dilz-feed-grid\.is-compact\s*\{[^}]*repeat\(2/s);
   assert.match(premiumCss, /\.dilz-deal-card\.is-compact \.dilz-deal-card__ending-badge,[\s\S]*display:\s*none !important/s);
-  assert.match(premiumCss, /\.dilz-deal-card\.is-list,[\s\S]*grid-template-columns:\s*112px minmax\(0, 1fr\)/s);
-  assert.match(premiumCss, /\.dilz-deal-card\.is-list \.dilz-deal-card__actions,[\s\S]*position:\s*absolute !important/s);
-  assert.match(premiumCss, /\.dilz-deal-card\.is-list \.dilz-deal-card__price-context > span,[\s\S]*text-decoration:\s*none !important/s);
-  assert.match(premiumCss, /\.dilz-deal-card\.is-list \.dilz-deal-card__right-actions,[\s\S]*display:\s*none !important/s);
+  // `.is-list` no longer appears anywhere: it's a legacy layout value that
+  // normalizeDealLayoutPreference()/resolveDealLayout() both migrate straight
+  // to 'spotlight' (see lib/userPreferences.js, lib/navigationState.js), so
+  // it was dead, unreachable CSS. Its row layout (.is-spotlight, the feed's
+  // actual default) was rewritten from scratch: the old version pinned
+  // .dilz-deal-card__actions to `position: absolute` in a box too small for
+  // the vote pill + "View deal" button it actually holds, which is exactly
+  // the bug that made them overlap the title and price (confirmed via a
+  // real screenshot, not just reasoning about the CSS).
+  assert.doesNotMatch(premiumCss, /\.dilz-deal-card\.is-list/);
+  assert.match(premiumCss, /\.dilz-feed-grid\.is-spotlight \.dilz-deal-card\.is-spotlight \{[^}]*grid-template-columns:\s*104px minmax\(0, 1fr\)/s);
+  assert.doesNotMatch(premiumCss, /\.dilz-feed-grid\.is-spotlight \.dilz-deal-card\.is-spotlight \.dilz-deal-card__actions \{[^}]*position:\s*absolute/s);
+  assert.match(premiumCss, /\.dilz-feed-grid\.is-spotlight \.dilz-deal-card\.is-spotlight \.dilz-deal-card__actions \{[^}]*position:\s*static/s);
+  assert.match(premiumCss, /\.dilz-feed-grid\.is-spotlight \.dilz-deal-card\.is-spotlight \.dilz-deal-card__right-actions\s*\{[^}]*display:\s*none/s);
   assert.match(premiumCss, /\.dilz-deal-card__price-row strong\s*\{[^}]*background:\s*transparent !important/s);
   assert.match(premiumCss, /\.dilz-deal-price\s*\{[^}]*background:\s*transparent !important/s);
   assert.match(premiumCss, /\.dilz-deal-card__save \.dilz-icon-button,[\s\S]*width:\s*32px !important/s);
   assert.match(premiumCss, /\.dilz-deal-card__price-row strong\s*\{[^}]*white-space:\s*nowrap !important/s);
   assert.match(premiumCss, /\.dilz-deal-card__price-row > span:not\(\.dilz-deal-card__price-context\)\s*\{[^}]*white-space:\s*nowrap !important/s);
-  assert.match(premiumCss, /@media \(max-width: 767px\)[\s\S]*\.dilz-deal-card\.is-list,[\s\S]*grid-template-columns:\s*94px minmax\(0, 1fr\)/s);
-  assert.match(premiumCss, /\.dilz-feed-grid\.is-spotlight \.dilz-deal-card\.is-spotlight[\s\S]*grid-template-columns:\s*112px minmax\(0, 1fr\)/s);
+  // Row cards restore two things the old version hid outright in this exact
+  // layout: the poster's contribution tier (#45) and the freshness signal
+  // (#P0.2's lifecycle) both used to be `display: none` in row mode, which
+  // is the one view everyone actually sees by default.
+  assert.match(premiumCss, /\.dilz-feed-grid\.is-spotlight \.dilz-deal-card\.is-spotlight \.dilz-poster-tier\s*\{/s);
+  assert.doesNotMatch(premiumCss, /\.dilz-feed-grid\.is-spotlight \.dilz-deal-card\.is-spotlight \.dilz-deal-card__author\s*\{[^}]*display:\s*none/s);
+  assert.doesNotMatch(premiumCss, /\.dilz-feed-grid\.is-spotlight \.dilz-deal-card\.is-spotlight \.dilz-deal-card__meta\s*\{[^}]*display:\s*none/s);
   assert.match(css, /\.dilz-deal-card\.is-expired \.dilz-deal-card__media img,[\s\S]*filter:\s*grayscale\(1\)/s);
   assert.match(css, /\.dilz-deal-card\.is-expired \.dilz-deal-card__body,[\s\S]*color:\s*var\(--text-muted\) !important/s);
   assert.match(css, /\.dilz-deal-card__expired-stamp\s*\{[^}]*background:\s*#FEF2F2[^}]*color:\s*#DC2626/s);
-  assert.match(premiumCss, /@media \(max-width: 767px\)[\s\S]*\.dilz-feed-grid\.is-spotlight \.dilz-deal-card\.is-spotlight[\s\S]*grid-template-columns:\s*94px minmax\(0, 1fr\)/s);
+  assert.match(premiumCss, /@media \(min-width:\s*640px\)[\s\S]*\.dilz-feed-grid\.is-spotlight \.dilz-deal-card\.is-spotlight \{[^}]*grid-template-columns:\s*132px minmax\(0, 1fr\)/s);
   assert.match(css, /overflow-x:\s*hidden/);
   assert.match(documentPage, /maximum-scale=1, user-scalable=no/);
 });
