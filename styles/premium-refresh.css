@@ -264,7 +264,9 @@ body {
 /* Feed controls --------------------------------------------------------- */
 
 .dilz-deal-toolbar {
-  top: 64px !important;
+  /* Header height + the notch, both from the tokens defined in globals.css
+     — see the --dilz-header-block comment there. */
+  top: calc(var(--dilz-header-block) + var(--dilz-safe-top)) !important;
   z-index: 105 !important;
   display: flex !important;
   align-items: center;
@@ -2659,7 +2661,10 @@ body {
   }
 
   .dilz-app-header__inner {
-    height: 54px !important;
+    /* 48px, not 54px: the row only has to hold the 44px logo tap target,
+       and every pixel of slack here is pushed down the page by the notch
+       above it. Keep in step with --dilz-header-block in globals.css. */
+    height: 48px !important;
     padding-inline: 14px !important;
   }
 
@@ -2677,7 +2682,9 @@ body {
     width: 100%;
     display: block !important;
     margin: 0 !important;
-    padding: 0 14px 11px !important;
+    /* 8px below the 44px search bar. Keep in step with
+       --dilz-header-block in globals.css. */
+    padding: 0 14px 8px !important;
   }
 
   .dilz-mobile-search .dilz-search-bar {
@@ -2711,17 +2718,20 @@ body {
   }
 
   .dilz-page-shell {
-    padding: 8px 12px 136px !important;
+    padding: 6px 12px 136px !important;
   }
 
   .dilz-deal-toolbar {
-    top: 109px !important;
+    /* Was a hardcoded 109px — the header's height with the notch left out,
+       which parked 59px of this bar behind the header on a Dynamic Island
+       phone. Both parts now come from the tokens in globals.css. */
+    top: calc(var(--dilz-header-block) + var(--dilz-safe-top)) !important;
     display: grid !important;
     grid-template-columns: minmax(0, 1fr);
-    gap: 7px !important;
+    gap: 6px !important;
     margin-inline: -12px !important;
-    margin-bottom: 10px !important;
-    padding: 8px 12px 9px !important;
+    margin-bottom: 8px !important;
+    padding: 6px 12px !important;
     border-bottom-color: var(--border-soft);
   }
 
@@ -2764,15 +2774,15 @@ body {
     justify-content: flex-end;
   }
 
+  /* Pushes the count to the leading edge of the row, the display controls
+     to the trailing edge. margin-inline-end resolves per writing direction
+     on its own, so there is no physical-margin pair to keep mirrored — the
+     [dir="rtl"] override this replaces existed only to undo the LTR one.
+     No padding override either: the base rule's symmetric `0 10px` keeps
+     the number a full gutter clear of the screen edge, where the 2px it
+     used to have left it flush against it. */
   .dilz-view-switcher__count {
-    margin-right: auto;
-    padding-left: 2px !important;
-  }
-
-  [dir="rtl"] .dilz-view-switcher__count {
-    margin-right: 0;
-    margin-left: auto;
-    padding-right: 2px !important;
+    margin-inline-end: auto;
   }
 
   .dilz-map-quick-btn {
@@ -2782,7 +2792,9 @@ body {
   }
 
   .dilz-layout-toggle {
-    height: 38px;
+    /* Matches the 36px map button beside it; the 30px buttons inside are
+       unchanged. */
+    height: 36px;
   }
 
   .dilz-layout-toggle button {

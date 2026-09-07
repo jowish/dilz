@@ -82,9 +82,23 @@ test('recent header fixes stay aligned and free of duplicate profile/theme contr
   assert.match(home, /delta > 4 && currentY > 30[\s\S]*setShowDealToolbar\(false\)/);
   assert.match(home, /className=\{\['dilz-deal-toolbar', !showDealToolbar && 'is-hidden'\]/);
   assert.match(premiumCss, /\.dilz-view-switcher__select\s*\{[^}]*background:\s*transparent !important[^}]*color:\s*var\(--text-secondary\) !important/s);
-  assert.match(premiumCss, /\.dilz-deal-toolbar\s*\{[^}]*top:\s*64px !important[^}]*display:\s*flex !important/s);
+  // The sticky filter bar pins itself directly under .dilz-app-header, so its
+  // offset has to be the header's own height PLUS the status-bar inset. These
+  // two assertions used to pin bare pixel values (64px desktop, 109px mobile).
+  // Those values described a header with no notch: the header reserves
+  // env(safe-area-inset-top) on top of them, so on a Dynamic Island iPhone the
+  // real header was 169px tall while the bar still stuck at 109px and 60px of
+  // it sat behind the header. Pinning the calc() keeps the inset in the offset;
+  // a bare pixel value must never come back here.
+  const stickyUnderHeader = /top:\s*calc\(var\(--dilz-header-block\) \+ var\(--dilz-safe-top\)\) !important/;
+  assert.match(premiumCss, new RegExp(String.raw`\.dilz-deal-toolbar\s*\{[^}]*${stickyUnderHeader.source}[^}]*display:\s*flex !important`, 's'));
   assert.match(css, /\.dilz-deal-toolbar\.is-hidden\s*\{[^}]*opacity:\s*0[^}]*pointer-events:\s*none/s);
-  assert.match(premiumCss, /@media \(max-width: 767px\)[\s\S]*\.dilz-deal-toolbar\s*\{[^}]*top:\s*109px !important[^}]*display:\s*grid !important/s);
+  assert.match(premiumCss, new RegExp(String.raw`@media \(max-width: 767px\)[\s\S]*\.dilz-deal-toolbar\s*\{[^}]*${stickyUnderHeader.source}[^}]*display:\s*grid !important`, 's'));
+  // Both halves of that offset are declared once, in globals.css.
+  assert.match(css, /:root\s*\{[^}]*--dilz-safe-top:\s*env\(safe-area-inset-top, 0px\)/s);
+  assert.match(css, /:root\s*\{[^}]*--dilz-header-block:\s*64px/s);
+  assert.match(css, /@media \(max-width: 767px\)\s*\{\s*:root\s*\{[^}]*--dilz-header-block:\s*100px/s);
+  assert.match(css, /\.dilz-app-header\s*\{\s*padding-top:\s*var\(--dilz-safe-top\) !important/s);
   assert.match(css, /\.dilz-view-switcher__select-chevron\s*\{[^}]*border-right:\s*2px solid currentColor[^}]*transform:\s*translateY\(-65%\) rotate\(45deg\)/s);
   assert.match(premiumCss, /@media \(max-width: 767px\)[\s\S]*\.dilz-deal-toolbar \.dilz-view-switcher\s*\{[^}]*display:\s*flex !important[^}]*overflow-x:\s*auto !important/s);
   assert.match(premiumCss, /@media \(max-width: 767px\)[\s\S]*\.dilz-app-header__search\s*\{[^}]*display:\s*none !important/s);
