@@ -88,7 +88,12 @@ test('profile tab links to the signed-in user\'s own public profile, bilingually
 test('theme controls live only in account settings and support system mode', () => {
   assert.doesNotMatch(appHeader, /ThemeToggle/);
   assert.match(app, /defaultTheme="system" enableSystem/);
-  assert.match(themePreference, /THEME_VALUES = Object\.freeze\(\['light', 'dark', 'system'\]\)/);
+  // 'warm' was added as a third palette; light, dark and system keep their
+  // places, and next-themes has to be told about the class themes explicitly
+  // or it never applies .warm.
+  assert.match(themePreference, /THEME_VALUES = Object\.freeze\(\['light', 'dark', 'warm', 'system'\]\)/);
+  assert.match(themePreference, /THEME_CLASSES = Object\.freeze\(\['light', 'dark', 'warm'\]\)/);
+  assert.match(app, /themes=\{THEME_CLASSES\}/);
   assert.match(profile, /useTheme\(\)/);
   assert.match(profile, /THEME_VALUES\.map\(\(value\) =>/);
   assert.match(profile, /setTheme\(nextTheme\)/);

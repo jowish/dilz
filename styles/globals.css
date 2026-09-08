@@ -10127,3 +10127,114 @@ select:focus,
   border-color: var(--saving-soft) !important;
   color: var(--saving) !important;
 }
+
+/* ── "Warm" theme (third option, alongside light and dark) ──────────────
+   A cream-and-teal palette, selected in account settings. It is a THIRD
+   theme, not a variant of the other two: nothing above this block was
+   changed to add it, so light and dark render exactly as they did before.
+
+   Placement matters. Theme tokens live in `:root` (light) and `.dark`
+   blocks scattered through this file — the last one in source order wins,
+   because `:root` and a class both have (0,1,0) specificity. `.warm` is
+   declared here, after the final `:root` (the tab-bar block), so it
+   overrides every light default. next-themes puts the class on <html>.
+
+   Contrast, measured against this palette's own surfaces (WCAG 2.1 AA
+   needs 4.5:1 for body text, 3:1 for large text and UI boundaries):
+     --text-primary   #1A1A1A on #F2EFE6 = 15.1:1   on #FAF8F3 = 16.4:1
+     --text-secondary #6B6862 on #F2EFE6 =  4.8:1   on #FAF8F3 =  5.2:1
+     --brand          #1D5B54 on #F2EFE6 =  6.8:1   on #FAF8F3 =  7.4:1
+     #FFFFFF on --brand #1D5B54          =  7.9:1  (button labels)
+     --danger         #B3261E on #F2EFE6 =  5.7:1
+     --warning        #8A5A00 on #F2EFE6 =  5.2:1
+   --text-muted deliberately holds the same value as --text-secondary: any
+   lighter warm grey drops under 4.5:1 on this cream, and muted text is
+   real body copy here (deal meta, bylines), not decoration. --text-disabled
+   is the only sub-AA value, which WCAG exempts for disabled controls. */
+.warm {
+  color-scheme: light;
+
+  /* ── Surfaces: cream page, lighter cream cards ── */
+  --bg: #F2EFE6;
+  --bg-app: #F2EFE6;
+  --section-bg: #F2EFE6;
+  --bg-soft: #EDE9DE;
+  --bg-surface: #FAF8F3;
+  --bg-card: #FAF8F3;
+  --bg-card2: #EDE9DE;
+  --bg-input: #FAF8F3;
+  --surface-main: #FAF8F3;
+  --surface-soft: #EDE9DE;
+  --surface-elevated: #FFFDF8;
+  --surface-dark: #1A1A1A;
+
+  /* ── Text ── */
+  --text: #1A1A1A;
+  --text-primary: #1A1A1A;
+  --text-secondary: #6B6862;
+  --text-sub: #6B6862;
+  --text-muted: #6B6862;
+  --text-disabled: #A8A49B;
+  --text-inverted: #FAF8F3;
+
+  /* ── Borders: warm grey, deliberately low contrast ── */
+  --border: rgba(58, 52, 38, 0.16);
+  --border-default: rgba(58, 52, 38, 0.16);
+  --border-soft: rgba(58, 52, 38, 0.09);
+  --border-strong: rgba(58, 52, 38, 0.28);
+  --border-focus: #1D5B54;
+
+  /* ── Accent: deep teal green replaces the orange, in this theme only ── */
+  --brand: #1D5B54;
+  --brand-hover: #174A44;
+  --brand-active: #113833;
+  --brand-soft: rgba(29, 91, 84, 0.12);
+  --brand-softer: rgba(29, 91, 84, 0.07);
+  --accent-rgb: 29, 91, 84;
+  --primary: #1A1A1A;
+  --primary-hover: #2C2C2C;
+  --primary-active: #0D0D0D;
+
+  /* ── Savings/discount: the same teal, not red or orange ── */
+  --savings: #1D5B54;
+  --saving: #1D5B54;
+  --saving-hover: #174A44;
+  --savings-soft: rgba(29, 91, 84, 0.12);
+  --saving-soft: rgba(29, 91, 84, 0.12);
+
+  /* ── Votes: "hot" carries the accent here rather than the orange ── */
+  --vote-up: #1D5B54;
+  --vote-down: #1A1A1A;
+  --vote-active-bg: rgba(29, 91, 84, 0.12);
+  --vote-neutral-bg: #EDE9DE;
+
+  /* ── Status colours stay semantic (a warning must not read as an
+        accent), re-mixed warm and darkened to clear AA on cream ── */
+  --urgent: #B3261E;
+  --danger: #B3261E;
+  --urgent-soft: rgba(179, 38, 30, 0.10);
+  --danger-soft: rgba(179, 38, 30, 0.10);
+  --warning: #8A5A00;
+  --warning-soft: rgba(138, 90, 0, 0.10);
+
+  /* ── Chrome ── */
+  --nav-bg: rgba(242, 239, 230, 0.94);
+  --header-bg: rgba(242, 239, 230, 0.94);
+  --shadow-card: none;
+  --shadow-card-hover: none;
+  --shadow-modal: 0 18px 50px rgba(43, 38, 28, 0.16);
+  --shadow-nav: 0 -1px 0 rgba(58, 52, 38, 0.12);
+
+  /* ── Floating tab bar (its own token set, see the block above) ── */
+  --dilz-tabbar-bg: rgba(250, 248, 243, 0.52);
+  --dilz-tabbar-border: rgba(255, 255, 255, 0.62);
+  --dilz-tabbar-shadow:
+    0 10px 34px rgba(43, 38, 28, 0.16),
+    0 1px 1px rgba(255, 255, 255, 0.70) inset,
+    0 -1px 1px rgba(43, 38, 28, 0.06) inset;
+  --dilz-tabbar-active-bg: rgba(255, 255, 255, 0.44);
+  --dilz-tabbar-glint: rgba(255, 255, 255, 0.70);
+  --dilz-tabbar-caustic: rgba(29, 91, 84, 0.10);
+  --dilz-liquid-edge: rgba(255, 255, 255, 0.72);
+  --dilz-liquid-edge-dark: rgba(43, 38, 28, 0.10);
+}

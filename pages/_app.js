@@ -6,7 +6,7 @@ import '../styles/premium-refresh.css'
 import { initializeNativeApp } from '../lib/nativeApp';
 import { AppMessages } from '../components/ui/AppMessages';
 import { GlobalBottomNav } from '../components/layout/GlobalBottomNav';
-import { THEME_STORAGE_KEY } from '../lib/themePreference';
+import { THEME_STORAGE_KEY, THEME_CLASSES } from '../lib/themePreference';
 
 export default function App({ Component, pageProps }) {
   const [showSplash, setShowSplash] = useState(true);
@@ -25,8 +25,11 @@ export default function App({ Component, pageProps }) {
     return () => window.clearTimeout(minDelay);
   }, []);
 
+  // `themes` has to be passed explicitly: next-themes only knows light/dark
+  // by default, and without warm in that list it never puts the .warm class
+  // on <html>. Light and dark keep the exact behaviour they had.
   return (
-    <ThemeProvider attribute="class" defaultTheme="system" enableSystem storageKey={THEME_STORAGE_KEY}>
+    <ThemeProvider attribute="class" defaultTheme="system" enableSystem themes={THEME_CLASSES} storageKey={THEME_STORAGE_KEY}>
       {showSplash && <DilzSplashScreen />}
       <AppMessages />
       <Component {...pageProps} />
