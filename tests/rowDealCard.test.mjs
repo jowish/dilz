@@ -60,10 +60,22 @@ test('the photo runs the full height of the row, and the title leads', () => {
   assert.match(premium, /\.dilz-feed-grid\.is-spotlight[^{]*\.dilz-deal-card__media img \{[^}]*object-fit: cover/s);
   // Two rules further up set .dilz-deal-card h3 with !important, one of them
   // inside the phone media query, so the row's own size has to be as loud.
-  // 20px since the description came off the card — the title took the room
-  // it used to spend. Still has to shout: the two rules above it are
-  // !important, one of them inside the phone media query.
-  assert.match(premium, /\.dilz-feed-grid\.is-spotlight[^{]*\.is-spotlight h3 \{[^}]*font-size: 20px !important/s);
+  // The size itself went 18 -> 20 when the description came off the card, and
+  // the phone override went to 21; the maintainer read both as too large, so
+  // the title is 18px again at every width. Measured on a 393px viewport at
+  // DPR 3: title 18px, price 20px.
+  assert.match(premium, /\.dilz-feed-grid\.is-spotlight[^{]*\.is-spotlight h3 \{[^}]*font-size: 18px !important/s);
+  const phoneBlock = premium.slice(premium.lastIndexOf('@media (max-width: 767px)'));
+  assert.match(phoneBlock, /\.is-spotlight h3 \{[^}]*font-size: 18px !important/s);
+  // The price is 20px on the row card at every width. Three rules can set it
+  // — the un-mediaed spotlight rule, the phone one and the tablet one — and
+  // all three have to agree, or whichever happens to be last wins and the
+  // size moves without anyone choosing it. That is how it reached 24px.
+  const priceSizes = [...premium.matchAll(
+    /\.dilz-feed-grid\.is-spotlight[^{]*\.is-spotlight \.dilz-deal-card__price-row strong \{[^}]*?font-size: ([\d.]+)px !important/gs,
+  )].map((m) => m[1]);
+  assert.equal(priceSizes.length, 3, 'the row card price is set in exactly three places');
+  assert.deepEqual(priceSizes, ['20', '20', '20']);
   // The description is rendered on the deal page, never on the feed card.
   assert.doesNotMatch(card, /dilz-deal-card__description/);
   // And it belongs in this file only: defining the row in both stylesheets is
