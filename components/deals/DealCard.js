@@ -239,9 +239,9 @@ export function DealCard({
         {/* In the row the byline closes the card instead of interrupting it,
             and carries the age with it: "Shared by Dana 2 days ago". */}
         {!isRow && authorLine}
-        {deal.description && (
-          <p className="dilz-deal-card__description">{deal.description}</p>
-        )}
+        {/* The description is not rendered on the feed card: it belongs to the
+            deal itself, and the room it took is given to the title, the price
+            and the saving instead. It still renders on the deal page. */}
         <div className="dilz-deal-card__price-row">
           {/* FREE rather than "0 ₪"; the struck-through original only renders
               when it is a real price genuinely higher than the current one. */}
