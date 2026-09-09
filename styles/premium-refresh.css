@@ -989,7 +989,7 @@ body {
 /* The base .dilz-deal-card__price-row strong rule above is 20px !important,
    so the row card's own size has to be as loud to be heard at all. */
 .dilz-feed-grid.is-spotlight .dilz-deal-card.is-spotlight .dilz-deal-card__price-row strong {
-  font-size: 21px !important;
+  font-size: 20.5px !important;
 }
 
 /* Freshness ("Verified today") is the one lifecycle signal worth the width
@@ -1066,7 +1066,7 @@ body {
      20px !important; note the block below this one is min-width: 640px, so
      it is a tablet rule, not the phone one. */
   .dilz-feed-grid.is-spotlight .dilz-deal-card.is-spotlight .dilz-deal-card__price-row strong {
-    font-size: 24px !important;
+    font-size: 21px !important;
   }
 }
 
@@ -1098,7 +1098,7 @@ body {
   }
 
   .dilz-feed-grid.is-spotlight .dilz-deal-card.is-spotlight .dilz-deal-card__price-row strong {
-    font-size: 23px !important;
+    font-size: 21px !important;
   }
 }
 
@@ -3131,9 +3131,10 @@ body {
 .dilz-feed-grid.is-spotlight .dilz-deal-card.is-spotlight h3 {
   margin: 1px 0 2px !important;
   min-height: 0 !important;
-  /* 20px, up from 18px: the description no longer sits on the card, so the
-     title takes the room it used to spend. */
-  font-size: 20px !important;
+  /* 19px, up from 18px. A first pass tried 20/21px and read as too big on a
+     real phone — the room the description freed is better left as breathing
+     space than spent entirely on type. */
+  font-size: 19px !important;
   line-height: 1.2 !important;
   font-weight: 900 !important;
   letter-spacing: -0.01em;
@@ -3152,7 +3153,7 @@ body {
 .dilz-feed-grid.is-spotlight .dilz-deal-card.is-spotlight .dilz-deal-card__price-row .dilz-badge {
   min-height: 24px;
   padding: 0 10px !important;
-  font-size: 13.5px !important;
+  font-size: 12.5px !important;
 }
 
 /* Walk in, or click through — said at the top, where it is looked for. */
@@ -3239,13 +3240,13 @@ body {
    now have the room the description was using. */
 @media (max-width: 767px) {
   .dilz-feed-grid.is-spotlight .dilz-deal-card.is-spotlight h3 {
-    font-size: 21px !important;
-    line-height: 1.18 !important;
+    font-size: 19px !important;
+    line-height: 1.2 !important;
   }
 
   .dilz-feed-grid.is-spotlight .dilz-deal-card.is-spotlight .dilz-deal-card__price-row .dilz-badge {
-    min-height: 26px;
-    padding: 0 11px !important;
-    font-size: 14.5px !important;
+    min-height: 24px;
+    padding: 0 10px !important;
+    font-size: 12.5px !important;
   }
 }

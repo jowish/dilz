@@ -60,10 +60,11 @@ test('the photo runs the full height of the row, and the title leads', () => {
   assert.match(premium, /\.dilz-feed-grid\.is-spotlight[^{]*\.dilz-deal-card__media img \{[^}]*object-fit: cover/s);
   // Two rules further up set .dilz-deal-card h3 with !important, one of them
   // inside the phone media query, so the row's own size has to be as loud.
-  // 20px since the description came off the card — the title took the room
-  // it used to spend. Still has to shout: the two rules above it are
-  // !important, one of them inside the phone media query.
-  assert.match(premium, /\.dilz-feed-grid\.is-spotlight[^{]*\.is-spotlight h3 \{[^}]*font-size: 20px !important/s);
+  // 19px since the description came off the card. A first pass at 20/21px
+  // read as too big on a real phone and was dialled back. Still has to
+  // shout: the two rules above it are !important, one inside the phone
+  // media query.
+  assert.match(premium, /\.dilz-feed-grid\.is-spotlight[^{]*\.is-spotlight h3 \{[^}]*font-size: 19px !important/s);
   // The description is rendered on the deal page, never on the feed card.
   assert.doesNotMatch(card, /dilz-deal-card__description/);
   // And it belongs in this file only: defining the row in both stylesheets is
