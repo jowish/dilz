@@ -205,7 +205,10 @@ test('the loupe is a CLEAR glass lens on touch/move (no frosted blur)', () => {
   // Post tint is CSS-variable driven, so it does not overwrite the glass sheen
   assert.match(nav, /'--dilz-loupe-post-alpha': postTint\.toFixed\(3\)/);
   assert.doesNotMatch(nav, /loupeStyle\.background/);
-  assert.match(css, /rgba\(249,\s*115,\s*22,\s*var\(--dilz-loupe-post-alpha,\s*0\)\)/);
+  // The tint is the theme's accent, not a hardcoded orange, so the Post
+  // bubble turns teal in the warm theme like every other accent surface.
+  assert.match(css, /rgba\(var\(--accent-rgb\),\s*var\(--dilz-loupe-post-alpha,\s*0\)\)/);
+  assert.doesNotMatch(css, /rgba\(249,\s*115,\s*22,\s*var\(--dilz-loupe-post-alpha/);
   assert.match(css, /\.dilz-bottom-nav__loupe::before\s*\{[^}]*linear-gradient\(180deg/s);
   // iridescent rim ring still there, but controlled by CSS variables
   assert.match(css, /\.dilz-bottom-nav__loupe::after\s*\{[^}]*conic-gradient/s);

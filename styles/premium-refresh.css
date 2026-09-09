@@ -986,8 +986,10 @@ body {
   flex-wrap: wrap;
 }
 
+/* The base .dilz-deal-card__price-row strong rule above is 20px !important,
+   so the row card's own size has to be as loud to be heard at all. */
 .dilz-feed-grid.is-spotlight .dilz-deal-card.is-spotlight .dilz-deal-card__price-row strong {
-  font-size: 17px;
+  font-size: 21px !important;
 }
 
 /* Freshness ("Verified today") is the one lifecycle signal worth the width
@@ -1057,6 +1059,15 @@ body {
     padding-inline: 12px;
     font-size: 13px;
   }
+
+  /* Phone sizes for the row card. The price and the saving are what the feed
+     is scanned for, and the description no longer competes with them.
+     !important because the base .dilz-deal-card__price-row strong rule is
+     20px !important; note the block below this one is min-width: 640px, so
+     it is a tablet rule, not the phone one. */
+  .dilz-feed-grid.is-spotlight .dilz-deal-card.is-spotlight .dilz-deal-card__price-row strong {
+    font-size: 24px !important;
+  }
 }
 
 .dilz-feed-grid.is-spotlight .dilz-deal-card.is-spotlight .dilz-deal-card__safety-menu {
@@ -1087,7 +1098,7 @@ body {
   }
 
   .dilz-feed-grid.is-spotlight .dilz-deal-card.is-spotlight .dilz-deal-card__price-row strong {
-    font-size: 19px;
+    font-size: 23px !important;
   }
 }
 
@@ -3120,7 +3131,9 @@ body {
 .dilz-feed-grid.is-spotlight .dilz-deal-card.is-spotlight h3 {
   margin: 1px 0 2px !important;
   min-height: 0 !important;
-  font-size: 18px !important;
+  /* 20px, up from 18px: the description no longer sits on the card, so the
+     title takes the room it used to spend. */
+  font-size: 20px !important;
   line-height: 1.2 !important;
   font-weight: 900 !important;
   letter-spacing: -0.01em;
@@ -3131,6 +3144,15 @@ body {
    a line through it. */
 .dilz-deal-card__price-row .dilz-badge {
   text-decoration: none;
+}
+
+/* The saving is the number people scan for after the price, so it grows with
+   it. Scoped to the row card's price line: every other badge in the app keeps
+   its size. */
+.dilz-feed-grid.is-spotlight .dilz-deal-card.is-spotlight .dilz-deal-card__price-row .dilz-badge {
+  min-height: 24px;
+  padding: 0 10px !important;
+  font-size: 13.5px !important;
 }
 
 /* Walk in, or click through — said at the top, where it is looked for. */
@@ -3202,4 +3224,28 @@ body {
 .dilz-feed-grid.is-spotlight .dilz-deal-card.is-spotlight .dilz-deal-card__row-tools {
   min-width: 0;
   flex: 0 1 auto;
+}
+
+
+/* ── Row card, phone sizes — kept at the end on purpose ─────────────────
+   The title and the saving badge are also set further up this file (h3 at
+   "The title is what someone scans the feed for", the badge just below it),
+   both with !important. Equal specificity and equal importance means source
+   order decides, so a phone override written earlier in the file loses. It
+   has to be last.
+
+   The numbers went up because the description came off the card: the row is
+   scanned for the title, then the price, then the saving, and those three
+   now have the room the description was using. */
+@media (max-width: 767px) {
+  .dilz-feed-grid.is-spotlight .dilz-deal-card.is-spotlight h3 {
+    font-size: 21px !important;
+    line-height: 1.18 !important;
+  }
+
+  .dilz-feed-grid.is-spotlight .dilz-deal-card.is-spotlight .dilz-deal-card__price-row .dilz-badge {
+    min-height: 26px;
+    padding: 0 11px !important;
+    font-size: 14.5px !important;
+  }
 }
