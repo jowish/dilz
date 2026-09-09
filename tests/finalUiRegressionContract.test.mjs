@@ -70,9 +70,12 @@ test('recent header fixes stay aligned and free of duplicate profile/theme contr
   assert.match(home, /lastTrackedSearchRef/);
   assert.match(home, /fetch\('\/api\/search-analytics'/);
   assert.match(home, /className="dilz-view-switcher__count"/);
-  assert.match(home, /className="dilz-map-quick-btn"/);
-  assert.match(home, /className="dilz-layout-toggle"/);
-  assert.match(home, /aria-pressed=\{dealLayout === option\.id\}/);
+  // The map button and the three-icon layout toggle are now one ViewMenu
+  // trigger on the filter row; every view they offered is still reachable.
+  assert.match(home, /<ViewMenu/);
+  assert.doesNotMatch(home, /className="dilz-map-quick-btn"/);
+  assert.doesNotMatch(home, /className="dilz-layout-toggle"/);
+  assert.match(home, /const DEAL_VIEWS = \[/);
   assert.doesNotMatch(home, /dilz-view-switcher__select-wrap--display/);
   assert.match(home, /className="dilz-view-switcher__select-wrap"/);
   assert.match(home, /className="dilz-view-switcher__select-chevron"/);

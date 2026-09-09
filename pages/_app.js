@@ -4,7 +4,6 @@ import { Analytics } from '@vercel/analytics/next';
 import '../styles/globals.css'
 import '../styles/premium-refresh.css'
 import { initializeNativeApp } from '../lib/nativeApp';
-import { AppMessages } from '../components/ui/AppMessages';
 import { GlobalBottomNav } from '../components/layout/GlobalBottomNav';
 import { THEME_STORAGE_KEY, THEME_CLASSES } from '../lib/themePreference';
 
@@ -31,7 +30,10 @@ export default function App({ Component, pageProps }) {
   return (
     <ThemeProvider attribute="class" defaultTheme="system" enableSystem themes={THEME_CLASSES} storageKey={THEME_STORAGE_KEY}>
       {showSplash && <DilzSplashScreen />}
-      <AppMessages />
+      {/* The admin announcement banner is no longer mounted: it sat above the
+          header, scrolled underneath it, and left a permanently smeared strip
+          across the top of every screen. AppMessages.js and /api/app-messages
+          are kept intact so the surface can be brought back deliberately. */}
       <Component {...pageProps} />
       <GlobalBottomNav />
       <Analytics />

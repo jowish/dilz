@@ -18,6 +18,7 @@ const [
   postForm,
   explore,
   messages,
+  viewMenu,
   promoCard,
   bottomNav,
   globalBottomNav,
@@ -34,6 +35,7 @@ const [
   read('components', 'deals', 'PostDealModal.js'),
   read('pages', 'explore.js'),
   read('components', 'ui', 'AppMessages.js'),
+  read('components', 'ui', 'ViewMenu.js'),
   read('components', 'deals', 'PromoCard.js'),
   read('components', 'layout', 'BottomNav.js'),
   read('components', 'layout', 'GlobalBottomNav.js'),
@@ -76,12 +78,16 @@ test('header uses one responsive search experience without duplicate theme contr
 
 test('feed toolbar keeps filters, deal count, map and three layouts available', () => {
   assert.match(home, /className="dilz-view-switcher__count" aria-live="polite"/);
-  assert.match(home, /className="dilz-map-quick-btn"/);
-  assert.match(home, /className="dilz-layout-toggle"/);
-  for (const layout of ['card', 'spotlight', 'compact']) {
+  // One ViewMenu control now covers the map and all three card layouts,
+  // and it lives on the filter row rather than a second row of its own.
+  assert.match(home, /<ViewMenu/);
+  assert.doesNotMatch(home, /className="dilz-map-quick-btn"/);
+  assert.doesNotMatch(home, /className="dilz-layout-toggle"/);
+  for (const layout of ['card', 'spotlight', 'compact', 'map']) {
     assert.match(home, new RegExp(`id: '${layout}'`));
   }
-  assert.match(home, /aria-pressed=\{dealLayout === option\.id\}/);
+  assert.match(viewMenu, /aria-checked=\{option\.id === value\}/);
+  assert.match(viewMenu, /aria-haspopup="menu"/);
   assert.match(premiumCss, /\.dilz-deal-toolbar\s*\{[^}]*display:\s*flex !important/s);
   assert.match(premiumCss, /@media \(max-width: 767px\)[\s\S]*\.dilz-deal-toolbar\s*\{[^}]*display:\s*grid !important/s);
 });
