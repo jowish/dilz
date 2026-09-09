@@ -126,13 +126,6 @@ function isPrimaryDealFilterActive(id, { sortDeals, categoryFilter, myDealsOnly,
   return sortDeals === id;
 }
 
-function selectedOtherDealFilter({ sortDeals, categoryFilter, myDealsOnly, dealCollection }) {
-  if (myDealsOnly) return 'mine';
-  if (dealCollection === 'active') return 'active';
-  if (categoryFilter !== 'all') return categoryFilter;
-  if (PRIMARY_DEAL_FILTERS.includes(sortDeals)) return '';
-  return sortDeals || '';
-}
 
 function SearchGlyphIcon() {
   return (
@@ -1408,7 +1401,6 @@ export default function Home() {
   const visibleDeals = dealCollection === 'active'
     ? displayedDeals.filter((deal) => !dealIsExpired(deal))
     : displayedDeals;
-  const displayedDealCount = dealCollection === 'all' ? dealTotal : visibleDeals.length;
   const composedDeals = composeFeedWithPinnedAndAds(visibleDeals, ads);
 
   if (!mounted) return null;
@@ -1473,44 +1465,14 @@ export default function Home() {
                     {view.label}
                   </button>
                 ))}
-                <span className="dilz-view-switcher__select-wrap">
-                  <select
-                    className="dilz-view-switcher__select"
-                    value={selectedOtherDealFilter({ sortDeals, categoryFilter, myDealsOnly, dealCollection })}
-                    onChange={(event) => {
-                      const nextView = dealViewState(event.target.value || 'all', readDealSortPreference());
-                      setMyDealsOnly(nextView.myDealsOnly);
-                      setDealCollection(nextView.collection);
-                      setCategoryFilter(nextView.category);
-                      setSortDeals(nextView.sort);
-                      writeSessionDealSort(nextView.sort);
-                    }}
-                    aria-label="Other filters"
-                  >
-                    <option value="">{lang === 'he' ? 'עוד' : 'More'}</option>
-                    <option value="active">{lang === 'he' ? 'פעילים' : 'Active'}</option>
-                    <option value="all">{lang === 'he' ? 'הכל' : 'All'}</option>
-                    {userCoords && <option value="nearby">{lang === 'he' ? 'קרוב אליי' : 'Near me'}</option>}
-                    <option value="ending">{lang === 'he' ? 'מסתיימים בקרוב' : 'Ending soon'}</option>
-                    {DEAL_CATEGORIES.map((category) => (
-                      <option key={category} value={category}>{getDealCategoryLabel(category, lang)}</option>
-                    ))}
-                    {user && <option value="mine">{lang === 'he' ? 'הדילים שלי' : 'My deals'}</option>}
-                  </select>
-                  <span className="dilz-view-switcher__select-chevron" aria-hidden="true" />
-                </span>
                 </div>
                 <div className="dilz-feed-controls">
-                  <span className="dilz-view-switcher__count" aria-live="polite">
-                    <strong>{displayedDealCount}</strong>
-                    <span>{lang === 'he' ? 'דילים' : 'deals'}</span>
-                  </span>
-                  {/* One control for every way of looking at the feed, on the
-                      same row as New/Hot/Discussed — replacing the map button
-                      and the three-icon layout toggle that used to own a
-                      second row. It sits outside .dilz-view-switcher because
-                      that strip scrolls horizontally, which would clip both
-                      the trigger and the menu it opens. */}
+                  {/* The only thing left on this side of the row. The deal
+                      count and the "More" filter dropdown were removed as
+                      unused; see the note above DEAL_VIEWS for what the More
+                      list used to reach. It sits outside .dilz-view-switcher
+                      because that strip scrolls horizontally, which would clip
+                      both the trigger and the menu it opens. */}
                   <ViewMenu
                     lang={lang}
                     value={dealLayout}
