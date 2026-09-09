@@ -8714,7 +8714,10 @@ body { touch-action: pan-y; }
   background: var(--bg-app);
   color: var(--text-primary);
   pointer-events: none;
-  animation: dilzSplashFade 260ms ease-out 1600ms forwards;
+  /* The fade used to start at 1600ms to meet a fixed 1800ms unmount. The
+     splash now unmounts as soon as the app has painted (600ms floor), so
+     the fade starts just inside that floor and still plays in full. */
+  animation: dilzSplashFade 260ms ease-out 400ms forwards;
 }
 
 .dilz-splash-screen__card {

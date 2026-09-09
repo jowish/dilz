@@ -60,6 +60,11 @@ export function DealCard({
   // others: when it was posted, who posted it and how established they are,
   // the discount beside the price, and a direct way in.
   const isRow = layout === 'spotlight';
+  // How wide the photo actually renders, so we stop asking the optimizer for
+  // twice the pixels the slot can show. Measured at 393px/DPR 3: the row
+  // card's media box is 104 CSS px, i.e. ~312 device px — it was requesting
+  // 640. The card and compact layouts render much wider and keep 640.
+  const mediaWidth = (layout === 'spotlight' || layout === 'list') ? 384 : 640;
   const postedAgo = deal.created_at ? timeAgoLong(deal.created_at, lang) : null;
   // null for online deals — the availability slot already says "Online", and
   // printing it here as well is what produced "Online · Online".
@@ -134,7 +139,7 @@ export function DealCard({
       <div className="dilz-deal-card__media">
         {primaryImage ? (
           <img
-            src={optimizedImageUrl(primaryImage, { width: 640, quality: 70 })}
+            src={optimizedImageUrl(primaryImage, { width: mediaWidth, quality: 70 })}
             alt={deal.titre}
             // Off-screen cards must not download their photo. A 25-deal page
             // was fetching every full-size image up front just to show the
