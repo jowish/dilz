@@ -57,19 +57,21 @@ test('recent header fixes stay aligned and free of duplicate profile/theme contr
   assert.doesNotMatch(profile, /ThemeToggle/);
   assert.doesNotMatch(profile, /dilz-theme-toggle/);
   assert.doesNotMatch(home, /ThemeToggle/);
-  assert.match(home, /className="dilz-view-switcher__select"/);
   assert.match(home, /\{ id: 'latest', label: lang === 'he' \? '[^']+' : 'New' \}/);
   assert.match(home, /\{ id: 'all', label: lang === 'he' \? '[^']+' : 'Hot' \}/);
   assert.match(home, /\{ id: 'comments', label: lang === 'he' \? '[^']+' : 'Discussed' \}/);
   assert.doesNotMatch(home, /\{ id: 'active', label: 'Active' \}/);
   assert.match(home, /dealCollection === 'active'/);
   assert.match(home, /visibleDeals = dealCollection === 'active'/);
-  assert.match(home, /<option value="">\{lang === 'he' \? '[^']+' : 'More'\}<\/option>/);
-  assert.match(home, /<option value="active">\{lang === 'he' \? '[^']+' : 'Active'\}<\/option>/);
-  assert.match(home, /<option value="ending">\{lang === 'he' \? '[^']+' : 'Ending soon'\}<\/option>/);
   assert.match(home, /lastTrackedSearchRef/);
   assert.match(home, /fetch\('\/api\/search-analytics'/);
-  assert.match(home, /className="dilz-view-switcher__count"/);
+  // The deal count and the "More" filter dropdown were removed as unused.
+  // What More reached — Active/All/Near me/Ending soon, the category list
+  // and "My deals" — is no longer reachable from the feed toolbar; the
+  // underlying state and URL parameters are untouched.
+  assert.doesNotMatch(home, /dilz-view-switcher__count/);
+  assert.doesNotMatch(home, /dilz-view-switcher__select/);
+  assert.doesNotMatch(home, /selectedOtherDealFilter/);
   // The map button and the three-icon layout toggle are now one ViewMenu
   // trigger on the filter row; every view they offered is still reachable.
   assert.match(home, /<ViewMenu/);
@@ -77,18 +79,14 @@ test('recent header fixes stay aligned and free of duplicate profile/theme contr
   assert.doesNotMatch(home, /className="dilz-layout-toggle"/);
   assert.match(home, /const DEAL_VIEWS = \[/);
   assert.doesNotMatch(home, /dilz-view-switcher__select-wrap--display/);
-  assert.match(home, /className="dilz-view-switcher__select-wrap"/);
-  assert.match(home, /className="dilz-view-switcher__select-chevron"/);
   assert.match(home, /const \[showDealToolbar, setShowDealToolbar\] = useState\(true\)/);
   assert.match(home, /lastDealScrollYRef/);
   assert.match(home, /delta < -4[\s\S]*setShowDealToolbar\(true\)/);
   assert.match(home, /delta > 4 && currentY > 30[\s\S]*setShowDealToolbar\(false\)/);
   assert.match(home, /className=\{\['dilz-deal-toolbar', !showDealToolbar && 'is-hidden'\]/);
-  assert.match(premiumCss, /\.dilz-view-switcher__select\s*\{[^}]*background:\s*transparent !important[^}]*color:\s*var\(--text-secondary\) !important/s);
   assert.match(premiumCss, /\.dilz-deal-toolbar\s*\{[^}]*top:\s*64px !important[^}]*display:\s*flex !important/s);
   assert.match(css, /\.dilz-deal-toolbar\.is-hidden\s*\{[^}]*opacity:\s*0[^}]*pointer-events:\s*none/s);
   assert.match(premiumCss, /@media \(max-width: 767px\)[\s\S]*\.dilz-deal-toolbar\s*\{[^}]*top:\s*109px !important[^}]*display:\s*grid !important/s);
-  assert.match(css, /\.dilz-view-switcher__select-chevron\s*\{[^}]*border-right:\s*2px solid currentColor[^}]*transform:\s*translateY\(-65%\) rotate\(45deg\)/s);
   assert.match(premiumCss, /@media \(max-width: 767px\)[\s\S]*\.dilz-deal-toolbar \.dilz-view-switcher\s*\{[^}]*display:\s*flex !important[^}]*overflow-x:\s*auto !important/s);
   assert.match(premiumCss, /@media \(max-width: 767px\)[\s\S]*\.dilz-app-header__search\s*\{[^}]*display:\s*none !important/s);
   assert.match(premiumCss, /@media \(max-width: 767px\)[\s\S]*\.dilz-mobile-search\s*\{[^}]*display:\s*block !important/s);
