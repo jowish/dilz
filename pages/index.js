@@ -431,12 +431,16 @@ function SearchTab({ deals, lang, isDark, userCoords, savedKeys, onToggleSave, v
             <h2>{lang === 'he' ? 'דילים מהקהילה' : 'Community deals'}</h2>
             <span>{mDeals.length}</span>
           </div>
-          <div className="dilz-search-deal-results">
+          {/* The row layout, same as the feed. This used to pass layout="list",
+              a legacy value whose CSS is all scoped under
+              `.dilz-feed-grid.is-list` — a parent this container did not have,
+              so none of it applied and the photo overlapped the title. */}
+          <div className="dilz-search-deal-results dilz-feed-grid is-spotlight">
           {mDeals.slice(0, 5).map(d => (
             <PremiumDealCard key={d.id} deal={d} lang={lang} isDark={isDark}
               userCoords={userCoords} votedDeal={votedDeals[d.id] || null}
               onVote={onDealVote} user={user}
-              layout="list"
+              layout="spotlight"
               isAdmin={isAdmin}
               onAdminDelete={onAdminDeleteDeal}
               isSaved={Boolean(savedKeys[`deal:${d.id}`])}
