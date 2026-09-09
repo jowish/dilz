@@ -215,7 +215,9 @@ test('display controls expose map and three explicit compact layouts', () => {
   assert.match(home, /function CardLayoutIcon\(\)/);
   assert.match(home, /function RowLayoutIcon\(\)/);
   assert.match(home, /function CompactLayoutIcon\(\)/);
-  assert.match(home, /className="dilz-view-switcher__count"/);
+  // The deal count and the "More" filter dropdown were removed as unused.
+  assert.doesNotMatch(home, /dilz-view-switcher__count/);
+  assert.doesNotMatch(home, /dilz-view-switcher__select/);
   // The map button and the three-icon layout toggle were replaced by one
   // ViewMenu trigger that opens a menu. All four views are still reachable
   // and each still has its own icon — they just cost one tap target now

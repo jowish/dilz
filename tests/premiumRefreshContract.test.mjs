@@ -77,7 +77,9 @@ test('header uses one responsive search experience without duplicate theme contr
 });
 
 test('feed toolbar keeps filters, deal count, map and three layouts available', () => {
-  assert.match(home, /className="dilz-view-switcher__count" aria-live="polite"/);
+  // Count and "More" dropdown removed; the row is the three sorts plus View.
+  assert.doesNotMatch(home, /dilz-view-switcher__count/);
+  assert.doesNotMatch(home, /dilz-view-switcher__select-wrap/);
   // One ViewMenu control now covers the map and all three card layouts,
   // and it lives on the filter row rather than a second row of its own.
   assert.match(home, /<ViewMenu/);
