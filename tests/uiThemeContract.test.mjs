@@ -5,6 +5,7 @@ import path from 'node:path';
 
 const css = await readFile(path.join(process.cwd(), 'styles', 'globals.css'), 'utf8');
 const bottomNav = await readFile(path.join(process.cwd(), 'components', 'layout', 'BottomNav.js'), 'utf8');
+const premiumCss = await readFile(path.join(process.cwd(), 'styles', 'premium-refresh.css'), 'utf8');
 
 test('mobile navigation uses the compact liquid-glass bar contract', () => {
   assert.match(css, /--dilz-tabbar-height:\s*80px/);
@@ -88,4 +89,46 @@ test('desktop pages keep the document as the only vertical scroller', () => {
   assert.match(css, /body,\s*#__next\s*\{\s*overflow:\s*visible;\s*\}/s);
   assert.doesNotMatch(css, /html,\s*body,\s*#__next\s*\{[^}]*overflow-y:\s*auto/s);
   assert.doesNotMatch(css, /overscroll-behavior-y:\s*auto/s);
+});
+
+test('the sticky top bars are solid — no blur may reach them from either stylesheet', () => {
+  // This one bit twice. globals.css has set `backdrop-filter: none !important`
+  // on .dilz-app-header for a while, and Chromium honoured it, so every
+  // measurement said the header was unfiltered. iOS Safari and WKWebView read
+  // -webkit-backdrop-filter instead, and premium-refresh.css — which loads
+  // after globals.css — still declared the blur there, because the CSS build
+  // collapses a backdrop-filter/-webkit- pair down to the alias alone. The
+  // blur was live on the phone and invisible in every test.
+  //
+  // So the guard is on the source text, not on a computed value: no rule in
+  // either stylesheet may put a backdrop-filter of any spelling on a top bar,
+  // and the bars stay fully opaque so the feed cannot show through the band
+  // under the status bar while scrolling.
+  const topBarRules = (source) => {
+    const rules = [];
+    for (const match of source.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
+      const [, selector, body] = match;
+      if (/\.dilz-(app-header|discovery-header|alerts-route__header)\b/.test(selector)
+          && !/__inner|__left|__right|__search|logo|button|h2|\sp\b/.test(selector)) {
+        rules.push({ selector: selector.trim(), body });
+      }
+    }
+    return rules;
+  };
+
+  for (const [name, source] of [['globals.css', css], ['premium-refresh.css', premiumCss]]) {
+    for (const { selector, body } of topBarRules(source)) {
+      const declarations = body.split(';').filter((d) => /backdrop-filter/.test(d));
+      for (const declaration of declarations) {
+        assert.match(declaration, /:\s*none/,
+          `${name}: "${selector}" must not blur a top bar — found "${declaration.trim()}"`);
+      }
+    }
+  }
+
+  // Opaque, via the theme token, so every theme gets a solid bar.
+  assert.match(premiumCss, /\.dilz-app-header\s*\{[^}]*background:\s*var\(--bg-app\) !important/s);
+  assert.match(premiumCss, /\.dark \.dilz-app-header\s*\{[^}]*background:\s*var\(--bg-app\) !important/s);
+  assert.match(premiumCss, /\.dilz-alerts-route__header,\s*\.dilz-discovery-header\s*\{[^}]*background:\s*var\(--bg-app\) !important/s);
+  assert.doesNotMatch(premiumCss, /\.dilz-app-header\s*\{[^}]*background:\s*rgba\([^)]*0\.88\)/s);
 });

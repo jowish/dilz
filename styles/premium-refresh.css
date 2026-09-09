@@ -12,7 +12,7 @@ body {
 }
 
 ::selection {
-  background: rgba(249, 115, 22, 0.22);
+  background: rgba(var(--accent-rgb), 0.22);
 }
 
 .dilz-app-frame,
@@ -104,17 +104,33 @@ body {
 
 /* Header ---------------------------------------------------------------- */
 
+/* Opaque, and not frosted. This is where the permanent smear across the
+   top of the app came from, and why it survived being "removed" before.
+
+   globals.css already sets `backdrop-filter: none !important` on this
+   selector, and the build does emit both that and its -webkit- alias. The
+   catch was on this side: the build collapsed the pair below into the
+   -webkit- alias alone and dropped the unprefixed declaration. So Chromium,
+   which reads the unprefixed property, honoured globals and showed no blur
+   — every measurement taken in a headless Chrome said "none" — while iOS
+   Safari and WKWebView, which only understand -webkit-backdrop-filter, took
+   this rule instead, because premium-refresh.css loads after globals.css.
+   The blur was live on the phone and invisible in every test.
+
+   Deleting the declarations here removes it on both engines. The 0.88 alpha
+   goes with it: a see-through header let the feed scroll visibly through the
+   band under the status bar, which is the other half of what looked like the
+   top of the app "moving" while scrolling. The header is now a solid bar and
+   nothing passes behind it. */
 .dilz-app-header {
   top: 0 !important;
   border-bottom: 1px solid var(--border-soft) !important;
-  background: rgba(248, 250, 252, 0.88) !important;
+  background: var(--bg-app) !important;
   box-shadow: none !important;
-  backdrop-filter: saturate(150%) blur(20px) !important;
-  -webkit-backdrop-filter: saturate(150%) blur(20px) !important;
 }
 
 .dark .dilz-app-header {
-  background: rgba(7, 11, 18, 0.88) !important;
+  background: var(--bg-app) !important;
 }
 
 .dilz-app-header__inner {
@@ -310,7 +326,7 @@ body {
 }
 
 .dilz-view-switcher button.is-active {
-  border-color: rgba(249, 115, 22, 0.24) !important;
+  border-color: rgba(var(--accent-rgb), 0.24) !important;
   background: var(--brand-soft) !important;
   color: var(--brand) !important;
 }
@@ -1290,19 +1306,18 @@ body {
 
 /* Explore -------------------------------------------------------------- */
 
+/* Same story as .dilz-app-header above: opaque, no backdrop-filter. */
 .dilz-alerts-route__header,
 .dilz-discovery-header {
   min-height: 60px !important;
   border-bottom: 1px solid var(--border-soft) !important;
-  background: rgba(248, 250, 252, 0.90) !important;
+  background: var(--bg-app) !important;
   box-shadow: none !important;
-  backdrop-filter: saturate(150%) blur(20px) !important;
-  -webkit-backdrop-filter: saturate(150%) blur(20px) !important;
 }
 
 .dark .dilz-alerts-route__header,
 .dark .dilz-discovery-header {
-  background: rgba(7, 11, 18, 0.90) !important;
+  background: var(--bg-app) !important;
 }
 
 .dilz-explore-main {
@@ -1354,7 +1369,7 @@ body {
 .dilz-explore-card.is-featured {
   grid-column: 1 / -1;
   min-height: 104px !important;
-  border-color: rgba(249, 115, 22, 0.22) !important;
+  border-color: rgba(var(--accent-rgb), 0.22) !important;
   background: var(--brand-softer) !important;
 }
 
@@ -1651,7 +1666,7 @@ body {
 }
 
 .dilz-deal-vote-btn.is-hot {
-  border-color: rgba(249, 115, 22, 0.24) !important;
+  border-color: rgba(var(--accent-rgb), 0.24) !important;
   background: var(--brand-soft) !important;
   color: var(--brand) !important;
 }
@@ -2436,7 +2451,7 @@ body {
 .dilz-auth-card .dilz-segmented button[aria-selected="true"],
 .dark .dilz-auth-card .dilz-segmented button.is-active,
 .dark .dilz-auth-card .dilz-segmented button[aria-selected="true"] {
-  border-color: rgba(249, 115, 22, 0.24) !important;
+  border-color: rgba(var(--accent-rgb), 0.24) !important;
   background: var(--brand-soft) !important;
   color: var(--brand) !important;
   box-shadow: none !important;

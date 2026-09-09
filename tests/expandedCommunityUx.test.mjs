@@ -216,11 +216,18 @@ test('display controls expose map and three explicit compact layouts', () => {
   assert.match(home, /function RowLayoutIcon\(\)/);
   assert.match(home, /function CompactLayoutIcon\(\)/);
   assert.match(home, /className="dilz-view-switcher__count"/);
-  assert.match(home, /className="dilz-map-quick-btn"/);
-  assert.match(home, /className="dilz-layout-toggle"/);
-  assert.match(home, /aria-pressed=\{dealLayout === option\.id\}/);
+  // The map button and the three-icon layout toggle were replaced by one
+  // ViewMenu trigger that opens a menu. All four views are still reachable
+  // and each still has its own icon — they just cost one tap target now
+  // instead of four, and the control moved onto the filter row.
+  assert.doesNotMatch(home, /className="dilz-map-quick-btn"/);
+  assert.doesNotMatch(home, /className="dilz-layout-toggle"/);
+  for (const view of ['spotlight', 'card', 'compact', 'map']) {
+    assert.match(home, new RegExp(`id: '${view}'`));
+  }
+  assert.match(home, /<MapLayoutIcon \/>/);
+  assert.match(home, /option\.id === 'map' \? openMap\(\) : changeDealLayout\(option\.id\)/);
   assert.match(premiumCss, /\.dilz-deal-toolbar\s*\{[^}]*display:\s*flex/s);
-  assert.match(premiumCss, /\.dilz-layout-toggle\s*\{[^}]*display:\s*inline-flex/s);
   assert.match(premiumCss, /@media \(max-width: 767px\)[\s\S]*\.dilz-deal-toolbar\s*\{[^}]*display:\s*grid/s);
 });
 
