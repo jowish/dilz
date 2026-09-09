@@ -693,8 +693,6 @@ textarea:focus {
   z-index: 120;
   background: var(--header-bg);
   border-bottom: 1px solid rgba(226, 232, 240, 0.8);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
 }
 
 .dilz-app-header__inner {
@@ -7313,7 +7311,6 @@ textarea::placeholder {
   z-index: 20;
   border-bottom: 1px solid #ececec;
   background: rgba(255, 255, 255, 0.96);
-  backdrop-filter: blur(16px);
 }
 
 .dilz-discovery-header__inner {
@@ -8918,7 +8915,6 @@ body,
   background: var(--header-bg) !important;
   border-bottom: 1px solid var(--border-soft) !important;
   box-shadow: none !important;
-  backdrop-filter: blur(16px);
 }
 
 .dilz-card,
