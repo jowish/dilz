@@ -280,7 +280,8 @@ body {
 /* Feed controls --------------------------------------------------------- */
 
 .dilz-deal-toolbar {
-  top: 64px !important;
+  /* Header height + the notch, both from the tokens in globals.css. */
+  top: calc(var(--dilz-header-block) + var(--dilz-safe-top)) !important;
   z-index: 105 !important;
   display: flex !important;
   align-items: center;
@@ -2741,7 +2742,10 @@ body {
   }
 
   .dilz-deal-toolbar {
-    top: 109px !important;
+    /* Was a hardcoded 109px — the header's height with the notch left out,
+       which parked 60px of this bar behind the header on a Dynamic Island
+       phone (measured). */
+    top: calc(var(--dilz-header-block) + var(--dilz-safe-top)) !important;
     display: grid !important;
     grid-template-columns: minmax(0, 1fr);
     gap: 7px !important;

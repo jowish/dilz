@@ -1080,7 +1080,11 @@ textarea:focus {
 /* Deal filters hide on downward scroll and return as soon as the user scrolls up. */
 .dilz-deal-toolbar {
   position: sticky;
-  top: 68px;
+  /* Sticks flush under .dilz-app-header — see --dilz-header-block further
+     down this file. Never a bare pixel value: the header is that tall PLUS
+     the notch, and hardcoding one number here hides the bar behind the
+     header by exactly the height of the status bar. */
+  top: calc(var(--dilz-header-block) + var(--dilz-safe-top));
   z-index: 110;
   background: var(--bg);
   /* Opaque padding above + below the filters so, when the bar reappears stuck
@@ -8992,7 +8996,7 @@ select:focus,
 
 @media (max-width: 767px) {
   .dilz-deal-toolbar {
-    top: 58px;
+    top: calc(var(--dilz-header-block) + var(--dilz-safe-top));
   }
 
   /* Keep all deal filters and the display dropdown on one row without
@@ -9802,8 +9806,38 @@ select:focus,
    rules — set in more than one place in this file — keep controlling the
    header's actual content height unchanged; this only adds clearance
    above them. */
+/* The inset is added to the header exactly once, here. The catch is that the
+   header's HEIGHT is what other elements pin themselves against, and that
+   height was copied by hand into the sticky filter bar's `top` before this
+   padding existed — so the bar's offset described a header with no notch.
+   Both halves now come from these two tokens, so the notch is counted once
+   and only once:
+
+     --dilz-safe-top     the system inset, read from the OS
+     --dilz-header-block .dilz-app-header's own content height, WITHOUT the
+                         inset: its __inner row, plus .dilz-mobile-search
+                         when that is shown
+
+   Anything pinning itself below the header uses
+   calc(var(--dilz-header-block) + var(--dilz-safe-top)). Change a header
+   height rule and you must change --dilz-header-block with it. */
+:root {
+  --dilz-safe-top: env(safe-area-inset-top, 0px);
+  /* Desktop: .dilz-app-header__inner is 64px and .dilz-mobile-search is
+     hidden, so the header's content is that one row. */
+  --dilz-header-block: 64px;
+}
+
+@media (max-width: 767px) {
+  :root {
+    /* Mobile: __inner (54px) + .dilz-mobile-search (44px search bar + 11px
+       below it) = 109px. */
+    --dilz-header-block: 109px;
+  }
+}
+
 .dilz-app-header {
-  padding-top: env(safe-area-inset-top, 0px) !important;
+  padding-top: var(--dilz-safe-top) !important;
 }
 
 /* ── Top bars are solid, not frosted glass ──────────────────────────────
