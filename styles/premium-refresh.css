@@ -12,7 +12,7 @@ body {
 }
 
 ::selection {
-  background: rgba(249, 115, 22, 0.22);
+  background: rgba(var(--accent-rgb), 0.22);
 }
 
 .dilz-app-frame,
@@ -310,7 +310,7 @@ body {
 }
 
 .dilz-view-switcher button.is-active {
-  border-color: rgba(249, 115, 22, 0.24) !important;
+  border-color: rgba(var(--accent-rgb), 0.24) !important;
   background: var(--brand-soft) !important;
   color: var(--brand) !important;
 }
@@ -1354,7 +1354,7 @@ body {
 .dilz-explore-card.is-featured {
   grid-column: 1 / -1;
   min-height: 104px !important;
-  border-color: rgba(249, 115, 22, 0.22) !important;
+  border-color: rgba(var(--accent-rgb), 0.22) !important;
   background: var(--brand-softer) !important;
 }
 
@@ -1651,7 +1651,7 @@ body {
 }
 
 .dilz-deal-vote-btn.is-hot {
-  border-color: rgba(249, 115, 22, 0.24) !important;
+  border-color: rgba(var(--accent-rgb), 0.24) !important;
   background: var(--brand-soft) !important;
   color: var(--brand) !important;
 }
@@ -2436,7 +2436,7 @@ body {
 .dilz-auth-card .dilz-segmented button[aria-selected="true"],
 .dark .dilz-auth-card .dilz-segmented button.is-active,
 .dark .dilz-auth-card .dilz-segmented button[aria-selected="true"] {
-  border-color: rgba(249, 115, 22, 0.24) !important;
+  border-color: rgba(var(--accent-rgb), 0.24) !important;
   background: var(--brand-soft) !important;
   color: var(--brand) !important;
   box-shadow: none !important;

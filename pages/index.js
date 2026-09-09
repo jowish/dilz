@@ -12,6 +12,7 @@ import { CityModal } from '../components/ui/CityModal';
 import { Button } from '../components/ui/Button';
 import { EmptyState } from '../components/ui/EmptyState';
 import { ErrorToast } from '../components/ui/ErrorToast';
+import { ViewMenu } from '../components/ui/ViewMenu';
 import { readDealSortPreference, readSessionDealSort, readStoredDealLayout, writeDealLayoutPreference, writeSessionDealSort } from '../lib/userPreferences';
 import { DEFAULT_DEAL_LAYOUT, dealViewState, resolveDealLayout, resolveDealSort, sortDealsForView } from '../lib/navigationState';
 import { composeFeedWithPinnedAndAds } from '../lib/feedComposition';
@@ -152,6 +153,17 @@ function NoResultsIcon() {
     </svg>
   );
 }
+
+// Every way of looking at the feed, in one list: the three card layouts plus
+// the map. It drives the single ViewMenu control in the filter row — the map
+// entry navigates instead of changing the layout, which is why the id is
+// checked at the call site rather than encoded here.
+const DEAL_VIEWS = [
+  { id: 'spotlight', label: { en: 'Rows', he: 'שורות' }, icon: <RowLayoutIcon /> },
+  { id: 'card', label: { en: 'Cards', he: 'כרטיסים' }, icon: <CardLayoutIcon /> },
+  { id: 'compact', label: { en: 'Small cards', he: 'כרטיסים קטנים' }, icon: <CompactLayoutIcon /> },
+  { id: 'map', label: { en: 'Map', he: 'מפה' }, icon: <MapLayoutIcon /> },
+];
 
 function CardLayoutIcon() {
   return (
@@ -1493,34 +1505,18 @@ export default function Home() {
                     <strong>{displayedDealCount}</strong>
                     <span>{lang === 'he' ? 'דילים' : 'deals'}</span>
                   </span>
-                  <button
-                    type="button"
-                    className="dilz-map-quick-btn"
-                    onClick={openMap}
-                    aria-label={lang === 'he' ? 'תצוגת מפה' : 'Map view'}
-                    title={lang === 'he' ? 'מפה' : 'Map'}
-                  >
-                    <MapLayoutIcon />
-                  </button>
-                  <div className="dilz-layout-toggle" role="group" aria-label={lang === 'he' ? 'אפשרויות תצוגה' : 'Display options'}>
-                    {[
-                      { id: 'card', label: lang === 'he' ? 'כרטיסים' : 'Cards', icon: <CardLayoutIcon /> },
-                      { id: 'spotlight', label: lang === 'he' ? 'שורות' : 'Rows', icon: <RowLayoutIcon /> },
-                      { id: 'compact', label: lang === 'he' ? 'כרטיסים קטנים' : 'Small cards', icon: <CompactLayoutIcon /> },
-                    ].map((option) => (
-                      <button
-                        key={option.id}
-                        type="button"
-                        className={dealLayout === option.id ? 'is-active' : ''}
-                        onClick={() => changeDealLayout(option.id)}
-                        aria-label={option.label}
-                        aria-pressed={dealLayout === option.id}
-                        title={option.label}
-                      >
-                        {option.icon}
-                      </button>
-                    ))}
-                  </div>
+                  {/* One control for every way of looking at the feed, on the
+                      same row as New/Hot/Discussed — replacing the map button
+                      and the three-icon layout toggle that used to own a
+                      second row. It sits outside .dilz-view-switcher because
+                      that strip scrolls horizontally, which would clip both
+                      the trigger and the menu it opens. */}
+                  <ViewMenu
+                    lang={lang}
+                    value={dealLayout}
+                    options={DEAL_VIEWS.map((view) => ({ ...view, label: view.label[lang === 'he' ? 'he' : 'en'] }))}
+                    onSelect={(option) => (option.id === 'map' ? openMap() : changeDealLayout(option.id))}
+                  />
                 </div>
               </div>
 
